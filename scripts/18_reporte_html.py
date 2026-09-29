@@ -839,12 +839,26 @@ an_cob = pd.read_csv("out/anomalias_cobertura_pl.csv")
 an_ceros = pd.read_csv("out/anomalias_ceros_pl.csv")
 an_fila = lambda serie: an_h.set_index("serie").loc[serie]
 fmt_p = lambda p: "&lt; 0.001" if p < 0.001 else f"{p:.3f}"
+fmt_p_eq = lambda p: "&lt; 0.001" if p < 0.001 else f"= {p:.3f}"     # para escribir «p < 0.001» o «p = 0.006»
+fmt_mes_an = lambda p: fmt_mes(pd.Period(p, "M"))
+nota_enso = f"""  <p class="nota">Color de las fechas, según el Índice Oceánico El Niño (ONI) de la NOAA ({CITA_ONI}):
+  <span class="fase-nino">rojo</span>, el mes cae dentro de un episodio de El Niño;
+  <span class="fase-nina">azul</span>, dentro de uno de La Niña; sin color, ninguno de los dos. Un episodio
+  exige al menos 5 trimestres móviles seguidos con el ONI en +0.5 °C o más (El Niño) o en −0.5 °C o menos
+  (La Niña).</p>"""
+
+
+def fecha_anomala(p):
+    """Mes marcado como anómalo: con el color de su fase ENSO (como en «Revisión de outliers»), o en
+    negrita si no cae en El Niño ni en La Niña."""
+    p = pd.Period(p, "M")
+    return fecha_enso(p) if CLASE_FASE.get(oni_fase.get(p, "neutro")) else f"<span class='fase-neutra'>{fmt_mes(p)}</span>"
 an_pl = an_h[an_h.serie.str.startswith("PL")]
 an_pl_sig = an_pl[an_pl.significativo]
 an_pl_ok = an_pl[~an_pl.significativo]
 filas_an = "\n".join(
     f"<tr><td>{html.escape(s)}</td><td class='detalle'>{html.escape(ref)}</td><td class='num'>{m}</td>"
-    f"<td class='num'>{pm}</td><td class='num{' res-revisar' if sig else ''}'>{fmt_p(p)}</td>"
+    f"<td class='num'>{fecha_anomala(pm) if sig else fmt_mes_an(pm)}</td><td class='num{' res-revisar' if sig else ''}'>{fmt_p(p)}</td>"
     f"<td class='num'>{a:.2f}</td><td class='num'>{d:.2f}</td><td class='num'>{c:+.0f} %</td></tr>"
     for s, ref, m, pm, p, sig, a, d, c in an_h[["serie", "referencia", "meses", "primer_mes_despues", "p",
                                                 "significativo", "razon_antes", "razon_despues", "cambio_pct"]].itertuples(index=False))
@@ -856,9 +870,8 @@ an_pi, an_q = an_fila("PI (IMERG)"), an_fila("Q")
 an_pv = an_fila("PL · Pueblo Viejo")
 an_ceros_fuera = an_ceros[an_ceros.dificil_de_creer]
 an_ceros_quedan = an_ceros[~an_ceros.dificil_de_creer]
-fmt_mes_an = lambda p: fmt_mes(pd.Period(p, "M"))
 filas_ceros = "\n".join(
-    f"<tr><td>{html.escape(pl_)}</td><td>{fmt_mes_an(m)}</td><td class='num'>{mn:.0f}</td><td class='num'>{pr:.0f}</td>"
+    f"<tr><td>{html.escape(pl_)}</td><td>{fecha_anomala(m) if dif else fmt_mes_an(m)}</td><td class='num'>{mn:.0f}</td><td class='num'>{pr:.0f}</td>"
     f"<td class='num'>{pi_:.0f}</td><td class='{'res-revisar' if dif else ''}'>{'se excluye' if dif else 'se conserva'}</td></tr>"
     for pl_, m, mn, pr, pi_, dif in an_ceros[["pluviometro", "periodo", "otros_minimo_mm", "otros_promedio_mm",
                                                "pi_mm", "dificil_de_creer"]].itertuples(index=False))
@@ -867,7 +880,7 @@ an_rachas_dia = an_rachas[~an_rachas.variable.str.startswith("PL")]
 an_sesgo = an_cob.sesgo_estimado_pct.abs()
 _nombre_pluvio = {c: cat_plu.loc[c, "etiqueta"] for c in cat_plu.index}
 exc_lista = "; ".join(
-    f"{_nombre_pluvio[c]} de {fmt_mes_an(d)} a {fmt_mes_an(h)}" if d != h else f"{_nombre_pluvio[c]} en {fmt_mes_an(d)}"
+    f"{_nombre_pluvio[c]} de {fmt_mes_an(d)} a {fmt_mes_an(h)}" if d != h else f"{_nombre_pluvio[c]} en {fecha_anomala(d)}"
     for c, d, h in exclusiones[["codigo", "desde", "hasta"]].itertuples(index=False))
 sesgo_pi_pl = (comp["IMERG"].mean() / comp["RED"].mean() - 1) * 100
 
@@ -1241,7 +1254,7 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .revision::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }}
 .formula {{ font: 500 16px/1.5 var(--f-dato); margin: 4px 0 12px; overflow-wrap: anywhere; }}
-td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
+td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
 td.res-anotado {{ background: var(--revision); }}
 td.res-nd {{ color: var(--tenue); }}
 td.detalle {{ font-size: 13px; min-width: 260px; }}
@@ -1250,6 +1263,8 @@ td.detalle {{ font-size: 13px; min-width: 260px; }}
 .bibliografia li {{ margin-bottom: 10px; overflow-wrap: anywhere; }}
 .bibliografia li:target {{ background: var(--acento-suave); }}
 .fase-nina {{ color: var(--nina); font-weight: 600; }}
+.fase-neutra {{ font-weight: 600; }}
+.fase-nino, .fase-nina, .fase-neutra {{ white-space: nowrap; }}
 td.atip-alto, .sin-destacar tbody tr:first-child td.atip-alto {{ background: var(--atip-alto); font-weight: 600; }}
 td.atip-bajo, .sin-destacar tbody tr:first-child td.atip-bajo {{ background: var(--atip-bajo); font-weight: 600; }}
 .pestanas {{ display: flex; flex-wrap: wrap; gap: 4px; margin-top: 18px; border-bottom: 1px solid var(--linea); }}
@@ -1621,17 +1636,17 @@ a {{ color: var(--acento); }}
   <p><b>{len(an_pl_ok)} de los {len(an_pl)} pluviómetros no tienen salto.</b> Los que sí:</p>
   <ul class="tratamiento">
     <li><b>Pueblo Viejo</b> mide {an_pv.razon_antes:.2f} veces lo que sus vecinos antes de
-    {fmt_mes_an(an_pv.primer_mes_despues)}, y {an_pv.razon_despues:.2f} desde entonces (<i>p</i> =
-    {fmt_p(an_pv.p)}). Es un problema de registro del primer tramo: sus vecinos no lo acompañan. <b>Ese tramo
+    {fecha_anomala(an_pv.primer_mes_despues)}, y {an_pv.razon_despues:.2f} desde entonces (<i>p</i>
+    {fmt_p_eq(an_pv.p)}). Es un problema de registro del primer tramo: sus vecinos no lo acompañan. <b>Ese tramo
     sale de PL.</b></li>
-    {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fmt_mes_an(pm)} (<i>p</i> = {fmt_p(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
+    {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fecha_anomala(pm)} (<i>p</i> {fmt_p_eq(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
   </ul>
-  <p><b>PI frente a PL: {an_pi.cambio_pct:+.0f} % desde {fmt_mes_an(an_pi.primer_mes_despues)}</b> (<i>p</i> =
-  {fmt_p(an_pi.p)}): antes PI era {an_pi.razon_antes:.2f} veces PL, después {an_pi.razon_despues:.2f}. El corte
+  <p><b>PI frente a PL: {an_pi.cambio_pct:+.0f} % desde {fecha_anomala(an_pi.primer_mes_despues)}</b> (<i>p</i>
+  {fmt_p_eq(an_pi.p)}): antes PI era {an_pi.razon_antes:.2f} veces PL, después {an_pi.razon_despues:.2f}. El corte
   cae en el cambio de era de IMERG. Hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
   de 2014 con GPM ({CITA_IMERG_DOC}). Ningún pluviómetro salta en esa fecha: el cambio es del producto. PI se
   conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene salto
-  (<i>p</i> = {fmt_p(an_q.p)}).</p>
+  (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
   <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
   cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
   pluviómetros no se pueden confirmar ni descartar con metadatos; el de IMERG, sí.</p>
@@ -1660,6 +1675,7 @@ a {{ color: var(--acento); }}
   ({len(an_cob)} meses), su valor se aleja del de los 7 un {an_sesgo.median():.1f} % en la mediana y un
   {an_sesgo.max():.1f} % como máximo. Se estima en los meses en que están los 7, con el mismo grupo de
   estaciones presentes. Queda como incertidumbre declarada; no se corrige.</p>
+{nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
   <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
   tramos excluidos: {exc_lista}.</p>
   </div>
@@ -1763,11 +1779,7 @@ a {{ color: var(--acento); }}
     atípicamente alta ({lista_meses(t_max_alta)}), en {_media_z(t_max_alta, "PL"):+.1f}.
     Un mes lluvioso es un mes nublado, con menos sol de día.</li>
   </ul>
-  <p class="nota">Color de las fechas, según el Índice Oceánico El Niño (ONI) de la NOAA ({CITA_ONI}):
-  <span class="fase-nino">rojo</span>, el mes cae dentro de un episodio de El Niño;
-  <span class="fase-nina">azul</span>, dentro de uno de La Niña; sin color, ninguno de los dos. Un episodio
-  exige al menos 5 trimestres móviles seguidos con el ONI en +0.5 °C o más (El Niño) o en −0.5 °C o menos
-  (La Niña).</p>
+{nota_enso}
   </details>
 </section>
 

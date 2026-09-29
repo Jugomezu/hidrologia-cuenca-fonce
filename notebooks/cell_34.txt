@@ -1,0 +1,17 @@
+--- idx=34 id=e8a3fcbe type=markdown ---
+**Lo que se ve.** Quitar 2016-2018 baja a Encino de 3 446 a 3 192 mm/año: un recorte de 255 mm/año, un
+7 %. Es un cambio real pero chico frente a lo que separa a Encino del resto de la red: sigue siendo, con
+margen amplio, la estación más lluviosa de las siete —la que le sigue, Escuela Agrícola Mogotes, mide
+2 839 mm/año, 353 mm/año menos que la Encino ya corregida— y sigue quedando cerca de 50 % por encima de
+lo que IMERG estima para su propia subcuenca, Nemizaque (2 128 mm/año); sin corregir estaba 62 % por
+encima. El gradiente altitudinal de la red, que en 1.6 ya salía plano y no significativo, tampoco se
+mueve de forma relevante al corregir Encino: pasa de −394 a −402 mm/año por cada 1 000 m, y sigue sin
+alcanzar significancia (p > 0.4 en los dos casos).
+
+**La lectura correcta no es que 2016-2018 fuera el problema de Encino.** Es que Encino mide de más
+durante todo el período de registro, no solo en esos tres años: quitar el tramo más extremo corrige una
+fracción menor del exceso (7 % de la lluvia anual) y deja casi intacta la distancia frente al resto de
+la red y frente a IMERG. Descartar 2016-2018 habría sido una corrección cómoda pero insuficiente. La
+estación queda marcada como sospechosa en el conjunto completo del dato, no solo en un tramo puntual, y
+con lo disponible no hay forma de saber cuánto de esos 3 192 mm/año restantes es lluvia real y cuánto
+sigue siendo un problema del pluviómetro.

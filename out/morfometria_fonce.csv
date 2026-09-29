@@ -1,0 +1,18 @@
+magnitud,valor,unidad,origen,publicado_camels
+área,2098.85,km²,polígono del proyecto,2124.0
+perímetro,338.4881583795269,km,polígono del proyecto,340.46
+longitud del cauce principal,90.75602367781667,km,red de drenaje de CAMELS-COL,99.12
+longitud de la red que publica CAMELS-COL,332.43075751591317,km,red de drenaje de CAMELS-COL,
+longitud de red por km² (NO es la densidad de drenaje real),0.1583870965128109,km/km²,"red de CAMELS-COL, incompleta",
+índice de Gravelius,2.0842405791771874,—,calculado,2.08
+factor de forma de Horton,0.25481822263168974,—,calculado,0.22
+razón de elongación,0.5696004193939783,—,calculada,
+altura mínima,1114.0,m,DEM,1121.01
+altura media,2264.87744140625,m,DEM,2264.21
+altura máxima,4297.0,m,DEM,4299.0
+desnivel del cauce,2046.0,m,DEM sobre el cauce,
+pendiente media del cauce,0.022543958153822246,m/m,DEM sobre el cauce,
+pendiente del cauce (Taylor-Schwarz),0.01924359273388977,m/m,DEM sobre el cauce,4.45e-05
+pendiente media del terreno,19.887420654296875,grados,DEM,
+pendiente mediana del terreno,18.530010223388672,grados,DEM,
+integral hipsométrica,0.3615760807192542,—,DEM,

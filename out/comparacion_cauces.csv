@@ -1,0 +1,6 @@
+magnitud,red_de_camels,derivado_del_dem,publicado_camels,dif_pct
+longitud del cauce principal (km),90.75602367781669,95.0254408582729,99.12,4.7
+desnivel del cauce (m),2046.0,2776.0,,35.7
+pendiente media (m/m),0.0225439581538222,0.029213229372335205,,29.6
+pendiente Taylor-Schwarz (m/m),0.0192435927338897,0.045029558876305234,4.45e-05,134.0
+área drenada en la salida (km²),2098.85,2087.6749067219184,2124.0,-0.5

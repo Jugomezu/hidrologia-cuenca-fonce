@@ -1,0 +1,32 @@
+fuente,chequeo,resultado,detalle
+CAMELS-COL (diario de San Gil),fechas legibles,sin problemas,"14 410 filas, 0 fechas que no se pueden leer; formato día/mes/año; de 1981-01-01 a 2022-12-31"
+CAMELS-COL (diario de San Gil),fechas en orden,sin problemas,orden cronológico estricto
+CAMELS-COL (diario de San Gil),fechas duplicadas,sin problemas,0 fechas repetidas
+CAMELS-COL (diario de San Gil),días ausentes en 1998-2022,anotado,"530 de 9 131 días no tienen fila: el archivo omite el día entero cuando no hay caudal, en vez de marcarlo como faltante; son los huecos que cuenta la regla de completitud"
+CAMELS-COL (diario de San Gil),"códigos de faltante (−9999, −999, 9999…) y vacíos",sin problemas,0 valores con códigos de faltante y 0 casillas vacías en las filas que existen
+CAMELS-COL (diario de San Gil),Q ≥ 0 (un caudal no puede ser negativo),sin problemas,"0 días negativos; mínimo 17.40 m³/s, máximo 520.0 m³/s; 0 días con caudal exactamente 0"
+CAMELS-COL (diario de San Gil),P de CHIRPS ≥ 0,sin problemas,0 días negativos (la columna viene en el archivo pero el proyecto no la usa)
+CAMELS-COL (diario de San Gil),ETP de CAMELS-COL ≥ 0,sin problemas,0 días negativos (la columna viene en el archivo pero el proyecto no la usa)
+CAMELS-COL (diario de San Gil),T de MSWX en rango físico (-15 a 45 °C),sin problemas,"T mín entre 7.3 y 16.2 °C, T máx entre 15.1 y 26.4 °C; 0 valores fuera de rango"
+CAMELS-COL (diario de San Gil),T máx ≥ T mín,sin problemas,0 días con la máxima por debajo de la mínima
+CAMELS-COL (diario de San Gil),unidades de Q (m³/s),sin problemas,"encabezado 'Caudal' sin unidad; el caudal medio del archivo (88.0 m³/s) equivale a 3.58 mm/día sobre los 2 124 km² de CAMELS-COL, y su archivo de firmas publica 3.58 mm/día: las unidades son m³/s"
+CAMELS-COL (diario de San Gil),banderas de calidad,no disponible,"el archivo no trae banderas ni el nivel de aprobación del IDEAM, y el artículo de CAMELS-COL no describe control de calidad ni relleno del caudal"
+"DHIME (pluviómetros, PL)",fechas legibles y en el día 1 del mes,sin problemas,"2 017 registros de 7 pluviómetros dentro de la cuenca, de 1998-01 a 2022-12"
+"DHIME (pluviómetros, PL)",registros duplicados (estación y mes),sin problemas,0 repetidos
+"DHIME (pluviómetros, PL)",unidades y variable,sin problemas,unidad: mm; parámetro: Precipitación total mensual
+"DHIME (pluviómetros, PL)",códigos de faltante y vacíos,sin problemas,"0 códigos de faltante, 0 vacíos; los meses sin dato simplemente no aparecen"
+"DHIME (pluviómetros, PL)",P ≥ 0,sin problemas,0 negativos; máximo 1071.1 mm en un mes
+"DHIME (pluviómetros, PL)",meses con 0 mm,revisar,"9 meses con lluvia exactamente 0: Pavas Las 2000-08; Pavas Las 2001-08; Pavas Las 2009-07; Pavas Las 2013-07; Pavas Las 2018-05; Pavas Las 2019-07; Pueblo Viejo 2020-02; Valle de San Jose 2017-12; Valle de San Jose 2021-12. Son posibles en un mes seco, pero en esta cuenca húmeda hay que revisarlos contra los pluviómetros vecinos"
+"DHIME (pluviómetros, PL)",banderas: nivel de aprobación del IDEAM,anotado,"1 717 registros preliminares y 300 definitivos (85 % preliminar); por estación, entre 0 % y 100 % preliminar. 'Preliminar' quiere decir que el IDEAM aún no validó el dato; no es una marca de error"
+IMERG Final V07 (PI),"un archivo por mes, 1998-2022",sin problemas,300 de 300 archivos
+IMERG Final V07 (PI),versión del producto,sin problemas,versiones en los encabezados: V07B
+IMERG Final V07 (PI),códigos de faltante (−9999.9) en los píxeles de la cuenca,sin problemas,0 casos en 30 píxeles × 300 meses
+IMERG Final V07 (PI),P ≥ 0,sin problemas,0 valores negativos
+IMERG Final V07 (PI),unidades: mm/h a mm/mes,sin problemas,el producto entrega la tasa media del mes en mm/h; multiplicada por las horas del mes reproduce el archivo empaquetado (diferencia máxima 0.0000 mm)
+IMERG Final V07 (PI),banderas de calidad,no disponible,"la descarga trae solo la variable 'precipitation'; el producto trae además variables de error y del peso de los pluviómetros en la estimación (randomError, gaugeRelativeWeighting) que no se descargaron"
+ERA5-Land (temperatura),"fechas legibles, en orden y sin duplicados",sin problemas,"25 archivos, 9 131 días; 0 fechas repetidas"
+ERA5-Land (temperatura),días ausentes en 1998-2022,sin problemas,0 días sin dato
+ERA5-Land (temperatura),unidades (°C) y rango físico (-15 a 45 °C),sin problemas,"entre 5.3 y 25.1 °C: ya en grados Celsius (en kelvin estarían cerca de 290); 0 valores fuera de rango, 0 vacíos"
+ERA5-Land (temperatura),T mín ≤ T media ≤ T máx,sin problemas,0 días que no cumplen
+ERA5-Land (temperatura),banderas de calidad,no disponible,un reanálisis no trae banderas: da un valor para todos los días por construcción
+ETP (Hargreaves con ERA5-Land),días completos y ETP ≥ 0,sin problemas,"9 131 días con valor, 0 negativos; entre 1.60 y 4.79 mm/día"

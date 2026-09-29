@@ -1,0 +1,17 @@
+# Más grande que el límite de GitHub (100 MB) y redundante: su contenido ya está descomprimido en
+# data/camels_col/hydromet/. Cómo bajarlo de Zenodo está en DATOS_FUENTES.md.
+data/camels_col/04_hydromet.zip
+
+# restos de una etapa anterior, sin uso
+out/_lint/
+out/_nesting.log
+
+# Python y Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# sistema
+desktop.ini
+Thumbs.db
+.DS_Store

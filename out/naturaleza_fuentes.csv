@@ -1,0 +1,6 @@
+variable,fuente,tipo,cómo se obtiene,relleno
+Q,"IDEAM, vía CAMELS-COL",observado,"el IDEAM registra el nivel del río en la estación y lo convierte en caudal con la curva de gasto de la estación, como en toda estación hidrométrica; la curva no viene en CAMELS-COL",no se ve relleno: los días sin dato faltan (530 en 1998-2022) y CAMELS-COL no describe ninguno
+PL,"IDEAM, portal DHIME",observado,"total mensual de cada pluviómetro, calculado por el IDEAM; 85 % de los registros son preliminares",no se sabe con cuántos días se armó cada total mensual; los meses sin dato no aparecen; el proyecto excluyó Encino 2016-2018
+PI,"NASA, IMERG Final V07",estimado,"estimación satelital (sensores de microondas e infrarrojo) ajustada mes a mes con pluviómetros (análisis del GPCC), en malla de 0.1° (Huffman et al., 2023)",completo por construcción: el producto da un valor en cada celda y cada mes
+T,"ECMWF, ERA5-Land",simulado,"reanálisis: un modelo de superficie terrestre forzado con el reanálisis ERA5, en malla de 0.1° (Muñoz-Sabater et al.)",completo por construcción: no hay huecos que rellenar
+ETP,el proyecto (06b_etp_hargreaves.py),calculado,fórmula de Hargreaves y Samani (1985) con la temperatura de ERA5-Land,"completa, porque ERA5-Land lo es"

@@ -1,0 +1,10 @@
+pluviometro,periodo,otros_con_dato,otros_minimo_mm,otros_promedio_mm,pi_mm,mediana_propia_mismo_mes_mm,otros_ceros_propios_mismo_mes,dificil_de_creer
+Pavas Las,2000-08,6,34.0,145.21666666666667,218.57,94.0,1,True
+Pavas Las,2001-08,6,2.0,124.58333333333333,169.33,94.0,1,False
+Pavas Las,2009-07,5,49.0,110.92,161.26,56.5,2,True
+Pavas Las,2013-07,5,50.1,97.22,102.82,56.5,2,True
+Pavas Las,2018-05,4,257.0,394.84999999999997,310.2,210.0,0,True
+Pavas Las,2019-07,6,67.0,157.41666666666666,128.07,56.5,2,True
+Pueblo Viejo,2020-02,6,3.1,72.56666666666668,95.76,90.5,0,False
+Valle de San Jose,2017-12,5,101.8,145.3,119.07,31.45,1,True
+Valle de San Jose,2021-12,6,53.0,129.38333333333333,127.32,31.45,1,True

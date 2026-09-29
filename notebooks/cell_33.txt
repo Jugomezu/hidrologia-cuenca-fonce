@@ -1,0 +1,254 @@
+--- idx=33 id=9680eb84 type=code ---
+# --- 1.7: se repite la figura de scripts/10_estaciones_subcuencas.py, pero recalculando ENCINO
+# sin sus tres años anómalos (2016-2018; ver 1.6). El relieve (dem_z) viene de la celda de datos.
+
+COD_ENCINO, COD_PUEBLO_VIEJO = 24020040, 24020230
+SUBCUENCA_ENCINO = 24027030             # Nemizaque, río Pienta
+SUBCUENCA_PUEBLO_VIEJO = 24027050       # Puente Llano, río Taquiza
+ANIOS_ANOMALOS_ENCINO = [2016, 2017, 2018]
+
+AZUL, NARANJA, GRIS, OTRAS = "#0072B2", "#D55E00", "#6B7280", "#8C8C8C"
+
+
+def miles(x):
+    # separador de miles con espacio (estilo del proyecto)
+    return f"{x:,.0f}".replace(",", " ")
+
+
+# dónde va el rótulo de cada subcuenca en el mapa (coordenadas del DEM, EPSG:32619); se fija a mano
+# porque el centroide de Puente Llano cae encima de Pueblo Viejo y el texto tapaba el punto
+ROTULO_SUBCUENCA = {SUBCUENCA_ENCINO: (39000, 668000), SUBCUENCA_PUEBLO_VIEJO: (61500, 703800)}
+
+# hacia dónde sale la etiqueta de cada estación en el mapa: (dx, dy) en puntos, alineación; se fija a
+# mano porque con siete estaciones (dos muy juntas) es más limpio que calcularlo. Se indexa por código,
+# no por nombre, porque el nombre ya viene limpiado (título) desde la celda de carga de datos.
+ETIQUETA_ESTACION = {
+    24020040: (-12, -20, "right", "top"),        # Encino
+    24020220: (-12, 11, "right", "bottom"),       # Pavas Las
+    24020230: (0, 13, "center", "bottom"),        # Pueblo Viejo
+    24020120: (-12, 2, "right", "center"),        # Coromoro
+    24025050: (-12, 2, "right", "center"),        # Charalá
+    24020080: (12, 2, "left", "center"),          # Valle de San José
+    24025040: (-12, 2, "right", "center"),        # Escuela Agrícola Mogotes
+}
+
+# --- precipitación anual media de cada pluviómetro dentro de la cuenca ---
+# misma regla que en 1.2 y en scripts/10_estaciones_subcuencas.py: media mensual (sin rellenar meses faltantes) x 12; no exige
+# años completos, por eso no coincide exactamente con la mediana de años completos que se usó para
+# encontrar el tramo anómalo en 1.6.
+# "original" = la serie cruda, con el tramo; "corregida" = sin 2016-2018, que es la que usa el proyecto
+p_anual_original = pluvio_mes_crudo[PLUVIO_EN_CUENCA].mean() * 12
+
+pluvio_mes_corregido = pluvio_mes_crudo.copy()
+pluvio_mes_corregido.loc[pluvio_mes_corregido.index.year.isin(ANIOS_ANOMALOS_ENCINO), COD_ENCINO] = np.nan
+p_anual_corregido = pluvio_mes_corregido[PLUVIO_EN_CUENCA].mean() * 12
+
+# se recalculan aquí los números adelantados en el encargo, para dejar constancia de que salen del dato
+p_orig, p_corr = p_anual_original[COD_ENCINO], p_anual_corregido[COD_ENCINO]
+n_orig = int(pluvio_mes_crudo[COD_ENCINO].notna().sum())
+n_corr = int(pluvio_mes_corregido[COD_ENCINO].notna().sum())
+print(f"Encino, con todo el período:        {miles(p_orig)} mm/año ({n_orig} meses)")
+print(f"Encino, sin 2016-2017-2018:         {miles(p_corr)} mm/año ({n_corr} meses)")
+print(f"Diferencia: {miles(p_orig - p_corr)} mm/año, un {(1 - p_corr / p_orig) * 100:.1f} % menos\n")
+
+# --- catálogo de las 7 estaciones dentro de la cuenca, con el valor corregido de Encino ---
+est = pluvio_catalogo.loc[PLUVIO_EN_CUENCA, ["nombre", "altitud", "latitud", "longitud"]].copy()
+est["etiqueta"] = est["nombre"]
+est["p_anual"] = p_anual_corregido               # el valor "vigente": el que se dibuja en el mapa
+est["p_anual_original"] = p_anual_original       # se guarda aparte solo para compararlo en el perfil
+est = gpd.GeoDataFrame(est, geometry=gpd.points_from_xy(est.longitud, est.latitud), crs=4326)
+
+
+# ¿en qué subcuenca cae cada estación? como están anidadas, se toma la más pequeña que la contiene
+def subcuenca_de(punto):
+    dentro = cuencas[cuencas.contains(punto)].sort_values("area_km2")
+    return dentro.iloc[0].gauge_id if len(dentro) else np.nan
+
+
+est["subcuenca"] = est.geometry.apply(subcuenca_de)
+est["nombre_subcuenca"] = est.subcuenca.map(cuencas.set_index("gauge_id").nombre)
+
+
+def color_de(fila):
+    if fila.subcuenca == SUBCUENCA_ENCINO:
+        return AZUL
+    if fila.subcuenca == SUBCUENCA_PUEBLO_VIEJO:
+        return NARANJA
+    return OTRAS
+
+
+est["color"] = est.apply(color_de, axis=1)
+est["extrema"] = est.index.isin([COD_ENCINO, COD_PUEBLO_VIEJO])
+
+print("Las 7 estaciones dentro de la cuenca, con Encino ya corregida:")
+tabla = est[["etiqueta", "altitud", "p_anual_original", "p_anual", "nombre_subcuenca"]].sort_values("altitud")
+print(tabla.round(0).to_string(index=False))
+
+# --- ¿cambia el (ya débil) gradiente altitudinal de la red al corregir Encino? se compara con y sin ---
+r_antes = stats.linregress(est.altitud, est.p_anual_original)
+r_despues = stats.linregress(est.altitud, est.p_anual)
+print(f"\nPendiente altitudinal, con Encino SIN corregir: {r_antes.slope * 1000:+.0f} mm/año por 1000 m "
+      f"(r = {r_antes.rvalue:+.2f}, p = {r_antes.pvalue:.2f})")
+print(f"Pendiente altitudinal, con Encino CORREGIDA:    {r_despues.slope * 1000:+.0f} mm/año por 1000 m "
+      f"(r = {r_despues.rvalue:+.2f}, p = {r_despues.pvalue:.2f})")
+
+# --- lo que IMERG estima para las dos subcuencas donde caen Encino y Pueblo Viejo ---
+anio_imerg = imerg.periodo.dt.year
+p_sub = imerg.assign(anio=anio_imerg).groupby(["id_estacion", "anio"]).p_imerg_mm.sum().groupby("id_estacion").mean()
+p_imerg_encino = p_sub[SUBCUENCA_ENCINO]
+print(f"\nIMERG sobre Nemizaque (la subcuenca de Encino): {miles(p_imerg_encino)} mm/año")
+print(f"Encino SIN corregir queda {p_orig / p_imerg_encino - 1:+.0%} sobre ese valor; "
+      f"CORREGIDA queda {p_corr / p_imerg_encino - 1:+.0%}")
+
+# ------------------------------------------------------------------ el relieve, de la celda de datos
+madre = cuencas[cuencas.gauge_id == ID_PRINCIPAL]
+z, tr, crs_dem = dem_z, dem_tr, dem_crs
+madre_utm = madre.to_crs(crs_dem)
+
+fuera = geometry_mask(madre_utm.geometry, out_shape=z.shape, transform=tr)      # True = fuera de la cuenca
+z_cuenca = np.where(fuera, np.nan, z)
+res = abs(tr.a)
+ext = (tr.c, tr.c + tr.a * z.shape[1], tr.f + tr.e * z.shape[0], tr.f)
+sombra = LightSource(azdeg=315, altdeg=45).hillshade(np.nan_to_num(z, nan=np.nanmean(z)),
+                                                     vert_exag=2, dx=res, dy=res)
+
+# ------------------------------------------------------------------ figura: mapa + perfil altitud-lluvia
+fig = plt.figure(figsize=(14.5, 9.4))
+rejilla = fig.add_gridspec(1, 2, width_ratios=[1.35, 1], wspace=0.16)
+mapa = fig.add_subplot(rejilla[0, 0])
+perfil = fig.add_subplot(rejilla[0, 1])
+
+# --- panel izquierdo: relieve y subcuencas ---
+mapa.imshow(np.where(fuera, sombra, np.nan), cmap="gray", extent=ext, alpha=0.3, vmin=0, vmax=1)
+mapa.imshow(sombra * ~fuera + np.where(fuera, np.nan, 0), cmap="gray", extent=ext, vmin=0, vmax=1)
+relieve = mapa.imshow(z_cuenca, cmap="terrain", extent=ext, alpha=0.42,
+                      vmin=np.nanpercentile(z_cuenca, 0.5) - 400, vmax=np.nanmax(z_cuenca))
+
+cuencas_utm = cuencas.to_crs(crs_dem)
+otras = cuencas_utm[~cuencas_utm.gauge_id.isin([ID_PRINCIPAL, SUBCUENCA_ENCINO, SUBCUENCA_PUEBLO_VIEJO])]
+otras.boundary.plot(ax=mapa, color="0.35", lw=0.7, linestyle=":", zorder=3)
+
+for gid, color in [(SUBCUENCA_ENCINO, AZUL), (SUBCUENCA_PUEBLO_VIEJO, NARANJA)]:
+    sub = cuencas_utm[cuencas_utm.gauge_id == gid]
+    sub.plot(ax=mapa, color=color, alpha=0.26, zorder=3)
+    sub.boundary.plot(ax=mapa, color=color, lw=2.6, zorder=4)
+    fila = sub.iloc[0]
+    mapa.annotate(f"{fila.nombre}\n{fila.area_km2:.0f} km²", ROTULO_SUBCUENCA[gid],
+                  ha="center", va="center", fontsize=10, weight="bold", color=color, zorder=6,
+                  path_effects=[pe.withStroke(linewidth=3.2, foreground="white")])
+
+madre_utm.boundary.plot(ax=mapa, color="k", lw=1.9, zorder=5)
+
+est_utm = est.to_crs(crs_dem)
+normales = est_utm[~est_utm.extrema]
+extremas = est_utm[est_utm.extrema]
+mapa.scatter(normales.geometry.x, normales.geometry.y, s=90, c=normales.color,
+             edgecolor="white", linewidth=1.2, zorder=7)
+mapa.scatter(extremas.geometry.x, extremas.geometry.y, s=330, c=extremas.color, marker="*",
+             edgecolor="white", linewidth=1.3, zorder=8)
+
+for cod, e in est_utm.iterrows():
+    dx, dy, ha, va = ETIQUETA_ESTACION[cod]
+    if cod == COD_ENCINO:
+        texto = f"{e.etiqueta}\n{e.altitud:.0f} m · {miles(e.p_anual)} mm/año\n(recalculada sin 2016-18)"
+    else:
+        texto = f"{e.etiqueta}\n{e.altitud:.0f} m · {miles(e.p_anual)} mm/año"
+    mapa.annotate(texto, (e.geometry.x, e.geometry.y),
+                  xytext=(dx, dy), textcoords="offset points", ha=ha, va=va,
+                  fontsize=8.4 if e.extrema else 7.4,
+                  weight="bold" if e.extrema else "normal",
+                  color=e.color if e.extrema else "#2B2B2B", zorder=9,
+                  path_effects=[pe.withStroke(linewidth=2.6, foreground="white")])
+
+mapa.set_xlim(ext[0], ext[1])
+mapa.set_ylim(ext[2], ext[3])
+mapa.set_xlabel(f"este (m, {crs_dem.to_string()})", fontsize=9)
+mapa.set_ylabel("norte (m)", fontsize=9)
+mapa.ticklabel_format(style="plain")
+mapa.tick_params(labelsize=7)
+barra = fig.colorbar(relieve, ax=mapa, shrink=0.55, pad=0.02)
+barra.set_label("elevación (m s. n. m.)", fontsize=9)
+barra.ax.tick_params(labelsize=7)
+
+mapa.legend(handles=[
+    Line2D([], [], marker="*", color="none", markerfacecolor=AZUL, markeredgecolor="white",
+           markersize=17, label="Encino — recalculada sin 2016-2018"),
+    Line2D([], [], marker="*", color="none", markerfacecolor=NARANJA, markeredgecolor="white",
+           markersize=17, label="Pueblo Viejo — el extremo seco"),
+    Line2D([], [], marker="o", color="none", markerfacecolor=OTRAS, markeredgecolor="white",
+           markersize=9, label="las otras cinco estaciones"),
+], loc="lower left", fontsize=8.2, framealpha=0.9)
+mapa.set_title("Encino sigue siendo el máximo de la red,\nincluso sin su tramo anómalo",
+               fontsize=11.5, weight="semibold")
+
+# --- panel derecho: lluvia contra altitud; Encino se muestra dos veces, original y corregida ---
+todas_p = pd.concat([est.p_anual, est.p_anual_original])
+perfil.set_xlim(est.altitud.min() - 180, est.altitud.max() + 230)
+perfil.set_ylim(todas_p.min() - 320, todas_p.max() + 520)
+
+for cod, e in est.sort_values("altitud").iterrows():
+    perfil.scatter(e.altitud, e.p_anual, s=340 if e.extrema else 120, c=e.color,
+                   marker="*" if e.extrema else "o", edgecolor="white", linewidth=1.3, zorder=4)
+    if cod != COD_ENCINO:                                 # la de Encino se anota más abajo, junto a la flecha
+        perfil.annotate(f"{e.etiqueta}\n{e.altitud:.0f} m",
+                        (e.altitud, e.p_anual), textcoords="offset points", xytext=(0, 16),
+                        ha="center", fontsize=7.6,
+                        weight="bold" if e.extrema else "normal",
+                        color=e.color if e.extrema else "#2B2B2B",
+                        path_effects=[pe.withStroke(linewidth=2.4, foreground="white")])
+
+# Encino corregida: se anota con el mismo estilo, pero hacia abajo para dejar sitio arriba a la original
+e_encino = est.loc[COD_ENCINO]
+perfil.annotate(f"{e_encino.etiqueta}\n{e_encino.altitud:.0f} m · {miles(e_encino.p_anual)} mm/año",
+                (e_encino.altitud, e_encino.p_anual), textcoords="offset points", xytext=(0, -34),
+                ha="center", fontsize=7.6, weight="bold", color=AZUL,
+                path_effects=[pe.withStroke(linewidth=2.4, foreground="white")])
+
+# Encino sin corregir: marcador hueco, unido al corregido con una flecha fina, para ver que casi no se mueve
+perfil.scatter(e_encino.altitud, e_encino.p_anual_original, s=340, facecolor="none",
+               edgecolor=AZUL, linewidth=1.6, marker="*", zorder=3, alpha=0.9)
+perfil.annotate("", xy=(e_encino.altitud, e_encino.p_anual), xytext=(e_encino.altitud, e_encino.p_anual_original),
+                arrowprops=dict(arrowstyle="-|>", color=AZUL, lw=1.2, alpha=0.8), zorder=3)
+perfil.annotate(f"con 2016-18: {miles(e_encino.p_anual_original)} mm/año",
+                (e_encino.altitud, e_encino.p_anual_original), textcoords="offset points",
+                xytext=(12, 4), ha="left", fontsize=7.4, color=AZUL, style="italic", zorder=4,
+                path_effects=[pe.withStroke(linewidth=2.2, foreground="white")])
+
+# las tres estaciones de Puente Llano, unidas para que se vea el hundimiento de Pueblo Viejo (como en 31)
+taquiza = est[est.subcuenca == SUBCUENCA_PUEBLO_VIEJO].sort_values("altitud")
+perfil.plot(taquiza.altitud, taquiza.p_anual, color=NARANJA, lw=1.4, linestyle="--", zorder=3, alpha=0.8)
+
+# lo que IMERG estima para cada una de las dos subcuencas
+nombres_sub = cuencas.set_index("gauge_id").nombre
+for gid, color, dy in [(SUBCUENCA_ENCINO, AZUL, -13), (SUBCUENCA_PUEBLO_VIEJO, NARANJA, 5)]:
+    perfil.axhline(p_sub[gid], color=color, lw=1.2, linestyle=":", zorder=2)
+    perfil.annotate(f"IMERG sobre {nombres_sub[gid].split(' (')[0]}: {miles(p_sub[gid])} mm/año",
+                    (perfil.get_xlim()[1], p_sub[gid]), xytext=(-5, dy),
+                    textcoords="offset points", ha="right", fontsize=7.6, color=color, zorder=5,
+                    path_effects=[pe.withStroke(linewidth=2.4, foreground="white")])
+
+perfil.set_xlabel("altitud de la estación (m s. n. m.)", fontsize=9)
+perfil.set_ylabel("precipitación media anual 1998-2022 (mm/año)", fontsize=9)
+perfil.grid(axis="y", color="#E5E7EB", linewidth=0.8)
+perfil.set_axisbelow(True)
+for lado in ("top", "right"):
+    perfil.spines[lado].set_visible(False)
+perfil.tick_params(labelsize=8)
+perfil.legend(handles=[
+    Line2D([], [], marker="*", color="none", markerfacecolor=AZUL, markeredgecolor="white",
+           markersize=15, label="Encino, sin 2016-2018 (corregida)"),
+    Line2D([], [], marker="*", color="none", markerfacecolor="none", markeredgecolor=AZUL,
+           markersize=15, label="Encino, con 2016-2018 (original)"),
+], loc="upper left", fontsize=7.6, framealpha=0.9)
+perfil.set_title(f"Baja {miles(p_orig - p_corr)} mm/año ({(1 - p_corr / p_orig) * 100:.0f} %) "
+                 f"sin 2016-2018,\npero sigue {p_corr / p_imerg_encino - 1:+.0%} sobre IMERG "
+                 f"en su subcuenca",
+                 fontsize=10.5, weight="semibold")
+
+fig.suptitle("Quitarle a Encino sus tres años anómalos no resuelve su anomalía",
+             fontsize=14, weight="bold", y=0.985)
+
+OUT = RAIZ / "reporte/figuras"
+fig.savefig(OUT / "encino_sin_tramo_anomalo.png", dpi=160, bbox_inches="tight")
+plt.show()
+print(f"\nFigura: {OUT / 'encino_sin_tramo_anomalo.png'}")

@@ -1,0 +1,60 @@
+# --- 1.8 (figura): ciclo anual de las tres ETP y su relación mes a mes con CAMELS-COL ---
+# Izquierda: promedio por mes calendario de los 262 meses comunes; se añade PL − Q (lluvia menos
+# caudal) como referencia de cuánta agua queda disponible cada mes para evaporarse y transpirar.
+# Derecha: dispersión mes a mes entre CAMELS-COL y Hargreaves con MSWX, con la recta 1:1 y la
+# pendiente mediana del cociente, calculada aquí mismo (no escrita a mano).
+
+ROSA, VERDE, AZUL, GRIS_ETP = "#CC79A7", "#009E73", "#0072B2", "#8B949B"
+MES_INI = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+
+# color, estilo de línea y marcador: cada fuente se distingue por los tres a la vez, no solo por color
+FUENTES_ETP = [("CAMELS-COL (publicada)", ROSA, "-", "o"),
+               ("Hargreaves con MSWX", VERDE, "--", "s"),
+               ("Hargreaves con ERA5-Land", AZUL, "-.", "^")]
+
+fig, (izq, der) = plt.subplots(1, 2, figsize=(13, 5), constrained_layout=True)
+
+# --- izquierda: ciclo anual medio ---
+ciclo_etp = etp_comun.groupby(etp_comun.index.month).mean()
+ciclo_pl_menos_q = (_pq.PL - _pq.Q).groupby(_pq.index.month).mean()
+
+izq.plot(ciclo_pl_menos_q.index, ciclo_pl_menos_q.values, color=GRIS_ETP, lw=1.5, ls="--", zorder=2,
+         label="PL − Q (lluvia menos caudal)")
+for columna, color, estilo, marcador in FUENTES_ETP:
+    izq.plot(ciclo_etp.index, ciclo_etp[columna], color=color, ls=estilo, marker=marcador, ms=5.5,
+             lw=1.8, label=columna, zorder=3)
+izq.set_xticks(range(1, 13), MES_INI)
+izq.set_xlabel("mes")
+izq.set_ylabel("mm/mes")
+izq.grid(axis="y", color="#E5E7EB", lw=0.8)
+izq.set_axisbelow(True)
+for lado in ("top", "right"):
+    izq.spines[lado].set_visible(False)
+izq.legend(frameon=False, fontsize=8.5, loc="upper left")
+izq.set_title("Ciclo anual medio (262 meses comunes)", fontsize=11, loc="left")
+
+# --- derecha: CAMELS-COL contra Hargreaves con MSWX, mes a mes ---
+x = etp_comun["Hargreaves con MSWX"]
+y = etp_comun["CAMELS-COL (publicada)"]
+pendiente = (y / x).median()   # mediana del cociente mes a mes: el factor de la sección 1.8 de arriba
+
+der.scatter(x, y, s=26, color=ROSA, alpha=0.35, edgecolor="none", zorder=2)
+limite = max(x.max(), y.max()) * 1.05
+recta = np.array([0, limite])
+der.plot(recta, recta, color=GRIS_ETP, ls="--", lw=1.3, label="1:1", zorder=3)
+der.plot(recta, pendiente * recta, color=ROSA, lw=1.9,
+         label=f"CAMELS-COL = {pendiente:.2f} × Hargreaves", zorder=4)
+der.set_xlim(0, limite)
+der.set_ylim(0, limite)
+der.set_xlabel("Hargreaves con MSWX (mm/mes)")
+der.set_ylabel("CAMELS-COL (publicada) (mm/mes)")
+der.grid(axis="y", color="#E5E7EB", lw=0.8)
+der.set_axisbelow(True)
+for lado in ("top", "right"):
+    der.spines[lado].set_visible(False)
+der.legend(frameon=False, fontsize=8.5, loc="upper left")
+der.set_title("Mes a mes: CAMELS-COL contra Hargreaves con MSWX", fontsize=11, loc="left")
+
+fig.suptitle("ETP de la cuenca de San Gil: la publicada por CAMELS-COL y Hargreaves recalculado",
+             fontsize=12.5, fontweight="semibold")
+plt.show()

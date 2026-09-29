@@ -1,0 +1,52 @@
+--- idx=31 id=3f53e2bf type=markdown ---
+**Lo que se ve, y no es lo que uno esperaría.**
+
+1. **Los pluviómetros no muestran ningún gradiente con la altura.** El ajuste da R² = 0.13 y p = 0.43:
+   con siete puntos, la altura no explica prácticamente nada de la lluvia que miden. Y no es que otra
+   variable de posición lo explique mejor —la latitud y la longitud dan p = 0.93 y p = 0.36—, así que no
+   es un problema de haber elegido mal el eje. Simplemente, **entre estos siete puntos la lluvia no se
+   ordena por dónde están**.
+2. **El ejemplo que lo resume**: Encino, a 1 814 m, mide 3 143 mm/año (sin su tramo 2016-2018,
+   excluido). Pueblo Viejo, a 2 107 m, mide 1 638. Son 293 m de diferencia de altura y **un factor de 1.9
+   en lluvia**, casi el doble. Y van en sentido contrario al que el efecto orográfico predeciría. Entre la
+   estación más seca y la más húmeda de la cuenca hay ese mismo factor de 1.9, sin que la altura lo
+   anticipe.
+3. **IMERG, en cambio, sí impone un gradiente claro, y va hacia abajo**: −29 mm/año por cada 100 m de
+   altura, con r = −0.95 y p = 0.001, en los mismos siete puntos. El satélite dibuja una cuenca donde
+   llueve menos arriba, de forma casi perfectamente lineal. Los aparatos que están ahí no lo confirman.
+4. **Ese gradiente de IMERG hay que mirarlo con desconfianza.** Una correlación de −0.95 sobre siete
+   puntos no significa que el satélite haya detectado un patrón físico: significa que su campo de lluvia
+   es espacialmente muy suave y que las estaciones están repartidas a lo largo de esa suavidad. IMERG
+   estima sobre celdas de 122 km²; dentro de una sola celda caben laderas enteras con climas distintos, y
+   el producto no puede verlas. El gradiente que muestra puede ser real, o puede ser el resultado de
+   interpolar sobre una topografía que el algoritmo no resuelve.
+5. **El error de IMERG frente a cada pluviómetro tampoco ordena por altura** (panel b). Si el satélite
+   tuviera un problema sistemático de montaña —del tipo "subestima más cuanto más alto"—, los puntos
+   caerían en una línea. No lo hacen. El error parece depender de qué estación es, no de a qué altura
+   está, lo que apunta más a las estaciones que al satélite.
+6. **La forma del año es parecida en todas, pero no idéntica** (panel d). Las siete estaciones y
+   también IMERG son bimodales: dos temporadas húmedas, un veranillo a mitad de año y diciembre-enero
+   secos. Eso es consistente con que la estacionalidad la marque el paso de la zona de convergencia
+   intertropical sobre la región entera, y no la topografía local. Pero hay dos matices que la figura
+   deja ver:
+   - **La profundidad del veranillo varía mucho**: julio concentra desde el 2.8 % del año en Las Pavas
+     (2 625 m, la más alta) hasta el 10.3 % en Valle de San José (1 300 m, la más baja). La tendencia va
+     en el sentido de que el veranillo es más marcado arriba, pero tampoco alcanza significancia
+     (r = −0.68, p = 0.09), así que con siete estaciones queda como indicio, no como resultado.
+   - **IMERG suaviza el veranillo**: le asigna a julio el 8.0 % del año, más que 5 de los 7
+     pluviómetros. El satélite ve una mitad de año menos seca de lo que miden los aparatos, lo cual
+     importa porque es justo la temporada en que el río va bajo.
+   - **El mes del máximo tampoco es el mismo en todas**: cinco estaciones lo ponen en abril-mayo y dos
+     en octubre-noviembre. IMERG lo pone en mayo.
+
+**Qué se puede concluir y qué no.** No se puede concluir que no exista efecto orográfico en esta cuenca:
+siete puntos son muy pocos, ninguno está por encima de 2 625 m —y casi un tercio de la cuenca sí lo
+está—, y los datos del IDEAM vienen marcados como preliminares, y Encino, aun sin su tramo 2016-2018 (ya
+excluido), sigue siendo la más húmeda de la red. Lo que sí se puede concluir es más modesto y más útil: **con la
+información disponible, la altura no sirve para predecir cuánto llueve en un punto de esta cuenca**, y
+cualquier modelo que reparta la lluvia por bandas de altura estaría apoyándose en un supuesto que estos
+datos no sostienen.
+
+**Consecuencia para el trabajo.** Refuerza la regla 11: como los pluviómetros y el satélite no
+coinciden en cómo se reparte la lluvia en el espacio, se siguen reportando las dos fuentes en paralelo,
+con PL como referencia cuando haya que escoger.

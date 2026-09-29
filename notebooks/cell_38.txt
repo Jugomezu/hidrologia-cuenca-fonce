@@ -1,0 +1,5 @@
+--- idx=38 id=14d668d3 type=markdown ---
+### 2.1 Qué forma tiene la cuenca
+
+Tres índices de forma —Gravelius, factor de forma de Horton y razón de elongación— resumen qué tan
+alargada es la cuenca de San Gil, comparados contra lo que publica CAMELS-COL para la misma cuenca.

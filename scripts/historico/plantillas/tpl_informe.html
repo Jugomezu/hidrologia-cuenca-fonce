@@ -1,0 +1,812 @@
+<title>Por qué el Río Fonce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+__COMUN_CSS__
+.topline{display:flex;flex-wrap:wrap;margin:2rem 0 0;padding:0;border-top:1px solid var(--rule)}
+.topline div{padding:.9rem 1.6rem .1rem 0;margin-right:1.6rem;border-right:1px solid var(--rule)}
+.topline div:last-child{border-right:0}
+.topline dt{font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.topline dd{margin:.15rem 0 0;font-family:var(--disp);font-size:1.7rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.topline dd small{font-family:var(--body);font-size:.8rem;font-weight:400;color:var(--muted)}
+.verif{margin:1.5rem 0 0;padding:.85rem 1.1rem;background:var(--good-soft);border-left:3px solid var(--good);border-radius:2px;font-size:.92rem;max-width:80ch}
+.verif b{color:var(--good)}
+
+.veredicto{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0 3rem}
+.veredicto h3{font-family:var(--body);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin:0 0 .9rem}
+.veredicto ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.8rem}
+.veredicto li{display:grid;grid-template-columns:1.2rem minmax(0,1fr);gap:.5rem;font-size:.95rem}
+.veredicto .m{font-family:var(--mono);font-weight:700}
+.veredicto .up .m{color:var(--good)} .veredicto .dn .m{color:var(--warn)}
+.callout{margin:2rem 0 0;padding:1rem 1.2rem;background:var(--warn-soft);border-left:3px solid var(--warn);border-radius:2px;max-width:82ch;font-size:.95rem}
+.callout b{font-weight:600}
+
+.embudo{display:flex;flex-direction:column;gap:1.1rem}
+.eb{display:grid;grid-template-columns:minmax(0,15rem) minmax(0,1fr);gap:1rem;align-items:start}
+.eb-l{font-size:.93rem;font-weight:600}
+.eb-l small{display:block;font-weight:400;color:var(--muted);font-family:var(--mono);font-size:.72rem}
+.eb-bar{height:26px;background:var(--accent);border-radius:3px;display:flex;align-items:center;padding-left:.6rem;color:var(--paper);
+  font-family:var(--mono);font-size:.82rem;font-weight:600;min-width:2.6rem}
+.eb-n{font-size:.9rem;color:var(--muted);margin:.35rem 0 0;max-width:70ch}
+.solo{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:.5rem}
+.solo th,.solo td{padding:.5rem .7rem;border-bottom:1px solid var(--rule);text-align:left;font-variant-numeric:tabular-nums}
+.solo th{font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.solo td.n{text-align:right;font-family:var(--mono)}
+
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 .8rem}
+.chip{display:inline-flex;align-items:center;gap:.45rem;font:600 .86rem var(--body);padding:.38rem .75rem;border-radius:3px;border:1px solid var(--rule-2);
+  background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink-2)}
+.chip[aria-disabled="true"]{opacity:.45;cursor:not-allowed}
+.sw{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--faint);display:inline-block}
+.leyenda{font-size:.84rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:.3rem 1.4rem;margin:.2rem 0 1rem}
+.leyenda b{color:var(--ink)}
+.msg{font-size:.85rem;color:var(--warn);min-height:1.2em;margin:0 0 .4rem}
+
+.mxwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:4px;background:var(--surface);position:relative}
+table.mx{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:.88rem}
+.mx th,.mx td{padding:.55rem .8rem;border-bottom:1px solid var(--rule);text-align:left;vertical-align:middle;font-variant-numeric:tabular-nums}
+.mx thead th{background:var(--sunk);font-weight:600;font-size:.84rem;position:sticky;top:0;z-index:3;vertical-align:bottom}
+.mx thead th small{display:block;font-family:var(--mono);font-weight:400;font-size:.68rem;color:var(--muted);margin-top:.1rem}
+.mx .c0{position:sticky;left:0;z-index:2;background:var(--surface);min-width:13.5rem;max-width:15rem;border-right:1px solid var(--rule)}
+.mx thead .c0{background:var(--sunk);z-index:4}
+.mx td{min-width:7.6rem}
+.mx tr.grp th{background:var(--sunk);font-family:var(--mono);font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:.45rem .8rem}
+.rowbtn{all:unset;cursor:pointer;display:block;width:100%;font-weight:600;color:var(--ink);line-height:1.3}
+.rowbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rowbtn small{display:block;font-weight:400;font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:.1rem}
+.rowbtn::after{content:" ▾";color:var(--faint);font-size:.75rem}
+.rowbtn[aria-expanded="true"]::after{content:" ▴";color:var(--accent)}
+.mx tr.open th.c0,.mx tr.open td{background:var(--accent-soft)}
+.mx td .ic{display:inline-block;width:1.15rem;font-weight:700}
+.mx td.st-pass .ic{color:var(--good)} .mx td.st-fail{background:var(--bad-soft)} .mx td.st-fail .ic{color:var(--bad)}
+.mx td.st-flag{background:var(--warn-soft)} .mx td.st-flag .ic{color:var(--warn)}
+.mx td.best .v{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:4px;font-weight:700}
+.mx td .sub{display:block;font-size:.72rem;color:var(--muted)}
+.bar{display:inline-block;height:6px;background:var(--rule-2);border-radius:3px;width:3.6rem;vertical-align:middle;margin-left:.4rem;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.mx tr.detail>td{padding:0;background:var(--paper);min-width:0}
+.detail-inner{position:sticky;left:0;width:var(--wrapw,900px);max-width:100%;padding:1.3rem 1.4rem 1.5rem;box-sizing:border-box}
+.d-head{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:center;margin:0 0 .8rem}
+.d-head h4{font-family:var(--body);font-size:1.02rem;font-weight:600}
+.d-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:1.2rem 2rem}
+.d-note{font-size:.9rem;color:var(--ink-2);margin:.6rem 0 0}
+.d-src{font-size:.8rem;color:var(--muted);margin:.3rem 0 0}
+.stats{display:flex;flex-wrap:wrap;gap:.4rem .6rem;margin:.8rem 0 0}
+.stat{font-size:.84rem;padding:.3rem .6rem;border:1px solid var(--rule-2);border-radius:3px;background:var(--surface);display:inline-flex;gap:.4rem;align-items:center}
+.stat b{font-weight:600}
+.zl{display:flex;flex-wrap:wrap;gap:.2rem 1.2rem;font-size:.78rem;color:var(--muted);margin:.3rem 0 0}
+.zl i{display:inline-block;width:14px;height:9px;vertical-align:middle;margin-right:.3rem;border-radius:1px}
+.mini{border-collapse:collapse;width:100%;font-size:.86rem}
+.mini th,.mini td{padding:.4rem .6rem;border-bottom:1px solid var(--rule);text-align:left;font-variant-numeric:tabular-nums}
+.mini th{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.mini tr.tot td{font-weight:700;border-top:2px solid var(--rule-2)}
+.lista-d{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.9rem}
+.lista-d li{display:grid;grid-template-columns:9rem minmax(0,1fr);gap:.3rem 1rem;font-size:.9rem}
+.lista-d .who{font-weight:600;display:flex;gap:.4rem;align-items:baseline}
+
+.pesos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:2rem 3rem;align-items:start}
+.sl{display:grid;grid-template-columns:minmax(0,1fr) 3.4rem;gap:.1rem .6rem;margin:0 0 1rem}
+.sl label{font-weight:600;font-size:.92rem}
+.sl output{font-family:var(--mono);font-size:.9rem;text-align:right;color:var(--accent)}
+.sl input{grid-column:1/-1;width:100%;accent-color:var(--accent)}
+.presets{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 0}
+.rk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.15rem}
+.rk li{display:grid;grid-template-columns:2rem minmax(0,1fr) 9rem 3.2rem;gap:.6rem;align-items:center;padding:.32rem .5rem;font-size:.88rem;border-radius:3px}
+.rk li.f{background:var(--accent-soft)}
+.rk .n{font-family:var(--mono);color:var(--faint);text-align:right}
+.rk .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk .bb{height:8px;background:var(--rule);border-radius:4px;overflow:hidden}
+.rk .bb i{display:block;height:100%;background:var(--ink-2)} .rk li.f .bb i{background:var(--accent)}
+.rk .sc{font-family:var(--mono);text-align:right}
+.rk .sep{grid-column:1/-1;text-align:center;color:var(--faint);font-size:.8rem;padding:.1rem}
+.rob{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:1.6rem 2.4rem;margin-top:1.4rem}
+.rob h4{font-family:var(--body);font-size:.95rem;font-weight:600;margin:0 0 .6rem}
+.hb{display:grid;grid-template-columns:minmax(0,9rem) minmax(0,1fr) 3rem;gap:.5rem;align-items:center;font-size:.85rem;margin:.28rem 0}
+.hb .t{height:9px;background:var(--rule);border-radius:4px;overflow:hidden}
+.hb .t i{display:block;height:100%;background:var(--ink-2)}
+.hb.f .t i{background:var(--accent)}
+.hb .v{font-family:var(--mono);text-align:right}
+.pend{list-style:none;margin:0;padding:0}
+.pend li{padding:.85rem 0;border-top:1px solid var(--rule);font-size:.94rem}
+.pend b{font-weight:600}
+@media (max-width:820px){
+  .veredicto,.pesos,.d-cols{grid-template-columns:1fr}
+  .eb{grid-template-columns:1fr}
+  .rk li{grid-template-columns:1.6rem minmax(0,1fr) 5rem 3rem}
+  .lista-d li{grid-template-columns:1fr}
+  .topline div{padding-right:1.1rem;margin-right:1.1rem}
+}
+
+.pedido{display:flex;flex-direction:column;gap:.9rem;margin:.6rem 0 0}
+.pedido blockquote{margin:0;padding:.15rem 0 .15rem 1.1rem;border-left:3px solid var(--accent);font-family:var(--disp);font-size:1rem;line-height:1.55;color:var(--ink-2);max-width:92ch}
+.pedido cite{display:block;font-family:var(--mono);font-style:normal;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 .2rem}
+.pedido-d{margin:0 0 1.2rem}
+#pl{display:flex;flex-direction:column;gap:2.2rem}
+.pl-paso-h{display:grid;grid-template-columns:2rem minmax(0,1fr) auto;gap:.2rem .9rem;align-items:baseline;padding:.75rem .9rem;background:var(--sunk);border-top:2px solid var(--ink)}
+.pl-paso-h .n{font-family:var(--mono);font-size:.85rem;color:var(--muted)}
+.pl-paso-h h3{font-family:var(--body);font-size:1.05rem;font-weight:600}
+.pl-paso-h .cnt{font-family:var(--mono);font-weight:600;color:var(--accent);white-space:nowrap}
+.pl-paso-h .sub{grid-column:2/-1;font-size:.86rem;color:var(--muted)}
+.pl-paso-h .sub .src{font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+.pl-nota{margin:0;padding:.6rem .9rem;font-size:.88rem;color:var(--ink-2);background:var(--paper);border-bottom:1px solid var(--rule)}
+.pl-h,.pl-r{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,.9fr) minmax(0,.95fr);gap:.4rem 1.3rem}
+.pl-h{font-family:var(--mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.5rem .9rem;border-bottom:1px solid var(--rule-2)}
+.pl-r{padding:.85rem .9rem;border-bottom:1px solid var(--rule);font-size:.89rem;align-items:start}
+.pl-r p{margin:.3rem 0 0}
+.pl-r .ped{font-family:var(--disp);font-style:italic;color:var(--ink);font-size:.95rem;line-height:1.45}
+.pl-r .trad{color:var(--muted);font-size:.84rem}
+.pl-r .src{font-family:var(--mono);font-size:.72rem;color:var(--faint);display:block;margin-top:.25rem}
+.pl-r .sub{display:block;font-size:.76rem;color:var(--muted);margin-top:.15rem}
+.pl-r .ic{display:inline-block;width:1.1rem;font-weight:700}
+.pl-r .ic.ok{color:var(--good)} .pl-r .ic.no{color:var(--bad)} .pl-r .ic.fl{color:var(--warn)}
+.pl-r.fail{background:var(--bad-soft)} .pl-r.flag{background:var(--warn-soft)}
+.pl-sub{padding:.55rem .9rem;background:var(--paper);border-bottom:1px solid var(--rule);font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pl-sub b{color:var(--accent);font-weight:600}
+.pl-r.tot{background:var(--accent-soft);font-weight:600;border-bottom:2px solid var(--rule-2)}
+.pl-fin{margin-top:1.6rem}
+@media (max-width:820px){
+  .pl-h{display:none}
+  .pl-r{grid-template-columns:1fr}
+  .pl-r>div::before{content:attr(data-l);display:block;font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:.15rem}
+  .pl-paso-h{grid-template-columns:1.6rem minmax(0,1fr)}
+  .pl-paso-h .cnt{grid-column:2}
+}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Hidrología · Tarea 1 · Análisis de Cuenca</p>
+    <h1>Por qué el Río Fonce</h1>
+    <p class="standfirst" id="stand"></p>
+    <dl class="topline" id="topline"></dl>
+    <div class="verif" id="verif"></div>
+    <p class="crumbs" id="crumbs"></p>
+  </div>
+</header>
+
+<section id="pipeline">
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">El pipeline de selección</p>
+      <h2>Qué pediste y qué hizo el código con cada cosa</h2>
+      <p>Cada fila es un criterio, en el orden en que se ejecutó. A la izquierda, lo que pediste con tus propias palabras; después, la regla
+        exacta que corrió (con su archivo y línea), su efecto y dónde cae Fonce.</p>
+    </div>
+    <details class="pedido-d" open><summary>Tus tres mensajes, tal cual</summary><div id="pedido-txt" class="pedido"></div></details>
+    <div id="pl"></div>
+    <div class="pl-fin" id="pl-fin"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">El veredicto</p>
+      <h2 id="h-ver"></h2>
+    </div>
+    <div class="veredicto">
+      <div class="up"><h3>Lo que sostiene la elección</h3><ul id="up"></ul></div>
+      <div class="dn"><h3>Lo que la debilita</h3><ul id="dn"></ul></div>
+    </div>
+    <div class="callout" id="callout"></div>
+  </div>
+</section>
+
+<section id="criterios">
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Criterio por criterio</p>
+      <h2>Fonce frente a sus competidoras</h2>
+      <p>Elige hasta cinco cuencas para comparar. Cada fila es un criterio del código; haz clic en una fila para ver dónde cae Fonce
+        entre las 134 y qué regla lo gobierna.</p>
+    </div>
+    <div class="chips" id="chips" role="group" aria-label="Cuencas para comparar"></div>
+    <p class="msg" id="msg" role="status"></p>
+    <div class="leyenda">
+      <span><b>✓</b> cumple el filtro</span><span><b>✕</b> no cumple</span><span><b>⚑</b> bandera activa (se anota, no descarta)</span>
+      <span><b style="text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px">Subrayado</b>: el mejor de los mostrados</span>
+    </div>
+    <div class="mxwrap" id="mxwrap"><table class="mx" id="mx"></table></div>
+    <p class="d-src">Los valores salen de <code>out/analisis_174.csv</code>; los umbrales, rampas y pesos, del código, con su archivo y línea
+      <span id="lnk-crit"></span>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Qué tan firme es</p>
+      <h2>Si cambian los pesos, ¿sigue ganando?</h2>
+      <p>Esta prueba es posterior a la decisión y <b>no es parte de la regla</b>: los pesos que decidieron son los de la primera posición del panel.
+        Muévelos para ver cómo cambia el ranking de las 134.</p>
+    </div>
+    <div class="pesos">
+      <div>
+        <div id="sliders"></div>
+        <div class="presets" id="presets"></div>
+        <p class="d-src" id="wnote"></p>
+      </div>
+      <div><ol class="rk" id="rk"></ol><p class="d-src" id="rkNote"></p></div>
+    </div>
+    <div class="rob" id="rob"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Antes de fijar la cuenca</p>
+      <h2>Pendientes</h2>
+    </div>
+    <ul class="pend" id="pend"></ul>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <p>Datos: CAMELS-COL (10.5281/zenodo.18794895), IMERG Final mensual V07 (10.5067/GPM/IMERG/3B-MONTH/07) y catálogo IDEAM; detalle y método de descarga en <code>DATOS_FUENTES.md</code>.
+    Reglas extraídas del código por <code>scripts/18_extraer_reglas.py</code>; datos del informe en <code>scripts/17_datos_informe.py</code>.
+    Estado de POMCA y notas: investigación manual con enlace a la fuente en cada celda.</p>
+</div></footer>
+
+<script>
+const D = __DATA__;
+const CRITERIOS_URL = "__CRITERIOS_URL__";
+__COMUN_JS__
+
+/* ===================== estado ===================== */
+const SLOT = ["--c1", "--c2", "--c3", "--c4", "--c5"];
+let SEL = D.competidoras.slice(0, 5);
+const SLOTS = {};
+SEL.forEach((id, i) => { SLOTS[id] = i; });
+let ABIERTA = "m:sub";
+const WT = {};
+Object.keys(D.robustez.pesos_usados).forEach(k => { WT[k] = D.robustez.pesos_usados[k]; });
+const PESOS_CODIGO = JSON.parse(JSON.stringify(WT));
+
+function iniciar(fn) { try { fn(); } catch (e) { console.error(e); } }
+function colorOf(id) { return "var(" + SLOT[SLOTS[id]] + ")"; }
+function scoreOf(b) {
+  let s = 0, t = 0;
+  Object.keys(WT).forEach(k => { s += WT[k] * (b.comp[k] || 0); t += WT[k]; });
+  return t > 0 ? s / t : 0;
+}
+function rankOfScore(b) {
+  if (!b.pool) return null;
+  const s = scoreOf(b);
+  let r = 1;
+  POOL.forEach(x => { if (scoreOf(x) > s + 1e-12) r++; });
+  return r;
+}
+function median(a) { const s = a.slice().sort((x, y) => x - y), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; }
+function rankInfo(c, b) {
+  const g = goodOf(c, b[c.campo]);
+  if (g == null) return null;
+  const vals = POOL.map(x => goodOf(c, x[c.campo])).filter(x => x != null);
+  return {rank: vals.filter(x => x > g + 1e-9).length + 1, n: vals.length, peor: vals.filter(x => x < g - 1e-9).length};
+}
+const CT = D.criterios.filter(c => c.id === "anios")[0];
+const MIN_ANIOS = CT.filtros[0].valor;
+const MAX_HUECO = CRIT.hueco.filtros[0].valor;
+const rangoSin = k => D.robustez.quitar.filter(q => q.sin === k)[0];
+
+/* ===================== cabecera y veredicto ===================== */
+iniciar(() => {
+  const F = FONCE, v = D.verificacion;
+  const lideresComp = D.robustez.solo_componente.filter(s => s.rango === 1);
+  const nomL = lideresComp.map(s => s.componente.toLowerCase()).join(" y ") || "ninguno";
+  $("#stand").textContent = nombreBasin(F) + " (IDEAM " + F.id + ") queda primera entre las " + POOL.length +
+    " cuencas que pasan los filtros. Solo encabeza " + (lideresComp.length ? "el componente de " + nomL : "ningún componente") +
+    " del puntaje: gana porque no tiene un punto débil grave.";
+  $("#topline").innerHTML =
+    "<div><dt>Puntaje</dt><dd>" + F.score.toFixed(3) + "</dd></div>" +
+    "<div><dt>Posición</dt><dd>1.ª <small>de " + POOL.length + "</small></dd></div>" +
+    "<div><dt>Subcuencas válidas</dt><dd>" + F.n_sub_ok + " <small>en " + F.niveles + " niveles</small></dd></div>" +
+    "<div><dt>Banderas</dt><dd>" + F.banderas.length + " <small>de " + D.reglas.banderas.length + "</small></dd></div>";
+  $("#verif").innerHTML = "<b>Las reglas son las del código.</b> Este informe no tiene umbrales propios: se leyeron de los scripts con su archivo y línea, " +
+    "y al aplicarlas de nuevo reproducen las " + v.metadatos + " cuencas de metadatos, las " + v.series + " de la serie diaria, las banderas, el conteo de subcuencas, " +
+    "el puntaje y el ranking.";
+  $("#crumbs").innerHTML = CRITERIOS_URL ? '<a href="' + esc(CRITERIOS_URL) + '">Lista completa de criterios →</a>' : "";
+  $("#lnk-crit").innerHTML = CRITERIOS_URL ? '(<a href="' + esc(CRITERIOS_URL) + '">ver la lista completa</a>)' : "";
+});
+
+iniciar(() => {
+  const F = FONCE;
+  const nSub = POOL.filter(b => b.n_sub_ok >= F.n_sub_ok).length;
+  const nLimpias = POOL.filter(b => b.banderas.length === 0).length;
+  const rkIm = POOL.filter(b => b.comp.imerg > F.comp.imerg).length + 1;
+  const rkReg = POOL.filter(b => b.comp.reg > F.comp.reg).length + 1;
+  const medF = median(POOL.map(b => b.q_miss));
+  const filtrosTxt = ["area", "anios", "falt", "hueco"].map(id => CRIT[id].corto.toLowerCase() + " " + fmtVal(CRIT[id], F[CRIT[id].campo])).join(", ");
+  const m = D.manual[String(F.id)];
+  const rq = rangoSin("Subcuencas"), lider = D_BY[rq.lider];
+  const R = D.robustez.uniforme;
+  const maxSol = Math.max.apply(null, D.basins.map(b => b.imerg_years));
+  $("#h-ver").textContent = "Gana por perfil equilibrado, no por un criterio suelto";
+  const up = [
+    "Pasa los cuatro filtros: " + filtrosTxt + " (el hueco máximo permitido es " + MAX_HUECO + " días).",
+    "Tiene " + F.n_sub_ok + " subcuencas válidas en " + F.niveles + " niveles de anidamiento. Solo " + nSub + " de las " + POOL.length + " llegan a " + F.n_sub_ok + " o más.",
+    "Ninguna de las " + D.reglas.banderas.length + " banderas se activa; solo " + nLimpias + " de las " + POOL.length + " cuencas están así de limpias.",
+    "Coherencia con IMERG: fase " + F.fase_imerg + ", correlación mensual " + F.r_mes_imerg + " y estabilidad (CV) " + F.RRcv_imerg + ". Su componente vale " +
+      F.comp.imerg.toFixed(2) + ": puesto " + rkIm + " de " + POOL.length + ".",
+    "Tiene POMCA: " + m.pomca.texto
+  ];
+  const dn = [
+    "Registro: " + F.q_miss + " % de faltantes frente a una mediana de " + medF.toFixed(1) + " %. Su componente de registro vale " + F.comp.reg.toFixed(2) + ": puesto " + rkReg + " de " + POOL.length + ".",
+    m.nota,
+    "Solape con IMERG de " + F.imerg_years.toFixed(2) + " años: ninguna cuenca llega a " + MIN_ANIOS + " (el máximo es " + maxSol.toFixed(2) + ").",
+    "Depende del componente de subcuencas: sin él, Fonce cae al puesto " + rq.rango + " y pasa a liderar " + cortoBasin(lider) + ".",
+    "Sus pesos son los míos: en " + (R.p1 * 100).toFixed(0) + " % de " + fmtInt(R.n) + " combinaciones aleatorias de pesos sigue siendo la primera."
+  ];
+  $("#up").innerHTML = up.map(x => '<li><span class="m">＋</span><span>' + esc(x) + "</span></li>").join("");
+  $("#dn").innerHTML = dn.map(x => '<li><span class="m">−</span><span>' + esc(x) + "</span></li>").join("");
+  $("#callout").innerHTML = "<b>Cómo leer esto.</b> Es la mejor de las " + POOL.length + " con los pesos del código, pero la ventaja es de perfil, no de un criterio: " +
+    "solo encabeza " + (D.robustez.solo_componente.filter(s => s.rango === 1).map(s => s.componente.toLowerCase()).join(" y ") || "ningún componente") + " y en los demás no es la primera. Con pesos aleatorios queda entre las tres primeras en " + (R.p3 * 100).toFixed(0) +
+    " % de los casos. Abajo puedes mover los pesos tú mismo.";
+});
+
+/* ===================== pipeline: qué pediste y qué hizo el código ===================== */
+function celdaPedido(id) {
+  const p = D.pedidos[id];
+  if (p) return '<span class="pill o-usuario">Lo pediste</span><p class="ped">«' + esc(p.cita) + '»</p><p class="trad">' + esc(p.traduccion) + "</p>";
+  return '<span class="pill o-mio">Lo agregué</span>';
+}
+function srcTxt(archivo, linea, col) { return '<span class="src">' + esc(col) + " · " + esc(archivo) + ":" + linea + "</span>"; }
+function fila(clase, c1, c2, c3, c4) {
+  return '<div class="pl-r ' + clase + '"><div data-l="Lo que pediste">' + c1 + '</div><div data-l="Regla que ejecutó el código">' + c2 +
+    '</div><div data-l="Qué hace">' + c3 + '</div><div data-l="Fonce">' + c4 + "</div></div>";
+}
+const CABECERA = '<div class="pl-h"><div>Lo que pediste</div><div>Regla que ejecutó el código</div><div>Qué hace</div><div>Fonce</div></div>';
+function pasoHead(n, titulo, cnt, sn, sub) {
+  return '<div class="pl-paso-h"><span class="n">' + n + "</span><h3>" + esc(titulo) + '</h3><span class="cnt">' + esc(cnt) + '</span><div class="sub">' + esc(sub) +
+    (sn ? ' <span class="src">' + esc(sn.archivo) + ":" + sn.desde + (sn.hasta !== sn.desde ? "–" + sn.hasta : "") + "</span>" : "") + "</div></div>";
+}
+function filaFiltro(s) {
+  const c = metricaDeCol(s.col), f = {op: s.op, valor: s.valor, min: s.min, max: s.max};
+  const it = c.filtros.filter(x => x.col === s.col && x.etapa === s.etapa)[0];
+  const v = FONCE[s.col], ok = !filtroFalla(f, v);
+  return fila(ok ? "" : "fail", celdaPedido(c.id),
+    "<b>" + esc(c.corto) + "</b>: " + esc(filtroTxt(f)) + srcTxt(it.archivo, it.linea, s.col),
+    '<span class="pill r-duro">Filtro</span><span class="sub">descarta <b>' + s.falla + "</b> de " + s.base + "</span>",
+    '<span class="ic ' + (ok ? "ok" : "no") + '">' + (ok ? "✓" : "✕") + "</span><b>" + fmtVal(c, v) + '</b><span class="sub">' + (ok ? "cumple" : "no cumple") + "</span>");
+}
+iniciar(() => {
+  $("#pedido-txt").innerHTML = D.pedido_texto.map(p => "<blockquote" + (p.idioma === "en" ? ' lang="en"' : "") + "><cite>" + esc(p.cuando) + "</cite>«" + esc(p.texto) + "»</blockquote>").join("");
+  const P = $("#pl"), E = D.embudo;
+  let html = "";
+
+  /* pasos 1 y 2: filtros */
+  [["metadatos", 1, "Filtros de metadatos", E[1], "Se leen de los metadatos de CAMELS-COL, sin abrir las series."],
+   ["series", 2, "Filtros sobre la serie diaria", E[2], "Se miden en la serie diaria de cada cuenca que pasó el paso 1."]].forEach(pp => {
+    const antes = pp[1] === 1 ? E[0].n : E[1].n;
+    html += "<div>" + pasoHead(pp[1], pp[2], fmtInt(antes) + " → " + fmtInt(pp[3].n), pp[3], pp[4]) + CABECERA +
+      D.solo.filter(s => s.etapa === pp[0]).map(filaFiltro).join("") + "</div>";
+  });
+
+  /* paso 3: puntaje */
+  let h3 = pasoHead(3, "Puntaje de 0 a 1", fmtInt(E[2].n) + " cuencas ordenadas", D.reglas.puntaje_score,
+    "Cinco componentes con sus pesos. Ningún criterio de esta parte descarta: solo suma puntos.");
+  h3 += '<p class="pl-nota">' + esc("Además de lo que pediste, el puntaje incluye criterios que agregué para medir «confiable» y «poco ruidoso» (" + D.motivo_agregados.cita + "). " +
+    "Van marcados «Lo agregué».") + "</p>" + CABECERA;
+  D.componentes.forEach(comp => {
+    h3 += '<div class="pl-sub">' + esc(comp.nombre) + " · <b>" + pct(comp.peso) + " del puntaje</b> · " + esc(comp.archivo) + ":" + comp.desde + (comp.hasta !== comp.desde ? "–" + comp.hasta : "") + "</div>";
+    D.criterios.filter(c => c.puntajes.some(p => p.comp === comp.id)).forEach(c => {
+      const p = c.puntajes.filter(x => x.comp === comp.id)[0], v = FONCE[c.campo], pts = interp(p.curva, v);
+      const dentro = p.producto ? "Factor del producto que forma el componente" : (p.peso === 1 ? "Es todo el componente" : pct(p.peso) + " del componente");
+      const aporte = p.producto ? null : pts * p.peso * comp.peso;
+      h3 += fila("", celdaPedido(c.id),
+        "Puntos por valor: <b>" + esc(curvaTxt(p.curva)) + '</b><span class="sub">' + esc(dentro) + "</span>" + srcTxt("16_analisis_completo.py", comp.desde, p.columna),
+        '<span class="pill r-plus">Puntaje</span><span class="sub">' + (p.producto ? "factor de " + esc(comp.nombre) : "hasta " + pct(comp.peso * p.peso) + " del total") + "</span>",
+        "<b>" + fmtVal(c, v) + "</b> → " + pts.toFixed(2) + " puntos" + (aporte != null ? '<span class="sub">aporta ' + aporte.toFixed(3) + "</span>" : ""));
+    });
+    const cv = FONCE.comp[comp.id], ap = comp.peso * cv;
+    h3 += fila("tot", "<b>Componente " + esc(comp.nombre) + "</b>", "", "", cv.toFixed(2) + '<span class="sub">aporta ' + ap.toFixed(3) + "</span>");
+  });
+  h3 += fila("tot", "<b>Puntaje total de Fonce</b>", "Suma de los cinco aportes", "", FONCE.score.toFixed(3));
+  html += "<div>" + h3 + "</div>";
+
+  /* paso 4: banderas */
+  let h4 = pasoHead(4, "Banderas", D.reglas.banderas.length + " alertas, ninguna descarta", D.reglas.banderas_snip,
+    "Se anotan en la cuenca. No la sacan del ranking ni le restan puntos por sí mismas.") + CABECERA;
+  D.reglas.banderas.forEach(b => {
+    const c = metricaDeCol(b.col), v = FONCE[c.campo], act = banderaActiva(b, v);
+    const n = POOL.filter(x => x.banderas.indexOf(b.nombre) >= 0).length;
+    h4 += fila(act ? "flag" : "", celdaPedido(c.id === "cob" ? "cob" : "_ninguno"),
+      "<b>«" + esc(b.nombre) + "»</b>: " + esc(banderaTxt(b)) + srcTxt("16_analisis_completo.py", b.linea, b.col),
+      '<span class="pill r-bandera">Bandera</span><span class="sub">activa en <b>' + n + "</b> de las " + POOL.length + "</span>",
+      '<span class="ic ' + (act ? "fl" : "ok") + '">' + (act ? "⚑" : "✓") + "</span><b>" + fmtVal(c, v) + '</b><span class="sub">' + (act ? "bandera activa" : "sin bandera") + "</span>");
+  });
+  html += "<div>" + h4 + "</div>";
+
+  /* paso 5: ranking */
+  const orden = POOL.slice().sort((a, b) => b.score - a.score);
+  html += "<div>" + pasoHead(5, "Ranking", fmtInt(E[2].n) + " → 1", D.reglas.ranking,
+    "Las cuencas se ordenan por puntaje, de mayor a menor. La primera es la elegida.") +
+    '<div class="pl-r tot"><div data-l="Resultado" style="grid-column:1/-1"><b>' + esc(nombreBasin(orden[0])) + "</b> · " + orden[0].score.toFixed(3) + " · le siguen " +
+    orden.slice(1, 5).map(b => esc(cortoBasin(b)) + " " + b.score.toFixed(3)).join(", ") + ".</div></div></div>";
+
+  /* paso 6: lo que pediste y no es regla */
+  const mF = D.manual[String(FONCE.id)];
+  let h6 = pasoHead(6, "Lo que pediste y no es regla", "manual o sin efecto", null, "No está en el código de selección: no descarta ni puntúa.") + CABECERA;
+  h6 += fila("", celdaPedido("pomca"), "Investigación manual en las páginas de las corporaciones autónomas.",
+    '<span class="pill r-info">Sin efecto en el ranking</span>',
+    '<span class="pill s-' + mF.pomca.estado + '">' + esc(mF.pomca.etiqueta) + '</span> <a href="' + esc(mF.pomca.url) + '" target="_blank" rel="noopener">fuente ↗</a>');
+  h6 += fila("", celdaPedido("temp"), 'Ninguna. <span class="src">t_miss · 13_preliminar.py: se calcula, no se usa</span>',
+    '<span class="pill r-info">Sin efecto</span>', "MSWX dentro de CAMELS-COL; ERA5 pendiente de descarga");
+  h6 += fila("", celdaPedido("px"), "Ninguna: no hay filtro ni puntaje por número de píxeles.",
+    '<span class="pill r-info">Solo se reporta</span>', "<b>" + FONCE.imerg_px + "</b> píxeles IMERG");
+  html += "<div>" + h6 + "</div>";
+  P.innerHTML = html;
+
+  /* cierre: la condición de salida que pediste */
+  const rkReg = POOL.filter(b => b.comp.reg > FONCE.comp.reg).length + 1;
+  $("#pl-fin").innerHTML = '<p class="prose"><b>Sobre tu condición de salida.</b> Dijiste: «si no hay ninguna de calidad suficientemente alta puedes decirme». ' +
+    "El código no fija un puntaje mínimo: se queda con la primera del ranking. Esa condición la evalúo yo aquí. Fonce cumple los filtros y no activa ninguna bandera; " +
+    "su punto flojo es el registro (componente " + FONCE.comp.reg.toFixed(2) + ", puesto " + rkReg + " de " + POOL.length + "). Tú decides si es suficiente.</p>";
+});
+
+/* ===================== matriz ===================== */
+const ROWS = (() => {
+  const C = id => D.componentes.filter(c => c.id === id)[0];
+  const g = (t, cid) => ({g: t + (cid ? " · " + pct(C(cid).peso) + " del puntaje" : "")});
+  return [
+    g("Filtros · descartan"), {k: "m:area"}, {k: "m:anios"}, {k: "m:falt"}, {k: "m:falt_p"}, {k: "m:hueco"},
+    g("Registro", "reg"), {k: "c:reg"},
+    g("Coherencia IMERG", "imerg"), {k: "m:fase"}, {k: "m:rmes"}, {k: "m:rrcv"}, {k: "c:imerg"},
+    g("Subcuencas", "sub"), {k: "m:sub"}, {k: "c:sub"},
+    g("Balance hídrico", "bal"), {k: "m:rr"}, {k: "c:bal"},
+    g("Naturalidad", "nat"), {k: "m:urb"}, {k: "m:agua"}, {k: "c:nat"},
+    g("Solo banderas · no puntúan"), {k: "m:esc"}, {k: "m:flat"}, {k: "m:cob"},
+    g("Resultado"), {k: "total"}, {k: "banderas"},
+    g("Se calcula pero no decide"), {k: "m:solape"}, {k: "m:px"},
+    g("Revisado a mano · no es parte de la regla"), {k: "pomca"}, {k: "notas"}
+  ];
+})();
+
+function rolesTxt(c) {
+  const r = [];
+  if (c.filtros.length) r.push("filtro");
+  if (c.banderas.length) r.push("bandera");
+  if (c.puntajes.length) r.push("puntaje");
+  return r.length ? r.join(" · ") : "solo informativo";
+}
+function rowHead(key) {
+  if (key.indexOf("m:") === 0) { const c = CRIT[key.slice(2)]; return [c.corto, rolesTxt(c)]; }
+  if (key.indexOf("c:") === 0) { const c = COMPN[key.slice(2)]; return ["Puntaje de " + c.nombre.toLowerCase(), "componente 0–1"]; }
+  return {total: ["Puntaje total", "según los pesos de abajo"], banderas: ["Banderas activas", "de " + D.reglas.banderas.length],
+          pomca: ["POMCA", "manual"], notas: ["Observaciones", "manual"]}[key];
+}
+function bestSet(key, B) {
+  let vals = null;
+  if (key.indexOf("m:") === 0) { const c = CRIT[key.slice(2)]; vals = B.map(b => goodOf(c, b[c.campo])); }
+  else if (key.indexOf("c:") === 0) { const id = key.slice(2); vals = B.map(b => b.comp[id]); }
+  else if (key === "total") vals = B.map(b => b.pool ? scoreOf(b) : null);
+  if (!vals) return {};
+  const ok = vals.filter(x => x != null && !isNaN(x));
+  if (ok.length < 2) return {};
+  const mx = Math.max.apply(null, ok), mn = Math.min.apply(null, ok);
+  if (mx - mn < 1e-9) return {};
+  const out = {};
+  vals.forEach((x, i) => { if (x != null && Math.abs(x - mx) < 1e-9) out[i] = 1; });
+  return out;
+}
+function cellHTML(key, b, best) {
+  const cls = best ? " best" : "";
+  if (key.indexOf("m:") === 0) {
+    const c = CRIT[key.slice(2)], v = b[c.campo], st = evalCrit(c, v);
+    let txt = fmtVal(c, v);
+    if (c.id === "sub") txt = String(v) + " <span class=\"sub\">" + b.niveles + " niveles</span>";
+    const p = pointsOf(c, v);
+    return '<td class="st-' + st + cls + '"' + (p != null ? ' title="Puntos de este criterio: ' + p.toFixed(2) + '"' : "") + '><span class="ic">' + ST_ICON[st] + '</span><span class="v">' + txt + "</span></td>";
+  }
+  if (key.indexOf("c:") === 0) {
+    const v = b.comp[key.slice(2)];
+    return '<td class="' + cls + '"><span class="v">' + (v == null ? "—" : v.toFixed(2)) + '</span><span class="bar"><i style="width:' + ((v || 0) * 100) + '%"></i></span></td>';
+  }
+  if (key === "total") {
+    if (!b.pool) return '<td><span class="v">' + b.score.toFixed(3) + '</span><span class="sub">fuera de las ' + POOL.length + ': no pasa un filtro</span></td>';
+    return '<td class="' + cls + '"><span class="v">' + scoreOf(b).toFixed(3) + '</span><span class="sub">puesto ' + rankOfScore(b) + " de " + POOL.length + "</span></td>";
+  }
+  if (key === "banderas") {
+    const n = b.banderas.length;
+    return "<td>" + (n ? '<span class="ic" style="color:var(--warn);font-weight:700">⚑</span> ' + n + '<span class="sub mono">' + esc(b.banderas.join(", ")) + "</span>" : '<span class="v">ninguna</span>') + "</td>";
+  }
+  if (key === "pomca") {
+    const m = D.manual[String(b.id)];
+    return "<td>" + (m ? '<span class="pill s-' + m.pomca.estado + '">' + esc(m.pomca.etiqueta) + "</span>" : "—") + "</td>";
+  }
+  if (key === "notas") return "<td><span class=\"sub\">ver detalle</span></td>";
+  return "<td></td>";
+}
+
+function renderMatrix() {
+  const ids = [D.fonce].concat(SEL), B = ids.map(id => D_BY[id]);
+  let html = '<thead><tr><th class="c0">Criterio</th>' + B.map((b, i) => {
+    const mark = i === 0 ? '<svg width="12" height="12" viewBox="-7 -7 14 14" style="display:inline-block;vertical-align:-1px;margin-right:.35rem"><path d="M0-6.5L6.5 0 0 6.5-6.5 0Z" fill="var(--ink)"/></svg>'
+      : '<span class="sw" style="background:' + colorOf(b.id) + ';border-color:var(--surface);margin-right:.4rem"></span>';
+    return "<th>" + mark + esc(cortoBasin(b)) + "<small>" + b.id + "</small></th>";
+  }).join("") + "</tr></thead><tbody>";
+  ROWS.forEach(r => {
+    if (r.g) { html += '<tr class="grp"><th colspan="' + (B.length + 1) + '">' + esc(r.g) + "</th></tr>"; return; }
+    const hd = rowHead(r.k), open = ABIERTA === r.k, bs = bestSet(r.k, B);
+    html += '<tr class="' + (open ? "open" : "") + '"><th class="c0" scope="row"><button class="rowbtn" data-k="' + r.k + '" aria-expanded="' + open + '">' +
+      esc(hd[0]) + "<small>" + esc(hd[1]) + "</small></button></th>" + B.map((b, i) => cellHTML(r.k, b, !!bs[i])).join("") + "</tr>";
+    if (open) html += '<tr class="detail"><td colspan="' + (B.length + 1) + '"><div class="detail-inner" id="det"></div></td></tr>';
+  });
+  $("#mx").innerHTML = html + "</tbody>";
+  $$(".rowbtn").forEach(btn => btn.addEventListener("click", () => {
+    const k = btn.getAttribute("data-k");
+    ABIERTA = ABIERTA === k ? null : k;
+    renderMatrix();
+  }));
+  fijarAncho();
+  if (ABIERTA) iniciar(() => llenarDetalle(ABIERTA, B));
+}
+function fijarAncho() { const w = $("#mxwrap"); w.style.setProperty("--wrapw", w.clientWidth + "px"); }
+window.addEventListener("resize", fijarAncho);
+
+/* --- gráfico de distribución: las 134 cuencas, Fonce y las comparadas --- */
+function stripChart(c, B) {
+  const V = VIEW[c.id], d0 = V.dom[0], d1 = V.dom[1];
+  const W = 920, H = 290, pl = 30, pr = 30, top = 92, base = 236;
+  const X = makeScale(c.id, pl, W - pr);
+  const svg = el("svg", {viewBox: "0 0 " + W + " " + H, role: "img", "class": "strip",
+    "aria-label": "Distribución de " + c.corto + " en las " + POOL.length + " cuencas, con Fonce y las comparadas resaltadas"});
+  zonesFor(c, V.dom).forEach(z => svg.appendChild(el("rect", {x: X(z.a), y: top, width: Math.max(1, X(z.b) - X(z.a)), height: base - top, fill: ZCOL[z.s], "fill-opacity": 0.14})));
+  ticksFor(c).forEach(t => {
+    const x = X(t.v);
+    svg.appendChild(el("line", {x1: x, x2: x, y1: top, y2: base, stroke: t.fuerte ? "var(--ink-2)" : "var(--rule)", "stroke-dasharray": t.fuerte ? "3 3" : "2 4", "stroke-opacity": t.fuerte ? 0.7 : 0.8}));
+    svg.appendChild(el("text", {x: x, y: base + 17, "text-anchor": "middle", "class": "tick-t", "font-weight": t.fuerte ? 600 : 400, fill: t.fuerte ? "var(--ink)" : "var(--faint)"},
+      (V.sign && t.v > 0 ? "+" : "") + num(t.v)));
+  });
+  svg.appendChild(el("line", {x1: pl, x2: W - pr, y1: base, y2: base, stroke: "var(--rule-2)"}));
+  const cv = curveOf(c);
+  if (cv) {
+    const pts = [[d0, interp(cv, d0)]].concat(cv.filter(p => p[0] > d0 && p[0] < d1)).concat([[d1, interp(cv, d1)]]);
+    svg.appendChild(el("polyline", {points: pts.map(p => X(p[0]).toFixed(1) + "," + (base - p[1] * (base - top - 6)).toFixed(1)).join(" "),
+      fill: "none", stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "6 4", "stroke-linejoin": "round"}));
+  }
+  const step = 7.4, r = 3, dy = 6.6, avail = base - top - 10, per = Math.max(1, Math.floor(avail / dy));
+  const bins = {}, pos = {};
+  POOL.forEach(b => { const v = b[c.campo]; if (v == null) return; const k = Math.round(X(v) / step); (bins[k] = bins[k] || []).push(b); });
+  Object.keys(bins).forEach(k => {
+    const arr = bins[k].sort((p, q) => p.id - q.id), cols = Math.ceil(arr.length / per);
+    arr.forEach((b, i) => { pos[b.id] = {x: k * step + (Math.floor(i / per) - (cols - 1) / 2) * dy, y: base - 4 - r - (i % per) * dy}; });
+  });
+  POOL.forEach(b => {
+    const p = pos[b.id]; if (!p) return;
+    const dot = el("circle", {cx: p.x, cy: p.y, r: r, fill: "var(--faint)", "fill-opacity": 0.5});
+    dot.appendChild(el("title", {}, nombreBasin(b) + ": " + fmtVal(c, b[c.campo])));
+    svg.appendChild(dot);
+  });
+  const L = [];
+  B.forEach((b, i) => {
+    const v = b[c.campo]; if (v == null) return;
+    let p = pos[b.id];
+    if (!p) { const k = Math.round(X(v) / step); p = {x: X(v), y: base - 8 - ((bins[k] || []).length ? Math.min(per, bins[k].length) * dy : 0)}; }
+    const txt = cortoBasin(b) + " " + fmtVal(c, v);
+    L.push({b: b, i: i, p: p, txt: txt, w: txt.length * 6.4 + 10, hollow: !b.pool});
+  });
+  L.sort((a, b) => a.p.x - b.p.x);
+  const laneEnd = [-1e9, -1e9, -1e9, -1e9, -1e9];
+  L.forEach(o => {
+    let left = Math.min(Math.max(o.p.x - o.w / 2, 4), W - 4 - o.w);
+    let lane = laneEnd.findIndex(e => e + 6 <= left);
+    if (lane < 0) lane = laneEnd.indexOf(Math.min.apply(null, laneEnd));
+    laneEnd[lane] = left + o.w; o.left = left; o.y = 4 + lane * 17;
+  });
+  L.forEach(o => {
+    const col = o.i === 0 ? "var(--ink)" : colorOf(o.b.id);
+    svg.appendChild(el("line", {x1: o.p.x, x2: o.p.x, y1: o.y + 15, y2: o.p.y - (o.i === 0 ? 8 : 6), stroke: col, "stroke-width": 1.2, "stroke-opacity": 0.85}));
+    svg.appendChild(el("rect", {x: o.left, y: o.y, width: o.w, height: 15, rx: 2, fill: "var(--surface)", stroke: "var(--rule-2)"}));
+    svg.appendChild(el("text", {x: o.left + 5, y: o.y + 11, "class": "lbl-t", "font-size": 11}, o.txt));
+  });
+  L.forEach(o => {
+    const col = o.i === 0 ? "var(--ink)" : colorOf(o.b.id);
+    let m;
+    if (o.i === 0) m = el("path", {d: "M" + o.p.x + " " + (o.p.y - 8) + "L" + (o.p.x + 8) + " " + o.p.y + "L" + o.p.x + " " + (o.p.y + 8) + "L" + (o.p.x - 8) + " " + o.p.y + "Z", fill: col, stroke: "var(--surface)", "stroke-width": 1.5});
+    else m = el("circle", {cx: o.p.x, cy: o.p.y, r: 5.5, fill: o.hollow ? "var(--surface)" : col, stroke: o.hollow ? col : "var(--surface)", "stroke-width": o.hollow ? 2 : 1.5});
+    m.appendChild(el("title", {}, nombreBasin(o.b) + ": " + fmtVal(c, o.b[c.campo])));
+    svg.appendChild(m);
+  });
+  return svg;
+}
+function statChips(c, B) {
+  return B.map((b, i) => {
+    const v = b[c.campo], st = evalCrit(c, v), ri = rankInfo(c, b);
+    const mark = i === 0 ? '<span style="font-size:.8rem">◆</span>' : '<span class="sw" style="background:' + (b.pool ? colorOf(b.id) : "transparent") + ';border-color:' + colorOf(b.id) + '"></span>';
+    return '<span class="stat">' + mark + "<b>" + esc(cortoBasin(b)) + "</b> " + fmtVal(c, v) + (ST_ICON[st] ? " " + ST_ICON[st] : "") +
+      (ST_LABEL[st] ? " <span style=\"color:var(--muted)\">" + ST_LABEL[st] + "</span>" : "") +
+      (ri && b.pool ? ' <span style="color:var(--muted)">· puesto ' + ri.rank + " de " + ri.n + "</span>" : (!b.pool ? ' <span style="color:var(--muted)">· fuera de las ' + POOL.length + "</span>" : "")) + "</span>";
+  }).join("");
+}
+
+function llenarDetalle(key, B) {
+  const box = $("#det"); if (!box) return;
+  if (key.indexOf("m:") === 0) {
+    const c = CRIT[key.slice(2)], V = VIEW[c.id];
+    let html = '<div class="d-head"><h4>' + esc(c.nombre) + "</h4>" + (c.filtros.length ? '<span class="pill r-duro">Filtro</span>' : "") +
+      (c.banderas.length ? '<span class="pill r-bandera">Bandera</span>' : "") + (c.puntajes.length ? '<span class="pill r-plus">Puntaje</span>' : "") +
+      '<span class="pill ' + (c.origen ? "o-" + c.origen : "r-info") + '">' + (c.origen === "usuario" ? "Lo pediste" : (c.origen === "mio" ? "Lo agregué" : "Se calcula, no decide")) + "</span></div>";
+    html += '<div class="d-cols"><div>' + reglasHTML(c) + '<p class="d-note">' + esc(c.porque) + '</p><p class="d-src"><b>Fuente:</b> ' + esc(c.fuente) + "</p></div><div id=\"chart\"></div></div>";
+    box.innerHTML = html;
+    if (c.id === "cob") {
+      $("#chart").innerHTML = '<p class="d-note">Las ' + D.basins.length + " cuencas que pasaron los metadatos tienen la cobertura de IMERG completa: " + D.cob_ok + " de " + D.basins.length +
+        " con al menos 98 %. La bandera no se activó en ninguna.</p>" + '<div class="stats">' + statChips(c, B) + "</div>";
+      return;
+    }
+    $("#chart").appendChild(stripChart(c, B));
+    const zl = [];
+    if (zonesFor(c, V.dom).some(z => z.s === "fail")) zl.push('<span><i style="background:var(--bad);opacity:.5"></i>no cumple el filtro</span>');
+    if (zonesFor(c, V.dom).some(z => z.s === "flag")) zl.push('<span><i style="background:var(--warn);opacity:.55"></i>bandera</span>');
+    if (curveOf(c)) zl.push('<span><i style="border-top:2px dashed var(--accent);height:0;width:16px"></i>puntos que da el criterio (arriba = 1)</span>');
+    zl.push('<span><i style="background:var(--faint);opacity:.55;border-radius:50%;width:9px"></i>las ' + POOL.length + " cuencas</span>");
+    $("#chart").insertAdjacentHTML("beforeend", '<div class="zl">' + zl.join("") + '</div><div class="stats">' + statChips(c, B) + "</div>");
+    return;
+  }
+  if (key.indexOf("c:") === 0) {
+    const id = key.slice(2), comp = COMPN[id];
+    const rows = [];
+    comp.terminos.forEach(t => {
+      const partes = t.tipo === "producto" ? t.factores : [t];
+      partes.forEach(p => {
+        const cri = metricaDeCol(p.col);
+        rows.push({lab: cri ? cri.corto : p.col, peso: t.tipo === "producto" ? null : t.peso, col: p.col, curva: p.curva});
+      });
+    });
+    let html = '<div class="d-head"><h4>Cómo se calcula el puntaje de ' + esc(comp.nombre) + "</h4><span class=\"pill r-plus\">" + pct(comp.peso) + " del puntaje</span></div>";
+    html += '<p class="d-note" style="margin:0 0 .8rem">' + (comp.terminos[0].tipo === "producto" ? "Es un producto: si un factor vale 0, el componente vale 0." : "Suma ponderada de los puntos de cada métrica.") +
+      "</p><div style=\"overflow-x:auto\"><table class=\"mini\"><thead><tr><th>Métrica</th><th>Peso</th>" + B.map(b => "<th>" + esc(cortoBasin(b)) + "</th>").join("") + "</tr></thead><tbody>";
+    rows.forEach(r => {
+      html += "<tr><td>" + esc(r.lab) + '</td><td>' + (r.peso == null ? "×" : pct(r.peso)) + "</td>" + B.map(b => {
+        const v = b[r.col]; return "<td>" + (v == null ? "—" : interp(r.curva, v).toFixed(2)) + "</td>"; }).join("") + "</tr>";
+    });
+    html += '<tr class="tot"><td>Componente</td><td></td>' + B.map(b => "<td>" + (b.comp[id] == null ? "—" : b.comp[id].toFixed(2)) + "</td>").join("") + "</tr></tbody></table></div>";
+    html += '<p class="d-src">Cada métrica se convierte en puntos con la rampa del código (0 a 1); ' + esc(comp.archivo) + ":" + comp.desde + (comp.hasta !== comp.desde ? "–" + comp.hasta : "") + ".</p>";
+    box.innerHTML = html;
+    return;
+  }
+  if (key === "total") {
+    const ks = D.componentes.map(c => c.id), tot = ks.reduce((s, k) => s + WT[k], 0);
+    let html = '<div class="d-head"><h4>Cómo se arma el puntaje total</h4><span class="pill r-plus">pesos actuales del panel de abajo</span></div>';
+    html += '<div style="overflow-x:auto"><table class="mini"><thead><tr><th>Componente</th><th>Peso</th>' + B.map(b => "<th>" + esc(cortoBasin(b)) + "</th>").join("") + "</tr></thead><tbody>";
+    ks.forEach(k => {
+      html += "<tr><td>" + esc(COMPN[k].nombre) + "</td><td>" + (WT[k] / tot * 100).toFixed(0) + " %</td>" +
+        B.map(b => "<td>" + (b.comp[k] == null ? "—" : (b.comp[k] * WT[k] / tot).toFixed(3)) + "</td>").join("") + "</tr>";
+    });
+    html += '<tr class="tot"><td>Puntaje</td><td></td>' + B.map(b => "<td>" + scoreOf(b).toFixed(3) + "</td>").join("") + "</tr></tbody></table></div>";
+    html += '<p class="d-src">Cada celda es el componente por su peso. Las banderas no restan puntos.</p>';
+    box.innerHTML = html;
+    return;
+  }
+  if (key === "banderas") {
+    const defs = {}; D.reglas.banderas.forEach(b => { defs[b.nombre] = b; });
+    let html = '<div class="d-head"><h4>Banderas activas</h4><span class="pill r-bandera">se anotan; no descartan ni restan</span></div><ul class="lista-d">';
+    B.forEach(b => {
+      html += '<li><span class="who">' + esc(cortoBasin(b)) + "</span><span>" + (b.banderas.length ? b.banderas.map(n => "<b>" + esc(n) + "</b> (" + esc(defs[n] ? banderaTxt(defs[n]) : "") + ")").join(" · ") : "Ninguna de las " + D.reglas.banderas.length + ".") + "</span></li>";
+    });
+    box.innerHTML = html + '</ul><p class="d-src">Las nueve banderas: ' + D.reglas.banderas.map(b => esc(b.nombre)).join(", ") + ".</p>";
+    return;
+  }
+  if (key === "pomca" || key === "notas") {
+    let html = '<div class="d-head"><h4>' + (key === "pomca" ? "POMCA" : "Observaciones") + '</h4><span class="pill r-info">investigación manual · no es parte de la regla</span></div><ul class="lista-d">';
+    B.forEach(b => {
+      const m = D.manual[String(b.id)]; if (!m) return;
+      const url = key === "pomca" ? m.pomca.url : m.nota_url;
+      html += '<li><span class="who">' + esc(cortoBasin(b)) + "</span><span>" + (key === "pomca" ? '<span class="pill s-' + m.pomca.estado + '" style="margin-right:.5rem">' + esc(m.pomca.etiqueta) + "</span>" + esc(m.pomca.texto) : esc(m.nota)) +
+        (url ? ' <a href="' + esc(url) + '" target="_blank" rel="noopener">fuente ↗</a>' : "") + "</span></li>";
+    });
+    box.innerHTML = html + "</ul>";
+  }
+}
+
+/* selector de comparadas */
+function renderChips() {
+  const box = $("#chips"); box.innerHTML = "";
+  D.competidoras.forEach(id => {
+    const b = D_BY[id], on = SEL.indexOf(id) >= 0, lleno = !on && SEL.length >= 5;
+    const btn = h("button", {"class": "chip", "aria-pressed": on ? "true" : "false", "aria-disabled": lleno ? "true" : "false", type: "button"},
+      '<span class="sw" style="' + (on ? "background:" + colorOf(id) + ";border-color:" + colorOf(id) : "") + '"></span>' + esc(cortoBasin(b)));
+    btn.addEventListener("click", () => {
+      if (on) { SEL = SEL.filter(x => x !== id); delete SLOTS[id]; $("#msg").textContent = ""; }
+      else if (lleno) { $("#msg").textContent = "Máximo cinco cuencas a la vez: quita una para agregar otra."; return; }
+      else { const usados = Object.keys(SLOTS).map(k => SLOTS[k]); let s = 0; while (usados.indexOf(s) >= 0) s++; SLOTS[id] = s; SEL.push(id); $("#msg").textContent = ""; }
+      renderChips(); renderMatrix();
+    });
+    box.appendChild(btn);
+  });
+}
+iniciar(() => { renderChips(); renderMatrix(); });
+
+/* ===================== pesos y sensibilidad ===================== */
+function nombreCorto(b) { return nombreBasin(b); }
+function renderRanking() {
+  const lista = POOL.map(b => ({b: b, s: scoreOf(b)})).sort((x, y) => y.s - x.s);
+  const top = lista.slice(0, 10), fi = lista.findIndex(x => x.b.id === D.fonce);
+  let html = "";
+  const fila = (o, i) => '<li class="' + (o.b.id === D.fonce ? "f" : "") + '"><span class="n">' + (i + 1) + '</span><span class="nm">' +
+    (SEL.indexOf(o.b.id) >= 0 ? '<span class="sw" style="background:' + colorOf(o.b.id) + ';border-color:' + colorOf(o.b.id) + ';margin-right:.4rem"></span>' : "") +
+    esc(nombreCorto(o.b)) + '</span><span class="bb"><i style="width:' + (o.s * 100) + '%"></i></span><span class="sc">' + o.s.toFixed(3) + "</span></li>";
+  top.forEach((o, i) => { html += fila(o, i); });
+  if (fi >= 10) html += '<li class="sep">⋯</li>' + fila(lista[fi], fi);
+  $("#rk").innerHTML = html;
+  const cambio = Object.keys(WT).some(k => Math.abs(WT[k] - PESOS_CODIGO[k]) > 1e-9);
+  $("#rkNote").textContent = fi === 0 ? "Con estos pesos Fonce sigue siendo la primera de las " + POOL.length + "." :
+    "Con estos pesos Fonce queda en el puesto " + (fi + 1) + " de " + POOL.length + " (la primera es " + cortoBasin(lista[0].b) + ").";
+  $("#wnote").textContent = cambio ? "Pesos modificados: ya no son los del código." : "Pesos del código.";
+}
+function renderSliders() {
+  const box = $("#sliders"); box.innerHTML = "";
+  const tot = () => Object.keys(WT).reduce((s, k) => s + WT[k], 0);
+  D.componentes.forEach(c => {
+    const wrap = h("div", {"class": "sl"});
+    wrap.innerHTML = '<label for="sl-' + c.id + '">' + esc(c.nombre) + '</label><output id="o-' + c.id + '"></output><input id="sl-' + c.id + '" type="range" min="0" max="100" step="5" value="' + Math.round(WT[c.id] * 100) + '">';
+    box.appendChild(wrap);
+    $("input", wrap).addEventListener("input", ev => { WT[c.id] = +ev.target.value / 100; actualizar(); });
+  });
+  function actualizar() {
+    const t = tot();
+    D.componentes.forEach(c => { $("#o-" + c.id).textContent = t > 0 ? (WT[c.id] / t * 100).toFixed(0) + " %" : "0 %"; });
+    if (t <= 0) { $("#rk").innerHTML = "<li class=\"sep\">Pon al menos un peso mayor que cero.</li>"; return; }
+    renderRanking(); renderMatrix();
+  }
+  renderSliders.actualizar = actualizar;
+  actualizar();
+}
+iniciar(() => {
+  renderSliders();
+  const P = $("#presets");
+  const presets = [
+    {t: "Pesos del código", w: PESOS_CODIGO},
+    {t: "Todos iguales", w: {reg: .2, sub: .2, imerg: .2, bal: .2, nat: .2}},
+    {t: "Solo registro y subcuencas", w: {reg: .5, sub: .5, imerg: 0, bal: 0, nat: 0}},
+    {t: "Sin subcuencas", w: (() => { const w = JSON.parse(JSON.stringify(PESOS_CODIGO)); w.sub = 0; return w; })()}
+  ];
+  presets.forEach(p => {
+    const b = h("button", {"class": "btn", type: "button"}, esc(p.t));
+    b.addEventListener("click", () => {
+      Object.keys(p.w).forEach(k => { WT[k] = p.w[k]; const i = $("#sl-" + k); if (i) i.value = Math.round(p.w[k] * 100); });
+      renderSliders.actualizar();
+    });
+    P.appendChild(b);
+  });
+});
+
+iniciar(() => {
+  const R = D.robustez, U = R.uniforme, X = R.extremos;
+  const nom = id => cortoBasin(D_BY[id]);
+  const barras = arr => arr.map(o => '<div class="hb' + (o.f ? " f" : "") + '"><span>' + esc(o.l) + '</span><span class="t"><i style="width:' + o.w + '%"></i></span><span class="v">' + o.v + "</span></div>").join("");
+  const lid = U.lideres.map(l => ({l: nom(l.id), w: l.p * 100 / (U.lideres[0].p) , v: (l.p * 100).toFixed(0) + " %", f: l.id === D.fonce}));
+  const solo = R.solo_componente.map(s => ({l: s.componente, w: (R.n_pool - s.rango + 1) / R.n_pool * 100, v: "N.º " + s.rango, f: s.rango === 1}));
+  const sin = R.quitar.map(s => ({l: "Sin " + s.sin.toLowerCase(), w: (R.n_pool - s.rango + 1) / R.n_pool * 100, v: "N.º " + s.rango, f: s.rango === 1}));
+  $("#rob").innerHTML =
+    '<div><h4>Quién lidera con pesos al azar</h4><p class="d-src" style="margin:0 0 .5rem">' + fmtInt(U.n) + " combinaciones aleatorias de los cinco pesos. Fonce es primera en " + (U.p1 * 100).toFixed(0) +
+    " %, entre las tres primeras en " + (U.p3 * 100).toFixed(0) + " %, y en el peor caso queda " + U.peor + ".ª.</p>" + barras(lid) + "</div>" +
+    '<div><h4>Con pesos extremos</h4><p class="d-src" style="margin:0 0 .5rem">Combinaciones que concentran el peso en uno o dos componentes. Fonce es primera en ' + (X.p1 * 100).toFixed(0) +
+    " % y entre las tres primeras en " + (X.p3 * 100).toFixed(0) + " %.</p>" +
+    barras(X.lideres.map(l => ({l: nom(l.id), w: l.p * 100 / X.lideres[0].p, v: (l.p * 100).toFixed(0) + " %", f: l.id === D.fonce}))) + "</div>" +
+    '<div><h4>Puesto de Fonce si solo importara…</h4>' + barras(solo) + '<p class="d-src">Barra más larga = mejor puesto. Fonce solo es primera en subcuencas.</p></div>' +
+    '<div><h4>Puesto de Fonce si se quitara…</h4>' + barras(sin) + '<p class="d-src">Los demás pesos se reescalan.</p></div>';
+});
+
+/* ===================== pendientes ===================== */
+iniciar(() => {
+  const F = FONCE;
+  const maxSol = Math.max.apply(null, D.basins.map(b => b.imerg_years));
+  const n150 = POOL.filter(b => b.q_gap_max <= 150).length;
+  const X = D.fonce_extra;
+  const items = [
+    "<b>Confirmar el hueco máximo (" + MAX_HUECO + " días).</b> Lo fijé yo: pediste «sin tramos muy largos» sin cifra. Con 150 días pasarían " + n150 + " de las " + POOL.length +
+      " y Fonce seguiría dentro (" + F.q_gap_max + " d).",
+    "<b>Decidir cómo contar los años.</b> El filtro de " + MIN_ANIOS + " años se aplica al registro total. Sobre el solape con IMERG ninguna cuenca llega: el máximo es " + maxSol.toFixed(2) +
+      " y Fonce tiene " + F.imerg_years.toFixed(2) + ". Extender el caudal más allá de 2022 con IDEAM DHIME lo resolvería.",
+    "<b>Ver la curva de calibración de San Gil.</b> Es limnimétrica: si la lectura de mira subestima los picos, el balance también.",
+    "<b>Contrastar IMERG con los pluviómetros IDEAM dentro de la cuenca</b> antes de calibrar.",
+    "<b>Explicar el " + X.merida_mayor_pct + " % de días en que Mérida supera a San Gil.</b> Con el " + (X.merida_frac * 100).toFixed(0) + " % del área, lo más probable es tiempo de tránsito; se comprueba con correlación desfasada.",
+    "<b>Revisar la diferencia de caudal específico entre Monchía y Mogoticos</b> (" + X.q_esp_monchia + " y " + X.q_esp_mogoticos + " mm/d): puede ser real o de calibración.",
+    "<b>Pedir a la CAS el POMCA de 2010</b> y el estado del nuevo."
+  ];
+  $("#pend").innerHTML = items.map(x => "<li>" + x + "</li>").join("");
+});
+</script>

@@ -1,0 +1,85 @@
+--- idx=30 id=57f5e915 type=code ---
+# paleta apta para daltonismo (Okabe-Ito); pluviómetro = naranja, IMERG = azul, como en el resto
+AZUL_P, NARANJA_P, GRIS_P = "#0072B2", "#D55E00", "#6C757D"
+MES_INI = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+
+fig, ax = plt.subplots(2, 2, figsize=(13.5, 9.6))
+
+# --- (a) lo medido y lo estimado, contra la altura, en los mismos 7 puntos ---
+alturas = np.linspace(gradiente.altitud.min() - 80, gradiente.altitud.max() + 80, 50)
+for columna, etiqueta, color in [("p_pluvio", "pluviómetro (medido)", NARANJA_P),
+                                 ("p_imerg", "IMERG (en ese píxel)", AZUL_P)]:
+    r = stats.linregress(gradiente.altitud, gradiente[columna])
+    ax[0, 0].scatter(gradiente.altitud, gradiente[columna], s=62, color=color, zorder=3,
+                     edgecolor="white", linewidth=0.8,
+                     label=f"{etiqueta} · r = {r.rvalue:+.2f}, p = {r.pvalue:.2f}")
+    ax[0, 0].plot(alturas, r.intercept + r.slope * alturas, color=color, lw=1.4,
+                  ls="--" if r.pvalue > 0.05 else "-", alpha=0.85)
+for _, f in gradiente.iterrows():          # el nombre de cada estación, junto a su punto medido
+    ax[0, 0].annotate(f.estacion.split(" ")[0], (f.altitud, f.p_pluvio), xytext=(7, 4),
+                      textcoords="offset points", fontsize=8, color="#3C4450")
+ax[0, 0].set_title("(a) Lluvia anual contra altura, en los mismos 7 puntos\n"
+                   "la recta punteada es un ajuste que NO alcanza significancia (p > 0,05)",
+                   fontsize=10, loc="left")
+ax[0, 0].set_xlabel("altitud de la estación (m s.n.m.)"); ax[0, 0].set_ylabel("lluvia media (mm/año)")
+ax[0, 0].legend(frameon=False, fontsize=8.5, loc="upper right")
+
+# --- (b) ¿el error de IMERG depende de la altura? ---
+r_sesgo = stats.linregress(gradiente.altitud, gradiente.sesgo_imerg_pct)
+ax[0, 1].axhline(0, color=GRIS_P, lw=1, ls=":")
+ax[0, 1].scatter(gradiente.altitud, gradiente.sesgo_imerg_pct, s=62, color=AZUL_P, zorder=3,
+                 edgecolor="white", linewidth=0.8)
+ax[0, 1].plot(alturas, r_sesgo.intercept + r_sesgo.slope * alturas, color=AZUL_P, lw=1.4, ls="--")
+for _, f in gradiente.iterrows():
+    ax[0, 1].annotate(f.estacion.split(" ")[0], (f.altitud, f.sesgo_imerg_pct), xytext=(7, 4),
+                      textcoords="offset points", fontsize=8, color="#3C4450")
+ax[0, 1].set_title(f"(b) Diferencia de IMERG contra cada pluviómetro\n"
+                   f"r = {r_sesgo.rvalue:+.2f}, p = {r_sesgo.pvalue:.2f}: tampoco ordena por altura",
+                   fontsize=10, loc="left")
+ax[0, 1].set_xlabel("altitud de la estación (m s.n.m.)")
+ax[0, 1].set_ylabel("IMERG − pluviómetro (%)")
+
+# --- (c) cuánta lluvia mensual mide cada estación, ordenadas por altura ---
+orden = gradiente.sort_values("altitud")
+datos_caja = [pluvio_mes[c].dropna().values for c in orden.codigo]
+caja = ax[1, 0].boxplot(datos_caja, patch_artist=True, widths=0.6, showfliers=False)
+for parche, alt in zip(caja["boxes"], orden.altitud):
+    tono = (alt - orden.altitud.min()) / (orden.altitud.max() - orden.altitud.min())
+    parche.set(facecolor=plt.cm.YlGnBu(0.25 + 0.55 * tono), edgecolor="#3C4450", linewidth=0.9)
+for pieza in ("medians", "whiskers", "caps"):
+    for linea in caja[pieza]:
+        linea.set(color="#3C4450", linewidth=1.0)
+ax[1, 0].set_xticks(range(1, len(orden) + 1),
+                    [f"{e.split(' ')[0]}\n{a:.0f} m" for e, a in zip(orden.estacion, orden.altitud)],
+                    fontsize=8)
+ax[1, 0].set_title("(c) Lluvia mensual de cada estación, ordenadas de menor a mayor altura\n"
+                   "si hubiera gradiente, las cajas subirían o bajarían de izquierda a derecha",
+                   fontsize=10, loc="left")
+ax[1, 0].set_ylabel("lluvia (mm/mes)")
+
+# --- (d) la forma del año, normalizada, coloreada por altura ---
+norma = plt.Normalize(orden.altitud.min(), orden.altitud.max())
+for _, f in orden.iterrows():
+    ciclo_est = pluvio_mes[f.codigo].groupby(pluvio_mes.index.month).mean()
+    ax[1, 1].plot(ciclo_est.index, 100 * ciclo_est / ciclo_est.sum(), lw=1.6,
+                  color=plt.cm.YlGnBu(0.25 + 0.55 * norma(f.altitud)))
+ciclo_imerg = comp["IMERG"].groupby(comp.index.month).mean()
+ax[1, 1].plot(ciclo_imerg.index, 100 * ciclo_imerg / ciclo_imerg.sum(), lw=2.4, color=AZUL_P,
+              ls="--", label="IMERG sobre la cuenca (PI)")
+ax[1, 1].set_xticks(range(1, 13), MES_INI)
+ax[1, 1].set_title("(d) La forma del año, en % del total anual\n"
+                   "el color va de la estación más baja (claro) a la más alta (oscuro)",
+                   fontsize=10, loc="left")
+ax[1, 1].set_xlabel("mes"); ax[1, 1].set_ylabel("% de la lluvia del año")
+ax[1, 1].legend(frameon=False, fontsize=9)
+fig.colorbar(plt.cm.ScalarMappable(norm=norma, cmap="YlGnBu"), ax=ax[1, 1],
+             shrink=0.75, pad=0.02).set_label("altitud (m)", fontsize=9)
+
+for a in ax.flat:
+    a.grid(alpha=0.25, lw=0.6)
+    for lado in ("top", "right"):
+        a.spines[lado].set_visible(False)
+fig.suptitle("¿Llueve más arriba? Los 7 pluviómetros de la cuenca de San Gil, 1998-2022",
+             fontsize=13, y=0.995, x=0.006, ha="left")
+fig.tight_layout(rect=[0, 0, 1, 0.965])
+plt.show()

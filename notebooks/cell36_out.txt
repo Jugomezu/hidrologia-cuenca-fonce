@@ -1,0 +1,22 @@
+262 meses con las tres ETP
+CAMELS-COL / Hargreaves con MSWX, mes a mes: entre 2.70 y 2.84
+ERA5-Land contra MSWX, ambas con Hargreaves: +1.3 % en promedio, r = 0.88
+con Ra sin convertir a mm/día, CAMELS-COL / Hargreaves-MSWX sería 1.12
+en los 262 meses con PL y Q: PL 2437 mm/año, Q 1331 mm/año, PL − Q 1106 mm/año
+
+---
+                          meses con dato  ETP media (mm/año)  \
+CAMELS-COL (publicada)               262             3421.79   
+Hargreaves con MSWX                  262             1240.19   
+Hargreaves con ERA5-Land             300             1256.96   
+
+                          cociente CAMELS-COL / esta (mediana mensual)  \
+CAMELS-COL (publicada)                                            1.00   
+Hargreaves con MSWX                                               2.76   
+Hargreaves con ERA5-Land                                          2.72   
+
+                          correlación mensual con CAMELS-COL (Pearson)  
+CAMELS-COL (publicada)                                            1.00  
+Hargreaves con MSWX                                               0.99  
+Hargreaves con ERA5-Land                                          0.85  
+---

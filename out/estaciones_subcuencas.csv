@@ -1,0 +1,8 @@
+codigo,etiqueta,altitud,p_anual,subcuenca,nombre_subcuenca,area_subcuenca_km2,p_imerg_subcuenca,estaciones_en_subcuenca
+24020080,Valle de San Jose,1300.0,2188.578082191781,24027010,"San Gil (Fonce, salida)",2098.85,2223.974,1
+24025050,Charalá,1350.0,2696.813793103448,24027070,Merida (Fonce),1559.58,2202.5932000000003,1
+24020120,Coromoro,1520.0,2511.956,24027050,Puente Llano (Taquiza),606.32,2164.4024,3
+24025040,Escuela Agricola Mogotes,1673.0,2838.9081081081076,24027040,Puente Cabra (Mogoticos),182.71,2202.9264000000003,1
+24020040,Encino,1814.0,3191.5023255813953,24027030,Nemizaque (Pienta),627.76,2127.87,1
+24020230,Pueblo Viejo,2107.0,1901.5036649214658,24027050,Puente Llano (Taquiza),606.32,2164.4024,3
+24020220,Pavas Las,2625.0,2210.931365313653,24027050,Puente Llano (Taquiza),606.32,2164.4024,3

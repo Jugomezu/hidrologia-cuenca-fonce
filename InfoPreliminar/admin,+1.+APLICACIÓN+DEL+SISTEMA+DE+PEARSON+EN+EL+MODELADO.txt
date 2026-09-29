@@ -1,0 +1,241 @@
+                                                           
+APLICACIÓN DEL SISTEMA DE PEARSON EN EL MODELADO ESTOCASTICO 
+DE LOS PROCESOS DE PRECIPITACION, EVAPORACION Y ESCORRENTIA 
+SUPERFICIAL (CAUDALES MEDIOS) EN EL RIO FONCE (SANTANDER) 
+ 
+Recibido: Marzo 1 de 2015 
+Aprobado: Junio de 2015 
+ 
+ 
+Jorge Brandon Fuentes Bacca 
+Facultad de Ingeniería Civil, Universidad Militar Nueva Granada, Grupo Visión Colombia Hídrica, 
+Proyecto de Investigación ING 1770 de 2015 
+Bogotá, Colombia 
+u1101464@unimilitar.edu.co 
+ 
+ 
+ 
+RESUMEN 
+Este trabajo da respuesta al interrogante ¿es posible modelar el comportamiento estocástico de 
+los procesos del balance hídrico en la parte alta de la cuenca del río Fonce mediante el Sistema de 
+Pearson-Wiener? El trabajo se desarrolló en  el marco del proyecto de investigación UMNG ING 
+1770 de 2015, con recursos financieros de la Vicerrectoría de Investigaciones y en conjunto con la 
+Universidad de Pamplona. El Sistema de Pearson es un ensamble de modelos estadísticos que se 
+utiliza en dive rsas ramas de las ciencias (finanzas, economía, física, química) para simular el 
+comportamiento de las trayectorias de los procesos con soporte en datos históricos. En el ámbito 
+de la ingeniería civil fue descrito por hidrólogos famosos desde principios y mediados del siglo XX, 
+tales como Foster y Ven Te Chow. Los resultados demuestran que el comportamiento anual de la 
+precipitación, evaporación y escorrentía se modela en forma adecuada mediante los tipos diversos 
+del Sistema de Pearson.  
+ 
+PALABRAS CLAVE: Sistema de Pearson, Balance Hídrico, Río Fonce  
+ÁREA TEMÁTICA: Modelación y simulación de sistemas ambientales. 
+ 
+ABSTRACT 
+This project gives answer to the question, Is it possible to model the stochastic behavior of the 
+processes of the water balance in the upper river basin Fonce by Pearson -Wiener System? The 
+project was developed in the framework of the research project 177 0 ING UMNG 2015, with 
+                                                           
+resources from the office of Investigation and together with the University of Pamplona. Pearson 
+System is an ensemble of statistical models used in various branches of science (finance, 
+economics, physics, chemistry) to simulate the behavior of the trajectories of the processes 
+supported with historical data. In the field of civil engineering it was described by famous 
+hydrologists from early to mid -twentieth century, such as Foster and Ven Te Chow. The results 
+show that the annual be havior of rainfall, evaporation and runoff model adequately thought 
+various types Pearson System. 
+ 
+Keywords: Pearson´s System, Water Balance, Fonce River 
+ 
+ 
+ 
+INTRODUCCIÓN 
+ 
+El balance hídrico es una relación de los procesos de precipitación, evaporación, fil tración, 
+almacenamiento y escorrentía. Esta relación en hidrología se establece mediante el método 
+estadístico de los momentos de Pearson y en la práctica es una ecuación algebraica de valores 
+promedios de cada proceso (Rivera H., 2013).  
+ 
+El concepto de balance hídrico implica al menos las siguiente consideraciones: a) la cuenca es un 
+sistema cerrado, b) dentro de la cuenca los procesos del balance se referencian mediante el valor 
+medio multianual; c) para que sea válida la relación entre los procesos diversos se requiere que el 
+periodo temporal sea homogéneo, d) en ese periodo temporal cada proceso cumple con la 
+propiedad de estacionariedad estadística, e) a futuro los procesos deben mantener sus momentos 
+estadísticos con valores constantes.  
+ 
+ 
+Dado que el balance hídrico se estima con valores estadísticos de las series temporales de cada 
+proceso, resulta justo preguntarse si el Sistema de Pearson puede modelar el comportamiento 
+histórico de cada proceso inmerso en el balance.  Una de las principales dificul tades en la 
+realización del estudio hidrológico es la falta de información a la hora de realizar balan-ces hídricos 
+y curvas de duración de caudales, que permitan realizar una  proyección del comportamiento del 
+recurso hídrico ( Cruz & Rivera 2014).  Para ello, se toman inicialmente como referencia en este 
+trabajo cinco procesos: precipitación, evaporación, temperatura, tensión de vapor, humedad 
+relativa y escorrentía superficial. El periodo temporal homogéneo se tomó del año 1983 al año 
+2012. Finalmente para  el estudio mediante el modelo de Pearson se tomaron para el balance 
+hídrico tres procesos: precipitación, evaporación y escorrentía superficial.  
+                                                           
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+MÉTODO 
+ 
+Se aplica el Sistema de Pearson para modelar el histograma de frecuencias en cada uno de los tres 
+procesos seleccionados del balance hídrico en el tiempo 1983-2012. 
+ 
+El Sistema de Pearson es un juego de modelos estadísticos para simular el comportamiento 
+estadístico de un fenómeno y se expresa mediante la ecuación diferencial ordinaria de prim er 
+orden, así: 
+ 
+
+                                                           
+    
+2
+321C
+1
+QCQC
+Q
+dQ
+dy
+y 
+
+ (1) 
+en donde,  
+Q  es el símbolo en letra que representa a los valores de los procesos del balance hídrico; 
+y es el símbolo en letra que representa a la probabilidad de un evento en los valores de los 
+procesos del balance hídrico; 
+dQ es el símbolo en letras que representa al diferencial de Q; 
+dy es el símbolo en letras que representa al diferencial de y, es decir, a la variación 
+infinitamente continua de la probabilidad. 
+C1, C2, C3 son símbolos en letras y números que representan a los parámetros estadísticos 
+del histograma de frecuencias o de la ley de distribución de probabilidades. 
+ 
+De acuerdo con los valores de los parámetros estadísticos, se obtienen trece (13) modelos 
+diferentes en el Sistema de Pearson (tabla 1).  
+ 
+Tabla 1. Fórmulas de los modelos estadísticos de Pearson. Fuente: Elderton P. (1906). 
+ 
+Los valores de los parámetros empíricos m, a, γ se obtienen con los datos históricos; mientras 
+que los coeficientes se estiman mediante las fórmulas: 
+3
+2/2
+31  
+ 
+2
+2/42  
+  
+ 
+Según el valor del criterio k, se identifican trece (13) tipos de histogramas teóricos de Pearson 
+(tabla 2).  
+ 
+Tabla 2. Valores del criterio kappa K 
+                                                           
+ 
+ 
+En el desarrollo del trabajo se aplicó el criterio kappa k, a cada uno de  los valores anuales 
+multianuales de cada uno de los procesos seleccionados del balance hídrico y así se determinó el 
+modelo estadístico que se ajusta adecuadamente a los datos históricos. 
+ 
+RESULTADOS Y DISCUSIÓN 
+ 
+Los datos fueron aportados en forma gratuita por el Instituto IDEAM y comprendieron: tres 
+series de valores multianuales de precipitación, evaporación y caudales desde 1983 hasta 2012.   
+ 
+ 
+ 
+ 
+
+                                                           
+La precipitación y la evaporación se tomaron de la estación meteorológica ubicada en Charalá en 
+la parte alta de la cuenca del río Fonce, mientras que los caudales se tomaron de la estación 
+hidrológica ubicada en San Gil.  A continuación se muestran los histogramas empíricos (según los 
+datos de las series temporales en 30 años) y los histogramas teóricos obtenidos a partir del 
+modelado con el Sistema de Pearson (figura 1).  
+ 
+ 
+Figura 1. Histograma empírico (transparente) de las frecuencias e histograma teórico (en color 
+gris)  
+ 
+ 
+ 
+
+                                                           
+En la tabla 3 y 4 se presentan los valores de los parámetros de cada uno de los modelos estadísticos 
+del Sistema de Pearson, así como también la definición del tipo de curva del Sistema de Pearson 
+que mejor describe (según el criterio kappa k). 
+ 
+Tabla 3. Valores de los parámetros 
+ 
+Proceso μ2 μ3 μ4 
+Precipitación 1,01 -1,21 3,94 
+Evaporación 1,48 -1,86 6,59 
+Escorrentía 0,81 0,03 1,62 
+ 
+ 
+Tabla 4. Tipo de Pearson 
+ 
+Proceso β1 β2 k Tipo 
+Precipitación 1,43 3,89 -0,60 IX 
+Evaporación 1,07 3,02 -0,35 IX 
+Escorrentía 0,00 2,49 0,00 II 
+ 
+En la tabla 5 se ilustran los valores empíricos de las frecuencias y los valores de las frecuencias 
+que arrojan los modelos estadísticos de Pearson. 
+ 
+Tabla 5. Valores de las frecuencias  
+Proceso Intervalos 
+1 2 3 4 5 
+Precipitación Valor empírico 2 2 5 16 5 
+Valor teórico 5 1 5 15 4 
+Evaporación Valor empírico 3 1 6 9 11 
+Valor teórico 4 2 6 8 10 
+Escorrentía Valor empírico 1 7 12 8 2 
+Valor teórico 1 7 12 9 2 
+ 
+De acuerdo con los resultados obtenidos se puede reflexionar lo siguiente:  
+El balance hídrico en realidad utiliza el método estadístico en su estimación, habida cuenta que 
+exige una serie temporal por cada proceso, utilizando para ello sólo el valor promedio de la serie. 
+En la serie temporal se exige que el periodo sea homogéneo. 
+                                                           
+Según este trabajo cada proceso obedece a una ley de distribución de frecuencias diferente: la 
+precipitación es tipo IX, la evaporación es IX y la escorrentía es tipo II. 
+Surge la pregunta: ¿cómo relacionar estadísticamente valores promedios de histograma s 
+diferentes? No debería exigirse además que las leyes de distribución de los procesos vinculados al 
+balance hídrico fuesen las mismas o idénticamente distribuidas.  
+Además de lo anterior, ¿cómo estimar el balance hídrico en las cuencas cuando se tengan procesos 
+no estacionarios (sea influenciados por actividades antropogénicos o por fenómenos de cambio 
+climático? 
+ 
+CONCLUSIONES 
+ 
+Este trabajo presenta por primera vez para el caso del balance hídrico de la cuenca (parte alta) del 
+río Fonce la aplicación del Sistema de Pearson. 
+ 
+Según el criterio kappa k de Pearson, se tiene que la precipitación y la evaporación en sus series 
+temporales (del año 1983 al 2012) se describe en forma adecuada con el tipo IX del Sistema de 
+Pearson y la escorrentía con el tipo II. E n otros estudios se afirma que la escorrentía se describe 
+en forma adecuada con el tipo III de Pearson, lo cual no se evidenció en el presente trabajo.  
+ 
+REFERENCIAS BIBLIOGRAFICAS 
+ 
+V. T. Chow, D. R. Maidment, L. W. Mays. Handbook of applied Hydrology. San Francisco, McGraw-
+Hill, 1964. 
+ 
+Elderton P. Frequency curves and correlation. London, Institute of Actuaries, 1906.   
+Benjamin J. Probability, Statistics, and Decision for Civil Engineers. San Francisco, McGraw -Hill, 
+1970. 
+  
+Cruz S., Diana C., Rivera, Maria E. (2014). Distribución del recurso hídrico de la microcuenca la 
+quiña, departamento de Boyacá, Colombia. Revista Ambiental Agua, Aire y Suelo. ISSN 1900-9178, 
+5 (1). 
+ 
+H. G. Rivera, D. C. Palacio Gómez, F. M. Rangel Guerrero. Impacto de los escenarios de cambio 
+climático en los recursos naturales renovables en jurisdicción de la Corporación Autónoma 
+Regional de Santander. Bogotá, Otero Impresos – Universidad Nacional de Colombia, 2013. 
+ 
+L. Aparicio. Fundamentos de hidrología de superficie. México, Limusa, 1982. 

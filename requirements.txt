@@ -1,0 +1,26 @@
+# Paquetes del proyecto, con las versiones con que se produjeron los resultados.
+# Probado con Python 3.13 en Windows 11.
+#
+#   pip install -r requirements.txt
+#
+# geopandas, rasterio y pyproj traen GDAL/PROJ dentro de sus ruedas (wheels) para Windows, macOS y Linux;
+# si pip intenta compilarlos, conviene instalarlos con conda-forge en su lugar.
+
+# --- lo que necesita el notebook ---
+numpy==2.3.5
+pandas==2.2.3
+scipy==1.16.0
+matplotlib==3.10.3
+geopandas==1.0.1
+shapely==2.0.6
+pyproj==3.7.0
+rasterio==1.5.0
+jupyter             # o cualquier entorno que ejecute notebooks (VS Code con ipykernel)
+ipykernel==6.29.5
+
+# --- lo que además necesitan los scripts de scripts/ ---
+networkx==3.5       # 13_morfometria.py: el cauce principal como camino más largo de la red
+pysheds==0.5        # 15_cauce_desde_dem.py: direcciones de flujo y acumulación sobre el DEM
+requests==2.32.3    # descargas
+truststore==0.10.4  # descargas: usa los certificados del sistema operativo
+earthengine-api==1.7.45   # 06_era5land_temperatura.py (necesita cuenta de Google Earth Engine)

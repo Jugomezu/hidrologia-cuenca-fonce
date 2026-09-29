@@ -1,0 +1,94 @@
+:root{
+  --paper:#f2f5f4; --surface:#ffffff; --sunk:#e9eeec;
+  --ink:#131b1e; --ink-2:#3b4a4e; --muted:#5c6f73; --faint:#7d9094;
+  --rule:#d7e0dd; --rule-2:#c3d0cc;
+  --accent:#0d6b7c; --accent-soft:#e2eef0; --warm:#a8621d; --warm-soft:#f6ece0;
+  --good:#3f7a52; --good-soft:#e4efe6; --warn:#9a6b18; --warn-soft:#f7efdd;
+  --bad:#a2402f; --bad-soft:#f7e6e2;
+  --c1:#1a6fa8; --c2:#c2611a; --c3:#7a4bb5; --c4:#4f7d1f; --c5:#b02a6a;
+  --shadow:0 1px 2px rgba(19,27,30,.05),0 8px 24px -12px rgba(19,27,30,.14);
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --body:"Source Sans 3",system-ui,-apple-system,Segoe UI,sans-serif;
+  --disp:"Spectral",Iowan Old Style,Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0f1618; --surface:#182124; --sunk:#131c1f;
+  --ink:#e4ecea; --ink-2:#c2d0cf; --muted:#91a4a7; --faint:#7a8f93;
+  --rule:#283538; --rule-2:#334447;
+  --accent:#4aa9bc; --accent-soft:#123137; --warm:#d1873c; --warm-soft:#2e2418;
+  --good:#6fb287; --good-soft:#17281d; --warn:#d2a24a; --warn-soft:#2b2415;
+  --bad:#d4705c; --bad-soft:#2d1c19;
+  --c1:#4390c0; --c2:#c9762c; --c3:#9273c6; --c4:#74a038; --c5:#c65682;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+}}
+:root[data-theme="dark"]{
+  --paper:#0f1618; --surface:#182124; --sunk:#131c1f;
+  --ink:#e4ecea; --ink-2:#c2d0cf; --muted:#91a4a7; --faint:#7a8f93;
+  --rule:#283538; --rule-2:#334447;
+  --accent:#4aa9bc; --accent-soft:#123137; --warm:#d1873c; --warm-soft:#2e2418;
+  --good:#6fb287; --good-soft:#17281d; --warn:#d2a24a; --warn-soft:#2b2415;
+  --bad:#d4705c; --bad-soft:#2d1c19;
+  --c1:#4390c0; --c2:#c9762c; --c3:#9273c6; --c4:#74a038; --c5:#c65682;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 10px 28px -14px rgba(0,0,0,.6);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 28px}
+.prose{max-width:68ch}
+h1,h2,h3,h4{font-family:var(--disp);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:clamp(2.1rem,4.6vw,3.15rem);font-weight:700;letter-spacing:-.015em}
+h2{font-size:clamp(1.5rem,2.6vw,1.95rem);font-weight:600;letter-spacing:-.01em}
+h3{font-size:1.14rem;font-weight:600}
+p{margin:0 0 1em}
+a{color:var(--accent);text-underline-offset:3px;text-decoration-thickness:1px}
+code,.mono{font-family:var(--mono);font-size:.87em;font-variant-ligatures:none}
+.eyebrow{font-family:var(--mono);font-size:.72rem;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 .9rem}
+.masthead{border-bottom:1px solid var(--rule);background:var(--surface)}
+.masthead .wrap{padding-top:52px;padding-bottom:38px}
+.standfirst{font-family:var(--disp);font-size:1.22rem;line-height:1.5;color:var(--ink-2);
+  max-width:62ch;margin:1.1rem 0 0}
+.crumbs{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:1.5rem 0 0;font-size:.9rem}
+section{padding:52px 0}
+section+section{border-top:1px solid var(--rule)}
+.sec-head{margin-bottom:1.6rem}
+.pill{display:inline-flex;align-items:center;gap:.35em;font-family:var(--mono);font-size:.68rem;
+  letter-spacing:.06em;text-transform:uppercase;padding:.16rem .5rem;border-radius:2px;white-space:nowrap;line-height:1.5}
+.pill.o-usuario{border:1px solid var(--accent);color:var(--accent)}
+.pill.o-mio{border:1px solid var(--warm);color:var(--warm)}
+.pill.r-duro{background:var(--ink);color:var(--paper)}
+.pill.r-plus{background:var(--accent-soft);color:var(--accent)}
+.pill.r-bandera{background:var(--sunk);color:var(--ink-2);border:1px solid var(--rule-2)}
+.pill.r-puntaje{border:1px solid var(--rule-2);color:var(--muted)}
+.pill.r-info{border:1px dashed var(--rule-2);color:var(--faint)}
+.pill.s-ok{background:var(--good-soft);color:var(--good)}
+.pill.s-proc,.pill.s-parc{background:var(--warn-soft);color:var(--warn)}
+.pill.s-nc{background:var(--sunk);color:var(--muted)}
+footer{border-top:1px solid var(--rule);padding:30px 0 60px;font-size:.85rem;color:var(--muted)}
+svg{display:block;max-width:100%;height:auto}
+.tick-t{fill:var(--faint);font-family:var(--mono);font-size:10px}
+.lbl-t{fill:var(--ink);font-family:var(--body);font-size:11.5px;font-weight:600}
+.btn{font:600 .85rem var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--rule-2);
+  border-radius:3px;padding:.42rem .8rem;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:760px){body{font-size:16px}.wrap{padding:0 16px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+[hidden]{display:none!important}
+figure.code{margin:.6rem 0 0;border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--sunk)}
+figure.code figcaption{padding:.4rem .8rem;font-size:.78rem;color:var(--muted);border-bottom:1px solid var(--rule);background:var(--surface)}
+figure.code pre{margin:0;padding:.7rem 0;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.55;color:var(--ink)}
+figure.code code{display:block;white-space:pre;min-width:max-content}
+.ln{display:inline-block;width:3.2rem;padding-right:.9rem;text-align:right;color:var(--faint);user-select:none}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem;font-size:.92rem}
+.rules li{display:grid;grid-template-columns:5.6rem minmax(0,1fr);gap:.6rem;align-items:baseline}
+.rules .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.rules .src{font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+.rules b{font-weight:600}
+details summary{cursor:pointer;font-size:.86rem;color:var(--accent);font-weight:600;list-style:none;padding:.2rem 0}
+details summary::before{content:"▸ "}
+details[open] summary::before{content:"▾ "}

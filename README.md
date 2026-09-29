@@ -1,0 +1,169 @@
+# Análisis de la cuenca del río Fonce hasta San Gil
+
+Tarea 1 de Hidrología: análisis de la cuenca del río Fonce hasta la estación de aforo **San Gil (IDEAM
+24027010)**, en Santander, Colombia. El análisis se hace en Python, en un notebook, y hay además un
+informe en HTML generado por un script.
+
+Este README está escrito para que **cualquier persona o agente** que llegue al repositorio entienda el
+proyecto y pueda trabajar en un punto del taller en paralelo con otros, sin romper lo que ya está hecho.
+
+---
+
+## 1. Lo primero que hay que leer
+
+1. **[`CLAUDE.md`](CLAUDE.md)** tiene las **reglas del proyecto**, y son obligatorias. Los agentes de
+   Claude Code lo cargan solos; cualquier otro agente o persona debe leerlo antes de tocar nada. Resumen
+   en la sección 4 de este README.
+2. **[`DATOS_FUENTES.md`](DATOS_FUENTES.md)** registra la procedencia de cada dato: título, DOI, licencia,
+   cómo se descargó, SHA-256 y las decisiones tomadas sobre cada fuente.
+3. **[`scripts/README.md`](scripts/README.md)** describe la tubería de scripts, en orden, con lo que lee
+   y lo que produce cada uno.
+4. **[`PLAN_CONTROL_CALIDAD.md`](PLAN_CONTROL_CALIDAD.md)** es el plan de la sección de control de
+   calidad (punto 4 del notebook), con su estado.
+
+## 2. Estado del trabajo
+
+El notebook [`notebooks/02_precipitacion_vs_caudal.ipynb`](notebooks/02_precipitacion_vs_caudal.ipynb) se
+organiza por punto del taller:
+
+| Sección | Contenido | Estado |
+|---|---|---|
+| 1.0–1.8 | Series mensuales: exploración y validación (estadísticos, cajas, IMERG, comparación PI–PL, lluvia contra caudal, completitud, temperatura, gradiente altitudinal, Encino, ETP) | hecho |
+| 2.1–2.5 | Morfometría (forma, perfil del cauce, curva hipsométrica, pendientes, problemas de CAMELS-COL) | hecho |
+| 3 | Cómo se relacionan las variables (correlaciones, anomalías) | hecho |
+| 4.1 | Completitud: días válidos, criterio de los 4 días | hecho |
+| 4.2 | Control de calidad básico sobre los archivos crudos | hecho |
+| 4.3 | Anomalías: saltos (doble masa, Pettitt), secuencias constantes, extremos, cobertura | hecho |
+| 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | **pendiente** |
+| 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | **pendiente** |
+
+Pendientes ya identificados, fuera de la sección 4:
+- **Análisis de Fourier** de las series. Ahí se retomará el **índice de flujo base**: el de CAMELS-COL
+  se quitó del informe, y la idea es calcular uno propio con el filtro de Ladson et al. (2013).
+
+El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
+`scripts/18_reporte_html.py`. Se abre en un navegador y necesita internet para cargar Plotly.
+
+## 3. Los datos ya están descargados: no hace falta correr las descargas
+
+Todo lo que se descargó está en `data/`, y todos los productos intermedios en `out/`. **No hace falta
+correr los scripts de descarga**; ese trabajo ya se hizo. Las instrucciones de cómo se descargó cada cosa
+se conservan en `DATOS_FUENTES.md` y en el encabezado de cada script, por si alguna vez hay que rehacerlo.
+
+Scripts que necesitan acceso externo (**no correrlos** salvo que se quiera rehacer la descarga):
+
+| Script | Qué necesita |
+|---|---|
+| `03_recorte_dem.py` | el mosaico nacional del DEM en una carpeta compartida (`G:`), fuera del repositorio |
+| `04_imerg_descarga_mensual.py` | credenciales de NASA Earthdata (archivo netrc) y `curl` |
+| `06_era5land_temperatura.py` | una cuenta de Google Earth Engine autenticada |
+| `07_pluviometros_dhime.py` | internet, para consultar el catálogo público de estaciones del IDEAM (sin credenciales). Aquí se declaran las exclusiones de PL: **sí se corre si se cambia una exclusión** |
+
+Un archivo quedó fuera del repositorio: `data/camels_col/04_hydromet.zip` (184 MB, más que el límite de
+GitHub). Es redundante, porque sus 346 archivos ya están descomprimidos en `data/camels_col/hydromet/`.
+Cómo bajarlo de Zenodo está en `DATOS_FUENTES.md`.
+
+## 4. Reglas del proyecto (resumen; manda `CLAUDE.md`)
+
+- **Nada inventado.** Todo número sale de los datos o de su procesamiento. Si falta un dato se dice; no
+  se rellena ni se estima «a ojo».
+- **Las cifras de los textos salen calculadas, no escritas a mano.**
+  - En el notebook, las lecturas con números se generan con `display(Markdown(f"..."))`; el markdown fijo
+    queda cualitativo.
+  - En el informe, todo número sale de la f-string de `18_reporte_html.py`.
+  - Así, cuando cambian los datos, no hay cifras viejas que perseguir.
+- **Código revisable y reproducible.** El profesor ejecuta el notebook completo, que debe correr de
+  principio a fin sin errores.
+- **Todo en español**: textos, comentarios, variables y figuras.
+- **El notebook se organiza por punto del taller** (1.x, 2.x, 3, 4.x). El informe **no** nombra los
+  puntos: usa títulos de sección.
+- **Imports y carga de datos en la primera celda de código** del notebook. Ninguna otra celda importa ni
+  lee archivos.
+- **Figuras del notebook con matplotlib** (nada de Plotly en el notebook). El informe HTML sí usa Plotly.
+- **Período 1998–2022**, el de IMERG. **Sujeto: San Gil**; las subcuencas solo si aportan.
+- **Punto decimal y espacio para los miles** (2 098.85).
+
+## 5. Notación y decisiones vigentes
+
+- **PI**: precipitación de IMERG Final V07, promediada sobre la cuenca ponderando cada celda por su área
+  dentro de ella.
+- **PL**: precipitación de los pluviómetros del IDEAM: el promedio, cada mes, de los **7 pluviómetros
+  dentro de la divisoria** que tengan dato.
+- **Q**: caudal en San Gil (IDEAM, vía CAMELS-COL).
+
+Decisiones que ya están tomadas y no se reabren sin consultar (detalle y fecha en `CLAUDE.md` y en
+`DATOS_FUENTES.md`):
+
+- **Área:** la del polígono, medida por el proyecto (`out/shp_fonce/areas_cuencas.csv`), no la de
+  CAMELS-COL. Áreas y longitudes en el elipsoide o en EPSG:3116.
+- **De diario a mensual:**
+  - una única función, `a_mensual`: un mes con **5 o más días faltantes** queda vacío;
+  - los **acumulados** de meses incompletos son el promedio de los días con dato por los días del mes,
+    nunca una suma parcial.
+- **PI y PL:** todo análisis de lluvia se hace con **PI y PL en paralelo**. **Cuando hay que escoger,
+  manda PL.**
+- **Tramos excluidos de PL** (tabla `EXCLUSIONES` en `scripts/07_pluviometros_dhime.py`, evidencia en las
+  secciones 1.7 y 4.3):
+  - Encino 2016–2018;
+  - Pueblo Viejo de 1998-01 a 2004-11;
+  - 7 meses en 0 mm de Pavas Las y Valle de San José.
+
+  Todo análisis lee `out/pluviometros_fonce_mensual_depurado.csv`.
+- **Marcados como inciertos, pero conservados:**
+  - Coromoro: salto de −20 % desde 2003;
+  - PI: salto de +11 % desde junio de 2014, que coincide con el cambio de calibración de IMERG de TRMM a
+    GPM.
+- **Temperatura:** la de **ERA5-Land**. MSWX, que viene en CAMELS-COL, solo sirve para comparar.
+- **ETP:** la de **Hargreaves calculada por el proyecto con ERA5-Land** (`scripts/06b_etp_hargreaves.py`).
+  La ETP que publica CAMELS-COL sale unas 2.75 veces más alta que su propia fórmula y no se usa.
+
+## 6. Estructura del repositorio
+
+```
+CLAUDE.md                 reglas del proyecto (obligatorias)
+DATOS_FUENTES.md          procedencia de cada dato y decisiones sobre las fuentes
+PLAN_CONTROL_CALIDAD.md   plan y estado de la sección 4 (control de calidad)
+requirements.txt          paquetes de Python, con versión
+notebooks/                el análisis (02_precipitacion_vs_caudal.ipynb es el principal)
+scripts/                  la tubería, numerada en el orden en que se corre (ver scripts/README.md)
+  historico/              scripts que ya no se usan (no correrlos)
+data/                     datos crudos tal como se descargaron (no se editan)
+out/                      productos intermedios (CSV, shapefiles) que leen el notebook y el informe
+reporte/                  informe HTML y sus figuras
+InfoPreliminar/           dos artículos de referencia sobre la cuenca (PDF y texto extraído)
+```
+
+## 7. Cómo correr
+
+Desde la **raíz del repositorio**, con Python 3.13:
+
+```
+pip install -r requirements.txt
+```
+
+- **Solo el análisis:** abrir y ejecutar `notebooks/02_precipitacion_vs_caudal.ipynb` completo. Lee de
+  `out/` y de `data/`. Desde la terminal:
+  `jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 notebooks/02_precipitacion_vs_caudal.ipynb`
+  (tarda unos 10 minutos).
+- **Rehacer productos de `out/`:** correr los scripts que hagan falta, en orden, desde la raíz:
+  `python scripts/NN_nombre.py`. Qué depende de qué está en `scripts/README.md`. Por ejemplo, si se cambia
+  una exclusión de PL: 07, 07b, 07c, 09, 10, 11, 16 y 18, y después el notebook.
+- **Rehacer el informe:** `python scripts/18_reporte_html.py` escribe `reporte/reporte-fonce.html`.
+
+## 8. Cómo trabajar en paralelo sin pisarse
+
+- **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`.
+- **El notebook es un solo archivo JSON grande**, así que dos personas editándolo a la vez chocan en el
+  merge. Recomendaciones:
+  - cada quien agrega **su propia sección al final**, con celdas nuevas, sin reescribir las de otros;
+  - al terminar, antes del pull request, ejecutar el notebook completo y confirmar que no hay errores;
+  - si el punto es grande, desarrollarlo en un notebook aparte (`notebooks/03_...ipynb`) que lea las mismas
+    salidas de `out/`, y llevarlo al principal al final.
+- **Scripts nuevos:** se numeran según dónde caen en la tubería (se usaron sufijos como `06b`, `07b` y `07c`
+  para no renumerar). Se registran en `scripts/README.md`.
+- **Fuentes nuevas:** toda fuente descargada se registra en `DATOS_FUENTES.md`, con DOI o URL, licencia y
+  SHA-256.
+- **Decisiones que cambian datos compartidos**, como una exclusión, un umbral o la fuente de una variable,
+  se consultan antes: mueven cifras en todo el notebook y el informe.
+- **Antes de dar algo por terminado,** ejecutar el notebook completo y, si se tocó el informe,
+  regenerarlo.

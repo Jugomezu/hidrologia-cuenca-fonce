@@ -1,0 +1,29 @@
+--- idx=35 id=c1800001 type=markdown ---
+### 1.8 La evapotranspiración potencial (ETP): la de CAMELS-COL y la calculada por el proyecto
+
+**Qué es y de dónde sale.** La ETP es cuánta agua evaporaría y transpiraría una superficie de pasto bien
+regada con el clima del día; no se mide, se calcula, y no es la evapotranspiración real de la cuenca.
+CAMELS-COL publica una ETP diaria (columna `poten_evapo`, aquí `etp`) y en su artículo dice cómo la
+calculó (Jimenez et al., 2025, ecuación 1): con el método de **Hargreaves y Samani (1985)**, que solo
+necesita la temperatura, usando la mínima y la máxima de MSWX,
+
+$$\mathrm{ETP} = 0.0023 \; R_a \; (T + 17.8) \; \sqrt{T_{máx} - T_{mín}} \qquad [\mathrm{mm/día}]$$
+
+donde $T = (T_{máx} + T_{mín})/2$ en °C y $R_a$ es la radiación que llega al tope de la atmósfera, que
+depende solo de la latitud y del día del año. $R_a$ se calcula con las ecuaciones 21 a 25 de **FAO-56**
+(Allen et al., 1998; la edición en español de 2006 es la que cita CAMELS-COL) y se pasa de MJ m⁻² día⁻¹ a
+mm/día multiplicando por 0.408.
+
+**Lo que hizo el proyecto** (`scripts/06b_etp_hargreaves.py`): aplicar exactamente esa fórmula dos veces,
+una con la temperatura de **ERA5-Land**, la del proyecto, y otra con la de **MSWX**, la misma que usó
+CAMELS-COL. La latitud es la del centroide del polígono de San Gil (6.26° N). La segunda cuenta sirve de
+control: si CAMELS-COL aplicó bien su fórmula, su ETP y la de Hargreaves con MSWX deberían coincidir.
+
+Referencias:
+- Jimenez, D. A., et al. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
+  *Earth Syst. Sci. Data Discuss.* https://doi.org/10.5194/essd-2025-200
+- Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from temperature.
+  *Applied Engineering in Agriculture*, 1(2), 96–99. https://doi.org/10.13031/2013.26773
+- Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). *Crop evapotranspiration: Guidelines for
+  computing crop water requirements* (FAO Irrigation and Drainage Paper 56). FAO, Roma. Edición en
+  español: *Evapotranspiración del cultivo* (Estudio FAO Riego y Drenaje 56), 2006.

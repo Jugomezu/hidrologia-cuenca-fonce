@@ -1,0 +1,329 @@
+<title>Criterios de selección de cuenca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+__COMUN_CSS__
+.verif{margin:1.6rem 0 0;padding:.9rem 1.1rem;background:var(--good-soft);border-left:3px solid var(--good);border-radius:2px;
+  font-size:.93rem;color:var(--ink);max-width:78ch}
+.verif b{color:var(--good)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:0 0 1.4rem}
+.chips .count{font-size:.85rem;color:var(--muted);margin-left:.4rem}
+
+.paso{display:grid;grid-template-columns:auto minmax(0,1fr);gap:1.2rem;padding:1.1rem 0;border-bottom:1px solid var(--rule)}
+.paso:last-child{border-bottom:0}
+.paso-n{font-family:var(--mono);font-size:.78rem;color:var(--faint);padding-top:.3rem}
+.paso h3{font-family:var(--body);font-size:1.02rem;font-weight:600;margin:0 0 .2rem}
+.paso p{margin:0;font-size:.93rem;color:var(--ink-2)}
+.paso .cnt{font-family:var(--mono);color:var(--accent);font-weight:600}
+
+.grp{margin:0 0 2.6rem}
+.grp-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:.4rem 1rem;margin:0 0 .3rem}
+.grp-sub{margin:0 0 1rem;font-size:.92rem;color:var(--muted);max-width:70ch}
+.crit{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:1.4rem 2.4rem;padding:1.3rem 0;border-top:1px solid var(--rule)}
+.crit-h{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem .8rem}
+.crit-h h3{margin:0;font-family:var(--body);font-size:1.08rem;font-weight:600}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.55rem;font-size:.92rem}
+.rules li{display:grid;grid-template-columns:5.6rem minmax(0,1fr);gap:.6rem;align-items:baseline}
+.rules .k{font-family:var(--mono);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.rules .src{font-family:var(--mono);font-size:.74rem;color:var(--faint)}
+.rules b{font-weight:600}
+.why p{margin:0 0 .6rem;font-size:.92rem;color:var(--ink-2)}
+.why .fu{font-size:.82rem;color:var(--muted)}
+.ruler{margin:.2rem 0 .4rem;max-width:320px}
+details{grid-column:1/-1}
+details summary{cursor:pointer;font-size:.86rem;color:var(--accent);font-weight:600;list-style:none;padding:.2rem 0}
+details summary::before{content:"▸ ";}
+details[open] summary::before{content:"▾ ";}
+figure.code{margin:.6rem 0 0;border:1px solid var(--rule);border-radius:3px;overflow:hidden;background:var(--sunk)}
+figure.code figcaption{padding:.4rem .8rem;font-size:.78rem;color:var(--muted);border-bottom:1px solid var(--rule);background:var(--surface)}
+figure.code pre{margin:0;padding:.7rem 0;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.55;color:var(--ink)}
+figure.code code{display:block;white-space:pre;min-width:max-content}
+.ln{display:inline-block;width:3.2rem;padding-right:.9rem;text-align:right;color:var(--faint);user-select:none}
+.wbar{display:flex;height:34px;border-radius:3px;overflow:hidden;border:1px solid var(--rule);margin:.4rem 0 1.4rem}
+.wbar span{display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:600;color:var(--ink);
+  border-right:2px solid var(--paper);min-width:0;overflow:hidden;white-space:nowrap;padding:0 .3rem}
+.comp{padding:1.1rem 0;border-top:1px solid var(--rule)}
+.comp h3{font-family:var(--body);font-size:1.02rem;font-weight:600;margin:0 0 .4rem;display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:baseline}
+.comp .w{font-family:var(--mono);color:var(--accent);font-size:.9rem}
+.comp ul{margin:0 0 .4rem;padding-left:1.1rem;font-size:.92rem;color:var(--ink-2)}
+.nouse{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.8rem}
+.nouse li{display:grid;grid-template-columns:12rem minmax(0,1fr);gap:.4rem 1.2rem;padding:.7rem 0;border-top:1px solid var(--rule);font-size:.92rem}
+.nouse li b{font-weight:600}
+.open li{padding:.85rem 0;border-top:1px solid var(--rule);font-size:.94rem;list-style:none}
+.open{margin:0;padding:0}
+.open b{font-weight:600}
+@media (max-width:760px){
+  .crit{grid-template-columns:1fr}
+  .nouse li{grid-template-columns:1fr}
+  .rules li{grid-template-columns:1fr}
+}
+.ped-c{grid-column:1/-1;margin:0;padding:.55rem .9rem;border-left:3px solid var(--accent);background:var(--accent-soft);font-size:.92rem}
+.ped-c span{display:block;color:var(--muted);font-size:.86rem;margin-top:.2rem}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">Hidrología · Tarea 1 · Análisis de Cuenca</p>
+    <h1>Criterios de selección de cuenca</h1>
+    <p class="standfirst">Cada regla de esta página se leyó del código que se ejecutó, con su archivo y su línea.
+      No hay umbrales escritos a mano: un extractor los toma del script y comprueba que reproducen la elección.</p>
+    <div class="verif" id="verif"></div>
+    <p class="crumbs" id="crumbs"></p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Cómo se decidió</p>
+      <h2>Cuatro pasos, en este orden</h2>
+      <p>Los filtros descartan; el puntaje ordena; las banderas solo se anotan. Esto es todo lo que decidió la cuenca.</p>
+    </div>
+    <div id="pasos"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Los criterios</p>
+      <h2 id="h-crit">Los criterios, uno por uno</h2>
+      <p>Cada criterio muestra qué regla lo gobierna: <b>filtro</b> (descarta), <b>bandera</b> (se anota, no descarta) o
+        <b>puntaje</b> (suma al ranking). Un mismo criterio puede ser filtro y puntaje a la vez.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Filtrar criterios">
+      <button class="btn" data-f="todos" aria-pressed="true">Todos</button>
+      <button class="btn" data-f="usuario" aria-pressed="false">Los que pediste</button>
+      <button class="btn" data-f="mio" aria-pressed="false">Los que agregué</button>
+      <button class="btn" id="abrir-todo" aria-pressed="false">Mostrar todo el código</button>
+      <span class="count" id="cuenta"></span>
+    </div>
+    <div id="lista"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Cómo se combinan</p>
+      <h2>El puntaje que ordena las 134</h2>
+      <p>Cinco componentes con los pesos que fija el código. El componente Naturalidad es un producto: basta que un
+        factor sea cero para que el componente sea cero.</p>
+    </div>
+    <div class="wbar" id="wbar" role="img" aria-label="Pesos de los componentes del puntaje"></div>
+    <div id="comps"></div>
+    <div id="codigo-final"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Lo que el código no usa</p>
+      <h2>Se calcula, se muestra, pero no decide</h2>
+    </div>
+    <ul class="nouse" id="nouse"></ul>
+    <div id="prelim"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head prose">
+      <p class="eyebrow">Para confirmar contigo</p>
+      <h2>Decisiones que son mías</h2>
+      <p>Están en el código porque tuve que fijarlas; tú no diste cifra. Si las cambias, cambia el ranking.</p>
+    </div>
+    <ul class="open" id="abiertas"></ul>
+  </div>
+</section>
+
+<footer><div class="wrap">
+  <p>Fuentes de datos y DOI: <code>DATOS_FUENTES.md</code>. Reglas extraídas por <code>scripts/18_extraer_reglas.py</code>
+    desde <code>13_preliminar.py</code>, <code>16_analisis_completo.py</code> y <code>10a_geometria.py</code>;
+    datos del informe en <code>scripts/17_datos_informe.py</code>.</p>
+</div></footer>
+
+<script>
+const D = __DATA__;
+const INFORME_URL = "__INFORME_URL__";
+__COMUN_JS__
+
+function sliceLine(sn, linea) {
+  const lines = sn.codigo.split("\n");
+  return {archivo: sn.archivo, desde: linea, hasta: linea, codigo: lines[linea - sn.desde] || ""};
+}
+function filtroSnip(etapa) { return D.reglas.filtros.filter(f => f.etapa === etapa)[0]; }
+
+function iniciar(fn) { try { fn(); } catch (e) { console.error(e); } }
+
+/* --- verificación y enlaces --- */
+iniciar(() => {
+  const v = D.verificacion, F = D_BY[v.primero];
+  $("#verif").innerHTML = "<b>Verificado.</b> El extractor volvió a aplicar estas reglas con el código original a las " +
+    v.metadatos + " cuencas que pasan los metadatos: reproduce las " + v.series + " que pasan la serie diaria, las banderas y el conteo de subcuencas de las " +
+    v.banderas + ", y el puntaje con una diferencia máxima de " + v.puntaje_maxdif.toExponential(0) +
+    ". El ranking de las " + v.ranking_pool + " es idéntico y la primera es <b>" + esc(nombreBasin(F)) + "</b>.";
+  $("#crumbs").innerHTML = INFORME_URL ? '<a href="' + esc(INFORME_URL) + '">Ver el informe de por qué se eligió el Fonce →</a>' : "";
+});
+
+/* --- pasos --- */
+iniciar(() => {
+  const P = $("#pasos");
+  const pasos = [
+    {n: "1", t: "Filtros de metadatos", cnt: D.embudo[1].n + " de " + D.embudo[0].n,
+     p: "Se quedan las cuencas con " + D.reglas.filtros[0].items.map(i => CRIT_BY_COL(i.col) + " " + (i.op === "between" ? filtroTxt(i) : filtroTxt(i))).join(", ") + ".",
+     sn: D.reglas.filtros[0]},
+    {n: "2", t: "Filtros sobre la serie diaria", cnt: D.embudo[2].n + " de " + D.embudo[1].n,
+     p: "Se quedan las que además tienen " + D.reglas.filtros[1].items.map(i => CRIT_BY_COL(i.col) + " " + filtroTxt(i)).join(", ") + ". " +
+        D.solo.filter(s => s.etapa === "series" && s.falla === 0).map(s => "El filtro de " + CRIT_BY_COL(s.col) + " no descartó ninguna").join("; ") + ".",
+     sn: D.reglas.filtros[1]},
+    {n: "3", t: "Puntaje y banderas", cnt: D.componentes.length + " componentes",
+     p: "Cada cuenca recibe un puntaje entre 0 y 1 y, aparte, las banderas que active. Las banderas no descartan ni restan.",
+     sn: D.reglas.puntaje_score},
+    {n: "4", t: "Ranking", cnt: "1.ª de " + D.embudo[2].n,
+     p: "Las " + D.embudo[2].n + " se ordenan por puntaje de mayor a menor. La primera es la elegida.", sn: D.reglas.ranking}
+  ];
+  pasos.forEach(s => {
+    const d = h("div", {"class": "paso"}, '<span class="paso-n">' + s.n + '</span><div><h3>' + esc(s.t) + ' · <span class="cnt">' + esc(s.cnt) + "</span></h3><p>" + s.p +
+      '</p><details><summary>Ver el código</summary>' + codeBlock(s.sn) + "</details></div>");
+    P.appendChild(d);
+  });
+});
+/* --- lista de criterios --- */
+function codigoHTML(c) {
+  let out = "";
+  const etapas = {};
+  c.filtros.forEach(f => { etapas[f.etapa] = 1; });
+  Object.keys(etapas).forEach(e => { out += codeBlock(filtroSnip(e), "filtro en " + (e === "metadatos" ? "metadatos" : "la serie diaria")); });
+  c.banderas.forEach(b => { out += codeBlock(sliceLine(D.reglas.banderas_snip, b.linea), "bandera"); });
+  const vistos = {};
+  c.puntajes.forEach(p => {
+    if (vistos[p.comp]) return; vistos[p.comp] = 1;
+    const comp = COMPN[p.comp];
+    out += codeBlock({archivo: comp.archivo, desde: comp.desde, hasta: comp.hasta, codigo: comp.codigo}, "puntaje de " + comp.nombre);
+  });
+  if (c.id === "sub") {
+    out += codeBlock(D.reglas.anidamiento.sjoin, "una cuenca está anidada si su aforo cae dentro del polígono");
+    out += codeBlock(D.reglas.anidamiento.rango_area, "solo cuentan las que ocupan entre " + pct(D.reglas.anidamiento.rango_area.min) + " y " + pct(D.reglas.anidamiento.rango_area.max) + " del área");
+    out += codeBlock(D.reglas.sub_valida, "y solo si la subcuenca tiene registro suficiente");
+  }
+  return out;
+}
+function nota(c) {
+  if (c.id === "sub") {
+    const sv = D.reglas.sub_valida.items.map(i => CRIT_BY_COL(i.col) + " " + OPS_TXT[i.op] + " " + num(i.valor)).join(" y ");
+    return "Una subcuenca cuenta si su aforo cae dentro del polígono de la cuenca, ocupa entre " + pct(D.reglas.anidamiento.rango_area.min) + " y " +
+      pct(D.reglas.anidamiento.rango_area.max) + " de su área y tiene " + sv + ". Es un plus: no descarta.";
+  }
+  return "";
+}
+function pedidoHTML(c) {
+  const p = D.pedidos[c.id];
+  if (!p) return '<blockquote class="ped-c">' + esc(D.motivo_agregados.traduccion) + "</blockquote>";
+  return '<blockquote class="ped-c"><b>Lo que pediste:</b> «' + esc(p.cita) + "»<span>" + esc(p.traduccion) + "</span></blockquote>";
+}
+function dibujarLista() {
+  const cont = $("#lista");
+  const grupos = [
+    {k: "usuario", t: "Lo que pediste", s: "Requisitos y plus que fijaste en tus mensajes."},
+    {k: "mio", t: "Lo que agregué", s: "Pruebas de calidad del forzamiento y del balance que no habías pedido; las incluí porque un buen registro de caudal no basta para modelar."}
+  ];
+  grupos.forEach(g => {
+    const sec = h("div", {"class": "grp", "data-g": g.k});
+    sec.innerHTML = '<div class="grp-h"><h3 style="font-family:var(--disp);font-size:1.3rem">' + g.t + '</h3></div><p class="grp-sub">' + g.s + "</p>";
+    D.criterios.filter(c => c.origen === g.k).forEach(c => {
+      const roles = [];
+      if (c.filtros.length) roles.push('<span class="pill r-duro">Filtro</span>');
+      if (c.banderas.length) roles.push('<span class="pill r-bandera">Bandera</span>');
+      if (c.puntajes.length) roles.push('<span class="pill r-plus">Puntaje</span>');
+      const art = h("article", {"class": "crit", "data-o": c.origen});
+      art.innerHTML = '<div class="crit-h"><h3>' + esc(c.nombre) + '</h3><span class="pill o-' + c.origen + '">' + (c.origen === "usuario" ? "Lo pediste" : "Lo agregué") +
+        "</span>" + roles.join("") + "</div>" + pedidoHTML(c) +
+        "<div>" + reglasHTML(c) + '</div><div class="why"><div class="rz"></div><p>' + esc(c.porque) + "</p>" +
+        (nota(c) ? "<p>" + esc(nota(c)) + "</p>" : "") + '<p class="fu"><b>Fuente:</b> ' + esc(c.fuente) + "</p></div>" +
+        '<details><summary>Ver el código de esta regla</summary>' + codigoHTML(c) + "</details>";
+      const r = ruler(c);
+      if (r) $(".rz", art).appendChild(r);
+      sec.appendChild(art);
+    });
+    cont.appendChild(sec);
+  });
+}
+iniciar(dibujarLista);
+
+iniciar(() => {
+  function aplicarFiltro() {
+    const f = $$(".chips button[data-f][aria-pressed=true]")[0].getAttribute("data-f");
+    let n = 0;
+    $$(".crit").forEach(a => { const ok = f === "todos" || a.getAttribute("data-o") === f; a.hidden = !ok; if (ok) n++; });
+    $$(".grp").forEach(g => { g.hidden = !$$(".crit:not([hidden])", g).length; });
+    $("#cuenta").textContent = "Mostrando " + n + " de " + $$(".crit").length;
+  }
+  $$(".chips button[data-f]").forEach(b => b.addEventListener("click", () => {
+    $$(".chips button[data-f]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    aplicarFiltro();
+  }));
+  $("#abrir-todo").addEventListener("click", ev => {
+    const b = ev.currentTarget, abrir = b.getAttribute("aria-pressed") !== "true";
+    b.setAttribute("aria-pressed", abrir ? "true" : "false");
+    b.textContent = abrir ? "Ocultar el código" : "Mostrar todo el código";
+    $$("#lista details, #pasos details, #codigo-final details").forEach(d => { d.open = abrir; });
+  });
+  aplicarFiltro();
+});
+
+/* --- componentes --- */
+iniciar(() => {
+  const W = $("#wbar");
+  const tonos = [0.30, 0.42, 0.54, 0.66, 0.78];
+  D.componentes.forEach((c, i) => {
+    const s = h("span", {style: "width:" + (c.peso * 100) + "%;background:color-mix(in srgb,var(--accent) " + Math.round(tonos[i % 5] * 100) + "%, var(--surface))"},
+      esc(c.nombre) + " " + pct(c.peso));
+    s.setAttribute("title", c.nombre + ": " + pct(c.peso));
+    W.appendChild(s);
+  });
+  const C = $("#comps");
+  D.componentes.forEach(c => {
+    const li = c.terminos.map(t => {
+      if (t.tipo === "producto") return "Producto de " + t.factores.map(f => "<code>" + esc(f.codigo) + "</code>").join(" × ");
+      return (t.peso === 1 ? "" : "<b>" + pct(t.peso) + "</b> · ") + "<code>" + esc(t.codigo) + "</code>";
+    });
+    C.appendChild(h("div", {"class": "comp"}, "<h3>" + esc(c.nombre) + ' <span class="w">' + pct(c.peso) + " del puntaje</span></h3><ul>" +
+      li.map(x => "<li>" + x + "</li>").join("") + "</ul><details><summary>Ver el código</summary>" +
+      codeBlock({archivo: c.archivo, desde: c.desde, hasta: c.hasta, codigo: c.codigo}) + "</details>"));
+  });
+  $("#codigo-final").innerHTML = "<details><summary>Ver la función nz() y el puntaje total</summary>" + codeBlock(D.reglas.puntaje_nz, "rampa lineal recortada a [0, 1]") +
+    codeBlock(D.reglas.puntaje_score, "puntaje total") + "</details>";
+});
+
+/* --- no usados --- */
+iniciar(() => {
+  $("#nouse").innerHTML = D.no_usados.map(n => "<li><b>" + esc(n.nombre) + "</b><span>" + esc(n.nota) + "</span></li>").join("");
+  $("#prelim").innerHTML = '<div class="prose" style="margin-top:1.6rem"><p>El puntaje de <code>13_preliminar.py</code> tiene otros pesos y otros insumos. Solo ordenó la primera lista; <b>la elección sale del puntaje de <code>16_analisis_completo.py</code></b>. Se conserva aquí para que quede claro:</p></div>' +
+    "<details><summary>Ver el puntaje preliminar (no usado para decidir)</summary>" + codeBlock(D.reglas.preliminar, "puntaje preliminar") + "</details>";
+});
+
+/* --- decisiones abiertas (todas las cifras salen de las reglas extraídas) --- */
+iniciar(() => {
+  const hueco = CRIT.hueco.filtros[0].valor;
+  const anios = CRIT.anios.filtros[0].valor;
+  const maxSolape = Math.max.apply(null, D.basins.map(b => b.imerg_years));
+  const nMasBajo = POOL.filter(b => b.q_gap_max <= 150).length;
+  const sv = D.reglas.sub_valida.items;
+  const pesos = D.componentes.map(c => c.nombre + " " + pct(c.peso)).join(", ");
+  const items = [
+    "<b>Hueco continuo máximo: " + hueco + " días.</b> Pediste «sin tramos muy largos» sin cifra. Con 150 días pasarían " + nMasBajo + " de las " + POOL.length +
+      " y Fonce seguiría dentro (" + FONCE.q_gap_max + " d).",
+    "<b>«≥ " + anios + " años de registro» sobre el registro total.</b> Medido sobre el solape con IMERG (1998–2022) ninguna cuenca llega: el máximo es " +
+      maxSolape.toFixed(2) + " años y Fonce tiene " + FONCE.imerg_years.toFixed(2) + ". Se resuelve extendiendo el caudal más allá de 2022 con IDEAM DHIME.",
+    "<b>Qué cuenta como subcuenca válida:</b> " + sv.map(i => CRIT_BY_COL(i.col) + " " + OPS_TXT[i.op] + " " + num(i.valor)).join(" y ") +
+      ", con el aforo dentro del polígono y entre " + pct(D.reglas.anidamiento.rango_area.min) + " y " + pct(D.reglas.anidamiento.rango_area.max) +
+      " del área. El puntaje de subcuencas se satura en 3.",
+    "<b>Los pesos del puntaje:</b> " + pesos + ". Son míos; el informe muestra qué pasa si los cambias.",
+    "<b>Las rampas de cada componente</b> (dónde vale 0 y dónde vale 1) también son mías y están arriba, criterio por criterio."
+  ];
+  $("#abiertas").innerHTML = items.map(x => "<li>" + x + "</li>").join("");
+});
+</script>

@@ -1,0 +1,13 @@
+--- idx=32 id=6ef5c14c type=markdown ---
+### 1.7 ¿Alcanza con quitarle a Encino sus tres años anómalos?
+
+En 1.6 quedó una duda pendiente: Encino es, por lejos, la estación más lluviosa de la red, y su tramo
+2016-2018 se ve sospechoso —2017 llega a 6 695 mm, más del doble de un año típico—. Antes de dar por
+buena esa sospecha conviene hacer la prueba más simple: recalcular la media de Encino sin esos tres años
+y ver si, al quitarlos, deja de ser un valor atípico.
+
+Se repite la figura de `scripts/10_estaciones_subcuencas.py` —el mapa del DEM con las subcuencas
+Nemizaque (Pienta) y Puente Llano (Taquiza) resaltadas y las 7 estaciones ubicadas, y el perfil de lluvia
+anual contra altitud— pero con la precipitación de Encino recalculada excluyendo 2016, 2017 y 2018. El
+perfil muestra las dos versiones de Encino, la original y la corregida, unidas por una flecha, para ver
+cuánto se mueve el punto.

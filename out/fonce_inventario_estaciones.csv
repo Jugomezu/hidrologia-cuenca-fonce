@@ -1,0 +1,35 @@
+codigo,nombre,categoria,tecnologia,estado,municipio,corriente,altitud,fecha_instalacion,fecha_suspension
+0024025090,MOGOTES - AUT,Agrometeorológica,"Automática con Telemetría, Convencional",Activa,Mogotes,,1673,25/10/2004,
+0024025060,CHARALA,Climatológica Ordinaria,Convencional,Suspendida,Charalá,,1450,15/04/1956,15/09/1970
+0024025502,CHARALA-24025502  - AUT,Climatológica Principal,Automática con Telemetría,Activa,Charalá,,1328,,
+0024025040,ESCUELA AGRICOLA MOGOTES,Climatológica Principal,Convencional,Activa,Mogotes,,1673,15/11/1973,
+0024025030,LA SIERRA - AUT,Climatológica Principal,Automática con Telemetría,Activa,Paipa,,2850,15/02/1967,
+0024027070,MERIDA - AUT,Limnigráfica,"Automática con Telemetría, Convencional",Activa,Páramo,FONCE,1201,15/11/1979,
+0024027060,PUENTE ARCO,Limnigráfica,Automática sin Telemetría,Activa,Valle De San José,MONCHIA,1223,15/08/1971,
+0024027040,PUENTE CABRA,Limnigráfica,Convencional,Activa,Mogotes,MOGOTICOS,1700,15/06/1971,
+0024027080,AVENTINO EL,Limnimétrica,Convencional,Suspendida,San Gil,FONCE,1145,15/10/1979,15/09/1997
+0024027020,MONAS-SAN GIL,Limnimétrica,Convencional,Suspendida,San Gil,MONAS,1150,15/03/1962,15/12/1963
+0024027030,NEMIZAQUE,Limnimétrica,Convencional,Activa,Charalá,PIENTA,1308,15/06/1971,
+2402700307,PIRMA- 2 ENCINO,Limnimétrica,Automática con Telemetría,Activa,Encino,RIO PIENTA,1575,16/12/2023,
+0024027050,PUENTE LLANO,Limnimétrica,Convencional,Activa,Charalá,TAQUIZA,1280,15/08/1971,
+0024020210,CHARALA,Pluviográfica,Convencional,Suspendida,Charalá,,1350,15/02/1968,15/09/1971
+0024020160,CARMEN EL HACIENDA,Pluviométrica,Convencional,Suspendida,Ocamonte,,1400,15/10/1979,15/06/1983
+0024010910,CHAPA,Pluviométrica,Convencional,Activa,Charalá,,1600,15/02/1970,
+0024020030,CHARALA,Pluviométrica,Convencional,Suspendida,Charalá,,1350,15/09/1954,15/11/1973
+0024025050,CHARALÁ,Pluviométrica,Convencional,Activa,Charalá,,1350,15/11/1973,
+0024020120,COROMORO,Pluviométrica,Convencional,Activa,Coromoro,,1520,15/11/1973,
+0024020040,ENCINO,Pluviométrica,Convencional,Activa,Encino,,1814,15/11/1954,
+0024025504,ENCINO-24025504  - AUT,Pluviométrica,Automática con Telemetría,Activa,Encino,,1898,,
+0024025505,ESC AGR MOGOTES  - AUT,Pluviométrica,Automática con Telemetría,Activa,Mogotes,,1708,,
+0024020190,LAGUNA LA,Pluviométrica,Convencional,Activa,Páramo,,1550,15/08/1967,
+0024020200,LEJIA LA,Pluviométrica,Convencional,Activa,Ocamonte,,1500,15/04/1967,
+0024020140,MESON EL,Pluviométrica,Convencional,Activa,Valle De San José,,1200,15/03/1979,
+0024020050,MOGOTES,Pluviométrica,Convencional,Suspendida,Mogotes,,1673,15/06/1958,15/07/1974
+0024020260,NOGAL EL,Pluviométrica,Convencional,Activa,Charalá,,1560,15/11/1977,
+0024020090,PARAMO,Pluviométrica,Convencional,Suspendida,Páramo,,1353,15/08/1958,15/09/1971
+0024020220,PAVAS LAS,Pluviométrica,Convencional,Activa,Coromoro,,2625,15/04/1983,
+0024020230,PUEBLO VIEJO,Pluviométrica,Convencional,Activa,Coromoro,,2107,15/04/1983,
+0024020100,QUINTA LA,Pluviométrica,Convencional,Suspendida,Páramo,,1700,15/07/1959,15/06/1960
+2402500714,SANTA RITA,Pluviométrica,Convencional,Activa,San Gil,,1527,15/10/1979,
+0024020080,VALLE DE SAN JOSE,Pluviométrica,Convencional,Activa,Valle De San José,,1300,15/04/1958,
+0024020060,VILLANUEVA,Pluviométrica,Convencional,Activa,Charalá,,1450,15/03/1956,

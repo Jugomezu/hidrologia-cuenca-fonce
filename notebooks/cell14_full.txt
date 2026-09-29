@@ -1,0 +1,44 @@
+# paleta apta para daltonismo (Okabe-Ito); además, satélite = línea continua y pluviómetro = punteada,
+# para que las series se distingan sin depender solo del color.
+# Decisión de dibujo: los pluviómetros individuales van tenues, como nube de fondo, y encima va a plena
+# opacidad el promedio de los que tengan dato cada mes. Lo que importa es la red, no cada aparato.
+AZUL, NARANJA = "#0072B2", "#D55E00"
+FUENTES = [("IMERG", "IMERG (satélite) (PI)", AZUL, "-", 2.0),
+           ("PLUVIO", f"promedio de {len(PLUVIO_EN_CUENCA)} pluviómetros (PL)", NARANJA, "--", 1.8)]
+t = comp.index.to_timestamp()
+
+fig, (a, b) = plt.subplots(1, 2, figsize=(14, 5), constrained_layout=True,
+                           gridspec_kw={"width_ratios": [2.2, 1]})
+
+# --- izquierda: las series mensuales ---
+for cod in PLUVIO_EN_CUENCA:                       # la nube de pluviómetros individuales
+    a.plot(t, comp[cod], color=NARANJA, ls="-", lw=0.7, alpha=0.22, zorder=1)
+for columna, etiqueta, color, estilo, grosor in FUENTES:
+    a.plot(t, comp[columna], color=color, ls=estilo, lw=grosor, label=etiqueta, zorder=3)
+a.plot([], [], color=NARANJA, lw=0.7, alpha=0.5, label="pluviómetros, uno a uno")   # entrada de leyenda
+a.set_xlim(t[0], t[-1]); a.set_ylim(0, None)
+a.set_xlabel("año"); a.set_ylabel("precipitación (mm/mes)")
+a.grid(axis="y", color="#E9ECEF", lw=0.8); a.set_axisbelow(True)
+a.legend(frameon=False, fontsize=9, loc="upper left", ncol=2)
+a.set_title(f"Serie mensual, {comp.index.min()} a {comp.index.max()}", fontsize=11, loc="left")
+
+# --- derecha: ciclo anual medio ---
+MES = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+ciclo = comp.groupby(comp.index.month).mean()
+for cod in PLUVIO_EN_CUENCA:
+    b.plot(ciclo.index, ciclo[cod], color=NARANJA, lw=0.8, alpha=0.25, zorder=1)
+for columna, etiqueta, color, estilo, grosor in FUENTES:
+    b.plot(ciclo.index, ciclo[columna], color=color, ls=estilo, lw=grosor + 0.3, marker="o", ms=4,
+           label=etiqueta.split(" (")[0], zorder=3)
+b.set_xticks(range(1, 13), MES); b.set_ylim(0, None)
+b.set_xlabel("mes"); b.set_ylabel("precipitación media (mm/mes)")
+b.grid(axis="y", color="#E9ECEF", lw=0.8); b.set_axisbelow(True)
+b.legend(frameon=False, fontsize=8.5)
+b.set_title("Ciclo anual medio", fontsize=11, loc="left")
+
+for eje in (a, b):
+    for lado in ("top", "right"):
+        eje.spines[lado].set_visible(False)
+fig.suptitle("Las fuentes de precipitación sobre la cuenca de San Gil",
+             fontsize=12, fontweight="semibold", x=0.005, ha="left")
+plt.show()

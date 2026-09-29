@@ -1,0 +1,3 @@
+# Guardar cada archivo byte a byte, sin convertir finales de línea: los datos crudos de data/ tienen su
+# SHA-256 registrado en DATOS_FUENTES.md y no deben cambiar al clonar en otro sistema.
+* -text

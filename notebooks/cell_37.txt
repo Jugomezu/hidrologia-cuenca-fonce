@@ -1,0 +1,8 @@
+--- idx=37 id=7c2c8091 type=markdown ---
+## 2. Morfometría de la cuenca
+
+Todo lo que sigue sale de los CSV que ya calcularon `scripts/13_morfometria.py` (forma de la
+cuenca, perfil del cauce, curva hipsométrica, pendientes, orientaciones y tiempos de concentración) y
+`scripts/15_cauce_desde_dem.py` (el cauce derivado directamente del DEM con pysheds, para comparar
+contra la red de drenaje que publica CAMELS-COL). Esta sección solo carga esos productos y los dibuja;
+no recalcula nada que no esté ya en esos CSV.

@@ -1,0 +1,31 @@
+--- idx=36 id=c1800002 type=code ---
+# --- 1.8: las tres ETP, de diaria a mensual con la regla del proyecto (acumulado del mes) ---
+ETP_FUENTES = {"CAMELS-COL (publicada)": "etp_camels",
+               "Hargreaves con MSWX": "etp_mswx",
+               "Hargreaves con ERA5-Land": "etp_era5land"}
+etp_mensual = pd.DataFrame({nombre: a_mensual_del_periodo(etp_diaria[col], "sum")
+                            for nombre, col in ETP_FUENTES.items()})
+etp_comun = etp_mensual.dropna()          # los meses en que las tres tienen dato, para compararlas
+
+comparacion_etp = pd.DataFrame({
+    "meses con dato": etp_mensual.notna().sum(),
+    f"ETP media en los {len(etp_comun)} meses comunes (mm/año)": etp_comun.mean() * 12,
+    "cociente CAMELS-COL / esta (mediana mensual)": etp_comun.rdiv(etp_comun["CAMELS-COL (publicada)"], axis=0).median(),
+    "correlación mensual con CAMELS-COL (Pearson)": etp_comun.corr()["CAMELS-COL (publicada)"],
+})
+_c = etp_comun["CAMELS-COL (publicada)"] / etp_comun["Hargreaves con MSWX"]
+print(f"{len(etp_comun)} meses con las tres ETP")
+print(f"CAMELS-COL / Hargreaves con MSWX, mes a mes: entre {_c.min():.2f} y {_c.max():.2f}")
+print(f"ERA5-Land contra MSWX, ambas con Hargreaves: {(etp_comun['Hargreaves con ERA5-Land'] / etp_comun['Hargreaves con MSWX']).mean() * 100 - 100:+.1f} % en promedio, "
+      f"r = {etp_comun['Hargreaves con ERA5-Land'].corr(etp_comun['Hargreaves con MSWX']):.2f}")
+# lo que CAMELS-COL daría si Ra se hubiera dejado en MJ m⁻² día⁻¹, sin pasarla a mm/día: una hipótesis
+# sobre el origen del factor, que se comprueba en vez de suponerla
+_sin_convertir = etp_comun["Hargreaves con MSWX"] / 0.408
+print(f"con Ra sin convertir a mm/día, CAMELS-COL / Hargreaves-MSWX sería {(etp_comun['CAMELS-COL (publicada)'] / _sin_convertir).median():.2f}")
+
+# para juzgar cuál es plausible: la lluvia y el caudal de esos mismos meses (mm/año)
+_pq = pd.DataFrame({"PL": variables_resumen["PL (mm/mes)"],
+                    "Q": a_mensual_del_periodo(san_gil_diario["caudal_mm"], "sum")}).reindex(etp_comun.index).dropna()
+print(f"en los {len(_pq)} meses con PL y Q: PL {_pq.PL.mean() * 12:.0f} mm/año, Q {_pq.Q.mean() * 12:.0f} mm/año, "
+      f"PL − Q {(_pq.PL - _pq.Q).mean() * 12:.0f} mm/año")
+comparacion_etp.round(2)

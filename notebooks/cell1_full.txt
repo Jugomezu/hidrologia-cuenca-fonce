@@ -1,0 +1,158 @@
+%matplotlib inline
+from pathlib import Path
+import numpy as np, pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from matplotlib.patches import Patch
+from scipy import stats
+import rasterio
+from rasterio.features import geometry_mask
+from rasterio.windows import from_bounds
+from matplotlib.colors import LightSource
+from matplotlib.colors import LinearSegmentedColormap, Normalize
+from matplotlib.cm import ScalarMappable
+import matplotlib.patheffects as pe
+from matplotlib.lines import Line2D
+
+# raíz del proyecto = primera carpeta padre que contiene data/camels_col
+RAIZ = next(p for p in [Path.cwd(), *Path.cwd().parents] if (p / "data" / "camels_col").exists())
+
+ESTACIONES = {
+    24027010: "San Gil (Fonce, salida)",
+    24027070: "Mérida (Fonce)",
+    24027030: "Nemizaque (Pienta)",
+    24027050: "Puente Llano (Taquiza)",
+    24027040: "Puente Cabra (Mogoticos)",
+    24027060: "Puente Arco (Monchía)",
+}
+ID_PRINCIPAL = 24027010         # San Gil: el sujeto de estudio del taller
+MAX_DIAS_FALTANTES = 4          # un mes con más días faltantes que esto queda vacío
+                                # (se amplió de 1 a 4: con 1 se perdía el 28 % de los meses de caudal)
+
+
+def a_mensual(serie_diaria, agregacion="sum"):
+    """Serie diaria -> mensual. El mes queda vacío si le faltan más de MAX_DIAS_FALTANTES días.
+
+    `serie_diaria` tiene índice de fechas diario y puede traer huecos (fechas ausentes o NaN).
+    `agregacion` es "sum" para acumulados (lluvia, caudal en mm) o "mean" para promedios (caudal en m³/s,
+    temperatura).
+    """
+    s = serie_diaria.astype(float)
+    s = s.reindex(pd.date_range(s.index.min(), s.index.max(), freq="D"))   # los días ausentes entran como NaN
+    g = s.resample("MS")
+    # Acumulado del mes ("sum"): el promedio de los días con dato por los días del mes. En un mes completo
+    # es la suma exacta; en uno incompleto (1 a MAX_DIAS_FALTANTES días faltantes) evita presentar una suma
+    # parcial como si fuera el acumulado del mes. Supone que los días faltantes se parecen al resto del
+    # mes. Para el caudal es la definición usual: volumen del mes = caudal medio x duración del mes.
+    promedio = g.mean()
+    valores = {"sum": promedio * promedio.index.days_in_month, "mean": promedio}[agregacion]
+    faltantes = g.apply(lambda x: x.index.days_in_month[0] - x.notna().sum())
+    return valores.where(faltantes <= MAX_DIAS_FALTANTES)
+
+
+# --- atributos de CAMELS-COL (elevación, suelos, geología, etc.) ---
+atributos = pd.read_csv(RAIZ / "out/camels_col_master.csv").set_index("gauge_id").loc[list(ESTACIONES)]
+
+# --- área de cada cuenca: la del polígono, medida en el elipsoide (scripts/02_shp_cuencas_estaciones.py).
+#     No se usa la columna `area` de CAMELS-COL, que para San Gil es 1,2 % mayor que su propio polígono. ---
+AREA_KM2 = pd.read_csv(RAIZ / "out/shp_fonce/areas_cuencas.csv").set_index("gauge_id")["area_km2"]
+
+# --- series diarias de CAMELS-COL: una tabla larga con las seis estaciones de aforo ---
+def _leer_camels(id_est):
+    d = pd.read_csv(RAIZ / f"data/camels_col/hydromet/3_Hydrometeorological_data/Hydromet_data_{id_est}.txt",
+                    sep="	", encoding="latin-1")
+    d.columns = ["fecha", "p_chirps", "etp", "t_min", "t_max", "caudal"]
+    d["fecha"] = pd.to_datetime(d["fecha"], format="%d/%m/%Y")
+    d = d.set_index("fecha").sort_index()
+    d = d.reindex(pd.date_range(d.index.min(), d.index.max(), freq="D"))   # días sin registro quedan como NaN
+    d["caudal_mm"] = d["caudal"] * 86400 / (AREA_KM2[id_est] * 1e6) * 1000   # m³/s -> mm/día
+    return d.rename_axis("fecha").assign(id_estacion=id_est).reset_index()
+
+diario = pd.concat([_leer_camels(i) for i in ESTACIONES], ignore_index=True)
+
+# --- IMERG mensual por cuenca ---
+imerg = pd.read_csv(RAIZ / "out/imerg_mensual_fonce.csv")
+imerg["periodo"] = pd.PeriodIndex(imerg["periodo"], freq="M")
+
+# --- pluviómetros del IDEAM (portal DHIME); nivel preliminar, sin validar ---
+# Se cargan solo los 7 pluviómetros que caen DENTRO de la divisoria de San Gil (columna dentro_cuenca
+# del catálogo). La descarga trajo un octavo, Mamonal El Hacienda, que está en la vertiente del
+# Chicamocha: no pertenece a la cuenca y no entra a ningún análisis.
+pluvio_catalogo = pd.read_csv(RAIZ / "out/pluviometros_fonce_catalogo.csv").set_index("codigo")
+pluvio_catalogo = pluvio_catalogo[pluvio_catalogo["dentro_cuenca"]]
+pluvio_catalogo["nombre"] = (pluvio_catalogo["nombre"].str.replace(r"\s*\[\d+\]", "", regex=True)
+                             .str.title().str.replace(" De ", " de "))
+PLUVIOMETROS = pluvio_catalogo["nombre"].to_dict()
+PLUVIO_EN_CUENCA = pluvio_catalogo.index[pluvio_catalogo["dentro_cuenca"]].tolist()
+
+# La serie que usan todos los análisis es la DEPURADA: sin los años 2016-2018 de Encino, que son un
+# problema de registro (la exclusión y su razón se declaran en scripts/07_pluviometros_dhime.py; la
+# evidencia está en 1.7). La cruda se carga aparte solo para mostrar esa evidencia.
+pluvio_mensual = pd.read_csv(RAIZ / "out/pluviometros_fonce_mensual_depurado.csv", parse_dates=["fecha"])
+pluvio_mensual = pluvio_mensual[pluvio_mensual["codigo"].isin(PLUVIO_EN_CUENCA)]
+pluvio_mensual_crudo = pd.read_csv(RAIZ / "out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])
+pluvio_mensual_crudo = pluvio_mensual_crudo[pluvio_mensual_crudo["codigo"].isin(PLUVIO_EN_CUENCA)]
+
+# --- ERA5-Land: temperatura diaria ya promediada sobre la cuenca de San Gil (scripts/06_era5land_temperatura.py) ---
+era5 = pd.read_csv(RAIZ / "out/era5land_temperatura_diaria_fonce.csv",
+                   parse_dates=["fecha"]).set_index("fecha")
+
+# --- ETP diaria de Hargreaves calculada por el proyecto con ERA5-Land y con MSWX, junto a la que publica
+#     CAMELS-COL (scripts/06b_etp_hargreaves.py); se comparan en la sección 1.8 ---
+etp_diaria = pd.read_csv(RAIZ / "out/etp_hargreaves_fonce.csv", parse_dates=["fecha"]).set_index("fecha")
+
+# --- los píxeles de IMERG y de ERA5-Land que tocan la cuenca, con su valor medio y la
+#     fracción de cada uno que cae dentro (scripts/08_mapas_y_pixeles.py y scripts/06_era5land_temperatura.py) ---
+imerg_px = pd.read_csv(RAIZ / "out/imerg_pixeles_fonce.csv")
+era5_px = pd.read_csv(RAIZ / "out/era5land_pixeles_fonce.csv")
+
+# --- morfometría de la cuenca: forma, perfil del cauce, curva hipsométrica, pendientes, orientaciones,
+#     tiempos de concentración (scripts/13_morfometria.py) y comparación de tres trazados del
+#     cauce, incluido el derivado directamente del DEM con pysheds (scripts/15_cauce_desde_dem.py) ---
+morfometria = pd.read_csv(RAIZ / "out/morfometria_fonce.csv")
+perfil_cauce = pd.read_csv(RAIZ / "out/perfil_cauce_fonce.csv")
+curva_hipsometrica = pd.read_csv(RAIZ / "out/curva_hipsometrica_fonce.csv")
+pendientes = pd.read_csv(RAIZ / "out/pendientes_fonce.csv")
+orientaciones = pd.read_csv(RAIZ / "out/orientaciones_fonce.csv")
+tiempos_concentracion = pd.read_csv(RAIZ / "out/tiempos_concentracion.csv")
+comparacion_cauces = pd.read_csv(RAIZ / "out/comparacion_cauces.csv")
+
+
+# --- las seis variables mensuales del proyecto y sus correlaciones (scripts/16_correlaciones_variables.py) ---
+# variables_mensuales ya viene recortada a los 262 meses en que las seis variables tienen dato a la vez
+variables_mensuales = pd.read_csv(RAIZ / "out/variables_mensuales.csv", index_col=0)
+variables_mensuales.index = pd.PeriodIndex(variables_mensuales.index, freq="M")
+corr_pearson = pd.read_csv(RAIZ / "out/correlaciones_pearson.csv", index_col=0)
+corr_spearman = pd.read_csv(RAIZ / "out/correlaciones_spearman.csv", index_col=0)
+corr_pearson_anom = pd.read_csv(RAIZ / "out/correlaciones_pearson_anomalias.csv", index_col=0)
+corr_spearman_anom = pd.read_csv(RAIZ / "out/correlaciones_spearman_anomalias.csv", index_col=0)
+
+# --- geometrías: cuencas y estaciones IDEAM dentro del Fonce ---
+cuencas = gpd.read_file(RAIZ / "out/shp_fonce/cuencas_fonce.shp").to_crs(4326)
+estaciones_ideam = gpd.read_file(RAIZ / "out/shp_fonce/estaciones_fonce.shp").to_crs(4326)
+
+# --- DEM ALOS PALSAR, recortado a la zona en data/dem (scripts/03_recorte_dem.py). Se lee solo la ventana
+#     de San Gil con 2 km de margen, remuestreada a 50 m: es lo que dibuja el mapa de la sección 1.7 ---
+DEM_FACTOR = 4                          # 12,5 m -> 50 m, suficiente para un mapa
+with rasterio.open(RAIZ / "data/dem/dem_fonce_alos_12m.tif") as src:
+    _xmin, _ymin, _xmax, _ymax = cuencas[cuencas.gauge_id == ID_PRINCIPAL].to_crs(src.crs).total_bounds
+    _ventana = from_bounds(_xmin - 2000, _ymin - 2000, _xmax + 2000, _ymax + 2000,
+                           src.transform).round_offsets().round_lengths()
+    _alto, _ancho = int(_ventana.height // DEM_FACTOR), int(_ventana.width // DEM_FACTOR)
+    dem_z = (src.read(1, window=_ventana, out_shape=(_alto, _ancho), masked=True)
+             .astype("float32").filled(np.nan))
+    dem_tr = src.window_transform(_ventana) * rasterio.Affine.scale(_ventana.width / _ancho,
+                                                                    _ventana.height / _alto)
+    dem_crs = src.crs
+
+print(f"diario:         {len(diario):>6} filas | {diario.fecha.min():%Y-%m-%d} a {diario.fecha.max():%Y-%m-%d} | {diario.id_estacion.nunique()} estaciones de aforo")
+print(f"imerg:          {len(imerg):>6} filas | {imerg.periodo.min()} a {imerg.periodo.max()}")
+print(f"pluvio_mensual: {len(pluvio_mensual):>6} filas | {pluvio_mensual.fecha.min():%Y-%m} a {pluvio_mensual.fecha.max():%Y-%m} | {len(PLUVIO_EN_CUENCA)} pluviómetros, todos dentro de la cuenca")
+print(f"etp_diaria:     {len(etp_diaria):>6} filas | {etp_diaria.index.min():%Y-%m-%d} a {etp_diaria.index.max():%Y-%m-%d} | ETP de Hargreaves (ERA5-Land, MSWX) y la de CAMELS-COL")
+print(f"era5:           {len(era5):>6} filas | {era5.index.min():%Y-%m-%d} a {era5.index.max():%Y-%m-%d} | temperatura ERA5-Land")
+print(f"atributos:      {atributos.shape[0]} cuencas x {atributos.shape[1]} columnas")
+print(f"cuencas: {len(cuencas)} polígonos | estaciones_ideam: {len(estaciones_ideam)} estaciones")
+print(f"morfometria: {len(morfometria)} magnitudes | perfil_cauce: {len(perfil_cauce)} puntos | curva_hipsometrica: {len(curva_hipsometrica)} puntos | tiempos_concentracion: {len(tiempos_concentracion)} fórmulas | comparacion_cauces: {len(comparacion_cauces)} magnitudes")
+print(f"variables_mensuales: {len(variables_mensuales)} meses x {variables_mensuales.shape[1]} variables (las 6 con dato a la vez)")
+print(f"dem_z: {dem_z.shape[1]} x {dem_z.shape[0]} celdas de {abs(dem_tr.a):.0f} m | {np.nanmin(dem_z):.0f}–{np.nanmax(dem_z):.0f} m")

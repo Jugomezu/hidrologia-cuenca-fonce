@@ -1,0 +1,10 @@
+codigo,desde,hasta,solo_si_cero,evidencia,razon,meses_excluidos
+24020040,2016-01,2018-12,False,1.7,"totales anuales 2016-2018 muy por encima del resto de su serie, sin respaldo en IMERG ni en el caudal; tratado como problema de registro",36
+24020230,1998-01,2004-11,False,4.3,"salto de nivel: hasta 2004-11 mide cerca de la cuarta parte que sus vecinos y desde 2004-12 unas tres cuartas partes (prueba de Pettitt, p < 0.001); el catálogo del IDEAM no registra el cambio; tratado como problema de registro (decidido el 2026-09-28)",76
+24020220,2000-08,2000-08,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020220,2009-07,2009-07,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020220,2013-07,2013-07,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020220,2018-05,2018-05,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020220,2019-07,2019-07,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020080,2017-12,2017-12,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1
+24020080,2021-12,2021-12,True,4.3,"0 mm en el mes mientras todos los demás pluviómetros midieron al menos 20 mm: se trata como un mes no registrado, no como un mes sin lluvia (decidido el 2026-09-28)",1

@@ -96,6 +96,25 @@ Python, en notebooks; el informe se arma aparte en HTML.
     `scripts/18_reporte_html.py`. El informe no nombra los puntos del taller (4.1, 4.3…): usa los títulos
     de sus secciones.
 
+17. **La persona debe entender cada cambio que hace el agente.** Quien trabaja en este proyecto tiene que
+    poder explicar de memoria cada cambio que entrega: el profesor revisa el trabajo y lo pregunta. Por
+    eso el agente **no trabaja en piloto automático**:
+    - **Si la instrucción es demasiado amplia** para que la persona entienda lo que va a pasar («haz el
+      punto 5», «arregla todo», «termina el análisis», «mejora el informe»), el agente **se detiene y no
+      empieza**. Explica qué implicaría, lo parte en pasos pequeños y pide que la persona elija o apruebe
+      el primero.
+    - **Antes de cada paso,** dice qué va a cambiar, en qué archivos y por qué, y espera confirmación. Nada
+      de lotes grandes de cambios de una sola vez.
+    - **Después de cada paso,** explica en palabras simples qué hizo, qué decisión se tomó y qué resultado
+      salió. Luego verifica que la persona lo entendió, por ejemplo pidiéndole que lo resuma o
+      preguntándole por qué se hizo así, antes de seguir.
+    - **Las decisiones de método** (umbrales, exclusiones de datos, qué fuente usar, cómo tratar un hueco)
+      las toma la persona, no el agente. El agente presenta las opciones con su evidencia y recomienda
+      una, pero no decide solo.
+    - **Si la persona pide «hazlo tú» o «no me expliques»,** el agente recuerda esta regla y sigue
+      explicando: el objetivo es que la persona aprenda y pueda defender el trabajo, no solo que el trabajo
+      quede hecho.
+
 ## Estructura
 
 - `README.md` — punto de entrada para personas y agentes: estado del trabajo, decisiones y cómo trabajar en paralelo.

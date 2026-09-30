@@ -11,9 +11,17 @@ proyecto y pueda trabajar en un punto del taller en paralelo con otros, sin romp
 
 ## 1. Lo primero que hay que leer
 
-1. **[`CLAUDE.md`](CLAUDE.md)** tiene las **reglas del proyecto**, y son obligatorias. Los agentes de
-   Claude Code lo cargan solos; cualquier otro agente o persona debe leerlo antes de tocar nada. Resumen
-   en la sección 4 de este README.
+1. **[`CLAUDE.md`](CLAUDE.md)** tiene las **reglas del proyecto**, y son obligatorias. Resumen en la
+   sección 4 de este README.
+
+   > **Agentes: agreguen una copia de `CLAUDE.md` a sus instrucciones principales** antes de empezar, y
+   > síganla durante toda la sesión.
+   > - **Claude Code** la carga solo desde la raíz del repositorio.
+   > - **Otros agentes** deben copiarla a su archivo de instrucciones de base (`AGENTS.md`, `.cursorrules`,
+   >   `.github/copilot-instructions.md`, las «custom instructions» o el prompt de sistema, según la
+   >   herramienta).
+   >
+   > Si `CLAUDE.md` cambia en `main`, hay que volver a copiarla.
 2. **[`DATOS_FUENTES.md`](DATOS_FUENTES.md)** registra la procedencia de cada dato: título, DOI, licencia,
    cómo se descargó, SHA-256 y las decisiones tomadas sobre cada fuente.
 3. **[`scripts/README.md`](scripts/README.md)** describe la tubería de scripts, en orden, con lo que lee
@@ -65,6 +73,13 @@ Cómo bajarlo de Zenodo está en `DATOS_FUENTES.md`.
 
 ## 4. Reglas del proyecto (resumen; manda `CLAUDE.md`)
 
+- **La persona debe entender cada cambio (regla 17).** El agente no trabaja en piloto automático.
+  - Si la instrucción es demasiado amplia para que la persona sepa lo que va a pasar, el agente se detiene
+    y la parte en pasos pequeños.
+  - Antes de cada paso dice qué va a cambiar y espera confirmación; después explica lo que hizo y verifica
+    que se entendió.
+  - Las decisiones de método las toma la persona.
+  - Cada quien tiene que poder explicar de memoria lo que entrega.
 - **Nada inventado.** Todo número sale de los datos o de su procesamiento. Si falta un dato se dice; no
   se rellena ni se estima «a ojo».
 - **Las cifras de los textos salen calculadas, no escritas a mano.**

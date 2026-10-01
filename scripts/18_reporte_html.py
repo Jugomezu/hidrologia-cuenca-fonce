@@ -555,6 +555,29 @@ etp_ra_cociente_mes = (etp_ra_implicita.groupby(etp_ra_implicita.index.month).me
 etp_lat = float(_etp_cuencas[_etp_cuencas.gauge_id == 24027010].to_crs(3116).centroid.to_crs(4326).y.iloc[0])
 _etp_ciclo = etp_comun.groupby(etp_comun.index.month).mean()
 _etp_pq_ciclo = (_etp_pq.pl - _etp_pq.q).groupby(_etp_pq.index.month).mean()
+# ---------------------------------------------------------------- P − Q contra la ETP
+# P − Q = ET + ΔS (+ otros intercambios): no es la evapotranspiración. Mes a mes pesa el almacenamiento; en
+# totales anuales casi se cancela. Se hace con PL (manda) y con PI, contra la ETP de Hargreaves con ERA5-Land.
+pq = pd.DataFrame({"pl": red.reindex(PERIODOS), "pi": comp["IMERG"].reindex(PERIODOS),
+                   "q": q_camels.reindex(PERIODOS), "etp": etp_m["era"].reindex(PERIODOS)})
+pq["pl_q"], pq["pi_q"] = pq.pl - pq.q, pq.pi - pq.q
+_pq_meses_q = pq.q.notna().groupby(pq.index.year).sum()
+pq_anual = pq.groupby(pq.index.year).sum(min_count=12).loc[_pq_meses_q.index[_pq_meses_q == 12]]
+_pq_con_q = pq.dropna(subset=["q"])
+pq_res = {f: {"sobre_etp": int((_pq_con_q[f"{f}_q"] > _pq_con_q.etp).sum()),
+              "negativo": int((_pq_con_q[f"{f}_q"] < 0).sum()),
+              "anual": pq_anual[f"{f}_q"].mean(),
+              "anios_sobre_etp": int((pq_anual[f"{f}_q"] > pq_anual.etp).sum())} for f in ("pl", "pi")}
+pq_n_meses, pq_n_anios, pq_etp_anual = len(_pq_con_q), len(pq_anual), pq_anual.etp.mean()
+pq_anios_sobre = {f: [str(x) for x in pq_anual.index[pq_anual[f"{f}_q"] > pq_anual.etp]] for f in ("pl", "pi")}
+_pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.groupby(_pq_con_q.index.month).etp.mean())
+pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
+_red1 = lambda s: [None if pd.isna(v) else round(float(v), 1) for v in s]
+pq_json = json.dumps({"meses": [f"{p}-01" for p in pq.index], "pl_q": _red1(pq.pl_q), "pi_q": _red1(pq.pi_q),
+                      "etp": _red1(pq.etp), "anios": [str(a) for a in pq_anual.index],
+                      "pl_q_anual": _red1(pq_anual.pl_q), "pi_q_anual": _red1(pq_anual.pi_q),
+                      "etp_anual": _red1(pq_anual.etp)}, ensure_ascii=False)
+
 etp_json = json.dumps({"meses": MESES_ES, **{k: _etp_ciclo[k].round(1).tolist() for k in etp_comun},
                        "pl_q": _etp_pq_ciclo.round(1).tolist()}, ensure_ascii=False)
 
@@ -2041,6 +2064,23 @@ a {{ color: var(--acento); }}
   que 1), con un máximo de <b>{bal_max:.2f} en {bal_max_mes}</b>. Que el río descargue agua almacenada de
   meses anteriores explica valores algo por encima de 1, pero no uno de {bal_max:.2f}. O la lluvia de ese mes está
   subestimada, o el caudal tiene un problema. Queda por revisar.</p>
+
+  <div class="revision" data-etiqueta="Revisión · P − Q contra la evapotranspiración">
+  <h3>Lo que llueve menos lo que sale, contra la evapotranspiración</h3>
+  <p>Lo que llueve (P) se reparte en lo que sale por el río (Q), lo que se evapora y transpira y lo que la
+  cuenca guarda o libera del suelo y del acuífero. Por eso <b>P − Q no es la evapotranspiración</b>: mes a
+  mes incluye el almacenamiento. Aquí se compara con la ETP de Hargreaves (ver «La evapotranspiración
+  potencial (ETP)»), con las dos fuentes de lluvia.</p>
+  <div id="g-pq-mensual" class="grafico" style="min-height:0; height:380px"></div>
+  <p>Mes a mes, P − Q oscila mucho más que la ETP. Con PL supera a la ETP en {pq_res["pl"]["sobre_etp"]} de
+  {pq_n_meses} meses: en el año típico, en {", ".join(pq_meses_guarda)}, que es cuando la cuenca guarda agua. En
+  {pq_res["pl"]["negativo"]} meses sale más agua de la que cae (P − Q &lt; 0); con PI son {pq_res["pi"]["negativo"]}.
+  Eso no es un error: es el río drenando lo que la cuenca guardó.</p>
+  <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
+  <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
+  PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
+  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if pq_res["pl"]["anios_sobre_etp"] == 0 and pq_res["pi"]["anios_sobre_etp"] == 0 else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}: en esos años, o la lluvia está sobrestimada, o el caudal subestimado, o pesa el almacenamiento de un año a otro."}</p>
+  </div>
 </section>
 
 <section>
@@ -2708,6 +2748,38 @@ a {{ color: var(--acento); }}
     Plotly.react("g-doble-masa", trazas, disp, CONF);
   }}
 
+  const PQ = {pq_json};
+
+  function dibujarPQ() {{
+    if (!window.Plotly) return;
+    const NARANJA = "#D55E00", AZUL = "#0072B2", VERDE = "#009E73", GRIS = css("--tenue");
+    const mensual = base();
+    mensual.margin = {{ t: 46, r: 10, b: 30, l: 54 }};
+    mensual.yaxis.rangemode = "normal";
+    mensual.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: {{ color: GRIS, width: 1 }} }}];
+    Plotly.react("g-pq-mensual", [
+      {{ type: "scatter", mode: "lines", name: "PL − Q", x: PQ.meses, y: PQ.pl_q, connectgaps: false,
+         line: {{ color: NARANJA, width: 1.6 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL − Q</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "PI − Q", x: PQ.meses, y: PQ.pi_q, connectgaps: false,
+         line: {{ color: AZUL, width: 1.2, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>PI − Q</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "ETP (Hargreaves, ERA5-Land)", x: PQ.meses, y: PQ.etp,
+         line: {{ color: VERDE, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
+    ], mensual, CONF);
+    const anual = base();
+    anual.margin = {{ t: 46, r: 10, b: 40, l: 54 }};
+    anual.yaxis.title.text = "mm/año";
+    anual.xaxis.type = "category";
+    anual.barmode = "group";
+    Plotly.react("g-pq-anual", [
+      {{ type: "bar", name: "PL − Q", x: PQ.anios, y: PQ.pl_q_anual, marker: {{ color: NARANJA }},
+         hovertemplate: "%{{y:.0f}} mm<extra>PL − Q</extra>" }},
+      {{ type: "bar", name: "PI − Q", x: PQ.anios, y: PQ.pi_q_anual, marker: {{ color: AZUL, opacity: 0.75 }},
+         hovertemplate: "%{{y:.0f}} mm<extra>PI − Q</extra>" }},
+      {{ type: "scatter", mode: "lines+markers", name: "ETP", x: PQ.anios, y: PQ.etp_anual,
+         line: {{ color: VERDE, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
+    ], anual, CONF);
+  }}
+
   const BAL = {bal_json};
 
   function dibujarBalance() {{
@@ -2900,6 +2972,7 @@ a {{ color: var(--acento); }}
     dibujarCicloRezago();
     dibujarCajas();
     dibujarBalance();
+    dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();
   }}

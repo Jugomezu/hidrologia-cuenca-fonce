@@ -1033,7 +1033,130 @@ section, section h3 { scroll-margin-top: 20px; }
 </section>
 
 <section>
-  <h2>El año típico: cuándo llueve y cuándo baja el río</h2>
+  <h2>El ciclo anual</h2>
+  <div class="revision" data-etiqueta="Revisión · ciclo anual, mes a mes">
+  <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
+  <p>El <b>ciclo anual</b> es cómo se comporta cada variable en cada mes del calendario, separado de la
+  variabilidad de un año a otro: se juntan todos los eneros, todos los febreros…, de 1998 a 2022, y se resume
+  cada mes. La media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango entre p10 y
+  p90 dicen cuánto cambia ese mes de un año a otro.</p>
+  <div class="pestanas" role="tablist" aria-label="Variable del ciclo anual">
+    <button type="button" role="tab" id="pestana-ciclo-pl" aria-controls="panel-ciclo-pl" aria-selected="true">PL (mm/mes)</button>
+    <button type="button" role="tab" id="pestana-ciclo-pi" aria-controls="panel-ciclo-pi" aria-selected="false" tabindex="-1">PI (mm/mes)</button>
+    <button type="button" role="tab" id="pestana-ciclo-q" aria-controls="panel-ciclo-q" aria-selected="false" tabindex="-1">Q (m³/s)</button>
+    <button type="button" role="tab" id="pestana-ciclo-t" aria-controls="panel-ciclo-t" aria-selected="false" tabindex="-1">T media (°C)</button>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-pl" aria-labelledby="pestana-ciclo-pl">
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+<tr><td>enero</td><td class='num'>25</td><td class='num'>103</td><td class='num'>101</td><td class='num'>51</td><td class='num'>43</td><td class='num'>69</td><td class='num'>135</td><td class='num'>165</td></tr>
+<tr><td>febrero</td><td class='num'>25</td><td class='num'>140</td><td class='num'>136</td><td class='num'>76</td><td class='num'>63</td><td class='num'>71</td><td class='num'>203</td><td class='num'>226</td></tr>
+<tr><td>marzo</td><td class='num'>25</td><td class='num'>253</td><td class='num'>244</td><td class='num'>62</td><td class='num'>179</td><td class='num'>212</td><td class='num'>313</td><td class='num'>329</td></tr>
+<tr><td>abril</td><td class='num'>25</td><td class='num'>305</td><td class='num'>296</td><td class='num'>60</td><td class='num'>237</td><td class='num'>266</td><td class='num'>347</td><td class='num'>379</td></tr>
+<tr><td>mayo</td><td class='num'>25</td><td class='num'>279</td><td class='num'>277</td><td class='num'>59</td><td class='num'>214</td><td class='num'>253</td><td class='num'>316</td><td class='num'>335</td></tr>
+<tr><td>junio</td><td class='num'>25</td><td class='num'>174</td><td class='num'>166</td><td class='num'>68</td><td class='num'>91</td><td class='num'>134</td><td class='num'>219</td><td class='num'>269</td></tr>
+<tr><td>julio</td><td class='num'>25</td><td class='num'>154</td><td class='num'>154</td><td class='num'>45</td><td class='num'>109</td><td class='num'>116</td><td class='num'>169</td><td class='num'>192</td></tr>
+<tr><td>agosto</td><td class='num'>25</td><td class='num'>186</td><td class='num'>193</td><td class='num'>44</td><td class='num'>122</td><td class='num'>156</td><td class='num'>221</td><td class='num'>241</td></tr>
+<tr><td>septiembre</td><td class='num'>25</td><td class='num'>214</td><td class='num'>201</td><td class='num'>58</td><td class='num'>148</td><td class='num'>181</td><td class='num'>246</td><td class='num'>298</td></tr>
+<tr><td>octubre</td><td class='num'>25</td><td class='num'>307</td><td class='num'>299</td><td class='num'>59</td><td class='num'>233</td><td class='num'>274</td><td class='num'>344</td><td class='num'>386</td></tr>
+<tr><td>noviembre</td><td class='num'>25</td><td class='num'>264</td><td class='num'>269</td><td class='num'>60</td><td class='num'>195</td><td class='num'>212</td><td class='num'>310</td><td class='num'>337</td></tr>
+<tr><td>diciembre</td><td class='num'>25</td><td class='num'>151</td><td class='num'>139</td><td class='num'>49</td><td class='num'>96</td><td class='num'>118</td><td class='num'>196</td><td class='num'>220</td></tr>
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-pi" aria-labelledby="pestana-ciclo-pi" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+<tr><td>enero</td><td class='num'>25</td><td class='num'>73</td><td class='num'>67</td><td class='num'>29</td><td class='num'>38</td><td class='num'>52</td><td class='num'>91</td><td class='num'>115</td></tr>
+<tr><td>febrero</td><td class='num'>25</td><td class='num'>113</td><td class='num'>109</td><td class='num'>50</td><td class='num'>58</td><td class='num'>75</td><td class='num'>137</td><td class='num'>186</td></tr>
+<tr><td>marzo</td><td class='num'>25</td><td class='num'>186</td><td class='num'>188</td><td class='num'>44</td><td class='num'>136</td><td class='num'>148</td><td class='num'>220</td><td class='num'>244</td></tr>
+<tr><td>abril</td><td class='num'>25</td><td class='num'>247</td><td class='num'>256</td><td class='num'>49</td><td class='num'>178</td><td class='num'>210</td><td class='num'>267</td><td class='num'>290</td></tr>
+<tr><td>mayo</td><td class='num'>25</td><td class='num'>261</td><td class='num'>269</td><td class='num'>50</td><td class='num'>204</td><td class='num'>217</td><td class='num'>287</td><td class='num'>318</td></tr>
+<tr><td>junio</td><td class='num'>25</td><td class='num'>194</td><td class='num'>198</td><td class='num'>42</td><td class='num'>136</td><td class='num'>167</td><td class='num'>223</td><td class='num'>242</td></tr>
+<tr><td>julio</td><td class='num'>25</td><td class='num'>178</td><td class='num'>174</td><td class='num'>39</td><td class='num'>141</td><td class='num'>161</td><td class='num'>187</td><td class='num'>223</td></tr>
+<tr><td>agosto</td><td class='num'>25</td><td class='num'>183</td><td class='num'>183</td><td class='num'>36</td><td class='num'>145</td><td class='num'>156</td><td class='num'>209</td><td class='num'>230</td></tr>
+<tr><td>septiembre</td><td class='num'>25</td><td class='num'>200</td><td class='num'>192</td><td class='num'>45</td><td class='num'>160</td><td class='num'>169</td><td class='num'>227</td><td class='num'>265</td></tr>
+<tr><td>octubre</td><td class='num'>25</td><td class='num'>260</td><td class='num'>266</td><td class='num'>44</td><td class='num'>194</td><td class='num'>236</td><td class='num'>291</td><td class='num'>312</td></tr>
+<tr><td>noviembre</td><td class='num'>25</td><td class='num'>212</td><td class='num'>208</td><td class='num'>41</td><td class='num'>165</td><td class='num'>186</td><td class='num'>250</td><td class='num'>259</td></tr>
+<tr><td>diciembre</td><td class='num'>25</td><td class='num'>117</td><td class='num'>119</td><td class='num'>31</td><td class='num'>79</td><td class='num'>103</td><td class='num'>135</td><td class='num'>152</td></tr>
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-q" aria-labelledby="pestana-ciclo-q" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+<tr><td>enero</td><td class='num'>23</td><td class='num'>51.6</td><td class='num'>55.0</td><td class='num'>20.6</td><td class='num'>28.0</td><td class='num'>34.5</td><td class='num'>63.0</td><td class='num'>76.7</td></tr>
+<tr><td>febrero</td><td class='num'>24</td><td class='num'>53.5</td><td class='num'>42.4</td><td class='num'>29.3</td><td class='num'>29.5</td><td class='num'>35.7</td><td class='num'>63.5</td><td class='num'>84.6</td></tr>
+<tr><td>marzo</td><td class='num'>21</td><td class='num'>81.1</td><td class='num'>71.3</td><td class='num'>31.3</td><td class='num'>43.8</td><td class='num'>54.6</td><td class='num'>111.3</td><td class='num'>122.4</td></tr>
+<tr><td>abril</td><td class='num'>21</td><td class='num'>124.0</td><td class='num'>127.1</td><td class='num'>39.9</td><td class='num'>81.0</td><td class='num'>92.3</td><td class='num'>137.1</td><td class='num'>163.3</td></tr>
+<tr><td>mayo</td><td class='num'>20</td><td class='num'>126.0</td><td class='num'>127.4</td><td class='num'>36.1</td><td class='num'>88.7</td><td class='num'>104.8</td><td class='num'>151.8</td><td class='num'>174.5</td></tr>
+<tr><td>junio</td><td class='num'>23</td><td class='num'>84.7</td><td class='num'>89.4</td><td class='num'>19.3</td><td class='num'>55.9</td><td class='num'>74.9</td><td class='num'>97.9</td><td class='num'>106.7</td></tr>
+<tr><td>julio</td><td class='num'>22</td><td class='num'>62.6</td><td class='num'>59.7</td><td class='num'>20.7</td><td class='num'>47.3</td><td class='num'>49.8</td><td class='num'>69.0</td><td class='num'>74.0</td></tr>
+<tr><td>agosto</td><td class='num'>22</td><td class='num'>63.2</td><td class='num'>60.9</td><td class='num'>19.4</td><td class='num'>40.9</td><td class='num'>48.2</td><td class='num'>76.1</td><td class='num'>81.9</td></tr>
+<tr><td>septiembre</td><td class='num'>21</td><td class='num'>69.3</td><td class='num'>62.1</td><td class='num'>27.4</td><td class='num'>46.4</td><td class='num'>54.2</td><td class='num'>79.3</td><td class='num'>90.0</td></tr>
+<tr><td>octubre</td><td class='num'>20</td><td class='num'>127.9</td><td class='num'>126.1</td><td class='num'>40.3</td><td class='num'>81.8</td><td class='num'>87.1</td><td class='num'>161.0</td><td class='num'>164.4</td></tr>
+<tr><td>noviembre</td><td class='num'>23</td><td class='num'>136.8</td><td class='num'>136.6</td><td class='num'>39.2</td><td class='num'>96.1</td><td class='num'>112.9</td><td class='num'>158.9</td><td class='num'>172.7</td></tr>
+<tr><td>diciembre</td><td class='num'>22</td><td class='num'>91.1</td><td class='num'>84.8</td><td class='num'>31.6</td><td class='num'>54.2</td><td class='num'>69.6</td><td class='num'>108.8</td><td class='num'>126.1</td></tr>
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-t" aria-labelledby="pestana-ciclo-t" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+<tr><td>enero</td><td class='num'>25</td><td class='num'>14.8</td><td class='num'>14.7</td><td class='num'>0.7</td><td class='num'>14.2</td><td class='num'>14.3</td><td class='num'>15.2</td><td class='num'>15.8</td></tr>
+<tr><td>febrero</td><td class='num'>25</td><td class='num'>15.1</td><td class='num'>15.1</td><td class='num'>0.8</td><td class='num'>14.2</td><td class='num'>14.4</td><td class='num'>15.4</td><td class='num'>16.2</td></tr>
+<tr><td>marzo</td><td class='num'>25</td><td class='num'>15.0</td><td class='num'>15.0</td><td class='num'>0.7</td><td class='num'>14.3</td><td class='num'>14.4</td><td class='num'>15.5</td><td class='num'>16.1</td></tr>
+<tr><td>abril</td><td class='num'>25</td><td class='num'>14.9</td><td class='num'>14.9</td><td class='num'>0.5</td><td class='num'>14.4</td><td class='num'>14.5</td><td class='num'>15.3</td><td class='num'>15.5</td></tr>
+<tr><td>mayo</td><td class='num'>25</td><td class='num'>14.8</td><td class='num'>14.7</td><td class='num'>0.4</td><td class='num'>14.4</td><td class='num'>14.6</td><td class='num'>15.1</td><td class='num'>15.3</td></tr>
+<tr><td>junio</td><td class='num'>25</td><td class='num'>14.5</td><td class='num'>14.5</td><td class='num'>0.4</td><td class='num'>14.1</td><td class='num'>14.3</td><td class='num'>14.7</td><td class='num'>15.0</td></tr>
+<tr><td>julio</td><td class='num'>25</td><td class='num'>14.4</td><td class='num'>14.4</td><td class='num'>0.3</td><td class='num'>14.0</td><td class='num'>14.2</td><td class='num'>14.6</td><td class='num'>14.8</td></tr>
+<tr><td>agosto</td><td class='num'>25</td><td class='num'>14.5</td><td class='num'>14.5</td><td class='num'>0.3</td><td class='num'>14.2</td><td class='num'>14.3</td><td class='num'>14.8</td><td class='num'>14.9</td></tr>
+<tr><td>septiembre</td><td class='num'>25</td><td class='num'>14.6</td><td class='num'>14.5</td><td class='num'>0.4</td><td class='num'>14.2</td><td class='num'>14.3</td><td class='num'>14.8</td><td class='num'>15.1</td></tr>
+<tr><td>octubre</td><td class='num'>25</td><td class='num'>14.5</td><td class='num'>14.4</td><td class='num'>0.3</td><td class='num'>14.1</td><td class='num'>14.3</td><td class='num'>14.7</td><td class='num'>14.8</td></tr>
+<tr><td>noviembre</td><td class='num'>25</td><td class='num'>14.4</td><td class='num'>14.4</td><td class='num'>0.3</td><td class='num'>14.0</td><td class='num'>14.2</td><td class='num'>14.7</td><td class='num'>14.9</td></tr>
+<tr><td>diciembre</td><td class='num'>25</td><td class='num'>14.5</td><td class='num'>14.5</td><td class='num'>0.5</td><td class='num'>13.9</td><td class='num'>14.1</td><td class='num'>14.8</td><td class='num'>15.1</td></tr>
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <p class="nota">Años válidos: años con dato ese mes (Q con la regla de los 5 días faltantes; PL con sus
+  exclusiones). Q es el promedio mensual del caudal diario, en m³/s; T media, la de ERA5-Land. Desviación
+  estándar muestral; cuartiles y percentiles por interpolación lineal (<a class="cita" href="#ref-hyndman1996">Hyndman y Fan, 1996</a>).</p>
+  <script>
+  (() => {
+    const botones = document.querySelectorAll('[id^="pestana-ciclo-"]');
+    botones.forEach(b => b.addEventListener("click", () => {
+      botones.forEach(o => {
+        const activo = o === b;
+        o.setAttribute("aria-selected", activo ? "true" : "false");
+        o.tabIndex = activo ? 0 : -1;
+        document.getElementById(o.getAttribute("aria-controls")).hidden = !activo;
+      });
+    }));
+  })();
+  </script>
+  </div>
+
+  <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.
   Aquí van las tres series juntas: la lluvia según el satélite, la lluvia según la red de pluviómetros y
   el caudal, todas en mm/mes. Las tres se promedian sobre los mismos <b>262 meses</b>, los que
@@ -1072,26 +1195,17 @@ section, section h3 { scroll-margin-top: 20px; }
   con dato en las tres series. Un valor de 0.50 significa que la mitad de la lluvia de ese mes sale por
   el río y la otra mitad se evapora o se queda en el suelo.</p>
 
-  <p><b>La fracción de lluvia que sale por el río más que se duplica a lo largo del año</b>: va de
-  0.43 en ago a 0.96 en dic. En
-  ago el río se lleva cuatro de cada diez milímetros que caen; en dic,
-  más de nueve. <b>Las dos fuentes de lluvia dan el mismo patrón</b> —el coeficiente sube hacia el final
-  del año con las dos—, así que la forma no es un artefacto de ninguna. La magnitud sí depende de cuál se
-  use: el coeficiente se multiplica por 2.2 contra IMERG y por
-  1.8 contra la red, que llega a un máximo más bajo
-  (0.74 en dic) simplemente porque mide más lluvia.</p>
-
-  <p>La explicación es la <b>memoria del suelo</b>. Cuando llega la primera temporada de lluvias, la
-  cuenca viene de la seca de ene: buena parte del agua se queda llenando el suelo y no
-  alcanza a llegar al río. Cuando llega la segunda, el suelo lleva meses mojado, ya casi no admite más, y
-  la lluvia se convierte en escorrentía mucho más rápido. La misma lluvia rinde distinto según en qué
-  momento del año caiga.</p>
-
-  <p class="aviso">Eso también explica los meses con coeficiente mayor que 1 que aparecían en la sección
-  anterior. En dic el coeficiente del año típico ya llega a 0.96: el río
-  está entregando agua que cayó semanas o meses antes y quedó almacenada. En un mes seco que siga a una
-  temporada muy húmeda, esa descarga diferida puede superar a la lluvia de ese mes y el cociente se va por
-  encima de 1 sin que haya ningún error en los datos.</p>
+  <div class="revision" data-etiqueta="Revisión · resumen del coeficiente">
+  <p>El coeficiente de escorrentía mensual (Q/P) <b>sube a lo largo del año</b>: con PL va de
+  0.41 en mar a 0.74 en dic
+  (1.8 veces), y con PI de 0.43 en ago a
+  0.96 en dic (2.2 veces); la forma es la misma con
+  las dos fuentes y solo cambia la magnitud, porque PL mide más lluvia. Una explicación razonable, que
+  aquí no se prueba, es la memoria del suelo: al empezar la temporada de lluvias parte del agua recarga el
+  suelo y rinde menos escorrentía, y al final, con el suelo ya húmedo, la misma lluvia rinde más. Eso
+  conecta con los meses en que el coeficiente pasa de 1, que están en la sección «Lo que le cae a la
+  cuenca y lo que sale por el río».</p>
+  </div>
 </section>
 
 <section>

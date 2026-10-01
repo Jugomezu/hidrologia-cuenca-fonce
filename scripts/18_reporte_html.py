@@ -440,6 +440,34 @@ firmas_sg = pd.read_csv("data/camels_col/signatures/09_CAMELS_COL_Hydrological_s
 # comparables de frente. La diferencia es pequeña (el total anual de IMERG cambia de 2 224 a 2 229
 # mm/año), pero la comparación así queda limpia.
 MESES_ES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+
+# ---------------------------------------------------------------- el ciclo anual, mes a mes
+# Para cada variable y cada mes del calendario: años con dato y estadísticos de esos años. Percentiles
+# con interpolación lineal (Hyndman y Fan, tipo 7, el de pandas); desviación estándar muestral (n − 1).
+MESES_LARGOS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
+                   "octubre", "noviembre", "diciembre"]
+CICLO_VARIABLES = [("pl", "PL", "mm/mes", "PL", 0), ("pi", "PI", "mm/mes", "PI", 0),
+                   ("q", "Q", "m³/s", "Q", 1), ("t", "T media", "°C", "T media", 1)]
+
+
+def ciclo_estadisticos(serie):
+    g = serie.groupby(serie.index.month)
+    return pd.DataFrame({"n": g.count(), "media": g.mean(), "mediana": g.median(), "sd": g.std(),
+                         "p10": g.quantile(0.10), "q1": g.quantile(0.25), "q3": g.quantile(0.75),
+                         "p90": g.quantile(0.90)})
+
+
+def ciclo_tabla_html(clave, columna, decimales):
+    e = ciclo_estadisticos(variables_resumen[columna])
+    fmt = lambda v: f"{v:,.{decimales}f}".replace(",", " ")
+    filas = "\n".join(
+        f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td><td class='num'>{int(f.n)}</td>"
+        + "".join(f"<td class='num'>{fmt(f[c])}</td>" for c in ("media", "mediana", "sd", "p10", "q1", "q3", "p90"))
+        + "</tr>" for m, f in e.iterrows())
+    return filas
+
+
+ciclo_tablas = {clave: ciclo_tabla_html(clave, col, dec) for clave, _, _, col, dec in CICLO_VARIABLES}
 ciclo_base = pd.DataFrame({
     "imerg": imm[imm.id_estacion == 24027010].set_index("periodo")["p_imerg_mm"],
     "red": red,
@@ -486,6 +514,8 @@ ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
 ciclo_esc_max_red = ciclo.escorrentia_red.max()
 ciclo_esc_max_mes_red = mes_de(ciclo.escorrentia_red)
+ciclo_esc_min_red = ciclo.escorrentia_red.min()
+ciclo_esc_min_mes_red = mes_de(ciclo.escorrentia_red, "min")
 # los dos picos de lluvia del régimen bimodal, para poder decir cuál manda
 ciclo_pico1 = ciclo.imerg.iloc[2:6].max()          # mar-jun
 ciclo_pico2 = ciclo.imerg.iloc[8:12].max()         # sep-dic
@@ -2076,7 +2106,86 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
-  <h2>El año típico: cuándo llueve y cuándo baja el río</h2>
+  <h2>El ciclo anual</h2>
+  <div class="revision" data-etiqueta="Revisión · ciclo anual, mes a mes">
+  <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
+  <p>El <b>ciclo anual</b> es cómo se comporta cada variable en cada mes del calendario, separado de la
+  variabilidad de un año a otro: se juntan todos los eneros, todos los febreros…, de 1998 a 2022, y se resume
+  cada mes. La media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango entre p10 y
+  p90 dicen cuánto cambia ese mes de un año a otro.</p>
+  <div class="pestanas" role="tablist" aria-label="Variable del ciclo anual">
+    <button type="button" role="tab" id="pestana-ciclo-pl" aria-controls="panel-ciclo-pl" aria-selected="true">PL (mm/mes)</button>
+    <button type="button" role="tab" id="pestana-ciclo-pi" aria-controls="panel-ciclo-pi" aria-selected="false" tabindex="-1">PI (mm/mes)</button>
+    <button type="button" role="tab" id="pestana-ciclo-q" aria-controls="panel-ciclo-q" aria-selected="false" tabindex="-1">Q (m³/s)</button>
+    <button type="button" role="tab" id="pestana-ciclo-t" aria-controls="panel-ciclo-t" aria-selected="false" tabindex="-1">T media (°C)</button>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-pl" aria-labelledby="pestana-ciclo-pl">
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+{ciclo_tablas["pl"]}
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-pi" aria-labelledby="pestana-ciclo-pi" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+{ciclo_tablas["pi"]}
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-q" aria-labelledby="pestana-ciclo-q" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+{ciclo_tablas["q"]}
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <div role="tabpanel" id="panel-ciclo-t" aria-labelledby="pestana-ciclo-t" hidden>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">Años válidos</th><th class="num">Media</th><th class="num">Mediana</th>
+    <th class="num">Desv. estándar</th><th class="num">p10</th><th class="num">Q1 (p25)</th><th class="num">Q3 (p75)</th>
+    <th class="num">p90</th></tr></thead>
+    <tbody>
+{ciclo_tablas["t"]}
+    </tbody>
+  </table>
+  </div>
+  </div>
+  <p class="nota">Años válidos: años con dato ese mes (Q con la regla de los 5 días faltantes; PL con sus
+  exclusiones). Q es el promedio mensual del caudal diario, en m³/s; T media, la de ERA5-Land. Desviación
+  estándar muestral; cuartiles y percentiles por interpolación lineal ({CITA_HYNDMAN}).</p>
+  <script>
+  (() => {{
+    const botones = document.querySelectorAll('[id^="pestana-ciclo-"]');
+    botones.forEach(b => b.addEventListener("click", () => {{
+      botones.forEach(o => {{
+        const activo = o === b;
+        o.setAttribute("aria-selected", activo ? "true" : "false");
+        o.tabIndex = activo ? 0 : -1;
+        document.getElementById(o.getAttribute("aria-controls")).hidden = !activo;
+      }});
+    }}));
+  }})();
+  </script>
+  </div>
+
+  <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.
   Aquí van las tres series juntas: la lluvia según el satélite, la lluvia según la red de pluviómetros y
   el caudal, todas en mm/mes. Las tres se promedian sobre los mismos <b>{ciclo_n} meses</b>, los que
@@ -2115,26 +2224,17 @@ a {{ color: var(--acento); }}
   con dato en las tres series. Un valor de 0.50 significa que la mitad de la lluvia de ese mes sale por
   el río y la otra mitad se evapora o se queda en el suelo.</p>
 
-  <p><b>La fracción de lluvia que sale por el río más que se duplica a lo largo del año</b>: va de
-  {ciclo_esc_min:.2f} en {ciclo_esc_min_mes} a {ciclo_esc_max:.2f} en {ciclo_esc_max_mes}. En
-  {ciclo_esc_min_mes} el río se lleva cuatro de cada diez milímetros que caen; en {ciclo_esc_max_mes},
-  más de nueve. <b>Las dos fuentes de lluvia dan el mismo patrón</b> —el coeficiente sube hacia el final
-  del año con las dos—, así que la forma no es un artefacto de ninguna. La magnitud sí depende de cuál se
-  use: el coeficiente se multiplica por {ciclo_esc_razon_imerg:.1f} contra IMERG y por
-  {ciclo_esc_razon_red:.1f} contra la red, que llega a un máximo más bajo
-  ({ciclo_esc_max_red:.2f} en {ciclo_esc_max_mes_red}) simplemente porque mide más lluvia.</p>
-
-  <p>La explicación es la <b>memoria del suelo</b>. Cuando llega la primera temporada de lluvias, la
-  cuenca viene de la seca de {ciclo_valle_imerg}: buena parte del agua se queda llenando el suelo y no
-  alcanza a llegar al río. Cuando llega la segunda, el suelo lleva meses mojado, ya casi no admite más, y
-  la lluvia se convierte en escorrentía mucho más rápido. La misma lluvia rinde distinto según en qué
-  momento del año caiga.</p>
-
-  <p class="aviso">Eso también explica los meses con coeficiente mayor que 1 que aparecían en la sección
-  anterior. En {ciclo_esc_max_mes} el coeficiente del año típico ya llega a {ciclo_esc_max:.2f}: el río
-  está entregando agua que cayó semanas o meses antes y quedó almacenada. En un mes seco que siga a una
-  temporada muy húmeda, esa descarga diferida puede superar a la lluvia de ese mes y el cociente se va por
-  encima de 1 sin que haya ningún error en los datos.</p>
+  <div class="revision" data-etiqueta="Revisión · resumen del coeficiente">
+  <p>El coeficiente de escorrentía mensual (Q/P) <b>sube a lo largo del año</b>: con PL va de
+  {ciclo_esc_min_red:.2f} en {ciclo_esc_min_mes_red} a {ciclo_esc_max_red:.2f} en {ciclo_esc_max_mes_red}
+  ({ciclo_esc_razon_red:.1f} veces), y con PI de {ciclo_esc_min:.2f} en {ciclo_esc_min_mes} a
+  {ciclo_esc_max:.2f} en {ciclo_esc_max_mes} ({ciclo_esc_razon_imerg:.1f} veces); la forma es la misma con
+  las dos fuentes y solo cambia la magnitud, porque PL mide más lluvia. Una explicación razonable, que
+  aquí no se prueba, es la memoria del suelo: al empezar la temporada de lluvias parte del agua recarga el
+  suelo y rinde menos escorrentía, y al final, con el suelo ya húmedo, la misma lluvia rinde más. Eso
+  conecta con los meses en que el coeficiente pasa de 1, que están en la sección «Lo que le cae a la
+  cuenca y lo que sale por el río».</p>
+  </div>
 </section>
 
 <section>

@@ -570,6 +570,10 @@ pq_res = {f: {"sobre_etp": int((_pq_con_q[f"{f}_q"] > _pq_con_q.etp).sum()),
               "anios_sobre_etp": int((pq_anual[f"{f}_q"] > pq_anual.etp).sum())} for f in ("pl", "pi")}
 pq_n_meses, pq_n_anios, pq_etp_anual = len(_pq_con_q), len(pq_anual), pq_anual.etp.mean()
 pq_anios_sobre = {f: [str(x) for x in pq_anual.index[pq_anual[f"{f}_q"] > pq_anual.etp]] for f in ("pl", "pi")}
+# la estación más seca de la red (en la serie depurada); cuando falta, PL se arma con estaciones más lluviosas
+pq_seca = plu[DENTRO].mean().idxmin()
+pq_seca_nombre = cat_plu.loc[pq_seca, "etiqueta"]
+pq_falta_seca = {a: int(plu.loc[plu.index.year == int(a), pq_seca].isna().sum()) for a in pq_anios_sobre["pl"]}
 _pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.groupby(_pq_con_q.index.month).etp.mean())
 pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
 _red1 = lambda s: [None if pd.isna(v) else round(float(v), 1) for v in s]
@@ -664,16 +668,6 @@ ciclo_lq_json = json.dumps({
     "ajusteMesAnterior": ciclo_lq.Q_ajuste_PL_mes_y_anterior.round(1).tolist(),
 }, ensure_ascii=False)
 
-_n_cruzada = int(cruzada[cruzada.rezago_meses == 1].n.min())
-# umbral de significancia aproximado al 5 % para una correlación con n pares: ±1.96 / √n
-umbral_cruzada = 1.96 / np.sqrt(_n_cruzada)
-cruzada_json = json.dumps({
-    "rezagos": sorted(cruzada.rezago_meses.unique().tolist()),
-    "series": {f"{ll}|{tipo}": cruzada[(cruzada.lluvia == ll) & (cruzada.series == tipo)]
-               .sort_values("rezago_meses").rho.round(3).tolist()
-               for ll in ("PL", "PI") for tipo in ("anomalías", "tal cual")},
-    "umbral": round(float(umbral_cruzada), 3),
-}, ensure_ascii=False)
 
 
 def rho_rezago(antes, despues):
@@ -2009,16 +2003,13 @@ a {{ color: var(--acento); }}
   {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %): el ciclo del satélite se parece menos al del
   caudal que el de los pluviómetros.</p>
 
-  <p>Lo mismo se ve mes a mes, en toda la serie, con una <b>correlación cruzada</b>: la lluvia de cada mes
-  contra el caudal de ese mes, de los siguientes y de los anteriores.</p>
-  <div id="g-cruzada" class="grafico" style="min-height:0; height:440px"></div>
-  <p class="nota">La franja gris es lo que no se distingue de cero al 5 % (±{umbral_cruzada:.2f}). Los
-  rezagos negativos, con el caudal antes que la lluvia, son el control.</p>
-  <p>La correlación es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f} con PL) y sigue
+  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
+  serie: la correlación es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f} con PL) y sigue
   alta con la lluvia un mes antes ({rho_cruzada('PL', 1, 'tal cual'):.2f}), mientras que con el caudal un
   mes antes cae a {rho_cruzada('PL', -1, 'tal cual'):.2f}: la relación va de la lluvia al caudal, y dura un
-  mes. Los valores negativos a ±3 meses son el mismo ciclo visto de otro lado: con dos temporadas al año,
-  tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
+  mes. A tres meses de distancia la correlación es negativa ({rho_cruzada('PL', 3, 'tal cual'):.2f} y
+  {rho_cruzada('PL', -3, 'tal cual'):.2f}): es el mismo ciclo visto de otro lado, porque con dos temporadas al
+  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
   <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
   lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
   {memoria.loc['PL', 'parcial_mes_anterior']:.2f}. La cuenca guarda agua de un mes al siguiente también en
@@ -2026,8 +2017,8 @@ a {{ color: var(--acento); }}
 
   <p class="aviso">Una correlación mensual no es ni causa ni capacidad de predicción. Que Q y PL vayan a
   ρ = {rho('PL', 'Q'):.2f} no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La
-  relación entre lluvia y caudal tiene memoria</b>, y una correlación en la misma casilla temporal no la captura; la
-  correlación cruzada de arriba muestra una parte.</p>
+  relación entre lluvia y caudal tiene memoria</b>, y una correlación en la misma casilla temporal no la
+  captura; las correlaciones con un mes de rezago, arriba, muestran una parte.</p>
 </section>
 
 <section>
@@ -2079,7 +2070,8 @@ a {{ color: var(--acento); }}
   <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
   <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
-  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if pq_res["pl"]["anios_sobre_etp"] == 0 and pq_res["pi"]["anios_sobre_etp"] == 0 else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}: en esos años, o la lluvia está sobrestimada, o el caudal subestimado, o pesa el almacenamiento de un año a otro."}</p>
+  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if pq_res["pl"]["anios_sobre_etp"] == 0 and pq_res["pi"]["anios_sobre_etp"] == 0 else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}: en esos años, o la lluvia está sobrestimada, o el caudal subestimado, o pesa el almacenamiento de un año a otro."}
+  {"" if not pq_anios_sobre["pl"] else f"Parte de la explicación es la cobertura: en esos años a PL le falta {pq_seca_nombre}, la estación más seca de la red, en " + (lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else l[0])([f"{k} meses de {a}" for a, k in pq_falta_seca.items()]) + " (por la exclusión de su tramo malo o porque no midió). Sin ella, PL se promedia con estaciones más lluviosas y queda alta: es el sesgo de cobertura medido en «Anomalías en las series». No se corrige, porque PL no rellena estaciones; queda declarado."}</p>
   </div>
 </section>
 
@@ -2556,33 +2548,6 @@ a {{ color: var(--acento); }}
   }})();
 
 
-  const CRUZ = {cruzada_json};
-
-  function dibujarCruzada() {{
-    if (!window.Plotly) return;
-    const tenue = css("--tenue"), linea = css("--linea");
-    const AZUL = "#0072B2", NARANJA = "#D55E00";
-    const x = CRUZ.rezagos.map(v => v === 0 ? "0<br>mismo mes" : v > 0 ? "+" + v + "<br>lluvia antes"
-                                                                       : v + "<br>caudal antes");
-    const trazas = [
-      {{ type: "bar", name: "PL", x, y: CRUZ.series["PL|tal cual"], marker: {{ color: NARANJA }},
-         hovertemplate: "PL, rezago %{{x}}: ρ = %{{y:.2f}}<extra></extra>" }},
-      {{ type: "bar", name: "PI", x, y: CRUZ.series["PI|tal cual"], marker: {{ color: AZUL }},
-         hovertemplate: "PI, rezago %{{x}}: ρ = %{{y:.2f}}<extra></extra>" }}
-    ];
-    const disposicion = base();
-    Object.assign(disposicion, {{ barmode: "group", bargap: 0.25, height: 440, hovermode: "closest" }});
-    disposicion.margin.b = 96;
-    disposicion.yaxis.title.text = "ρ de Spearman (lluvia en t−k, Q en t)";
-    Object.assign(disposicion.yaxis, {{ range: [-0.6, 1], rangemode: "normal", zeroline: true,
-                                       zerolinecolor: tenue }});
-    Object.assign(disposicion.xaxis, {{ type: "category",
-      title: {{ text: "rezago k (meses)", font: {{ size: 11, color: tenue }}, standoff: 16 }} }});
-    disposicion.shapes = [{{ type: "rect", xref: "paper", x0: 0, x1: 1, yref: "y",
-                            y0: -CRUZ.umbral, y1: CRUZ.umbral, fillcolor: linea, opacity: 0.6,
-                            line: {{ width: 0 }}, layer: "below" }}];
-    Plotly.react("g-cruzada", trazas, disposicion, CONF);
-  }}
 
   const CAJAS = {cajas_json};
   let cajaActiva = 0;
@@ -2968,7 +2933,6 @@ a {{ color: var(--acento); }}
     dibujarEtp();
     dibujarDobleMasa();
     dibujarCorrelaciones();
-    dibujarCruzada();
     dibujarCicloRezago();
     dibujarCajas();
     dibujarBalance();

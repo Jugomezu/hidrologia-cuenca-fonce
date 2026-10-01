@@ -227,6 +227,8 @@ bal_datos = {
     "q": [None if pd.isna(v) else round(float(v), 1) for v in balance.q],
     "coef": [None if pd.isna(v) else round(float(v), 3) for v in balance.escorrentia],
     "coef_medio": round(float(coef_periodo), 3),
+    # el mismo coeficiente con PL, que manda
+    "coef_pl": [None if pd.isna(v) else round(float(v), 3) for v in (balance.q / red.reindex(PERIODOS))],
 }
 bal_json = json.dumps(bal_datos, ensure_ascii=False)
 
@@ -427,6 +429,13 @@ bal_q_anual = bal_completos.q.mean() * 12
 bal_sobre1 = int((bal_completos.escorrentia > 1).sum())
 bal_max = bal_completos.escorrentia.max()
 bal_max_mes = bal_completos.escorrentia.idxmax()
+# con PL: meses con coeficiente > 1, y cuántos vienen después de dos meses más lluviosos que lo normal
+_bal_pl = pd.DataFrame({"p": red.reindex(PERIODOS), "q": balance.q}).dropna()
+_bal_pl_coef = _bal_pl.q / _bal_pl.p
+bal_sobre1_pl = int((_bal_pl_coef > 1).sum())
+bal_max_pl, bal_max_mes_pl = _bal_pl_coef.max(), _bal_pl_coef.idxmax()
+_pl_dos_antes = red.reindex(PERIODOS).rolling(2).mean().shift(1)
+bal_pl_tras_lluvia = int((_pl_dos_antes.reindex(_bal_pl_coef.index[_bal_pl_coef > 1]) > red.mean()).sum())
 
 # Firmas hidrológicas que publica CAMELS-COL (archivo 09 del registro de Zenodo). Son atributos por
 # cuenca, no series: sirven para contrastar contra ellas lo que calculamos por nuestra cuenta.
@@ -2067,7 +2076,7 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{bal_n}</b><span>meses con ambos datos</span></div>
   </div>
   <div id="g-balance" class="grafico" style="min-height:400px"></div>
-  <div id="g-escorrentia" class="grafico" style="min-height:260px"></div>
+  <div id="g-escorrentia" class="grafico" style="min-height:0; height:300px"></div>
   <p class="nota">La franja azul es la lluvia; la línea naranja, el caudal. Donde el caudal se interrumpe
   es porque ese mes no cumple la regla de los cuatro días faltantes.</p>
   <p><b>Sale como caudal cerca del {coef_periodo * 100:.0f} % de la lluvia.</b> El resto se evapora o se
@@ -2081,10 +2090,12 @@ a {{ color: var(--acento); }}
   {n(bal_q_anual)} mm/año por un camino distinto —agregando la serie diaria con la regla del proyecto y
   dividiendo por el área—, así que los dos cálculos coinciden.</p>
 
-  <p class="aviso">Hay <b>{bal_sobre1} meses en que salió más agua de la que cayó</b> (coeficiente mayor
-  que 1), con un máximo de <b>{bal_max:.2f} en {bal_max_mes}</b>. Que el río descargue agua almacenada de
-  meses anteriores explica valores algo por encima de 1, pero no uno de {bal_max:.2f}. O la lluvia de ese mes está
-  subestimada, o el caudal tiene un problema. Queda por revisar.</p>
+  <div class="revision" data-etiqueta="Revisión · coeficiente con PL y PI">
+  <p class="aviso">Meses en que salió más agua de la que cayó (coeficiente &gt; 1): <b>{bal_sobre1_pl} con PL</b>
+  (máximo {bal_max_pl:.2f} en {fmt_mes(bal_max_mes_pl)}) y {bal_sobre1} con PI (máximo {bal_max:.2f} en
+  {fmt_mes(bal_max_mes)}). Con PL, {bal_pl_tras_lluvia} de los {bal_sobre1_pl} vienen después de dos meses más
+  lluviosos que lo normal: es agua guardada que sale después. Con PI son más porque PI mide menos lluvia.</p>
+  </div>
 
   <div class="revision" data-etiqueta="Revisión · P − Q contra la evapotranspiración">
   <h3>Lo que llueve menos lo que sale, contra la evapotranspiración</h3>
@@ -2863,7 +2874,8 @@ a {{ color: var(--acento); }}
 
     const disp = base();
     disp.margin = {{ t: 10, r: 10, b: 40, l: 54 }};
-    disp.showlegend = false;
+    disp.showlegend = true;
+    disp.margin.t = 40;
     disp.yaxis.title.text = "caudal / lluvia";
     disp.yaxis.rangemode = "tozero";
     disp.shapes = [
@@ -2876,13 +2888,16 @@ a {{ color: var(--acento); }}
       {{ xref: "paper", x: 0.004, xanchor: "left", y: 1, yanchor: "bottom",
          text: "caudal = lluvia del mes", showarrow: false, font: {{ size: 10, color: GRIS }} }},
       {{ xref: "paper", x: 0.004, xanchor: "left", y: BAL.coef_medio, yanchor: "bottom",
-         text: "promedio del período: " + BAL.coef_medio.toFixed(2), showarrow: false,
+         text: "promedio de Q / PI: " + BAL.coef_medio.toFixed(2), showarrow: false,
          font: {{ size: 10, color: NARANJA }} }}
     ];
     Plotly.react("g-escorrentia", [
-      {{ type: "scatter", mode: "lines", name: "coeficiente", x: BAL.meses, y: BAL.coef,
-         line: {{ color: "#4A5259", width: 1.2 }}, connectgaps: false,
-         hovertemplate: "%{{y:.2f}}<extra>caudal / lluvia</extra>" }}
+      {{ type: "scatter", mode: "lines", name: "Q / PL", x: BAL.meses, y: BAL.coef_pl,
+         line: {{ color: "#4A5259", width: 1.4 }}, connectgaps: false,
+         hovertemplate: "%{{y:.2f}}<extra>Q / PL</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "Q / PI", x: BAL.meses, y: BAL.coef,
+         line: {{ color: AZUL, width: 1, dash: "dot" }}, connectgaps: false,
+         hovertemplate: "%{{y:.2f}}<extra>Q / PI</extra>" }}
     ], disp, CONF);
   }}
 

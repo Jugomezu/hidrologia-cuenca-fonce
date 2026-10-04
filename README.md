@@ -178,6 +178,7 @@ pip install -r requirements.txt
     salidas de `out/`, y llevarlo al principal al final.
 - **Scripts nuevos:** se numeran según dónde caen en la tubería (se usaron sufijos como `06b`, `07b` y `07c`
   para no renumerar). Se registran en `scripts/README.md`.
+- **Un solo informe (regla 22):** todo lo que vaya al informe entra como sección de `scripts/18_reporte_html.py`; no se hacen informes ni visores HTML aparte.
 - **Fuentes nuevas:** toda fuente descargada se registra en `DATOS_FUENTES.md`, con DOI o URL, licencia y
   SHA-256.
 - **Decisiones que cambian datos compartidos**, como una exclusión, un umbral o la fuente de una variable,

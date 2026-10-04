@@ -68,6 +68,7 @@ tbody tr:first-child td { background: var(--acento-suave); font-weight: 500; }
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar { background: var(--atip-alto); font-weight: 600; }
 td.res-anotado { background: var(--revision); }
 td.res-nd { color: var(--tenue); }
+td.reg-anomalia { min-width: 16em; }
 td.detalle { font-size: 13px; min-width: 260px; }
 .cita { color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; }
 .bibliografia { max-width: 72ch; padding-left: 22px; font-size: 15px; }
@@ -555,15 +556,30 @@ section, section h3 { scroll-margin-top: 20px; }
     sale de PL.</b></li>
     <li><b>Coromoro</b>: -20 % desde <span class='fase-neutra'>mar 2003</span> (<i>p</i> = 0.006), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>
   </ul>
+  <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
+  <p><b>Pueblo Viejo tiene un segundo salto.</b> La prueba de Pettitt encuentra un solo corte por serie, así
+  que a cada pluviómetro con salto se le repitió en el tramo que queda después del primero, sobre la serie
+  depurada y contra el promedio de los demás pluviómetros (sin Pueblo Viejo, Coromoro). Pueblo Viejo pasa de 0.83 a
+  0.62 veces sus vecinos desde <span class='fase-neutra'>abr 2014</span>
+  (-25 %, <i>p</i> &lt; 0.001).
+  Coromoro no tiene un segundo salto (<i>p</i> = 0.829).
+  Como en Coromoro, no hay forma de saber cuál de los dos tramos de Pueblo Viejo está bien. <b>Se conserva,
+  marcado como incierto:</b> PL puede estar algo baja desde ese mes.</p>
   <p><b>PI frente a PL: +11 % desde <span class='fase-neutra'>jun 2014</span></b> (<i>p</i>
   = 0.005): antes PI era 0.84 veces PL, después 0.94. El corte
-  cae en el cambio de era de IMERG. Hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
-  de 2014 con GPM (<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>). Ningún pluviómetro salta en esa fecha: el cambio es del producto. PI se
-  conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene salto
-  (<i>p</i> = 0.177).</p>
+  cae en el cambio de era de IMERG: hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
+  de 2014 con GPM (<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>). Pero cae también 2 meses después del segundo salto de
+  Pueblo Viejo, que baja PL. Con una PL sin Pueblo Viejo, el salto de PI es de
+  +6 % (<i>p</i> = 0.261)
+  y deja de ser significativo: buena parte del salto viene de Pueblo Viejo, no de IMERG. El cambio de TRMM a GPM puede aportar algo, pero no es la explicación principal.
+  PI se conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene
+  salto (<i>p</i> = 0.177).</p>
   <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
   cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
-  pluviómetros no se pueden confirmar ni descartar con metadatos; el de IMERG, sí.</p>
+  pluviómetros no se pueden confirmar ni descartar con metadatos. El cambio de calibración de IMERG sí está
+  documentado, pero no basta para atribuirle el salto de PI. Las pruebas del segundo salto corren en
+  <code>scripts/07c_anomalias.py</code> y quedan en <code>out/anomalias_segundo_corte.csv</code>.</p>
+  </div>
 
   <h3>Meses en 0 mm</h3>
   <div class="tabla-caja">
@@ -604,6 +620,47 @@ section, section h3 { scroll-margin-top: 20px; }
   (La Niña).</p>
   <p class="aviso"><b>Con todas las exclusiones, PI queda un 12.0 % por debajo de PL.</b> Los
   tramos excluidos: Encino de ene 2016 a dic 2018; Pueblo Viejo de ene 1998 a nov 2004; Pavas Las en <span class='fase-neutra'>ago 2000</span>; Pavas Las en <span class='fase-nino' title='El Niño'>jul 2009</span>; Pavas Las en <span class='fase-neutra'>jul 2013</span>; Pavas Las en <span class='fase-neutra'>may 2018</span>; Pavas Las en <span class='fase-neutra'>jul 2019</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2017</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2021</span>.</p>
+  </div>
+  </details>
+</section>
+
+<section>
+  <details class="plegable" open>
+  <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
+  <div class="revision" data-etiqueta="Revisión · registro de anomalías">
+  <p>Todo lo que apareció raro en los datos, en un solo lugar: qué se comprobó, qué se decidió, qué efecto
+  tiene en el análisis y en qué estado quedó. De las 19 anomalías, <b>9
+  quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>8
+  quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
+  2 se descartaron (se revisaron y no eran un problema).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>#</th><th>Estado</th><th>Serie</th><th>Anomalía</th><th>Comprobación</th><th>Decisión</th><th>Efecto</th></tr></thead>
+    <tbody>
+<tr><td class='num'>1</td><td class=''>corregido</td><td>PL</td><td class='reg-anomalia'>Encino 2016–2018: totales anuales muy por encima del resto de su serie</td><td class='detalle'>se comparó contra PI y contra Q: ninguno de los dos acompaña esos años</td><td class='detalle'>se excluye el tramo (36 meses)</td><td class='detalle'>PL se calcula sin Encino esos años</td></tr>
+<tr><td class='num'>2</td><td class=''>corregido</td><td>PL</td><td class='reg-anomalia'>Pueblo Viejo hasta 2004-11: mide 0.27 veces lo de sus vecinos; desde 2004-12, 0.74</td><td class='detalle'>doble masa y prueba de Pettitt (p = 2e-20); el catálogo del IDEAM no registra el cambio</td><td class='detalle'>se excluye el tramo (76 meses)</td><td class='detalle'>PL se calcula sin Pueblo Viejo en ese tramo</td></tr>
+<tr><td class='num'>3</td><td class='res-revisar'>incierto</td><td>PL</td><td class='reg-anomalia'>Pueblo Viejo desde 2014-04: pasa de 0.83 a 0.62 veces sus vecinos (-24.7 %)</td><td class='detalle'>prueba de Pettitt sobre el tramo desde 2004-12, contra los demás pluviómetros sin Pueblo Viejo ni Coromoro (p = 9e-07); es un segundo salto, que la prueba sobre la serie completa no ve porque solo encuentra un corte por serie</td><td class='detalle'>se conserva</td><td class='detalle'>PL puede estar algo baja desde ese mes</td></tr>
+<tr><td class='num'>4</td><td class=''>corregido</td><td>PL</td><td class='reg-anomalia'>7 meses en 0 mm difíciles de creer (Pavas Las y Valle de San José)</td><td class='detalle'>todos los demás pluviómetros midieron más de 20 mm ese mes</td><td class='detalle'>se excluyen como meses no registrados</td><td class='detalle'>esos meses PL se promedia sin ese pluviómetro</td></tr>
+<tr><td class='num'>5</td><td class='res-nd'>descartado</td><td>PL</td><td class='reg-anomalia'>2 meses en 0 mm creíbles</td><td class='detalle'>Pavas Las 2001-08 (el vecino más seco midió 2.0 mm); Pueblo Viejo 2020-02 (el vecino más seco midió 3.1 mm)</td><td class='detalle'>se conservan</td><td class='detalle'>ninguno</td></tr>
+<tr><td class='num'>6</td><td class='res-revisar'>incierto</td><td>PL</td><td class='reg-anomalia'>Coromoro: de 1.11 a 0.89 veces sus vecinos desde 2003-03 (-19.7 %)</td><td class='detalle'>doble masa y prueba de Pettitt (p = 0.006); el cambio es gradual y no se sabe cuál tramo está bien; en el tramo posterior no hay un segundo salto (p = 0.83)</td><td class='detalle'>se conserva</td><td class='detalle'>PL puede estar algo baja desde ese mes</td></tr>
+<tr><td class='num'>7</td><td class='res-revisar'>incierto</td><td>PI</td><td class='reg-anomalia'>PI sube +11.3 % frente a PL desde 2014-06</td><td class='detalle'>prueba de Pettitt (p = 0.005); con PL sin Pueblo Viejo el salto baja a +6.0 % y deja de ser significativo (p = 0.26): buena parte viene del segundo salto de Pueblo Viejo; el cambio de calibración de IMERG de TRMM a GPM el 1 de junio de 2014 (documentación técnica de IMERG V07) puede aportar algo, pero no es la explicación principal</td><td class='detalle'>se conserva</td><td class='detalle'>la razón PI / PL no es homogénea antes y después de 2014</td></tr>
+<tr><td class='num'>8</td><td class='res-revisar'>incierto</td><td>PI y PL</td><td class='reg-anomalia'>PI queda 12.0 % por debajo de PL</td><td class='detalle'>promedio de los 300 meses: 185.3 mm/mes con PI y 210.7 con PL</td><td class='detalle'>no se corrige ninguna: todo análisis de lluvia se hace con PI y con PL; si hay que escoger, manda PL</td><td class='detalle'>los resultados se reportan con las dos fuentes</td></tr>
+<tr><td class='num'>9</td><td class='res-revisar'>incierto</td><td>PL</td><td class='reg-anomalia'>En 168 meses faltan pluviómetros en PL</td><td class='detalle'>sesgo estimado frente al promedio de los 7: mediana 3.8 %, máximo 8.1 %</td><td class='detalle'>no se rellena: cada mes se promedia con los pluviómetros que tienen dato</td><td class='detalle'>PL de esos meses puede quedar algo alta o baja</td></tr>
+<tr><td class='num'>10</td><td class='res-revisar'>incierto</td><td>PL</td><td class='reg-anomalia'>85 % de los registros de PL son preliminares</td><td class='detalle'>nivel de aprobación del IDEAM en cada registro; preliminar quiere decir aún no validado, no que tenga error</td><td class='detalle'>se usan</td><td class='detalle'>ninguno directo</td></tr>
+<tr><td class='num'>11</td><td class=''>corregido</td><td>Q</td><td class='reg-anomalia'>530 días de 1998–2022 sin fila en el caudal de CAMELS-COL</td><td class='detalle'>conteo de días ausentes por mes</td><td class='detalle'>un mes con 5 o más días faltantes queda vacío</td><td class='detalle'>quedan 262 meses de Q</td></tr>
+<tr><td class='num'>12</td><td class=''>corregido</td><td>Q</td><td class='reg-anomalia'>Acumulados de meses incompletos calculados como suma parcial</td><td class='detalle'>63 meses con 1 a 4 días faltantes quedarían en promedio 7.7 % por debajo (hasta 14.3 %)</td><td class='detalle'>el acumulado es el promedio de los días con dato por los días del mes</td><td class='detalle'>esos meses ya no quedan cortos</td></tr>
+<tr><td class='num'>13</td><td class=''>corregido</td><td>área</td><td class='reg-anomalia'>El área que publica CAMELS-COL es 1.2 % mayor que su propio polígono</td><td class='detalle'>área geodésica del polígono: 2 098.85 km², contra 2 124.00 km² publicados</td><td class='detalle'>se usa el área del polígono</td><td class='detalle'>Q en mm y todo lo que depende del área</td></tr>
+<tr><td class='num'>14</td><td class=''>corregido</td><td>pendiente</td><td class='reg-anomalia'>La pendiente del cauce que publica CAMELS-COL (equi_slope) es demasiado baja</td><td class='detalle'>Taylor-Schwarz con el DEM: 0.0192 m/m, contra 4.45e-05 m/m publicados</td><td class='detalle'>se usa la pendiente calculada por el proyecto</td><td class='detalle'>tiempos de concentración y morfometría</td></tr>
+<tr><td class='num'>15</td><td class=''>corregido</td><td>ETP</td><td class='reg-anomalia'>La ETP de CAMELS-COL es 2.76 veces la de su propia fórmula</td><td class='detalle'>se repitió la fórmula de Hargreaves con los mismos datos (MSWX)</td><td class='detalle'>se usa la ETP de Hargreaves calculada por el proyecto con ERA5-Land</td><td class='detalle'>toda comparación con la ETP</td></tr>
+<tr><td class='num'>16</td><td class=''>corregido</td><td>temperatura</td><td class='reg-anomalia'>La temperatura media de MSWX en CAMELS-COL es el punto medio entre mínima y máxima, y hereda los huecos del caudal</td><td class='detalle'>se comparó con ERA5-Land, que trae la media diaria verdadera y no tiene huecos</td><td class='detalle'>se usa ERA5-Land; MSWX queda solo para comparar</td><td class='detalle'>temperatura y ETP</td></tr>
+<tr><td class='num'>17</td><td class='res-revisar'>incierto</td><td>PI, PL, Q y temperatura</td><td class='reg-anomalia'>Meses atípicos (fuera de 1.5 rangos intercuartiles de su mes del calendario), entre ellos febrero de 1999, el más lluvioso del período</td><td class='detalle'>se cruzaron entre variables y con el ONI (El Niño y La Niña)</td><td class='detalle'>no se elimina ninguno</td><td class='detalle'>ninguno</td></tr>
+<tr><td class='num'>18</td><td class='res-revisar'>incierto</td><td>PL y Q</td><td class='reg-anomalia'>Años en que P − Q supera a la ETP con PL: 2003, 2004, 2007</td><td class='detalle'>se probaron cuatro explicaciones; la recarga del suelo no explica 2003, y apunta a PL sobrestimada en los años sin Pueblo Viejo</td><td class='detalle'>se conservan y se anotan</td><td class='detalle'>el balance de esos años es dudoso</td></tr>
+<tr><td class='num'>19</td><td class='res-nd'>descartado</td><td>PL, Q y temperatura</td><td class='reg-anomalia'>Secuencias constantes y picos aislados</td><td class='detalle'>0 rachas de 5 o más días iguales en Q y temperatura; 3 de 2 meses iguales en PL (Pavas Las, 80 mm, 2020-06 a 2020-07; Pueblo Viejo, 2 mm, 2002-01 a 2002-02; Pueblo Viejo, 192 mm, 2009-10 a 2009-11); 0 picos aislados en Q</td><td class='detalle'>sin acción: dos meses iguales pueden coincidir por azar</td><td class='detalle'>ninguno</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">El registro lo arma <code>scripts/07d_trazabilidad.py</code> a partir de lo que producen los
+  demás scripts, así que sus cifras cambian si cambian los datos.</p>
   </div>
   </details>
 </section>

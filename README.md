@@ -42,8 +42,8 @@ organiza por punto del taller:
 | 4.1 | Completitud: días válidos, criterio de los 4 días | hecho |
 | 4.2 | Control de calidad básico sobre los archivos crudos | hecho |
 | 4.3 | Anomalías: saltos (doble masa, Pettitt), secuencias constantes, extremos, cobertura | hecho |
-| 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | **pendiente** |
-| 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | **pendiente** |
+| 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | hecho |
+| 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | hecho |
 
 Pendientes ya identificados, fuera de la sección 4:
 - **Análisis de Fourier** de las series. Ahí se retomará el **índice de flujo base**: el de CAMELS-COL
@@ -126,8 +126,13 @@ Decisiones que ya están tomadas y no se reabren sin consultar (detalle y fecha 
   Todo análisis lee `out/pluviometros_fonce_mensual_depurado.csv`.
 - **Marcados como inciertos, pero conservados:**
   - Coromoro: salto de −20 % desde 2003;
-  - PI: salto de +11 % desde junio de 2014, que coincide con el cambio de calibración de IMERG de TRMM a
-    GPM.
+  - Pueblo Viejo desde abril de 2014: un segundo salto, de −25 %, en el tramo que queda después del
+    excluido (`out/anomalias_segundo_corte.csv`);
+  - PI: salto de +11 % desde junio de 2014. Cae en el cambio de calibración de IMERG de TRMM a GPM, pero
+    con PL sin Pueblo Viejo baja a +6 % y deja de ser significativo: buena parte viene de Pueblo Viejo, y
+    el cambio TRMM → GPM no es la explicación principal.
+- **Registro de anomalías** (sección 4.4): `out/registro_anomalias.csv`, de `scripts/07d_trazabilidad.py`,
+  con lo comprobado, lo decidido, el efecto y el estado (corregido, incierto o descartado) de cada una.
 - **Temperatura:** la de **ERA5-Land**. MSWX, que viene en CAMELS-COL, solo sirve para comparar.
 - **ETP:** la de **Hargreaves calculada por el proyecto con ERA5-Land** (`scripts/06b_etp_hargreaves.py`).
   La ETP que publica CAMELS-COL sale unas 2.75 veces más alta que su propia fórmula y no se usa.

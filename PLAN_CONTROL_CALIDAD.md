@@ -19,7 +19,11 @@ esta sección va dentro de `<div class="revision" data-etiqueta="Revisión 4.x �
 amarillo con etiqueta. Cuando el usuario lo apruebe, se quita el resaltado.
 
 **Estado:** 4.1 hecho y revisado (2026-09-28), resaltado quitado; además, ETP propia (Hargreaves con ERA5-Land,
-sección 1.8) adoptada en todo el proyecto. 4.2 hecho y revisado (2026-09-28), resaltado quitado. En el informe no se nombran los puntos (4.x): se nombran las secciones. 4.3 hecho (2026-09-29), resaltado pendiente de revisión. Siguen 4.4 y 4.5.
+sección 1.8) adoptada en todo el proyecto. 4.2 hecho y revisado (2026-09-28), resaltado quitado. En el informe no se nombran los puntos (4.x): se nombran las secciones. 4.3 hecho (2026-09-29), resaltado pendiente de revisión. 4.5 hecho, resaltado pendiente de revisión. 4.4 hecho
+(2026-10-04): registro de anomalías en `scripts/07d_trazabilidad.py` → `out/registro_anomalias.csv`, sección
+«Registro de anomalías» del informe y sección 4.4 del notebook; incluye el segundo salto de Pueblo Viejo
+(desde 2014-04, incierto) y la nueva lectura del salto de PI en 2014 (depende en buena parte de Pueblo Viejo).
+Resaltado pendiente de revisión.
 
 ## Lo que ya está hecho (se cita, no se repite)
 - **Mapa de días válidos por mes, para todas las variables:** en el informe, «Qué meses tienen dato y
@@ -93,7 +97,7 @@ Una celda o un script que, para cada serie cruda (CAMELS-COL diario, DHIME, IMER
 
 ## Paso 4 — Trazabilidad (4.4)
 Una tabla de registro, definida en el código, con las columnas anomalía, comprobación hecha, decisión,
-efecto en el análisis y estado (**corregido** o **incierto**).
+efecto en el análisis y estado (**corregido**, **incierto** o **descartado**).
 - Empieza con lo que ya se decidió: Encino, sesgo PI–PL, MSWX, área, `equi_slope`, las sumas parciales
   del paso 1, jul 1998 y jul 2001 en PI, feb 1999, etc.
 - Se completa con lo que salga de los pasos 2 y 3.

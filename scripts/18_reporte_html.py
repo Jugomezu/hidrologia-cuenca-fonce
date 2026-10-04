@@ -968,6 +968,15 @@ an_dm_json = json.dumps({s: {"x": g.acumulado_referencia.round(0).tolist(), "y":
                          for s, g in an_dm.groupby("serie", sort=False)}, ensure_ascii=False)
 an_pi, an_q = an_fila("PI (IMERG)"), an_fila("Q")
 an_pv = an_fila("PL · Pueblo Viejo")
+# segundo corte (07c, paso 1b): la prueba repetida en el tramo posterior al primer salto de cada pluviómetro
+# marcado, y PI contra una PL sin los pluviómetros que tienen un segundo salto significativo
+an_seg = pd.read_csv("out/anomalias_segundo_corte.csv").set_index("serie")
+an_seg_pl = an_seg[an_seg.index.str.startswith("PL")]
+an_pv2 = an_seg.loc["PL · Pueblo Viejo"]
+an_seg_sin_salto = an_seg_pl[~an_seg_pl.significativo]
+an_pi_sin = an_seg.loc["PI (IMERG)"]
+# meses entre el segundo salto de Pueblo Viejo y el salto de PI frente a PL
+an_meses_pv2_pi = (pd.Period(an_pi.primer_mes_despues, "M") - pd.Period(an_pv2.primer_mes_despues, "M")).n
 an_ceros_fuera = an_ceros[an_ceros.dificil_de_creer]
 an_ceros_quedan = an_ceros[~an_ceros.dificil_de_creer]
 filas_ceros = "\n".join(
@@ -1000,6 +1009,19 @@ filas_naturaleza = "\n".join(
     f"<tr><td><b>{html.escape(v)}</b></td><td>{html.escape(fu)}</td><td>{html.escape(ti)}</td>"
     f"<td class='detalle'>{html.escape(co)}</td><td class='detalle'>{html.escape(re_)}</td></tr>"
     for v, fu, ti, co, re_ in cc_naturaleza.itertuples(index=False))
+
+# ---------------------------------------------------------------- registro de anomalías (4.4)
+# El registro lo arma scripts/07d_trazabilidad.py con las cifras de los demás scripts; aquí solo se muestra.
+# La columna «evidencia» (sección del notebook) no se muestra: el informe no nombra los puntos del taller.
+reg = pd.read_csv("out/registro_anomalias.csv")
+reg_conteo = reg.estado.value_counts()
+CLASE_ESTADO = {"corregido": "", "incierto": "res-revisar", "descartado": "res-nd"}
+filas_reg = "\n".join(
+    f"<tr><td class='num'>{n_}</td><td class='{CLASE_ESTADO[es]}'>{es}</td><td>{html.escape(se)}</td>"
+    f"<td class='reg-anomalia'>{html.escape(an)}</td><td class='detalle'>{html.escape(co)}</td>"
+    f"<td class='detalle'>{html.escape(de)}</td><td class='detalle'>{html.escape(ef)}</td></tr>"
+    for n_, an, se, co, de, ef, es in reg[["n", "anomalia", "serie", "comprobacion", "decision", "efecto",
+                                           "estado"]].itertuples(index=False))
 
 
 # ¿Por qué cuatro días? La misma prueba de la sección 4.1 del notebook: a cada mes COMPLETO de Q se le quita
@@ -1357,6 +1379,7 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
 td.res-anotado {{ background: var(--revision); }}
 td.res-nd {{ color: var(--tenue); }}
+td.reg-anomalia {{ min-width: 16em; }}
 td.detalle {{ font-size: 13px; min-width: 260px; }}
 .cita {{ color: inherit; text-decoration: underline dotted; text-underline-offset: 2px; }}
 .bibliografia {{ max-width: 72ch; padding-left: 22px; font-size: 15px; }}
@@ -1741,15 +1764,30 @@ a {{ color: var(--acento); }}
     sale de PL.</b></li>
     {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fecha_anomala(pm)} (<i>p</i> {fmt_p_eq(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
   </ul>
+  <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
+  <p><b>Pueblo Viejo tiene un segundo salto.</b> La prueba de Pettitt encuentra un solo corte por serie, así
+  que a cada pluviómetro con salto se le repitió en el tramo que queda después del primero, sobre la serie
+  depurada y contra el {html.escape(an_pv2.referencia)}. Pueblo Viejo pasa de {an_pv2.razon_antes:.2f} a
+  {an_pv2.razon_despues:.2f} veces sus vecinos desde {fecha_anomala(an_pv2.primer_mes_despues)}
+  ({an_pv2.cambio_pct:+.0f} %, <i>p</i> {fmt_p_eq(an_pv2.p)}).
+  {" ".join(f"{html.escape(s.split(' · ')[1])} no tiene un segundo salto (<i>p</i> {fmt_p_eq(p)})." for s, p in an_seg_sin_salto.p.items())}
+  Como en Coromoro, no hay forma de saber cuál de los dos tramos de Pueblo Viejo está bien. <b>Se conserva,
+  marcado como incierto:</b> PL puede estar algo baja desde ese mes.</p>
   <p><b>PI frente a PL: {an_pi.cambio_pct:+.0f} % desde {fecha_anomala(an_pi.primer_mes_despues)}</b> (<i>p</i>
   {fmt_p_eq(an_pi.p)}): antes PI era {an_pi.razon_antes:.2f} veces PL, después {an_pi.razon_despues:.2f}. El corte
-  cae en el cambio de era de IMERG. Hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
-  de 2014 con GPM ({CITA_IMERG_DOC}). Ningún pluviómetro salta en esa fecha: el cambio es del producto. PI se
-  conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene salto
-  (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
+  cae en el cambio de era de IMERG: hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
+  de 2014 con GPM ({CITA_IMERG_DOC}). Pero cae también {an_meses_pv2_pi} meses después del segundo salto de
+  Pueblo Viejo, que baja PL. Con una {html.escape(an_pi_sin.referencia)}, el salto de PI es de
+  {an_pi_sin.cambio_pct:+.0f} % (<i>p</i> {fmt_p_eq(an_pi_sin.p)})
+  {"y deja de ser significativo: buena parte del salto viene de Pueblo Viejo, no de IMERG. El cambio de TRMM a GPM puede aportar algo, pero no es la explicación principal." if not an_pi_sin.significativo else "y sigue siendo significativo: el cambio de TRMM a GPM sigue siendo una explicación posible."}
+  PI se conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene
+  salto (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
   <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
   cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
-  pluviómetros no se pueden confirmar ni descartar con metadatos; el de IMERG, sí.</p>
+  pluviómetros no se pueden confirmar ni descartar con metadatos. El cambio de calibración de IMERG sí está
+  documentado, pero no basta para atribuirle el salto de PI. Las pruebas del segundo salto corren en
+  <code>scripts/07c_anomalias.py</code> y quedan en <code>out/anomalias_segundo_corte.csv</code>.</p>
+  </div>
 
   <h3>Meses en 0 mm</h3>
   <div class="tabla-caja">
@@ -1778,6 +1816,29 @@ a {{ color: var(--acento); }}
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
   <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
   tramos excluidos: {exc_lista}.</p>
+  </div>
+  </details>
+</section>
+
+<section>
+  <details class="plegable" open>
+  <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
+  <div class="revision" data-etiqueta="Revisión · registro de anomalías">
+  <p>Todo lo que apareció raro en los datos, en un solo lugar: qué se comprobó, qué se decidió, qué efecto
+  tiene en el análisis y en qué estado quedó. De las {len(reg)} anomalías, <b>{reg_conteo.get("corregido", 0)}
+  quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>{reg_conteo.get("incierto", 0)}
+  quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
+  {reg_conteo.get("descartado", 0)} se descartaron (se revisaron y no eran un problema).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>#</th><th>Estado</th><th>Serie</th><th>Anomalía</th><th>Comprobación</th><th>Decisión</th><th>Efecto</th></tr></thead>
+    <tbody>
+{filas_reg}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">El registro lo arma <code>scripts/07d_trazabilidad.py</code> a partir de lo que producen los
+  demás scripts, así que sus cifras cambian si cambian los datos.</p>
   </div>
   </details>
 </section>

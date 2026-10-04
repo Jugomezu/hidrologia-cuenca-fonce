@@ -1,0 +1,4 @@
+serie,prueba,tramo_desde,referencia,meses,ultimo_mes_antes,primer_mes_despues,p,significativo,razon_antes,razon_despues,cambio_pct
+PL · Pueblo Viejo,"segundo corte, en el tramo posterior al primero",2004-12,"promedio de los demás pluviómetros (sin Pueblo Viejo, Coromoro)",190,2014-03,2014-04,8.94056079394909e-07,True,0.8291974337247306,0.6239714755896875,-24.749950951147326
+PL · Coromoro,"segundo corte, en el tramo posterior al primero",2003-03,"promedio de los demás pluviómetros (sin Pueblo Viejo, Coromoro)",238,2010-02,2010-03,0.8286328561560109,False,0.8658144160774893,0.921843054438873,6.4712064526734725
+PI (IMERG),PI contra PL sin los pluviómetros con segundo corte,1998-01,PL sin Pueblo Viejo,300,2014-05,2014-06,0.26142256430734334,False,0.8363500053550392,0.8868739903069467,6.04100970029402

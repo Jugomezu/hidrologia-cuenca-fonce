@@ -1030,18 +1030,6 @@ section, section h3 { scroll-margin-top: 20px; }
   66 %): el ciclo del satélite se parece menos al del
   caudal que el de los pluviómetros.</p>
 
-  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
-  serie: la correlación es máxima en el mismo mes (ρ = 0.82 con PL) y sigue
-  alta con la lluvia un mes antes (0.68), mientras que con el caudal un
-  mes antes cae a 0.07: la relación va de la lluvia al caudal, y dura un
-  mes. A tres meses de distancia la correlación es negativa (-0.33 y
-  -0.40): es el mismo ciclo visto de otro lado, porque con dos temporadas al
-  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
-  <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
-  lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
-  0.52. La cuenca guarda agua de un mes al siguiente también en
-  los años que se salen de lo normal.</p>
-
   <p class="aviso">Una correlación mensual no es ni causa ni capacidad de predicción. Que Q y PL vayan a
   ρ = 0.82 no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La
   relación entre lluvia y caudal tiene memoria</b>, y una correlación en la misma casilla temporal no la
@@ -1280,6 +1268,41 @@ section, section h3 { scroll-margin-top: 20px; }
   mayo y noviembre. Los porcentajes de concentración de PI y PL no se comparan directamente: con PI
   hay 7 meses húmedos y con PL, 5.</p>
   </div>
+
+  <div class="revision" data-etiqueta="Revisión · desfase estacional">
+  <h3>Desfase estacional: cuánto se atrasa el río respecto a la lluvia</h3>
+  <p>Cada armónico es una onda, y su <b>fase</b> dice en qué momento del año está su máximo. Con el armónico de
+  6 meses, que da la forma de dos picos, el <b>desfase estacional</b> es cuánto después llega el máximo de Q que el
+  de la lluvia. Se mide sobre el año típico (las mismas medianas del régimen), así que da el atraso en días aunque
+  los datos sean mensuales. La incertidumbre sale de remuestrear años completos 2 000 veces.</p>
+  <div class="cifras" style="margin-bottom:18px">
+    <div class="cifra"><b>17 días</b><span>Q después de PL · IC 95 % 13 a 21</span></div>
+    <div class="cifra"><b>14 días</b><span>Q después de PI · IC 95 % 8 a 17</span></div>
+    <div class="cifra"><b>4 días</b><span>PI después de PL · IC 95 % 0.1 a 8.5</span></div>
+  </div>
+  <p><b>Con las dos fuentes, el río va atrasado respecto a la lluvia</b>, mucho más que el tiempo de
+  concentración, que va de 4 a 20 horas según la fórmula. El atraso del año
+  típico no es el tiempo de viaje del agua por el cauce: apunta a agua que se guarda en el suelo y el acuífero y
+  sale después. <b>La fuente cambia poco el resultado:</b> el ciclo de PI tiene sus máximos 4
+  días después que el de PL, y en esa misma cantidad el desfase con PI sale más corto. El intervalo de esa
+  diferencia va de 0.1 a 8.5 días
+  (excluye el cero por muy poco, y es pequeña frente a la resolución mensual de los datos).</p>
+  <p class="nota">La fase del armónico de 12 meses no se usa: en PL y en Q explica el 4 % y el
+  1 % de la forma del ciclo, y su fase es casi ruido.</p>
+  </div>
+
+  <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
+  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
+  serie: la correlación es máxima en el mismo mes (ρ = 0.82 con PL) y sigue
+  alta con la lluvia un mes antes (0.68), mientras que con el caudal un
+  mes antes cae a 0.07: la relación va de la lluvia al caudal, y dura un
+  mes. A tres meses de distancia la correlación es negativa (-0.33 y
+  -0.40): es el mismo ciclo visto de otro lado, porque con dos temporadas al
+  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
+  <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
+  lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
+  0.52. La cuenca guarda agua de un mes al siguiente también en
+  los años que se salen de lo normal.</p>
 
   <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.

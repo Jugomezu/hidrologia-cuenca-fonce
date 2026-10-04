@@ -10,6 +10,7 @@ aquí a partir de los datos, no se escriben a mano. Para regenerar:
 import base64, html, json
 from pathlib import Path
 import geopandas as gpd
+from scipy import stats
 import numpy as np
 import pandas as pd
 
@@ -614,6 +615,36 @@ pq_seca = plu[DENTRO].mean().idxmin()
 pq_seca_nombre = cat_plu.loc[pq_seca, "etiqueta"]
 pq_falta_seca = {a: int(plu.loc[plu.index.year == int(a), pq_seca].isna().sum()) for a in pq_anios_sobre["pl"]}
 _lista_y = lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else (l[0] if l else "")
+
+
+def prueba_recarga(lluvia, caudal):
+    """Caudal de ene-mar de cada año contra su propia lluvia (recta), y el residuo contra la lluvia de
+    sep-nov del año anterior: si la cuenca guarda agua entre temporadas, el residuo crece con ella."""
+    filas = []
+    for anio in range(1999, 2023):
+        secos = (caudal.index.year == anio) & caudal.index.month.isin([1, 2, 3])
+        if caudal[secos].notna().sum() < 3:
+            continue
+        antes = (lluvia.index.year == anio - 1) & lluvia.index.month.isin([9, 10, 11])
+        filas.append((anio, caudal[secos].sum(), lluvia[secos].sum(), lluvia[antes].sum()))
+    tabla = pd.DataFrame(filas, columns=["anio", "q", "p", "p_sep_nov_antes"]).set_index("anio")
+    recta = stats.linregress(tabla.p, tabla.q)
+    tabla["residuo"] = tabla.q - (recta.intercept + recta.slope * tabla.p)
+    return tabla, stats.spearmanr(tabla.p_sep_nov_antes, tabla.residuo)
+
+
+# ¿fue recarga? (solo tiene sentido para el primer año con P − Q > ETP que tenga ene-mar siguiente completo)
+rec = {f: prueba_recarga(pq[f], pq.q) for f in ("pl", "pi")}
+_rec_anio = next((int(a) for a in pq_anios_sobre["pl"] if int(a) + 1 in rec["pl"][0].index), None)
+_pi_anual = pq.pi.groupby(pq.index.year).sum()
+pq_recarga = "" if _rec_anio is None else (
+    f"""<p><b>¿Fue recarga?</b> Si un año recarga, en la temporada seca siguiente (enero a marzo) el río trae más
+  caudal del que explica su lluvia. Con PI se ve claro: ese exceso crece con la lluvia de septiembre a
+  noviembre anterior (ρ = {rec['pi'][1].statistic:.2f}, p = {rec['pi'][1].pvalue:.3f}); con PL va en el mismo sentido,
+  sin ser significativo (ρ = {rec['pl'][1].statistic:.2f}, p = {rec['pl'][1].pvalue:.2f}). Pero después de {_rec_anio} el río trajo
+  {"menos" if rec['pl'][0].residuo[_rec_anio + 1] < 0 else "más"} de lo esperado
+  ({rec['pl'][0].residuo[_rec_anio + 1]:+.0f} mm con PL), y PI {"no ve" if _pi_anual[_rec_anio] < _pi_anual.mean() else "sí ve"}
+  {_rec_anio} como un año lluvioso. {"La recarga no explica ese año; apunta más a la lluvia sobrestimada." if rec['pl'][0].residuo[_rec_anio + 1] < 0 and _pi_anual[_rec_anio] < _pi_anual.mean() else ""}</p>""")
 pq_explicaciones = f"""<ul class="tratamiento">
     <li><b>Quedarse guardada:</b> recargar el suelo o el acuífero y salir por el río meses o años después.</li>
     <li><b>Salir sin pasar por la estación:</b> por flujo subterráneo profundo, o por captaciones de acueductos y
@@ -624,7 +655,8 @@ pq_explicaciones = f"""<ul class="tratamiento">
     esos años le falta {pq_seca_nombre}, la estación más seca, en {_lista_y([f"{k} meses de {a}" for a, k in pq_falta_seca.items()])},
     y sin ella PL queda alta (el sesgo de cobertura de «Anomalías en las series»).</li>
   </ul>
-  <p class="nota">Ninguna de las cuatro está comprobada.</p>"""
+  <p class="nota">Ninguna de las cuatro está comprobada.</p>
+  {pq_recarga}"""
 _pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.groupby(_pq_con_q.index.month).etp.mean())
 pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
 _red1 = lambda s: [None if pd.isna(v) else round(float(v), 1) for v in s]

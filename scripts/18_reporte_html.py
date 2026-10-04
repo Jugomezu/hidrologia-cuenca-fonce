@@ -357,6 +357,8 @@ CITA_DEFENSORIA = '<a class="cita" href="#ref-defensoria2005">Defensoría del Pu
 CITA_BECK = '<a class="cita" href="#ref-beck2022">Beck et al., 2022</a>'
 CITA_HYNDMAN = '<a class="cita" href="#ref-hyndman1996">Hyndman y Fan, 1996</a>'
 CITA_ONI = '<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>'
+CITA_KRUSKAL = '<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>'
+CITA_HORN = '<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -519,6 +521,100 @@ ciclo_valle_q = mes_de(ciclo.caudal, "min")
 ciclo_esc_min_mes, ciclo_esc_max_mes = mes_de(ciclo.escorrentia_imerg, "min"), mes_de(ciclo.escorrentia_imerg)
 ciclo_esc_min = ciclo.escorrentia_imerg.min()
 ciclo_esc_max = ciclo.escorrentia_imerg.max()
+
+# ---------------------------------------------------------------- régimen del ciclo anual
+# El mismo cálculo de la sección 1.9 del notebook. Mediana de cada mes del calendario; mes típico = promedio de
+# las 12 medianas; mes húmedo si su mediana lo supera. Concentración: % de la suma de las medianas en los
+# meses húmedos (Q en mm/mes, para que sea un volumen). Forma: armónicos 1 y 2 (Horn y Bryson, 1960); los
+# picos se cuentan sobre la curva ajustada. Estacionalidad: Kruskal-Wallis entre los 12 meses (Kruskal y
+# Wallis, 1952). Clasificación: débil si p >= ALFA_KW; si no, bimodal con dos picos; si no, unimodal.
+ALFA_KW = 0.05
+REG_PASOS = 1200
+_reg_t = np.arange(12)
+
+
+def _reg_medianas(serie):
+    return serie.groupby(serie.index.month).median().reindex(range(1, 13)).to_numpy()
+
+
+def _reg_armonico(x, k):
+    return (2 / 12 * np.sum(x * np.cos(2 * np.pi * k * _reg_t / 12)),
+            2 / 12 * np.sum(x * np.sin(2 * np.pi * k * _reg_t / 12)))
+
+
+def _reg_curva(x, t):
+    y = np.full(len(t), x.mean())
+    for k in (1, 2):
+        a, b = _reg_armonico(x, k)
+        y += a * np.cos(2 * np.pi * k * t / 12) + b * np.sin(2 * np.pi * k * t / 12)
+    return y
+
+
+def _reg_rachas(es_humedo):
+    """Rachas circulares de meses con el mismo estado: [(primer mes 0-11, duración, húmedo)]."""
+    if es_humedo.all() or (~es_humedo).all():
+        return [(0, 12, bool(es_humedo[0]))]
+    inicio = next(m for m in range(12) if es_humedo[m] != es_humedo[m - 1])
+    rachas = []
+    for m in [(inicio + i) % 12 for i in range(12)]:
+        if rachas and es_humedo[m] == rachas[-1][2]:
+            rachas[-1][1] += 1
+        else:
+            rachas.append([m, 1, bool(es_humedo[m])])
+    return rachas
+
+
+def _reg_nombre(m, d):
+    meses = MESES_LARGOS_ES[m] if d == 1 else f"{MESES_LARGOS_ES[m]} a {MESES_LARGOS_ES[(m + d - 1) % 12]}"
+    return f"{meses} ({d} {'mes' if d == 1 else 'meses'})"
+
+
+_reg_q_mm = variables_resumen["Q"] * variables_resumen.index.days_in_month * 86400 / (AREA_SG_KM2 * 1e6) * 1000
+REG_SERIES = {"PL": (variables_resumen["PL"], variables_resumen["PL"], "mm/mes"),
+              "PI": (variables_resumen["PI"], variables_resumen["PI"], "mm/mes"),
+              "Q": (variables_resumen["Q"], _reg_q_mm, "m³/s")}
+regimen = {}
+for _n, (_s, _s_conc, _u) in REG_SERIES.items():
+    _med = _reg_medianas(_s)
+    _tipico = _med.mean()
+    _rachas = _reg_rachas(_med > _tipico)
+    _mc = _reg_medianas(_s_conc)
+    _hc = _mc > _mc.mean()
+    _amp = {k: np.hypot(*_reg_armonico(_med, k)) for k in (1, 2)}
+    _ta = np.arange(REG_PASOS) * 12 / REG_PASOS
+    _ya = _reg_curva(_med, _ta)
+    _picos = _ta[(_ya > np.roll(_ya, 1)) & (_ya > np.roll(_ya, -1))]
+    _kw = stats.kruskal(*[_s[_s.index.month == m].dropna() for m in range(1, 13)])
+    regimen[_n] = {
+        "unidad": _u, "medianas": _med, "tipico": _tipico,
+        "max": MESES_LARGOS_ES[int(np.argmax(_med))], "min": MESES_LARGOS_ES[int(np.argmin(_med))],
+        "amp": _med.max() - _med.min(), "amp_rel": (_med.max() - _med.min()) / _tipico * 100,
+        "humedas": [_reg_nombre(m, d) for m, d, h in _rachas if h],
+        "secas": [_reg_nombre(m, d) for m, d, h in _rachas if not h],
+        "conc": _mc[_hc].sum() / _mc.sum() * 100, "conc_meses": int(_hc.sum()),
+        "a2a1": _amp[2] / _amp[1],
+        "var1": _amp[1] ** 2 / 2 / _med.var(ddof=0) * 100, "var2": _amp[2] ** 2 / 2 / _med.var(ddof=0) * 100,
+        "picos": [MESES_LARGOS_ES[int(round(p)) % 12] for p in _picos],
+        "kw_p": _kw.pvalue,
+        "clase": "estacionalidad débil" if _kw.pvalue >= ALFA_KW else ("bimodal" if len(_picos) == 2 else "unimodal"),
+    }
+reg_clases = sorted({r["clase"] for r in regimen.values()})
+reg_kw_max = max(r["kw_p"] for r in regimen.values())
+_reg_indicadores = [
+    ("Máximo", lambda r: r["max"]), ("Mínimo", lambda r: r["min"]),
+    ("Amplitud (% del mes típico)", lambda r: f"{r['amp']:.1f} {r['unidad']} ({r['amp_rel']:.0f} %)"),
+    ("Temporadas húmedas", lambda r: "; ".join(r["humedas"])),
+    ("Temporadas secas", lambda r: "; ".join(r["secas"])),
+    ("Concentración en los meses húmedos", lambda r: f"{r['conc']:.1f} % en {r['conc_meses']} meses"),
+    ("A₂/A₁", lambda r: f"{r['a2a1']:.2f}"),
+    ("Varianza que explican A₁ · A₂", lambda r: f"{r['var1']:.0f} % · {r['var2']:.0f} %"),
+    ("Picos de la curva", lambda r: f"{len(r['picos'])} ({' y '.join(r['picos'])})"),
+    ("Kruskal-Wallis <i>p</i>", lambda r: f"{r['kw_p']:.0e}"),
+    ("Régimen", lambda r: f"<b>{r['clase']}</b>"),
+]
+reg_filas = "\n".join(f"<tr><td>{nombre}</td>" + "".join(f"<td>{f(r)}</td>" for r in regimen.values()) + "</tr>"
+                      for nombre, f in _reg_indicadores)
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
@@ -2301,6 +2397,32 @@ a {{ color: var(--acento); }}
   </script>
   </div>
 
+  <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">
+  <h3>El régimen: picos, temporadas, concentración y forma</h3>
+  <p>Con la <b>mediana</b> de cada mes del calendario se describe el régimen de PL, PI y Q. El <b>mes típico</b> es el
+  promedio de las 12 medianas: un mes es <b>húmedo</b> si su mediana lo supera y <b>seco</b> si no, y las temporadas
+  son las rachas de meses seguidos (diciembre y enero cuentan como seguidos). La <b>concentración</b> es la parte de
+  la suma de las medianas que cae en los meses húmedos; para Q se calcula en mm/mes, porque sumar caudales medios no
+  da un volumen. La <b>forma</b> sale de los dos primeros armónicos de Fourier, el de 12 meses (A₁) y el de 6 meses
+  (A₂) ({CITA_HORN}): si A₂ domina, el ciclo tiene dos picos, y los picos se cuentan sobre la curva ajustada con esos
+  dos armónicos. Si hay estacionalidad lo dice la prueba de Kruskal-Wallis entre los 12 meses ({CITA_KRUSKAL}).</p>
+  <p><b>Clasificación:</b> estacionalidad débil si Kruskal-Wallis no es significativa (<i>p</i> ≥ {ALFA_KW}); si no,
+  bimodal si la curva ajustada tiene dos picos; si no, unimodal.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Indicador</th><th>PL</th><th>PI</th><th>Q (concentración en mm/mes)</th></tr></thead>
+    <tbody>
+{reg_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>El régimen es {" y ".join(reg_clases)}{" en las tres series" if len(reg_clases) == 1 else ""}.</b> Kruskal-Wallis
+  rechaza que los 12 meses sean iguales con <i>p</i> de {reg_kw_max:.0e} o menos. Con PL los picos caen en
+  {" y ".join(regimen["PL"]["picos"])}, con PI en {" y ".join(regimen["PI"]["picos"])} y con Q en
+  {" y ".join(regimen["Q"]["picos"])}. Los porcentajes de concentración de PI y PL no se comparan directamente: con PI
+  hay {regimen["PI"]["conc_meses"]} meses húmedos y con PL, {regimen["PL"]["conc_meses"]}.</p>
+  </div>
+
   <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.
   Aquí van las tres series juntas: la lluvia según el satélite, la lluvia según la red de pluviómetros y
@@ -2474,6 +2596,9 @@ a {{ color: var(--acento); }}
     <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
     temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
     <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
+    <li id="ref-horn1960">Horn, L. H., y Bryson, R. A. (1960). Harmonic analysis of the annual march of
+    precipitation over the United States. <i>Annals of the Association of American Geographers</i>, 50, 157–171.
+    <a href="https://doi.org/10.1111/j.1467-8306.1960.tb00342.x">https://doi.org/10.1111/j.1467-8306.1960.tb00342.x</a></li>
     <li id="ref-huffman2023">Huffman, G. J., Bolvin, D. T., Joyce, R., Kelley, O. A., Nelkin, E. J., Tan, J., Watters,
     D. C., y West, B. J. (2023, 13 de julio). <i>Integrated Multi-satellitE Retrievals for GPM (IMERG) Technical
     Documentation</i> (V07). NASA Goddard Space Flight Center.
@@ -2485,6 +2610,9 @@ a {{ color: var(--acento); }}
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).
     <a href="https://doi.org/10.5194/essd-2025-200">https://doi.org/10.5194/essd-2025-200</a></li>
+    <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
+    analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
+    <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.

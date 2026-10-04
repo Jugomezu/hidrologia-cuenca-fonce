@@ -167,7 +167,9 @@ pip install -r requirements.txt
 
 ## 8. Cómo trabajar en paralelo sin pisarse
 
-- **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`.
+- **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`, **con
+  descripción** (qué, por qué, cómo se verificó). Nadie fusiona su propio PR, y **nada entra a `main` sin
+  verificar antes que cumple las reglas** (reglas 18 a 21 de `CLAUDE.md`, sin excepciones).
 - **El notebook es un solo archivo JSON grande**, así que dos personas editándolo a la vez chocan en el
   merge. Recomendaciones:
   - cada quien agrega **su propia sección al final**, con celdas nuevas, sin reescribir las de otros;

@@ -115,6 +115,43 @@ Python, en notebooks; el informe se arma aparte en HTML.
       explicando: el objetivo es que la persona aprenda y pueda defender el trabajo, no solo que el trabajo
       quede hecho.
 
+18. **Cómo se modifica el notebook** (agregada el 2026-10-03, después de un PR que lo dejó roto):
+    - **Cada línea de una celda termina en salto de línea.** En el JSON del `.ipynb`, cada elemento de
+      `source` termina en `"\n"`, salvo el último. Si se pierden los saltos, un título queda pegado a su
+      texto y el código deja de compilar. Toda celda lleva su `id`.
+    - **Después de cualquier cambio, se ejecuta el notebook completo** de principio a fin
+      (`jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 …`) y se
+      guarda con sus salidas. Ninguna celda de código queda sin ejecutar ni con error, y no se usan
+      funciones que la librería marque como obsoletas.
+    - **La numeración se revisa antes de agregar una sección.** No se inventan subnúmeros que choquen con
+      la estructura existente (por ejemplo, un «2.1.3» del taller dentro de la sección 2, que en el
+      notebook es Morfometría). Si el número del punto del taller no coincide con el del notebook, se
+      consulta antes.
+    - **Lo que un texto anuncia, existe.** Si una celda dice que vienen figuras o métricas, la celda que las
+      produce está y corre.
+
+19. **Cada archivo va en su lugar.**
+    - Los scripts van en `scripts/`, numerados según su lugar en la tubería (con sufijo, como `16b`, para no
+      renumerar), y se registran en `scripts/README.md`.
+    - Las páginas HTML van en `reporte/`. **Nada suelto en la raíz** del repositorio.
+    - Todo archivo de `out/` lo produce un script del repositorio, al correrlo: no se hace a mano ni con otra
+      herramienta. Sus textos van en español.
+
+20. **Todo pull request lleva descripción**: qué cambia, por qué, qué decisiones de método se tomaron y cómo
+    se verificó. Quien lo abre tiene que poder explicarlo (regla 17). **Nadie fusiona su propio PR.**
+
+21. **Nada entra a `main` sin verificar antes que cumple las reglas, sin excepciones** (decidido el
+    2026-10-03; aplica a todos, también al dueño del repositorio y a su agente). Antes de fusionar un PR o de
+    hacer push a `main` se comprueba, y se deja constancia en el PR o en el mensaje de commit:
+    - el notebook corre completo sin errores ni celdas sin ejecutar (regla 18);
+    - si cambió algo que lee el informe, se regenera con `scripts/18_reporte_html.py` y su JavaScript pasa
+      `node --check`;
+    - las reglas 1 a 20: nada inventado; todo en español; imports y carga de datos solo en la primera celda;
+      PI y PL en paralelo, con la PL depurada; cifras de los textos calculadas; punto decimal y espacio para
+      los miles; archivos en su lugar; PR con descripción.
+
+    Si algo no cumple, no se fusiona: se pide la corrección en el mismo PR.
+
 ## Estructura
 
 - `README.md` — punto de entrada para personas y agentes: estado del trabajo, decisiones y cómo trabajar en paralelo.

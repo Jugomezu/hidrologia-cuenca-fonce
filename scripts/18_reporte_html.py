@@ -346,6 +346,34 @@ def _record_mes(v, p):
 feb99 = {v: _record_mes(v, _F99) for v in ("PI", "PL")}
 feb99_q_atipico = atip_marca.loc[_F99, "Q"] == "alto"
 
+# Enero de 2005: hoy no es atípico, pero lo era en PL antes de excluir el primer tramo de Pueblo Viejo
+# (1998-01 a 2004-11). Su valor no cambió: cambió el umbral, porque ese tramo bajaba los eneros de 1998-2004.
+# Para documentarlo se rearma PL con todas las exclusiones menos esa (solo aquí; el análisis usa la depurada).
+_E05, _F05 = pd.Period("2005-01", "M"), pd.Period("2005-02", "M")
+_pm_crudo = pd.read_csv("out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])
+_pm_crudo["periodo"] = _pm_crudo.fecha.dt.to_period("M")
+_plu_con_pv = _pm_crudo.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO].copy()
+for _e in pd.read_csv("out/pluviometros_exclusiones.csv").itertuples():
+    if _e.codigo != 24020230 or _e.desde != "1998-01":
+        _plu_con_pv.loc[pd.Period(_e.desde, "M"):pd.Period(_e.hasta, "M"), _e.codigo] = np.nan
+_red_con_pv = _plu_con_pv.mean(axis=1).reindex(PERIODOS)
+
+
+def _umbral_alto(serie, mes):
+    x = serie[serie.index.month == mes].dropna()
+    q1, q3 = x.quantile(0.25, interpolation="linear"), x.quantile(0.75, interpolation="linear")
+    return q3 + FACTOR_ATIPICO * (q3 - q1)
+
+
+ene05 = {"pl": float(variables_resumen.loc[_E05, "PL"]), "pl_con_pv": float(_red_con_pv[_E05]),
+         "umbral_hoy": _umbral_alto(variables_resumen["PL"], 1), "umbral_antes": _umbral_alto(_red_con_pv, 1),
+         "z_pl": atip_z.loc[_E05, "PL"], "z_pi": atip_z.loc[_E05, "PI"], "z_q": atip_z.loc[_E05, "Q"],
+         "z_pl_feb": atip_z.loc[_F05, "PL"], "z_pi_feb": atip_z.loc[_F05, "PI"], "z_q_feb": atip_z.loc[_F05, "Q"]}
+# el valor de enero de 2005 es el mismo con y sin el tramo (Pueblo Viejo sí tiene dato desde 2004-12)
+assert abs(ene05["pl"] - ene05["pl_con_pv"]) < 1e-9
+# el texto dice que antes era atípico y hoy no: si los datos dejan de respaldarlo, el script se detiene
+assert ene05["umbral_antes"] < ene05["pl"] <= ene05["umbral_hoy"]
+
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
@@ -384,16 +412,11 @@ lista_meses = lambda meses: ", ".join(fecha_enso(p) for p in meses) if len(meses
 # texto se arma igual con lo que haya.
 _confirmada_nina = [p for p in lluvia_confirmada if oni_fase.get(p) == "La Niña"]
 _confirmada_otras = [p for p in lluvia_confirmada if oni_fase.get(p) != "La Niña"]
-_ENE_2005 = pd.Period("2005-01", "M")
 lectura_enso_lluvia = (
     f"Todos, menos {lista_meses(_confirmada_otras)}, cayeron en episodios de La Niña."
     if _confirmada_nina and _confirmada_otras else
     "Todos cayeron en episodios de La Niña." if _confirmada_nina else "")
-if _ENE_2005 in _confirmada_otras:
-    lectura_enso_lluvia += (
-        " Enero de 2005 coincide con la emergencia invernal de inicios de 2005 en Santander, que el IDEAM "
-        f"atribuyó a frentes fríos atípicos ({CITA_DEFENSORIA}); no hay información suficiente para "
-        "confirmarlo en esta cuenca.")
+# enero y febrero de 2005 (emergencia invernal en Santander) tienen su propio punto en la lista, siempre visible
 
 
 def _celda_atip(p, v):
@@ -525,7 +548,7 @@ ciclo_esc_max = ciclo.escorrentia_imerg.max()
 # ---------------------------------------------------------------- régimen del ciclo anual
 # El mismo cálculo de la sección 1.9 del notebook. Mediana de cada mes del calendario; mes típico = promedio de
 # las 12 medianas; mes húmedo si su mediana lo supera. Concentración: % de la suma de las medianas en los
-# meses húmedos (Q en mm/mes, para que sea un volumen). Forma: armónicos 1 y 2 (Horn y Bryson, 1960); los
+# meses húmedos. Q va en mm/mes en todo el régimen (volumen por área, misma unidad que PL y PI). Forma: armónicos 1 y 2 (Horn y Bryson, 1960); los
 # picos se cuentan sobre la curva ajustada. Estacionalidad: Kruskal-Wallis entre los 12 meses (Kruskal y
 # Wallis, 1952). Clasificación: débil si p >= ALFA_KW; si no, bimodal con dos picos; si no, unimodal.
 ALFA_KW = 0.05
@@ -572,7 +595,7 @@ def _reg_nombre(m, d):
 _reg_q_mm = variables_resumen["Q"] * variables_resumen.index.days_in_month * 86400 / (AREA_SG_KM2 * 1e6) * 1000
 REG_SERIES = {"PL": (variables_resumen["PL"], variables_resumen["PL"], "mm/mes"),
               "PI": (variables_resumen["PI"], variables_resumen["PI"], "mm/mes"),
-              "Q": (variables_resumen["Q"], _reg_q_mm, "m³/s")}
+              "Q": (_reg_q_mm, _reg_q_mm, "mm/mes")}
 regimen = {}
 for _n, (_s, _s_conc, _u) in REG_SERIES.items():
     _med = _reg_medianas(_s)
@@ -2023,6 +2046,19 @@ a {{ color: var(--acento); }}
     PL {atip_z.loc[_F99, "PL"]:+.1f} rangos intercuartiles por encima de lo normal para febrero.
     {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Vale la pena tenerlo en cuenta como
     evento extremo.</li>
+    <li class="revision" data-etiqueta="Revisión · enero y febrero de 2005"><b>Enero y febrero de 2005: la emergencia
+    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de
+    2005, con Santander entre los departamentos más golpeados: inundaciones, la avalancha del río de Oro y la
+    declaratoria de calamidad pública en Bucaramanga y Girón. Según el IDEAM, citado en ese documento, las lluvias,
+    atípicas para la época, se debieron a cuatro frentes fríos del hemisferio norte, cuando entre enero y febrero
+    normalmente ocurren uno o dos ({CITA_DEFENSORIA}). En la cuenca, enero de 2005 estuvo
+    {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal para enero en PL, {ene05["z_pi"]:+.1f} en PI y
+    {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f} y {ene05["z_q_feb"]:+.1f}.
+    Enero de 2005 salía como atípico de PL ({n(ene05["pl"])} mm) antes de excluir el primer tramo de Pueblo Viejo:
+    el umbral de enero era {n(ene05["umbral_antes"])} mm y hoy es {n(ene05["umbral_hoy"])} mm. El valor del mes
+    no cambió; subió el umbral, porque ese tramo, que medía cerca de la cuarta parte que sus vecinos, bajaba los
+    eneros de 1998 a 2004. El documento no nombra la cuenca del Fonce, así que no se puede confirmar que esas lluvias
+    fueran las mismas que se ven aquí.</li>
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
@@ -2402,15 +2438,15 @@ a {{ color: var(--acento); }}
   <p>Con la <b>mediana</b> de cada mes del calendario se describe el régimen de PL, PI y Q. El <b>mes típico</b> es el
   promedio de las 12 medianas: un mes es <b>húmedo</b> si su mediana lo supera y <b>seco</b> si no, y las temporadas
   son las rachas de meses seguidos (diciembre y enero cuentan como seguidos). La <b>concentración</b> es la parte de
-  la suma de las medianas que cae en los meses húmedos; para Q se calcula en mm/mes, porque sumar caudales medios no
-  da un volumen. La <b>forma</b> sale de los dos primeros armónicos de Fourier, el de 12 meses (A₁) y el de 6 meses
+  la suma de las medianas que cae en los meses húmedos. Q va en mm/mes: sumar caudales medios en m³/s no da un
+  volumen, y en mm/mes las tres series quedan en la misma unidad. La <b>forma</b> sale de los dos primeros armónicos de Fourier, el de 12 meses (A₁) y el de 6 meses
   (A₂) ({CITA_HORN}): si A₂ domina, el ciclo tiene dos picos, y los picos se cuentan sobre la curva ajustada con esos
   dos armónicos. Si hay estacionalidad lo dice la prueba de Kruskal-Wallis entre los 12 meses ({CITA_KRUSKAL}).</p>
   <p><b>Clasificación:</b> estacionalidad débil si Kruskal-Wallis no es significativa (<i>p</i> ≥ {ALFA_KW}); si no,
   bimodal si la curva ajustada tiene dos picos; si no, unimodal.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Indicador</th><th>PL</th><th>PI</th><th>Q (concentración en mm/mes)</th></tr></thead>
+    <thead><tr><th>Indicador</th><th>PL</th><th>PI</th><th>Q</th></tr></thead>
     <tbody>
 {reg_filas}
     </tbody>

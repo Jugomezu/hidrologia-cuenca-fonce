@@ -638,6 +638,46 @@ _reg_indicadores = [
 reg_filas = "\n".join(f"<tr><td>{nombre}</td>" + "".join(f"<td>{f(r)}</td>" for r in regimen.values()) + "</tr>"
                       for nombre, f in _reg_indicadores)
 
+# ---------------------------------------------------------------- desfase estacional (sección 1.10 del notebook)
+# Fase del armónico de 6 meses de PL, PI y Q (Q en mm/mes), sobre las mismas medianas del régimen: el desfase
+# es cuánto después llega el máximo de Q que el de la lluvia. Incertidumbre: bootstrap por bloques de un año.
+DES_DIAS_POR_MES = 365.25 / 12
+DES_REMUESTREOS = 2000
+DES_SEMILLA = 1
+_des_series = pd.DataFrame({"PL": variables_resumen["PL"], "PI": variables_resumen["PI"], "Q": _reg_q_mm})
+
+
+def _des_fase(x):
+    a, b = _reg_armonico(x, 2)
+    return (np.arctan2(b, a) / (2 * np.pi) * 6) % 6
+
+
+def _des_circular(t1, t0):
+    return (t1 - t0 + 3) % 6 - 3
+
+
+def _des_desfases(tabla):
+    f = {c: _des_fase(_reg_medianas(tabla[c])) for c in tabla}
+    d = {"Q_PL": _des_circular(f["Q"], f["PL"]) * DES_DIAS_POR_MES,
+         "Q_PI": _des_circular(f["Q"], f["PI"]) * DES_DIAS_POR_MES,
+         "PI_PL": _des_circular(f["PI"], f["PL"]) * DES_DIAS_POR_MES}
+    return d   # la diferencia entre fuentes, (Q − PL) − (Q − PI), es por construcción PI_PL
+
+
+desfase = _des_desfases(_des_series)
+_des_rng = np.random.default_rng(DES_SEMILLA)
+_des_anios = np.unique(_des_series.index.year)
+_des_por_anio = {a: _des_series[_des_series.index.year == a] for a in _des_anios}
+_des_boot = pd.DataFrame([_des_desfases(pd.concat([_des_por_anio[a] for a in
+                                                    _des_rng.choice(_des_anios, len(_des_anios), replace=True)]))
+                          for _ in range(DES_REMUESTREOS)])
+desfase_ic = {k: (_des_boot[k].quantile(0.025), _des_boot[k].quantile(0.975)) for k in desfase}
+desfase_dif_concluyente = not (desfase_ic["PI_PL"][0] <= 0 <= desfase_ic["PI_PL"][1])
+_des_tc = pd.read_csv("out/tiempos_concentracion.csv").con_pendiente_medida_h
+desfase_tc = (_des_tc.min(), _des_tc.max())
+# el texto dice que el desfase es mucho mayor que el tiempo de concentración: si deja de serlo, se detiene
+assert min(desfase["Q_PL"], desfase["Q_PI"]) * 24 > 10 * desfase_tc[1]
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
@@ -2279,18 +2319,6 @@ a {{ color: var(--acento); }}
   {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %): el ciclo del satélite se parece menos al del
   caudal que el de los pluviómetros.</p>
 
-  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
-  serie: la correlación es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f} con PL) y sigue
-  alta con la lluvia un mes antes ({rho_cruzada('PL', 1, 'tal cual'):.2f}), mientras que con el caudal un
-  mes antes cae a {rho_cruzada('PL', -1, 'tal cual'):.2f}: la relación va de la lluvia al caudal, y dura un
-  mes. A tres meses de distancia la correlación es negativa ({rho_cruzada('PL', 3, 'tal cual'):.2f} y
-  {rho_cruzada('PL', -3, 'tal cual'):.2f}): es el mismo ciclo visto de otro lado, porque con dos temporadas al
-  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
-  <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
-  lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
-  {memoria.loc['PL', 'parcial_mes_anterior']:.2f}. La cuenca guarda agua de un mes al siguiente también en
-  los años que se salen de lo normal.</p>
-
   <p class="aviso">Una correlación mensual no es ni causa ni capacidad de predicción. Que Q y PL vayan a
   ρ = {rho('PL', 'Q'):.2f} no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La
   relación entre lluvia y caudal tiene memoria</b>, y una correlación en la misma casilla temporal no la
@@ -2458,6 +2486,41 @@ a {{ color: var(--acento); }}
   {" y ".join(regimen["Q"]["picos"])}. Los porcentajes de concentración de PI y PL no se comparan directamente: con PI
   hay {regimen["PI"]["conc_meses"]} meses húmedos y con PL, {regimen["PL"]["conc_meses"]}.</p>
   </div>
+
+  <div class="revision" data-etiqueta="Revisión · desfase estacional">
+  <h3>Desfase estacional: cuánto se atrasa el río respecto a la lluvia</h3>
+  <p>Cada armónico es una onda, y su <b>fase</b> dice en qué momento del año está su máximo. Con el armónico de
+  6 meses, que da la forma de dos picos, el <b>desfase estacional</b> es cuánto después llega el máximo de Q que el
+  de la lluvia. Se mide sobre el año típico (las mismas medianas del régimen), así que da el atraso en días aunque
+  los datos sean mensuales. La incertidumbre sale de remuestrear años completos {f"{DES_REMUESTREOS:,}".replace(",", " ")} veces.</p>
+  <div class="cifras" style="margin-bottom:18px">
+    <div class="cifra"><b>{desfase["Q_PL"]:.0f} días</b><span>Q después de PL · IC 95 % {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}</span></div>
+    <div class="cifra"><b>{desfase["Q_PI"]:.0f} días</b><span>Q después de PI · IC 95 % {desfase_ic["Q_PI"][0]:.0f} a {desfase_ic["Q_PI"][1]:.0f}</span></div>
+    <div class="cifra"><b>{desfase["PI_PL"]:.0f} días</b><span>PI después de PL · IC 95 % {desfase_ic["PI_PL"][0]:.1f} a {desfase_ic["PI_PL"][1]:.1f}</span></div>
+  </div>
+  <p><b>Con las dos fuentes, el río va atrasado respecto a la lluvia</b>, mucho más que el tiempo de
+  concentración, que va de {desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas según la fórmula. El atraso del año
+  típico no es el tiempo de viaje del agua por el cauce: apunta a agua que se guarda en el suelo y el acuífero y
+  sale después. <b>La fuente cambia poco el resultado:</b> el ciclo de PI tiene sus máximos {desfase["PI_PL"]:.0f}
+  días después que el de PL, y en esa misma cantidad el desfase con PI sale más corto. El intervalo de esa
+  diferencia va de {desfase_ic["PI_PL"][0]:.1f} a {desfase_ic["PI_PL"][1]:.1f} días
+  ({(("excluye el cero por muy poco" if desfase_ic["PI_PL"][0] < 1 else "no incluye el cero") + ", y es pequeña frente a la resolución mensual de los datos") if desfase_dif_concluyente else "incluye el cero: la diferencia entre fuentes no es concluyente"}).</p>
+  <p class="nota">La fase del armónico de 12 meses no se usa: en PL y en Q explica el {regimen["PL"]["var1"]:.0f} % y el
+  {regimen["Q"]["var1"]:.0f} % de la forma del ciclo, y su fase es casi ruido.</p>
+  </div>
+
+  <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
+  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
+  serie: la correlación es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f} con PL) y sigue
+  alta con la lluvia un mes antes ({rho_cruzada('PL', 1, 'tal cual'):.2f}), mientras que con el caudal un
+  mes antes cae a {rho_cruzada('PL', -1, 'tal cual'):.2f}: la relación va de la lluvia al caudal, y dura un
+  mes. A tres meses de distancia la correlación es negativa ({rho_cruzada('PL', 3, 'tal cual'):.2f} y
+  {rho_cruzada('PL', -3, 'tal cual'):.2f}): es el mismo ciclo visto de otro lado, porque con dos temporadas al
+  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
+  <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
+  lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
+  {memoria.loc['PL', 'parcial_mes_anterior']:.2f}. La cuenca guarda agua de un mes al siguiente también en
+  los años que se salen de lo normal.</p>
 
   <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.

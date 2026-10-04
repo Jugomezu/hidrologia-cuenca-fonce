@@ -35,6 +35,7 @@ def miles(x, dec=0):
 # ---------------------------------------------------------------- lectura de lo que ya produjo la tubería
 exclusiones = pd.read_csv(OUT / "pluviometros_exclusiones.csv")
 homog = pd.read_csv(OUT / "anomalias_homogeneidad.csv").set_index("serie")
+segundo = pd.read_csv(OUT / "anomalias_segundo_corte.csv").set_index("serie")
 ceros = pd.read_csv(OUT / "anomalias_ceros_pl.csv")
 cobertura = pd.read_csv(OUT / "anomalias_cobertura_pl.csv")
 rachas = pd.read_csv(OUT / "anomalias_rachas.csv")
@@ -56,6 +57,13 @@ meses_encino = int(excl[(24020040, "2016-01")])
 meses_pueblo_viejo = int(excl[(24020230, "1998-01")])
 meses_en_cero = int(exclusiones[exclusiones.solo_si_cero].meses_excluidos.sum())
 pv, co, pi_h = homog.loc["PL · Pueblo Viejo"], homog.loc["PL · Coromoro"], homog.loc["PI (IMERG)"]
+# segundo corte (07c, paso 1b): en el tramo que queda después del primer salto
+pv2, co2, pi_sin_pv = segundo.loc["PL · Pueblo Viejo"], segundo.loc["PL · Coromoro"], segundo.loc["PI (IMERG)"]
+# los textos de las filas de Pueblo Viejo, Coromoro y PI dan por hecho lo que sigue; si los datos cambian y deja
+# de cumplirse, el script se detiene en vez de escribir un registro equivocado
+assert pv2.significativo and not co2.significativo
+assert pi_sin_pv.referencia == "PL sin Pueblo Viejo"
+assert pi_h.significativo and not pi_sin_pv.significativo and abs(pi_sin_pv.cambio_pct) < abs(pi_h.cambio_pct)
 
 ceros_creibles = ceros[~ceros.dificil_de_creer]
 ceros_creibles_txt = "; ".join(f"{f.pluviometro} {f.periodo} (el vecino más seco midió {f.otros_minimo_mm:.1f} mm)"
@@ -110,6 +118,13 @@ registro = [
          comprobacion=f"doble masa y prueba de Pettitt (p = {pv.p:.0e}); el catálogo del IDEAM no registra el cambio",
          decision=f"se excluye el tramo ({meses_pueblo_viejo} meses)",
          efecto="PL se calcula sin Pueblo Viejo en ese tramo", estado="corregido", evidencia="4.3"),
+    dict(anomalia=f"Pueblo Viejo desde {pv2.primer_mes_despues}: pasa de {pv2.razon_antes:.2f} a "
+                  f"{pv2.razon_despues:.2f} veces sus vecinos ({pv2.cambio_pct:+.1f} %)", serie="PL",
+         comprobacion=f"prueba de Pettitt sobre el tramo desde {pv2.tramo_desde}, contra los demás pluviómetros "
+                      f"sin Pueblo Viejo ni Coromoro (p = {pv2.p:.0e}); es un segundo salto, que la prueba sobre la "
+                      "serie completa no ve porque solo encuentra un corte por serie",
+         decision="se conserva", efecto="PL puede estar algo baja desde ese mes", estado="incierto",
+         evidencia="4.3"),
     dict(anomalia=f"{meses_en_cero} meses en 0 mm difíciles de creer (Pavas Las y Valle de San José)", serie="PL",
          comprobacion="todos los demás pluviómetros midieron más de 20 mm ese mes",
          decision="se excluyen como meses no registrados", efecto="esos meses PL se promedia sin ese pluviómetro",
@@ -120,13 +135,16 @@ registro = [
     dict(anomalia=f"Coromoro: de {co.razon_antes:.2f} a {co.razon_despues:.2f} veces sus vecinos desde "
                   f"{co.primer_mes_despues} ({co.cambio_pct:+.1f} %)", serie="PL",
          comprobacion=f"doble masa y prueba de Pettitt (p = {co.p:.3f}); el cambio es gradual y no se sabe cuál "
-                      "tramo está bien",
+                      f"tramo está bien; en el tramo posterior no hay un segundo salto (p = {co2.p:.2f})",
          decision="se conserva", efecto="PL puede estar algo baja desde ese mes", estado="incierto",
          evidencia="4.3"),
     dict(anomalia=f"PI sube {pi_h.cambio_pct:+.1f} % frente a PL desde {pi_h.primer_mes_despues}", serie="PI",
-         comprobacion=f"prueba de Pettitt (p = {pi_h.p:.3f}); coincide con el cambio de calibración de IMERG de "
-                      "TRMM a GPM el 1 de junio de 2014 (documentación técnica de IMERG V07)",
-         decision="se conserva", efecto="PI no es homogénea antes y después de 2014", estado="incierto",
+         comprobacion=f"prueba de Pettitt (p = {pi_h.p:.3f}); con PL sin Pueblo Viejo el salto baja a "
+                      f"{pi_sin_pv.cambio_pct:+.1f} % y deja de ser significativo (p = {pi_sin_pv.p:.2f}): buena "
+                      "parte viene del segundo salto de Pueblo Viejo; el cambio de calibración de IMERG de TRMM a "
+                      "GPM el 1 de junio de 2014 (documentación técnica de IMERG V07) puede aportar algo, pero no "
+                      "es la explicación principal",
+         decision="se conserva", efecto="la razón PI / PL no es homogénea antes y después de 2014", estado="incierto",
          evidencia="4.3"),
     dict(anomalia=f"PI queda {abs(sesgo_pi_pl):.1f} % por debajo de PL", serie="PI y PL",
          comprobacion=f"promedio de los {len(par)} meses: {par.PI.mean():.1f} mm/mes con PI y {par.PL.mean():.1f} con PL",

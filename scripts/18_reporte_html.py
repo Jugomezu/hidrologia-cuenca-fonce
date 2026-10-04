@@ -968,6 +968,15 @@ an_dm_json = json.dumps({s: {"x": g.acumulado_referencia.round(0).tolist(), "y":
                          for s, g in an_dm.groupby("serie", sort=False)}, ensure_ascii=False)
 an_pi, an_q = an_fila("PI (IMERG)"), an_fila("Q")
 an_pv = an_fila("PL · Pueblo Viejo")
+# segundo corte (07c, paso 1b): la prueba repetida en el tramo posterior al primer salto de cada pluviómetro
+# marcado, y PI contra una PL sin los pluviómetros que tienen un segundo salto significativo
+an_seg = pd.read_csv("out/anomalias_segundo_corte.csv").set_index("serie")
+an_seg_pl = an_seg[an_seg.index.str.startswith("PL")]
+an_pv2 = an_seg.loc["PL · Pueblo Viejo"]
+an_seg_sin_salto = an_seg_pl[~an_seg_pl.significativo]
+an_pi_sin = an_seg.loc["PI (IMERG)"]
+# meses entre el segundo salto de Pueblo Viejo y el salto de PI frente a PL
+an_meses_pv2_pi = (pd.Period(an_pi.primer_mes_despues, "M") - pd.Period(an_pv2.primer_mes_despues, "M")).n
 an_ceros_fuera = an_ceros[an_ceros.dificil_de_creer]
 an_ceros_quedan = an_ceros[~an_ceros.dificil_de_creer]
 filas_ceros = "\n".join(
@@ -1755,15 +1764,30 @@ a {{ color: var(--acento); }}
     sale de PL.</b></li>
     {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fecha_anomala(pm)} (<i>p</i> {fmt_p_eq(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
   </ul>
+  <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
+  <p><b>Pueblo Viejo tiene un segundo salto.</b> La prueba de Pettitt encuentra un solo corte por serie, así
+  que a cada pluviómetro con salto se le repitió en el tramo que queda después del primero, sobre la serie
+  depurada y contra el {html.escape(an_pv2.referencia)}. Pueblo Viejo pasa de {an_pv2.razon_antes:.2f} a
+  {an_pv2.razon_despues:.2f} veces sus vecinos desde {fecha_anomala(an_pv2.primer_mes_despues)}
+  ({an_pv2.cambio_pct:+.0f} %, <i>p</i> {fmt_p_eq(an_pv2.p)}).
+  {" ".join(f"{html.escape(s.split(' · ')[1])} no tiene un segundo salto (<i>p</i> {fmt_p_eq(p)})." for s, p in an_seg_sin_salto.p.items())}
+  Como en Coromoro, no hay forma de saber cuál de los dos tramos de Pueblo Viejo está bien. <b>Se conserva,
+  marcado como incierto:</b> PL puede estar algo baja desde ese mes.</p>
   <p><b>PI frente a PL: {an_pi.cambio_pct:+.0f} % desde {fecha_anomala(an_pi.primer_mes_despues)}</b> (<i>p</i>
   {fmt_p_eq(an_pi.p)}): antes PI era {an_pi.razon_antes:.2f} veces PL, después {an_pi.razon_despues:.2f}. El corte
-  cae en el cambio de era de IMERG. Hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
-  de 2014 con GPM ({CITA_IMERG_DOC}). Ningún pluviómetro salta en esa fecha: el cambio es del producto. PI se
-  conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene salto
-  (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
+  cae en el cambio de era de IMERG: hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
+  de 2014 con GPM ({CITA_IMERG_DOC}). Pero cae también {an_meses_pv2_pi} meses después del segundo salto de
+  Pueblo Viejo, que baja PL. Con una {html.escape(an_pi_sin.referencia)}, el salto de PI es de
+  {an_pi_sin.cambio_pct:+.0f} % (<i>p</i> {fmt_p_eq(an_pi_sin.p)})
+  {"y deja de ser significativo: buena parte del salto viene de Pueblo Viejo, no de IMERG. El cambio de TRMM a GPM puede aportar algo, pero no es la explicación principal." if not an_pi_sin.significativo else "y sigue siendo significativo: el cambio de TRMM a GPM sigue siendo una explicación posible."}
+  PI se conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene
+  salto (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
   <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
   cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
-  pluviómetros no se pueden confirmar ni descartar con metadatos; el de IMERG, sí.</p>
+  pluviómetros no se pueden confirmar ni descartar con metadatos. El cambio de calibración de IMERG sí está
+  documentado, pero no basta para atribuirle el salto de PI. Las pruebas del segundo salto corren en
+  <code>scripts/07c_anomalias.py</code> y quedan en <code>out/anomalias_segundo_corte.csv</code>.</p>
+  </div>
 
   <h3>Meses en 0 mm</h3>
   <div class="tabla-caja">

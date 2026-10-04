@@ -9,6 +9,11 @@ registran aparte.
    - PI contra PL, y Q contra PL, de la misma forma.
    La prueba de Pettitt (1979) es no paramétrica: busca el punto de la serie que mejor la parte en dos
    tramos con niveles distintos, y da una probabilidad aproximada de que eso ocurra por azar.
+1b. SEGUNDO CORTE. Pettitt solo encuentra un corte por serie. A cada pluviómetro marcado en las rondas
+   se le repite la prueba en el tramo de su serie depurada posterior a su primer corte, contra el promedio
+   de los demás pluviómetros sin ninguno de los marcados. Si alguno tiene un segundo salto significativo,
+   se repite también la prueba de PI contra una PL calculada sin ese pluviómetro, para ver si el salto de
+   PI viene de IMERG o de ese pluviómetro. Nada de esto cambia la serie depurada.
 2. SECUENCIAS CONSTANTES: días seguidos con exactamente el mismo valor (Q diario, temperatura diaria) y
    meses seguidos con el mismo total en un pluviómetro. Un instrumento trabado o un dato copiado dejan
    ese rastro.
@@ -22,6 +27,7 @@ registran aparte.
 Salidas (out/):
   anomalias_homogeneidad.csv   serie, prueba, n, fecha del cambio, p, razón antes y después
   anomalias_doble_masa.csv     acumulados para las curvas de doble masa
+  anomalias_segundo_corte.csv  segundo corte de los pluviómetros marcados, y PI contra PL sin los que lo tienen
   anomalias_rachas.csv         secuencias constantes encontradas
   anomalias_picos_q.csv        picos aislados del Q diario
   anomalias_cobertura_pl.csv   sesgo estimado de PL en cada mes con pluviómetros faltantes
@@ -95,17 +101,26 @@ era = pd.read_csv(OUT / "era5land_temperatura_diaria_fonce.csv", parse_dates=["f
 homog, doble_masa = [], []
 
 
-def probar(nombre, serie, referencia, descripcion_ref):
-    """Pettitt sobre log(serie / referencia) en los meses en que las dos tienen dato y son mayores que 0."""
+def medir_corte(serie, referencia):
+    """Pettitt sobre log(serie / referencia) en los meses en que las dos tienen dato y son mayores que 0.
+    La razón de cada tramo es la exponencial de la mediana del logaritmo. Devuelve el resultado y los pares
+    de meses usados (para la doble masa)."""
     par = pd.DataFrame({"s": serie, "r": referencia}).dropna()
     par = par[(par.s > 0) & (par.r > 0)]
     log_razon = np.log(par.s / par.r)
     k, K, p = pettitt(log_razon.values)
     antes, despues = np.exp(log_razon.iloc[: k + 1].median()), np.exp(log_razon.iloc[k + 1:].median())
-    homog.append({"serie": nombre, "referencia": descripcion_ref, "meses": len(par),
-                  "ultimo_mes_antes": str(par.index[k]), "primer_mes_despues": str(par.index[k + 1]),
-                  "p": p, "significativo": p < ALFA,
-                  "razon_antes": antes, "razon_despues": despues, "cambio_pct": (despues / antes - 1) * 100})
+    resultado = {"meses": len(par),
+                 "ultimo_mes_antes": str(par.index[k]), "primer_mes_despues": str(par.index[k + 1]),
+                 "p": p, "significativo": p < ALFA,
+                 "razon_antes": antes, "razon_despues": despues, "cambio_pct": (despues / antes - 1) * 100}
+    return resultado, par
+
+
+def probar(nombre, serie, referencia, descripcion_ref):
+    """Mide el corte (medir_corte) y lo guarda en la tabla de homogeneidad y en la de doble masa."""
+    resultado, par = medir_corte(serie, referencia)
+    homog.append({"serie": nombre, "referencia": descripcion_ref, **resultado})
     acum = par.cumsum()
     doble_masa.append(pd.DataFrame({"serie": nombre, "referencia": descripcion_ref, "periodo": acum.index.astype(str),
                                     "acumulado_serie": acum.s.values, "acumulado_referencia": acum.r.values}))
@@ -141,6 +156,32 @@ probar("PI (IMERG)", pi, pl, "PL")
 probar("Q", variables.Q, variables.PL, "PL")
 pd.DataFrame(homog).drop(columns="ronda", errors="ignore").to_csv(OUT / "anomalias_homogeneidad.csv", index=False)
 pd.concat(doble_masa).to_csv(OUT / "anomalias_doble_masa.csv", index=False)
+
+# ---------------------------------------------------------------------- 1b. segundo corte
+# Pettitt encuentra UN solo corte por serie. Un pluviómetro marcado en las rondas puede tener otro salto
+# dentro del tramo que queda después del primero. Para verlo, se repite la prueba solo sobre ese tramo, en
+# la serie depurada (la que entra a PL), contra el promedio de los demás pluviómetros sin ninguno de los
+# marcados, para que el salto de uno no contamine la referencia del otro.
+primer_corte = pd.DataFrame(homog).set_index("serie")
+sin_marcados = f"sin {', '.join(NOMBRE[m] for m in marcados)}"
+segundo = []
+for c in marcados:
+    desde = pd.Period(primer_corte.loc[f"PL · {NOMBRE[c]}", "primer_mes_despues"], "M")
+    resto = plu.drop(columns=marcados).mean(axis=1)
+    resultado, _ = medir_corte(plu[c].loc[desde:], resto.loc[desde:])
+    segundo.append({"serie": f"PL · {NOMBRE[c]}", "prueba": "segundo corte, en el tramo posterior al primero",
+                    "tramo_desde": str(desde),
+                    "referencia": f"promedio de los demás pluviómetros ({sin_marcados})", **resultado})
+# Si un pluviómetro tiene un segundo salto significativo, el salto de PI frente a PL podría venir de él y no
+# de IMERG. Se repite entonces la prueba de PI contra una PL calculada sin esos pluviómetros.
+con_segundo_corte = [c for c, fila in zip(marcados, segundo) if fila["significativo"]]
+if con_segundo_corte:
+    pl_sin = plu.drop(columns=con_segundo_corte).mean(axis=1)
+    resultado, _ = medir_corte(pi, pl_sin)
+    segundo.append({"serie": "PI (IMERG)", "prueba": "PI contra PL sin los pluviómetros con segundo corte",
+                    "tramo_desde": str(MESES[0]),
+                    "referencia": f"PL sin {', '.join(NOMBRE[c] for c in con_segundo_corte)}", **resultado})
+pd.DataFrame(segundo).to_csv(OUT / "anomalias_segundo_corte.csv", index=False)
 
 # ====================================================================== 2. secuencias constantes
 rachas = []
@@ -210,4 +251,6 @@ pd.DataFrame(ceros).to_csv(OUT / "anomalias_ceros_pl.csv", index=False)
 # ====================================================================== resumen en pantalla
 pd.set_option("display.width", 200)
 print(pd.DataFrame(homog).round(3).to_string(index=False))
+print("\nsegundo corte:")
+print(pd.DataFrame(segundo).round(3).to_string(index=False))
 print(f"\nrachas: {len(rachas)}; picos aislados de Q: {len(picos)}; meses con PL incompleta: {len(filas)}; ceros: {len(ceros)}")

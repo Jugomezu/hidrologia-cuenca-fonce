@@ -578,8 +578,17 @@ demas, por rondas. Resultados y decisiones (evidencia en la seccion 4.3 del note
   20 mm. Otros dos ceros (PAVAS LAS 2001-08, PUEBLO VIEJO 2020-02) son plausibles y se conservan.
 - **COROMORO (24020120): se conserva, marcado incierto.** Salto de -20 % desde 2003-03 (p = 0.006), sin
   escalon limpio ano a ano.
-- **IMERG (PI) frente a PL: +11 % desde 2014-06 (p = 0.005), marcado incierto.** Coincide con el cambio de
-  calibracion de IMERG de TRMM a GPM el 1 de junio de 2014 (documento tecnico de IMERG V07, abajo).
+- **PUEBLO VIEJO (24020230), desde 2014-04: se conserva, marcado incierto (decidido el 2026-10-04).** La
+  prueba de Pettitt encuentra un solo corte por serie. Repetida en el tramo que queda despues del primero
+  (desde 2004-12, serie depurada, contra el promedio de los demas pluviometros sin Pueblo Viejo ni Coromoro),
+  da un segundo salto: de 0.83 a 0.62 veces sus vecinos desde 2014-04 (-25 %, p < 0.001). No hay forma de
+  saber cual tramo esta bien, asi que no se excluye. Coromoro no tiene segundo salto (p = 0.83). Salida:
+  `out/anomalias_segundo_corte.csv` (`scripts/07c_anomalias.py`, paso 1b).
+- **IMERG (PI) frente a PL: +11 % desde 2014-06 (p = 0.005), marcado incierto.** Cae en el cambio de
+  calibracion de IMERG de TRMM a GPM el 1 de junio de 2014 (documento tecnico de IMERG V07, abajo), pero
+  tambien dos meses despues del segundo salto de Pueblo Viejo. Contra una PL sin Pueblo Viejo, el salto
+  baja a +6 % y deja de ser significativo (p = 0.26): buena parte viene de Pueblo Viejo. El cambio TRMM ->
+  GPM puede aportar algo, pero no es la explicacion principal (lectura revisada el 2026-10-04).
 - Todas las exclusiones estan en la tabla `EXCLUSIONES` de `scripts/07_pluviometros_dhime.py`, con la
   columna `evidencia` (seccion del notebook donde esta la prueba). Las cifras vigentes de PL y del sesgo
   PI-PL las calcula el notebook; no se copian aqui para que no se desactualicen.

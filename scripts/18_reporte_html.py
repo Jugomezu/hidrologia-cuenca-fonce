@@ -613,6 +613,18 @@ pq_anios_sobre = {f: [str(x) for x in pq_anual.index[pq_anual[f"{f}_q"] > pq_anu
 pq_seca = plu[DENTRO].mean().idxmin()
 pq_seca_nombre = cat_plu.loc[pq_seca, "etiqueta"]
 pq_falta_seca = {a: int(plu.loc[plu.index.year == int(a), pq_seca].isna().sum()) for a in pq_anios_sobre["pl"]}
+_lista_y = lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else (l[0] if l else "")
+pq_explicaciones = f"""<ul class="tratamiento">
+    <li><b>Quedarse guardada:</b> recargar el suelo o el acuífero y salir por el río meses o años después.</li>
+    <li><b>Salir sin pasar por la estación:</b> por flujo subterráneo profundo, o por captaciones de acueductos y
+    riego que no vuelven al río.</li>
+    <li><b>Evaporarse más de lo que dice la ETP:</b> la de Hargreaves es la de un pasto de referencia y un
+    bosque puede superarla; además es una estimación, no una medida.</li>
+    <li><b>No haber existido:</b> lluvia sobrestimada o caudal subestimado. Para PL hay una causa conocida: en
+    esos años le falta {pq_seca_nombre}, la estación más seca, en {_lista_y([f"{k} meses de {a}" for a, k in pq_falta_seca.items()])},
+    y sin ella PL queda alta (el sesgo de cobertura de «Anomalías en las series»).</li>
+  </ul>
+  <p class="nota">Ninguna de las cuatro está comprobada.</p>"""
 _pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.groupby(_pq_con_q.index.month).etp.mean())
 pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
 _red1 = lambda s: [None if pd.isna(v) else round(float(v), 1) for v in s]
@@ -2111,8 +2123,8 @@ a {{ color: var(--acento); }}
   <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
   <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
-  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if pq_res["pl"]["anios_sobre_etp"] == 0 and pq_res["pi"]["anios_sobre_etp"] == 0 else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}: en esos años, o la lluvia está sobrestimada, o el caudal subestimado, o pesa el almacenamiento de un año a otro."}
-  {"" if not pq_anios_sobre["pl"] else f"Parte de la explicación es la cobertura: en esos años a PL le falta {pq_seca_nombre}, la estación más seca de la red, en " + (lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else l[0])([f"{k} meses de {a}" for a, k in pq_falta_seca.items()]) + " (por la exclusión de su tramo malo o porque no midió). Sin ella, PL se promedia con estaciones más lluviosas y queda alta: es el sesgo de cobertura medido en «Anomalías en las series». No se corrige, porque PL no rellena estaciones; queda declarado."}</p>
+  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
+  {"" if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else pq_explicaciones}
   </div>
 </section>
 

@@ -678,6 +678,88 @@ desfase_tc = (_des_tc.min(), _des_tc.max())
 # el texto dice que el desfase es mucho mayor que el tiempo de concentración: si deja de serlo, se detiene
 assert min(desfase["Q_PL"], desfase["Q_PI"]) * 24 > 10 * desfase_tc[1]
 
+# ---------------------------------------------------------------- PI contra PL, mes a mes (Punto 2)
+# Correlación no es concordancia: dos series pueden subir y bajar juntas y aun así diferir en cantidad.
+# Errores de PI con PL como referencia, en los meses en que las dos tienen dato.
+_p2 = comp[["IMERG", "RED"]].dropna()
+_p2_err = _p2.IMERG - _p2.RED
+p2_pipl = {"n": len(_p2), "sesgo": _p2_err.mean(), "mae": _p2_err.abs().mean(),
+           "rmse": float(np.sqrt((_p2_err ** 2).mean())), "debajo_pct": (_p2_err < 0).mean() * 100}
+assert p2_pipl["mae"] > 1.5 * abs(p2_pipl["sesgo"])
+p2_pipl_json = json.dumps({"pi": _p2.IMERG.round(1).tolist(), "pl": _p2.RED.round(1).tolist(),
+                           "mes": [p.month for p in _p2.index], "periodo": [str(p) for p in _p2.index]})
+
+
+# ---------------------------------------------------------------- lluvia contra caudal: cómo cambia la dispersión
+# Residuos de un ajuste lineal de Q (m³/s) contra la lluvia; razón entre la varianza de los residuos en el
+# tercio de meses más lluviosos y en el tercio más seco. Mayor que P2_RAZON_VARIANZA: la dispersión crece.
+P2_RAZON_VARIANZA = 1.5
+
+
+def _p2_razon_dispersion(lluvia, caudal):
+    par = pd.concat([lluvia.rename("x"), caudal.rename("y")], axis=1).dropna().sort_values("x")
+    residuo = par.y - np.polyval(np.polyfit(par.x, par.y, 1), par.x)
+    tercios = np.array_split(residuo.to_numpy(), 3)
+    return float(np.var(tercios[-1], ddof=1) / np.var(tercios[0], ddof=1))
+
+
+p2_dispersion = {f: _p2_razon_dispersion(variables_resumen[f], variables_resumen["Q"]) for f in ("PL", "PI")}
+assert all(v > P2_RAZON_VARIANZA for v in p2_dispersion.values())   # el texto dice que la dispersión crece
+
+
+# ---------------------------------------------------------------- estimación fuera del período de ajuste (Punto 2)
+# Los modelos se ajustan con 1998-2014 y se evalúan con 2015-2022, en bloques continuos para no mezclar
+# meses vecinos (que se parecen entre sí) entre el ajuste y la evaluación. Q en m³/s. La referencia es la
+# climatología mensual de Q del bloque de ajuste: superarla quiere decir que la lluvia aporta algo más que
+# el calendario. Sesgo = estimado − observado.
+EV_AJUSTE, EV_VALIDACION = ("1998-01", "2014-12"), ("2015-01", "2022-12")
+_ev = pd.read_csv("out/variables_mensuales.csv", index_col=0)[["PI", "PL", "Q"]]
+_ev.index = pd.PeriodIndex(_ev.index, freq="M")
+_ev = _ev.reindex(PERIODOS)
+_ev["Q"] = _ev.Q * AREA_SG_KM2 * 1000 / (_ev.index.days_in_month * 86400)        # mm/mes -> m³/s
+_ev_aj, _ev_val = _ev.loc[EV_AJUSTE[0]:EV_AJUSTE[1]], _ev.loc[EV_VALIDACION[0]:EV_VALIDACION[1]]
+
+
+def _ev_metricas(observado, estimado):
+    par = pd.concat([observado.rename("o"), estimado.rename("e")], axis=1).dropna()
+    err = par.e - par.o
+    return {"n": len(par), "sesgo": err.mean(), "mae": err.abs().mean(), "rmse": float(np.sqrt((err ** 2).mean())),
+            "negativas": int((par.e < 0).sum())}
+
+
+def _ev_ols(x, y, rezago=0):
+    muestra = pd.concat([_ev_aj[x].shift(rezago).rename("x"), _ev_aj[y].rename("y")], axis=1).dropna()
+    pendiente, intercepto = np.polyfit(muestra.x, muestra.y, 1)
+    return intercepto + pendiente * _ev[x].shift(rezago), pendiente
+
+
+_ev_clima = _ev_aj.groupby(_ev_aj.index.month).Q.mean()
+ev_estimados = {"climatología mensual de Q": pd.Series([_ev_clima[p.month] for p in _ev.index], index=_ev.index)}
+ev_pendientes = {}
+for _f in ("PL", "PI"):
+    for _r, _nombre in ((0, f"{_f} del mismo mes"), (1, f"{_f} del mes anterior")):
+        ev_estimados[_nombre], ev_pendientes[_nombre] = _ev_ols(_f, "Q", _r)
+ev_tabla = {m: {"ajuste": _ev_metricas(_ev_aj.Q, e.loc[_ev_aj.index]), "validacion": _ev_metricas(_ev_val.Q, e.loc[_ev_val.index])}
+            for m, e in ev_estimados.items()}
+ev_mejor = min((m for m in ev_tabla if m != "climatología mensual de Q"), key=lambda m: ev_tabla[m]["validacion"]["rmse"])
+ev_rmse_clima = ev_tabla["climatología mensual de Q"]["validacion"]["rmse"]
+ev_filas = "\n".join(
+    f"<tr><td>{'<b>' + m + '</b>' if m == ev_mejor else m}</td><td class='num'>{t['ajuste']['rmse']:.1f}</td>"
+    f"<td class='num'>{t['validacion']['rmse']:.1f}</td><td class='num'>{t['validacion']['mae']:.1f}</td>"
+    f"<td class='num'>{t['validacion']['sesgo']:+.1f}</td><td class='num'>{t['validacion']['n']}</td></tr>"
+    for m, t in ev_tabla.items())
+# ¿sirve corregir PI con una regresión contra PL? (el proyecto decidió no corregirla)
+_ev_pl_ols, _ = _ev_ols("PI", "PL")
+ev_correccion = {"ols": _ev_metricas(_ev_val.PL, _ev_pl_ols.loc[_ev_val.index]),
+                 "sin": _ev_metricas(_ev_val.PL, _ev_val.PI)}
+ev_json = json.dumps({"meses": [str(p) for p in _ev_val.index], "q": _ev_val.Q.round(2).tolist(),
+                      **{k: ev_estimados[m].loc[_ev_val.index].round(2).tolist() for k, m in
+                         (("clima", "climatología mensual de Q"), ("pl", "PL del mismo mes"), ("pi", "PI del mismo mes"))}},
+                     default=lambda v: None).replace("NaN", "null")
+assert all(t["validacion"]["negativas"] == 0 for t in ev_tabla.values())   # el texto dice que no hay estimados negativos
+# el texto dice que corregir PI «casi no gana nada»: menos de un 10 % de mejora en el RMSE
+assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
@@ -1765,6 +1847,23 @@ a {{ color: var(--acento); }}
   mucho entre sí ({n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
   {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes), porque la lluvia cambia de
   ladera a ladera; por eso se usa su promedio y no una estación suelta.</p>
+
+  <div class="revision" data-etiqueta="Revisión · PI contra PL, mes a mes">
+  <h3>Mes a mes, uno contra otro</h3>
+  <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
+  concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
+  en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses PI queda por debajo de PL.</p>
+  <div class="cifras" style="margin-bottom:14px">
+    <div class="cifra"><b>{p2_pipl["sesgo"]:+.1f} mm/mes</b><span>sesgo medio (PI − PL)</span></div>
+    <div class="cifra"><b>{p2_pipl["mae"]:.1f} mm/mes</b><span>error absoluto medio (MAE)</span></div>
+    <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
+  </div>
+  <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
+  <p class="nota">Cada punto es un mes, coloreado según el mes del calendario. El sesgo conserva el signo del
+  error; el MAE es el tamaño típico de la diferencia, con el signo que sea, y el RMSE pesa más las diferencias
+  grandes. Que el MAE sea mucho mayor que el sesgo dice que, además de quedarse corto en promedio, PI se aleja
+  de PL hacia los dos lados según el mes.</p>
+  </div>
   <p class="aviso"><b>En la mayoría de los cálculos se usan las dos, PI y PL, y se reportan en paralelo;
   cuando haya que escoger, manda PL</b>, porque son medidas reales de lluvia en la cuenca y no una
   estimación indirecta. Se tiene presente su límite: son {len(DENTRO)} puntos sin validar para
@@ -2257,6 +2356,14 @@ a {{ color: var(--acento); }}
   que la red mide algo que el satélite se pierde. Es un dato que pesa sobre la decisión de arrastrar las
   dos fuentes en paralelo: en su relación con el caudal no están empatadas.</p>
 
+  <div class="revision" data-etiqueta="Revisión · dispersión de la lluvia contra el caudal">
+  <p><b>Con más lluvia, el caudal es menos predecible.</b> En las nubes de lluvia contra caudal, los puntos se
+  abren a medida que llueve más: ajustando una recta, la varianza de lo que la recta no explica es
+  {p2_dispersion["PL"]:.1f} veces mayor en el tercio de meses más lluviosos que en el más seco con PL, y
+  {p2_dispersion["PI"]:.1f} veces con PI. Un mes muy lluvioso puede dar caudales muy distintos, lo que es
+  coherente con que el caudal dependa también del agua que la cuenca trae guardada de los meses anteriores.</p>
+  </div>
+
   <p><b>Las dos temperaturas se mueven juntas</b>, ρ = {rho('T MSWX', 'T ERA5'):.2f}, pese a los
   {t_sesgo_media:.2f} °C que las separan. Discrepan en el nivel, no en el movimiento.</p>
 
@@ -2548,6 +2655,41 @@ a {{ color: var(--acento); }}
   meses, que es el sesgo del {abs(cmp_stats[NOM_RED]['sesgo']):.1f} % ya conocido.
   {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if ciclo_picos_red == ciclo_picos_imerg else "En el calendario difieren a lo sumo en un mes de pico."}</p>
 
+</section>
+
+<section>
+  <h2>¿Sirve la lluvia para estimar el caudal?</h2>
+  <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
+  <p>Hasta aquí, el caudal sigue a la lluvia del mismo mes y arrastra algo del anterior. La prueba más exigente
+  de esa relación es usarla para <b>estimar el caudal en años que el ajuste no vio</b>. Se ajusta una recta del
+  caudal contra la lluvia con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} y se evalúa con {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}. Los
+  dos bloques son continuos, para que meses vecinos, que se parecen entre sí, no queden uno en cada lado. La
+  referencia es la <b>climatología</b>: el caudal medio de cada mes del calendario en el bloque de ajuste.
+  Superarla quiere decir que la lluvia dice algo del caudal que el calendario solo no dice.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
+    <th class="num">RMSE en la evaluación (m³/s)</th><th class="num">MAE en la evaluación</th>
+    <th class="num">Sesgo en la evaluación</th><th class="num">Meses evaluados</th></tr></thead>
+    <tbody>
+{ev_filas}
+    </tbody>
+  </table>
+  </div>
+  <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
+  <p><b>La mejor estimación sale de {ev_mejor}</b>: en los años de evaluación se equivoca en
+  {ev_tabla[ev_mejor]["validacion"]["rmse"]:.1f} m³/s (RMSE), contra {ev_rmse_clima:.1f} de la climatología.
+  Con PI del mismo mes el error es de {ev_tabla["PI del mismo mes"]["validacion"]["rmse"]:.1f} m³/s: otra vez los
+  pluviómetros le ganan al satélite. Con la lluvia del mes anterior sola el error es mayor
+  ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f} con PL), como se espera de un río que responde sobre
+  todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
+  {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
+  corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
+  <p class="nota">Una recta mensual simplifica mucho: no representa el agua guardada en el suelo, la humedad
+  que trae la cuenca ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Además,
+  IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  </div>
 </section>
 
 <section>
@@ -3164,6 +3306,49 @@ a {{ color: var(--acento); }}
     ], anual, CONF);
   }}
 
+
+  const P2 = {p2_pipl_json};
+  const EV = {ev_json};
+
+  function dibujarPuntoDos() {{
+    if (!window.Plotly) return;
+    const AZUL = "#0072B2", NARANJA = "#D55E00", GRIS = css("--tenue");
+    const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    const tope = Math.ceil(Math.max(...P2.pi, ...P2.pl) / 50) * 50;
+    const d1 = base();
+    d1.hovermode = "closest";
+    d1.margin = {{ t: 30, r: 10, b: 48, l: 58 }};
+    d1.showlegend = false;
+    d1.xaxis.range = [0, tope]; d1.yaxis.range = [0, tope];
+    d1.xaxis.title = {{ text: "PI (mm/mes)", font: {{ size: 11, color: GRIS }} }};
+    d1.yaxis.title.text = "PL (mm/mes)";
+    d1.yaxis.scaleanchor = "x";
+    d1.shapes = [{{ type: "line", x0: 0, y0: 0, x1: tope, y1: tope, line: {{ color: GRIS, width: 1, dash: "dash" }} }}];
+    d1.annotations = [{{ x: tope * 0.97, y: tope * 0.97, xanchor: "right", yanchor: "bottom", showarrow: false,
+                         text: "PI = PL", font: {{ size: 10, color: GRIS }} }}];
+    Plotly.react("g-pi-pl", [{{
+      type: "scatter", mode: "markers", x: P2.pi, y: P2.pl,
+      customdata: P2.periodo,
+      marker: {{ size: 7, opacity: 0.8, color: P2.mes, colorscale: "Viridis", cmin: 1, cmax: 12,
+                 colorbar: {{ title: {{ text: "mes", font: {{ size: 10 }} }}, tickvals: [1,2,3,4,5,6,7,8,9,10,11,12],
+                              ticktext: MESES_CORTOS, thickness: 10, len: 0.9 }} }},
+      hovertemplate: "%{{customdata}}<br>PI %{{x:.0f}} mm · PL %{{y:.0f}} mm<extra></extra>"
+    }}], d1, CONF);
+
+    const d2 = base();
+    d2.margin.t = 46;
+    d2.yaxis.title.text = "Q (m³/s)";
+    Plotly.react("g-evaluacion", [
+      {{ type: "scatter", mode: "lines", name: "Q observado", x: EV.meses, y: EV.q,
+         line: {{ color: css("--tinta"), width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>Q observado</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "climatología", x: EV.meses, y: EV.clima,
+         line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} m³/s<extra>climatología</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "estimado con PL", x: EV.meses, y: EV.pl,
+         line: {{ color: NARANJA, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PL</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "estimado con PI", x: EV.meses, y: EV.pi,
+         line: {{ color: AZUL, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PI</extra>" }}
+    ], d2, CONF);
+  }}
   const BAL = {bal_json};
 
   function dibujarBalance() {{
@@ -3337,6 +3522,7 @@ a {{ color: var(--acento); }}
     dibujarCicloRezago();
     dibujarCajas();
     dibujarBalance();
+    dibujarPuntoDos();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

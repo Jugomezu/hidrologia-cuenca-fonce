@@ -155,8 +155,7 @@ Python, en notebooks; el informe se arma aparte en HTML.
 22. **Hay un solo informe** (decidido el 2026-10-04): `reporte/reporte-fonce.html`, generado por
     `scripts/18_reporte_html.py`. Todo lo que vaya al informe, de cualquier punto y de cualquier persona,
     entra como una sección de ese script. **No se hacen informes, visores ni páginas HTML aparte.** El visor
-    `reporte/punto2_i.html` del Punto 2 es anterior a esta regla: queda pendiente integrarlo al informe y
-    después borrarlo.
+    `reporte/punto2_i.html` del Punto 2, anterior a esta regla, se integró al informe y se borró el 2026-10-04.
 
 ## Estructura
 

@@ -48,7 +48,6 @@ Los paquetes están en `requirements.txt`, en la raíz.
 | 14 | `14_figuras_morfometria.py` | Figuras de la morfometría | `out/` de 13 | `reporte/figuras/` |
 | 15 | `15_cauce_desde_dem.py` | Cauce principal derivado del DEM con pysheds, comparado con el de CAMELS-COL | DEM, `out/` de 13 | `out/comparacion_cauces.csv`, `out/perfil_cauce_dem.csv` |
 | 16 | `16_correlaciones_variables.py` | Correlaciones entre PI, PL, Q, ETP y las dos temperaturas | `out/` de 02, 05, 06, 06b, 07 | `out/correlaciones_*.csv`, `out/variables_mensuales.csv` |
-| 16b | `16b_punto2_json.py` | Pares mensuales PI–PL, PL–Q y PI–Q, con correlaciones, errores y evaluación fuera del periodo de ajuste, para el visor del Punto 2 | `out/variables_mensuales.csv`, `out/shp_fonce/areas_cuencas.csv` | `out/punto2_imerg_lluvia_local.json` (lo lee `reporte/punto2_i.html`) |
 | 17 | `17_oni_enso.py` | Descarga el Índice Oceánico El Niño (ONI) de la NOAA y marca cada mes como El Niño, La Niña o neutro | internet (NOAA CPC), una sola vez; luego `data/noaa/` | `out/oni_mensual.csv` |
 | 18 | `18_reporte_html.py` | Arma el informe HTML | casi todo `out/` y `reporte/figuras/` | `reporte/reporte-fonce.html` |
 
@@ -84,6 +83,9 @@ Scripts que ya no forman parte de la tubería. Se conservan como registro de có
 - **`23_pluviometros_dhime.py`**: la primera descarga de pluviómetros (3 estaciones, 1981-2022),
   reemplazada por `07_pluviometros_dhime.py`.
 - **`26_imerg_diario_fonce.py`**: IMERG diario sobre la cuenca. Se descargó pero ningún análisis lo usa.
+- **`16b_punto2_json.py`**: exportaba los pares PI–PL, PL–Q y PI–Q y la evaluación fuera del período de
+  ajuste para el visor del Punto 2 (`reporte/punto2_i.html`). El visor se integró al informe y se borró el
+  2026-10-04 (regla 22); el informe calcula lo mismo en `18_reporte_html.py`.
 - **`27_era5land_temperatura.py`**: primer intento de bajar ERA5-Land por el Climate Data Store,
   abandonado porque la cola del servicio no avanzaba; se reemplazó por Earth Engine (06). **No correrlo**:
   escribe el mismo archivo de temperatura que usa el análisis.

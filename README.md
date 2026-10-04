@@ -46,9 +46,8 @@ organiza por punto del taller:
 | 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | hecho |
 | 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | hecho |
 
-Pendientes ya identificados, fuera de la sección 4:
-- **Análisis de Fourier** de las series. Ahí se retomará el **índice de flujo base**: el de CAMELS-COL
-  se quitó del informe, y la idea es calcular uno propio con el filtro de Ladson et al. (2013).
+El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
+(2026-10-04).
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
 `scripts/18_reporte_html.py`. Se abre en un navegador y necesita internet para cargar Plotly.

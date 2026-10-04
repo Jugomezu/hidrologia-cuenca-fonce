@@ -1201,30 +1201,6 @@ section, section h3 { scroll-margin-top: 20px; }
   meses, que es el sesgo del 12.0 % ya conocido.
   En el calendario difieren a lo sumo en un mes de pico.</p>
 
-  <h3>La cuenca no responde igual a las dos temporadas</h3>
-  <p>Los dos picos de lluvia son casi idénticos: se diferencian en un
-  2 % (264 mm/mes el primero contra 268 el
-  segundo). El caudal los separa un poco más —el segundo pico queda un
-  5 % por encima del primero, 169 contra
-  161 mm/mes—, pero la diferencia entre los picos es modesta y por sí sola no dice
-  gran cosa. Lo que sí es contundente aparece al dividir mes a mes.</p>
-
-  <div id="g-escorrentia-mes" class="grafico" style="min-height:300px"></div>
-  <p class="nota">Cada punto es el promedio de ese mes del calendario a lo largo de los 262 meses
-  con dato en las tres series. Un valor de 0.50 significa que la mitad de la lluvia de ese mes sale por
-  el río y la otra mitad se evapora o se queda en el suelo.</p>
-
-  <div class="revision" data-etiqueta="Revisión · resumen del coeficiente">
-  <p>El coeficiente de escorrentía mensual (Q/P) <b>sube a lo largo del año</b>: con PL va de
-  0.41 en mar a 0.74 en dic
-  (1.8 veces), y con PI de 0.43 en ago a
-  0.96 en dic (2.2 veces); la forma es la misma con
-  las dos fuentes y solo cambia la magnitud, porque PL mide más lluvia. Una explicación razonable, que
-  aquí no se prueba, es la memoria del suelo: al empezar la temporada de lluvias parte del agua recarga el
-  suelo y rinde menos escorrentía, y al final, con el suelo ya húmedo, la misma lluvia rinde más. Eso
-  conecta con los meses en que el coeficiente pasa de 1, que están en la sección «Lo que le cae a la
-  cuenca y lo que sale por el río».</p>
-  </div>
 </section>
 
 <section>
@@ -1908,28 +1884,6 @@ section, section h3 { scroll-margin-top: 20px; }
          hovertemplate: "%{y:.0f} mm<extra>Q</extra>" }
     ], Object.assign(base(), { margin: { t: 58, r: 12, b: 38, l: 56 } }), CONF);
 
-    const disp = base();
-    disp.margin = { t: 64, r: 12, b: 42, l: 56 };
-    disp.yaxis.title.text = "fracción de la lluvia que sale por el río";
-    disp.yaxis.rangemode = "tozero";
-    // la referencia en 1 se rotula dentro del gráfico: es el umbral que da sentido a toda la curva
-    disp.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: 1, y1: 1,
-                     line: { color: GRIS, width: 1.2, dash: "dot" } }];
-    disp.annotations = [
-      { xref: "paper", x: 0.996, xanchor: "right", y: 1, yanchor: "bottom",
-         text: "sale tanta agua como la que cae en el mes", showarrow: false,
-         font: { size: 10, color: GRIS } }
-    ];
-    Plotly.react("g-escorrentia-mes", [
-      { type: "scatter", mode: "lines+markers", name: "Q ÷ PI",
-         x: CICLO.meses, y: CICLO.escImerg,
-         line: { color: AZUL, width: 2.2 }, marker: { size: 7 },
-         hovertemplate: "%{y:.2f}<extra>Q ÷ PI</extra>" },
-      { type: "scatter", mode: "lines+markers", name: "Q ÷ PL",
-         x: CICLO.meses, y: CICLO.escRed,
-         line: { color: NARANJA, width: 2, dash: "dot" }, marker: { size: 6.5 },
-         hovertemplate: "%{y:.2f}<extra>Q ÷ PL</extra>" }
-    ], disp, CONF);
   }
 
   const GRAD = {"imerg": {"alt": [1843.0, 1751.0, 1642.0, 1383.0, 2934.0, 2484.0, 1697.0, 1544.0, 1632.0, 1561.0, 1416.0, 3665.0, 2957.0, 2285.0, 1868.0, 1992.0, 1696.0, 1745.0, 3046.0, 3546.0, 3199.0, 2649.0, 2682.0, 1945.0, 1851.0, 1504.0, 3494.0, 3190.0, 2604.0, 2096.0], "p": [2422.0, 2501.0, 2536.0, 2488.0, 1971.0, 2148.0, 2300.0, 2397.0, 2455.0, 2422.0, 2329.0, 1918.0, 2075.0, 2200.0, 2265.0, 2362.0, 2370.0, 2279.0, 1737.0, 1952.0, 2044.0, 2089.0, 2205.0, 2246.0, 2171.0, 2092.0, 1953.0, 1982.0, 2069.0, 2086.0], "frac": [28.0, 12.0, 4.0, 6.0, 42.0, 57.0, 95.0, 100.0, 99.0, 80.0, 17.0, 63.0, 100.0, 100.0, 100.0, 100.0, 100.0, 53.0, 2.0, 45.0, 98.0, 100.0, 87.0, 89.0, 86.0, 4.0, 24.0, 20.0, 1.0, 1.0]}, "imergBorde": {"alt": [1843.0, 1751.0, 1642.0, 1383.0, 1416.0, 3046.0, 1504.0, 3494.0, 3190.0, 2604.0, 2096.0], "p": [2422.0, 2501.0, 2536.0, 2488.0, 2329.0, 1737.0, 2092.0, 1953.0, 1982.0, 2069.0, 2086.0], "frac": [28.0, 12.0, 4.0, 6.0, 17.0, 2.0, 4.0, 24.0, 20.0, 1.0, 1.0]}, "plu": {"alt": [1300.0, 1350.0, 1520.0, 1673.0, 1814.0, 2107.0, 2625.0], "p": [2189.0, 2697.0, 2512.0, 2839.0, 3192.0, 1902.0, 2211.0], "nombre": ["VALLE DE SAN JOSE", "CHARALÁ", "COROMORO", "ESCUELA AGRICOLA MOGOTES", "ENCINO", "PUEBLO VIEJO", "PAVAS LAS"]}, "pluFuera": {"alt": [1408.0], "p": [1153.0], "nombre": ["MAMONAL EL HACIENDA"]}, "rectaImerg": {"x": [1383.1547222222223, 3665.1875], "y": [2416.0, 1909.0]}, "rectaPlu": {"x": [1300.0, 2625.0], "y": [2645.0, 2252.0]}, "pluLimpio": {"alt": [1300.0, 1350.0, 1520.0, 1673.0, 2625.0], "p": [2189.0, 2697.0, 2512.0, 2839.0, 2211.0], "nombre": ["VALLE DE SAN JOSE", "CHARALÁ", "COROMORO", "ESCUELA AGRICOLA MOGOTES", "PAVAS LAS"]}, "pluAparte": {"alt": [1814.0, 2107.0], "p": [3192.0, 1902.0], "nombre": ["ENCINO", "PUEBLO VIEJO"]}, "rectaLimpio": {"x": [1300.0, 2625.0], "y": [2565.0, 2312.0]}, "rectaImergEnTramo": {"x": [1300.0, 2625.0], "y": [2434.0, 2140.0]}};

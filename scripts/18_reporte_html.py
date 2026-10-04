@@ -2266,30 +2266,6 @@ a {{ color: var(--acento); }}
   meses, que es el sesgo del {abs(cmp_stats[NOM_RED]['sesgo']):.1f} % ya conocido.
   {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if ciclo_picos_red == ciclo_picos_imerg else "En el calendario difieren a lo sumo en un mes de pico."}</p>
 
-  <h3>La cuenca no responde igual a las dos temporadas</h3>
-  <p>Los dos picos de lluvia son casi idénticos: se diferencian en un
-  {ciclo_lluvia_igual * 100:.0f} % ({n(ciclo_pico1)} mm/mes el primero contra {n(ciclo_pico2)} el
-  segundo). El caudal los separa un poco más —el segundo pico queda un
-  {ciclo_amplifica * 100:.0f} % por encima del primero, {n(ciclo_q_pico2)} contra
-  {n(ciclo_q_pico1)} mm/mes—, pero la diferencia entre los picos es modesta y por sí sola no dice
-  gran cosa. Lo que sí es contundente aparece al dividir mes a mes.</p>
-
-  <div id="g-escorrentia-mes" class="grafico" style="min-height:300px"></div>
-  <p class="nota">Cada punto es el promedio de ese mes del calendario a lo largo de los {ciclo_n} meses
-  con dato en las tres series. Un valor de 0.50 significa que la mitad de la lluvia de ese mes sale por
-  el río y la otra mitad se evapora o se queda en el suelo.</p>
-
-  <div class="revision" data-etiqueta="Revisión · resumen del coeficiente">
-  <p>El coeficiente de escorrentía mensual (Q/P) <b>sube a lo largo del año</b>: con PL va de
-  {ciclo_esc_min_red:.2f} en {ciclo_esc_min_mes_red} a {ciclo_esc_max_red:.2f} en {ciclo_esc_max_mes_red}
-  ({ciclo_esc_razon_red:.1f} veces), y con PI de {ciclo_esc_min:.2f} en {ciclo_esc_min_mes} a
-  {ciclo_esc_max:.2f} en {ciclo_esc_max_mes} ({ciclo_esc_razon_imerg:.1f} veces); la forma es la misma con
-  las dos fuentes y solo cambia la magnitud, porque PL mide más lluvia. Una explicación razonable, que
-  aquí no se prueba, es la memoria del suelo: al empezar la temporada de lluvias parte del agua recarga el
-  suelo y rinde menos escorrentía, y al final, con el suelo ya húmedo, la misma lluvia rinde más. Eso
-  conecta con los meses en que el coeficiente pasa de 1, que están en la sección «Lo que le cae a la
-  cuenca y lo que sale por el río».</p>
-  </div>
 </section>
 
 <section>
@@ -2966,28 +2942,6 @@ a {{ color: var(--acento); }}
          hovertemplate: "%{{y:.0f}} mm<extra>Q</extra>" }}
     ], Object.assign(base(), {{ margin: {{ t: 58, r: 12, b: 38, l: 56 }} }}), CONF);
 
-    const disp = base();
-    disp.margin = {{ t: 64, r: 12, b: 42, l: 56 }};
-    disp.yaxis.title.text = "fracción de la lluvia que sale por el río";
-    disp.yaxis.rangemode = "tozero";
-    // la referencia en 1 se rotula dentro del gráfico: es el umbral que da sentido a toda la curva
-    disp.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: 1, y1: 1,
-                     line: {{ color: GRIS, width: 1.2, dash: "dot" }} }}];
-    disp.annotations = [
-      {{ xref: "paper", x: 0.996, xanchor: "right", y: 1, yanchor: "bottom",
-         text: "sale tanta agua como la que cae en el mes", showarrow: false,
-         font: {{ size: 10, color: GRIS }} }}
-    ];
-    Plotly.react("g-escorrentia-mes", [
-      {{ type: "scatter", mode: "lines+markers", name: "Q ÷ PI",
-         x: CICLO.meses, y: CICLO.escImerg,
-         line: {{ color: AZUL, width: 2.2 }}, marker: {{ size: 7 }},
-         hovertemplate: "%{{y:.2f}}<extra>Q ÷ PI</extra>" }},
-      {{ type: "scatter", mode: "lines+markers", name: "Q ÷ PL",
-         x: CICLO.meses, y: CICLO.escRed,
-         line: {{ color: NARANJA, width: 2, dash: "dot" }}, marker: {{ size: 6.5 }},
-         hovertemplate: "%{{y:.2f}}<extra>Q ÷ PL</extra>" }}
-    ], disp, CONF);
   }}
 
   const GRAD = {grad_json};

@@ -346,6 +346,34 @@ def _record_mes(v, p):
 feb99 = {v: _record_mes(v, _F99) for v in ("PI", "PL")}
 feb99_q_atipico = atip_marca.loc[_F99, "Q"] == "alto"
 
+# Enero de 2005: hoy no es atípico, pero lo era en PL antes de excluir el primer tramo de Pueblo Viejo
+# (1998-01 a 2004-11). Su valor no cambió: cambió el umbral, porque ese tramo bajaba los eneros de 1998-2004.
+# Para documentarlo se rearma PL con todas las exclusiones menos esa (solo aquí; el análisis usa la depurada).
+_E05, _F05 = pd.Period("2005-01", "M"), pd.Period("2005-02", "M")
+_pm_crudo = pd.read_csv("out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])
+_pm_crudo["periodo"] = _pm_crudo.fecha.dt.to_period("M")
+_plu_con_pv = _pm_crudo.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO].copy()
+for _e in pd.read_csv("out/pluviometros_exclusiones.csv").itertuples():
+    if _e.codigo != 24020230 or _e.desde != "1998-01":
+        _plu_con_pv.loc[pd.Period(_e.desde, "M"):pd.Period(_e.hasta, "M"), _e.codigo] = np.nan
+_red_con_pv = _plu_con_pv.mean(axis=1).reindex(PERIODOS)
+
+
+def _umbral_alto(serie, mes):
+    x = serie[serie.index.month == mes].dropna()
+    q1, q3 = x.quantile(0.25, interpolation="linear"), x.quantile(0.75, interpolation="linear")
+    return q3 + FACTOR_ATIPICO * (q3 - q1)
+
+
+ene05 = {"pl": float(variables_resumen.loc[_E05, "PL"]), "pl_con_pv": float(_red_con_pv[_E05]),
+         "umbral_hoy": _umbral_alto(variables_resumen["PL"], 1), "umbral_antes": _umbral_alto(_red_con_pv, 1),
+         "z_pl": atip_z.loc[_E05, "PL"], "z_pi": atip_z.loc[_E05, "PI"], "z_q": atip_z.loc[_E05, "Q"],
+         "z_pl_feb": atip_z.loc[_F05, "PL"], "z_pi_feb": atip_z.loc[_F05, "PI"], "z_q_feb": atip_z.loc[_F05, "Q"]}
+# el valor de enero de 2005 es el mismo con y sin el tramo (Pueblo Viejo sí tiene dato desde 2004-12)
+assert abs(ene05["pl"] - ene05["pl_con_pv"]) < 1e-9
+# el texto dice que antes era atípico y hoy no: si los datos dejan de respaldarlo, el script se detiene
+assert ene05["umbral_antes"] < ene05["pl"] <= ene05["umbral_hoy"]
+
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
@@ -357,6 +385,8 @@ CITA_DEFENSORIA = '<a class="cita" href="#ref-defensoria2005">Defensoría del Pu
 CITA_BECK = '<a class="cita" href="#ref-beck2022">Beck et al., 2022</a>'
 CITA_HYNDMAN = '<a class="cita" href="#ref-hyndman1996">Hyndman y Fan, 1996</a>'
 CITA_ONI = '<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>'
+CITA_KRUSKAL = '<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>'
+CITA_HORN = '<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -382,16 +412,11 @@ lista_meses = lambda meses: ", ".join(fecha_enso(p) for p in meses) if len(meses
 # texto se arma igual con lo que haya.
 _confirmada_nina = [p for p in lluvia_confirmada if oni_fase.get(p) == "La Niña"]
 _confirmada_otras = [p for p in lluvia_confirmada if oni_fase.get(p) != "La Niña"]
-_ENE_2005 = pd.Period("2005-01", "M")
 lectura_enso_lluvia = (
     f"Todos, menos {lista_meses(_confirmada_otras)}, cayeron en episodios de La Niña."
     if _confirmada_nina and _confirmada_otras else
     "Todos cayeron en episodios de La Niña." if _confirmada_nina else "")
-if _ENE_2005 in _confirmada_otras:
-    lectura_enso_lluvia += (
-        " Enero de 2005 coincide con la emergencia invernal de inicios de 2005 en Santander, que el IDEAM "
-        f"atribuyó a frentes fríos atípicos ({CITA_DEFENSORIA}); no hay información suficiente para "
-        "confirmarlo en esta cuenca.")
+# enero y febrero de 2005 (emergencia invernal en Santander) tienen su propio punto en la lista, siempre visible
 
 
 def _celda_atip(p, v):
@@ -519,6 +544,100 @@ ciclo_valle_q = mes_de(ciclo.caudal, "min")
 ciclo_esc_min_mes, ciclo_esc_max_mes = mes_de(ciclo.escorrentia_imerg, "min"), mes_de(ciclo.escorrentia_imerg)
 ciclo_esc_min = ciclo.escorrentia_imerg.min()
 ciclo_esc_max = ciclo.escorrentia_imerg.max()
+
+# ---------------------------------------------------------------- régimen del ciclo anual
+# El mismo cálculo de la sección 1.9 del notebook. Mediana de cada mes del calendario; mes típico = promedio de
+# las 12 medianas; mes húmedo si su mediana lo supera. Concentración: % de la suma de las medianas en los
+# meses húmedos. Q va en mm/mes en todo el régimen (volumen por área, misma unidad que PL y PI). Forma: armónicos 1 y 2 (Horn y Bryson, 1960); los
+# picos se cuentan sobre la curva ajustada. Estacionalidad: Kruskal-Wallis entre los 12 meses (Kruskal y
+# Wallis, 1952). Clasificación: débil si p >= ALFA_KW; si no, bimodal con dos picos; si no, unimodal.
+ALFA_KW = 0.05
+REG_PASOS = 1200
+_reg_t = np.arange(12)
+
+
+def _reg_medianas(serie):
+    return serie.groupby(serie.index.month).median().reindex(range(1, 13)).to_numpy()
+
+
+def _reg_armonico(x, k):
+    return (2 / 12 * np.sum(x * np.cos(2 * np.pi * k * _reg_t / 12)),
+            2 / 12 * np.sum(x * np.sin(2 * np.pi * k * _reg_t / 12)))
+
+
+def _reg_curva(x, t):
+    y = np.full(len(t), x.mean())
+    for k in (1, 2):
+        a, b = _reg_armonico(x, k)
+        y += a * np.cos(2 * np.pi * k * t / 12) + b * np.sin(2 * np.pi * k * t / 12)
+    return y
+
+
+def _reg_rachas(es_humedo):
+    """Rachas circulares de meses con el mismo estado: [(primer mes 0-11, duración, húmedo)]."""
+    if es_humedo.all() or (~es_humedo).all():
+        return [(0, 12, bool(es_humedo[0]))]
+    inicio = next(m for m in range(12) if es_humedo[m] != es_humedo[m - 1])
+    rachas = []
+    for m in [(inicio + i) % 12 for i in range(12)]:
+        if rachas and es_humedo[m] == rachas[-1][2]:
+            rachas[-1][1] += 1
+        else:
+            rachas.append([m, 1, bool(es_humedo[m])])
+    return rachas
+
+
+def _reg_nombre(m, d):
+    meses = MESES_LARGOS_ES[m] if d == 1 else f"{MESES_LARGOS_ES[m]} a {MESES_LARGOS_ES[(m + d - 1) % 12]}"
+    return f"{meses} ({d} {'mes' if d == 1 else 'meses'})"
+
+
+_reg_q_mm = variables_resumen["Q"] * variables_resumen.index.days_in_month * 86400 / (AREA_SG_KM2 * 1e6) * 1000
+REG_SERIES = {"PL": (variables_resumen["PL"], variables_resumen["PL"], "mm/mes"),
+              "PI": (variables_resumen["PI"], variables_resumen["PI"], "mm/mes"),
+              "Q": (_reg_q_mm, _reg_q_mm, "mm/mes")}
+regimen = {}
+for _n, (_s, _s_conc, _u) in REG_SERIES.items():
+    _med = _reg_medianas(_s)
+    _tipico = _med.mean()
+    _rachas = _reg_rachas(_med > _tipico)
+    _mc = _reg_medianas(_s_conc)
+    _hc = _mc > _mc.mean()
+    _amp = {k: np.hypot(*_reg_armonico(_med, k)) for k in (1, 2)}
+    _ta = np.arange(REG_PASOS) * 12 / REG_PASOS
+    _ya = _reg_curva(_med, _ta)
+    _picos = _ta[(_ya > np.roll(_ya, 1)) & (_ya > np.roll(_ya, -1))]
+    _kw = stats.kruskal(*[_s[_s.index.month == m].dropna() for m in range(1, 13)])
+    regimen[_n] = {
+        "unidad": _u, "medianas": _med, "tipico": _tipico,
+        "max": MESES_LARGOS_ES[int(np.argmax(_med))], "min": MESES_LARGOS_ES[int(np.argmin(_med))],
+        "amp": _med.max() - _med.min(), "amp_rel": (_med.max() - _med.min()) / _tipico * 100,
+        "humedas": [_reg_nombre(m, d) for m, d, h in _rachas if h],
+        "secas": [_reg_nombre(m, d) for m, d, h in _rachas if not h],
+        "conc": _mc[_hc].sum() / _mc.sum() * 100, "conc_meses": int(_hc.sum()),
+        "a2a1": _amp[2] / _amp[1],
+        "var1": _amp[1] ** 2 / 2 / _med.var(ddof=0) * 100, "var2": _amp[2] ** 2 / 2 / _med.var(ddof=0) * 100,
+        "picos": [MESES_LARGOS_ES[int(round(p)) % 12] for p in _picos],
+        "kw_p": _kw.pvalue,
+        "clase": "estacionalidad débil" if _kw.pvalue >= ALFA_KW else ("bimodal" if len(_picos) == 2 else "unimodal"),
+    }
+reg_clases = sorted({r["clase"] for r in regimen.values()})
+reg_kw_max = max(r["kw_p"] for r in regimen.values())
+_reg_indicadores = [
+    ("Máximo", lambda r: r["max"]), ("Mínimo", lambda r: r["min"]),
+    ("Amplitud (% del mes típico)", lambda r: f"{r['amp']:.1f} {r['unidad']} ({r['amp_rel']:.0f} %)"),
+    ("Temporadas húmedas", lambda r: "; ".join(r["humedas"])),
+    ("Temporadas secas", lambda r: "; ".join(r["secas"])),
+    ("Concentración en los meses húmedos", lambda r: f"{r['conc']:.1f} % en {r['conc_meses']} meses"),
+    ("A₂/A₁", lambda r: f"{r['a2a1']:.2f}"),
+    ("Varianza que explican A₁ · A₂", lambda r: f"{r['var1']:.0f} % · {r['var2']:.0f} %"),
+    ("Picos de la curva", lambda r: f"{len(r['picos'])} ({' y '.join(r['picos'])})"),
+    ("Kruskal-Wallis <i>p</i>", lambda r: f"{r['kw_p']:.0e}"),
+    ("Régimen", lambda r: f"<b>{r['clase']}</b>"),
+]
+reg_filas = "\n".join(f"<tr><td>{nombre}</td>" + "".join(f"<td>{f(r)}</td>" for r in regimen.values()) + "</tr>"
+                      for nombre, f in _reg_indicadores)
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
@@ -1927,6 +2046,19 @@ a {{ color: var(--acento); }}
     PL {atip_z.loc[_F99, "PL"]:+.1f} rangos intercuartiles por encima de lo normal para febrero.
     {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Vale la pena tenerlo en cuenta como
     evento extremo.</li>
+    <li class="revision" data-etiqueta="Revisión · enero y febrero de 2005"><b>Enero y febrero de 2005: la emergencia
+    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de
+    2005, con Santander entre los departamentos más golpeados: inundaciones, la avalancha del río de Oro y la
+    declaratoria de calamidad pública en Bucaramanga y Girón. Según el IDEAM, citado en ese documento, las lluvias,
+    atípicas para la época, se debieron a cuatro frentes fríos del hemisferio norte, cuando entre enero y febrero
+    normalmente ocurren uno o dos ({CITA_DEFENSORIA}). En la cuenca, enero de 2005 estuvo
+    {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal para enero en PL, {ene05["z_pi"]:+.1f} en PI y
+    {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f} y {ene05["z_q_feb"]:+.1f}.
+    Enero de 2005 salía como atípico de PL ({n(ene05["pl"])} mm) antes de excluir el primer tramo de Pueblo Viejo:
+    el umbral de enero era {n(ene05["umbral_antes"])} mm y hoy es {n(ene05["umbral_hoy"])} mm. El valor del mes
+    no cambió; subió el umbral, porque ese tramo, que medía cerca de la cuarta parte que sus vecinos, bajaba los
+    eneros de 1998 a 2004. El documento no nombra la cuenca del Fonce, así que no se puede confirmar que esas lluvias
+    fueran las mismas que se ven aquí.</li>
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
@@ -2301,6 +2433,32 @@ a {{ color: var(--acento); }}
   </script>
   </div>
 
+  <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">
+  <h3>El régimen: picos, temporadas, concentración y forma</h3>
+  <p>Con la <b>mediana</b> de cada mes del calendario se describe el régimen de PL, PI y Q. El <b>mes típico</b> es el
+  promedio de las 12 medianas: un mes es <b>húmedo</b> si su mediana lo supera y <b>seco</b> si no, y las temporadas
+  son las rachas de meses seguidos (diciembre y enero cuentan como seguidos). La <b>concentración</b> es la parte de
+  la suma de las medianas que cae en los meses húmedos. Q va en mm/mes: sumar caudales medios en m³/s no da un
+  volumen, y en mm/mes las tres series quedan en la misma unidad. La <b>forma</b> sale de los dos primeros armónicos de Fourier, el de 12 meses (A₁) y el de 6 meses
+  (A₂) ({CITA_HORN}): si A₂ domina, el ciclo tiene dos picos, y los picos se cuentan sobre la curva ajustada con esos
+  dos armónicos. Si hay estacionalidad lo dice la prueba de Kruskal-Wallis entre los 12 meses ({CITA_KRUSKAL}).</p>
+  <p><b>Clasificación:</b> estacionalidad débil si Kruskal-Wallis no es significativa (<i>p</i> ≥ {ALFA_KW}); si no,
+  bimodal si la curva ajustada tiene dos picos; si no, unimodal.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Indicador</th><th>PL</th><th>PI</th><th>Q</th></tr></thead>
+    <tbody>
+{reg_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>El régimen es {" y ".join(reg_clases)}{" en las tres series" if len(reg_clases) == 1 else ""}.</b> Kruskal-Wallis
+  rechaza que los 12 meses sean iguales con <i>p</i> de {reg_kw_max:.0e} o menos. Con PL los picos caen en
+  {" y ".join(regimen["PL"]["picos"])}, con PI en {" y ".join(regimen["PI"]["picos"])} y con Q en
+  {" y ".join(regimen["Q"]["picos"])}. Los porcentajes de concentración de PI y PL no se comparan directamente: con PI
+  hay {regimen["PI"]["conc_meses"]} meses húmedos y con PL, {regimen["PL"]["conc_meses"]}.</p>
+  </div>
+
   <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
   <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.
   Aquí van las tres series juntas: la lluvia según el satélite, la lluvia según la red de pluviómetros y
@@ -2474,6 +2632,9 @@ a {{ color: var(--acento); }}
     <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
     temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
     <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
+    <li id="ref-horn1960">Horn, L. H., y Bryson, R. A. (1960). Harmonic analysis of the annual march of
+    precipitation over the United States. <i>Annals of the Association of American Geographers</i>, 50, 157–171.
+    <a href="https://doi.org/10.1111/j.1467-8306.1960.tb00342.x">https://doi.org/10.1111/j.1467-8306.1960.tb00342.x</a></li>
     <li id="ref-huffman2023">Huffman, G. J., Bolvin, D. T., Joyce, R., Kelley, O. A., Nelkin, E. J., Tan, J., Watters,
     D. C., y West, B. J. (2023, 13 de julio). <i>Integrated Multi-satellitE Retrievals for GPM (IMERG) Technical
     Documentation</i> (V07). NASA Goddard Space Flight Center.
@@ -2485,6 +2646,9 @@ a {{ color: var(--acento); }}
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).
     <a href="https://doi.org/10.5194/essd-2025-200">https://doi.org/10.5194/essd-2025-200</a></li>
+    <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
+    analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
+    <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.

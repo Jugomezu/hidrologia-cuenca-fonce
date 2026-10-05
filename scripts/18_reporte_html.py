@@ -11,6 +11,7 @@ import base64, html, json
 from pathlib import Path
 import geopandas as gpd
 from scipy import stats
+from scipy.signal import lombscargle, periodogram
 import numpy as np
 import pandas as pd
 
@@ -677,6 +678,166 @@ _des_tc = pd.read_csv("out/tiempos_concentracion.csv").con_pendiente_medida_h
 desfase_tc = (_des_tc.min(), _des_tc.max())
 # el texto dice que el desfase es mucho mayor que el tiempo de concentración: si deja de serlo, se detiene
 assert min(desfase["Q_PL"], desfase["Q_PI"]) * 24 > 10 * desfase_tc[1]
+
+# ---------------------------------------------------------------- espectro mensual: Lomb-Scargle conserva los meses observados y admite huecos
+# El período se expresa en meses (muestreo mensual). Las anomalías quitan la climatología
+# de cada mes calendario, calculada con todos los años disponibles de cada variable.
+_espectro_series = {
+    "PI": comp["IMERG"].reindex(PERIODOS),
+    "PL": red.reindex(PERIODOS),
+    "Q": q_camels.reindex(PERIODOS),
+    "T": a_mensual(t_serie.set_index("fecha").t_media.reindex(
+        pd.date_range(PERIODOS[0].start_time, PERIODOS[-1].end_time, freq="D")), "mean"),
+}
+_espectro_colores = {"PI": "#0072B2", "PL": "#D55E00", "Q": "#009E73", "T": "#CC79A7"}
+_espectro_datos = {"series": {}, "frecuencia": [], "periodo": []}
+_espectro_ciclos = [12.0, 6.0]
+_espectro_frecuencia = np.linspace(1 / (len(PERIODOS) / 2), 0.5, len(PERIODOS) * 4)
+for _nombre, _serie in _espectro_series.items():
+    _valores = _serie.to_numpy(dtype=float)
+    _tiempo = np.arange(len(_serie), dtype=float)
+    _climatologia = _serie.groupby(_serie.index.month).transform("mean")
+    _versiones = {"original": _serie, "anomalia": _serie - _climatologia}
+    _espectro_datos["series"][_nombre] = {}
+    for _tipo, _valores_serie in _versiones.items():
+        _validos = _valores_serie.notna().to_numpy()
+        _t = _tiempo[_validos]
+        _y = _valores_serie.to_numpy(dtype=float)[_validos]
+        _y = _y - _y.mean()
+        _potencia = lombscargle(_t, _y, 2 * np.pi * _espectro_frecuencia, normalize=True)
+        _pico = int(np.argmax(_potencia))
+        _fft_frecuencia, _fft_potencia = (periodogram(_y, detrend="constant")
+                                          if _validos.all() else (np.array([]), np.array([])))
+        _fft_limite = _fft_frecuencia > 0
+        if _fft_potencia.size and _fft_potencia.max() > 0:
+            _fft_potencia = _fft_potencia / _fft_potencia.max()
+        _espectro_datos["series"][_nombre][_tipo] = {
+            "frecuencia": _espectro_frecuencia.tolist(), "potencia": _potencia.tolist(),
+            "fft_frecuencia": _fft_frecuencia[_fft_limite].tolist(),
+            "fft_potencia": _fft_potencia[_fft_limite].tolist(),
+            "pico_periodo": float(1 / _espectro_frecuencia[_pico]),
+            "pico_potencia": float(_potencia[_pico]), "n": int(_validos.sum()),
+            "anual": float(_potencia[np.argmin(abs(_espectro_frecuencia - 1 / _espectro_ciclos[0]))]),
+            "semestral": float(_potencia[np.argmin(abs(_espectro_frecuencia - 1 / _espectro_ciclos[1]))]),
+        }
+_espectro_json = json.dumps(_espectro_datos, ensure_ascii=False)
+_espectro_resumen = "".join(
+    f"<tr><td>{_nombre}</td><td>{_tipo}</td><td class='num'>{_datos['n']}</td>"
+    f"<td class='num'>{_datos['pico_periodo']:.1f}</td><td class='num'>{_datos['pico_potencia']:.3f}</td></tr>"
+    for _nombre, _tipos in _espectro_datos["series"].items()
+    for _tipo, _datos in _tipos.items())
+
+# ---------------------------------------------------------------- comparativo de ventanas: fuente de lluvia contra PL y espectros comunes/ampliados
+_pi_pl = pd.concat([comp["IMERG"].rename("PI"), red.rename("PL")], axis=1).dropna()
+_error_pi = _pi_pl.PI - _pi_pl.PL
+_error_pi_metricas = {"n": len(_pi_pl), "mae": _error_pi.abs().mean(),
+                      "rmse": np.sqrt((_error_pi ** 2).mean()), "sesgo": _error_pi.mean(),
+                      "sesgo_pct": _error_pi.sum() / _pi_pl.PL.sum() * 100}
+
+_cam_espectro = pd.read_csv(
+    "data/camels_col/hydromet/3_Hydrometeorological_data/Hydromet_data_24027010.txt",
+    sep="\t", encoding="latin-1")
+_cam_espectro.columns = ["fecha", "p_chirps", "etp", "t_min", "t_max", "caudal"]
+_cam_espectro["fecha"] = pd.to_datetime(_cam_espectro["fecha"], format="%d/%m/%Y")
+_fecha_inicio_ext, _fecha_fin_ext = _cam_espectro.fecha.min(), _cam_espectro.fecha.max()
+_cam_espectro = _cam_espectro.set_index("fecha").sort_index().reindex(
+    pd.date_range(_fecha_inicio_ext, _fecha_fin_ext, freq="D"))
+
+
+def _mensual_extendido(serie, acumulado=False):
+    """Agrega diarios con la misma tolerancia de faltantes, sin recortar a 1998–2022."""
+    grupos = serie.resample("MS")
+    media = grupos.mean()
+    faltantes = grupos.apply(lambda x: x.index.days_in_month[0] - x.notna().sum())
+    mensual = media * media.index.days_in_month if acumulado else media
+    mensual = mensual.where(faltantes <= MAX_DIAS_FALTANTES)
+    mensual.index = mensual.index.to_period("M")
+    return mensual
+
+
+_area_espectro = AREA_SG_KM2
+_q_mm_dia_ext = _cam_espectro.caudal * 86400 / (_area_espectro * 1e6) * 1000
+_t_mswx_dia_ext = (_cam_espectro.t_min + _cam_espectro.t_max) / 2
+_q_ext = _mensual_extendido(_q_mm_dia_ext, acumulado=True)
+_t_ext = _mensual_extendido(_t_mswx_dia_ext)
+_inicio_comun = max(_pi_pl.index.min(), _q_ext.index.min(), _t_ext.index.min())
+_fin_comun = min(_pi_pl.index.max(), _q_ext.index.max(), _t_ext.index.max())
+_periodos_comunes = pd.period_range(_inicio_comun, _fin_comun, freq="M")
+_espectros_ventanas = {}
+
+
+def _calcular_espectro(serie, clave):
+    valores = serie.to_numpy(dtype=float)
+    tiempo = np.arange(len(serie), dtype=float)
+    climatologia = serie.groupby(serie.index.month).transform("mean")
+    versiones = {"original": serie, "anomalia": serie - climatologia}
+    salida = {}
+    frecuencias = np.linspace(2 / len(serie), 0.5, len(serie) * 4)
+    for tipo, s in versiones.items():
+        validos = s.notna().to_numpy()
+        t = tiempo[validos]
+        y = s.to_numpy(dtype=float)[validos]
+        y = y - y.mean()
+        potencia = lombscargle(t, y, 2 * np.pi * frecuencias, normalize=True)
+        pico = int(np.argmax(potencia))
+        resultado = {"frecuencia": frecuencias.tolist(), "potencia": potencia.tolist(),
+                     "periodo_pico": float(1 / frecuencias[pico]), "n": int(validos.sum()),
+                     "variabilidad_interanual_pct": float(100 * potencia[frecuencias < 1 / 12].sum() / potencia.sum()),
+                     "fft_frecuencia": [], "fft_potencia": []}
+        if validos.all():
+            f_fft, p_fft = periodogram(y, detrend="constant")
+            en_banda = f_fft > 0
+            if p_fft[en_banda].size and p_fft[en_banda].max() > 0:
+                p_fft = p_fft / p_fft.max()
+            resultado["fft_frecuencia"] = f_fft[en_banda].tolist()
+            resultado["fft_potencia"] = p_fft[en_banda].tolist()
+        salida[tipo] = resultado
+    return salida
+
+
+_series_comunes_ventana = {
+    "PL": red.reindex(_periodos_comunes), "PI": comp["IMERG"].reindex(_periodos_comunes),
+    "Q": _q_ext.reindex(_periodos_comunes), "T": _t_ext.reindex(_periodos_comunes),
+}
+for _nombre, _serie in _series_comunes_ventana.items():
+    _espectros_ventanas[f"{_nombre} · común"] = _calcular_espectro(_serie, _nombre)
+for _nombre, _serie in {"Q": _q_ext, "T": _t_ext}.items():
+    _espectros_ventanas[f"{_nombre} · extendida"] = _calcular_espectro(_serie, _nombre)
+
+_comparacion_picos = {}
+for _nombre in ("Q", "T"):
+    for _tipo in ("original", "anomalia"):
+        _pc = _espectros_ventanas[f"{_nombre} · común"][_tipo]["periodo_pico"]
+        _pe = _espectros_ventanas[f"{_nombre} · extendida"][_tipo]["periodo_pico"]
+        _comparacion_picos[f"{_nombre}_{_tipo}"] = {
+            "comun": _pc, "extendida": _pe, "cambio": _pe - _pc,
+            "cambio_pct": (_pe / _pc - 1) * 100}
+_filas_c = pd.DataFrame({"Q": _q_ext.reindex(_periodos_comunes),
+                         "PI": comp["IMERG"].reindex(_periodos_comunes),
+                         "PL": red.reindex(_periodos_comunes)}).dropna()
+_coeficientes_c = {p: _filas_c.Q.sum() / _filas_c[p].sum() for p in ("PI", "PL")}
+_meses_q_comun = int(_q_ext.reindex(_periodos_comunes).notna().sum())
+_meses_q_ext = int(_q_ext.notna().sum())
+_comparacion_ventanas_json = json.dumps({
+    "periodos": [str(p) for p in _periodos_comunes],
+    "series": _espectros_ventanas,
+}, ensure_ascii=False)
+_tabla_comparativa_plotly = json.dumps({
+    "encabezados": ["Indicador", "Muestra", "n", "Resultado"],
+    "filas": ([
+        ["MAE PI−PL", "ventana común", _error_pi_metricas["n"], f"{_error_pi_metricas['mae']:.2f} mm/mes"],
+        ["RMSE PI−PL", "ventana común", _error_pi_metricas["n"], f"{_error_pi_metricas['rmse']:.2f} mm/mes"],
+        ["Sesgo PI−PL", "ventana común", _error_pi_metricas["n"], f"{_error_pi_metricas['sesgo']:+.2f} mm/mes ({_error_pi_metricas['sesgo_pct']:+.1f} %)"],
+        ["C con PI / C con PL", "meses pareados", len(_filas_c), f"{_coeficientes_c['PI']:.3f} / {_coeficientes_c['PL']:.3f}"],
+    ] + [[nombre, tipo, dato["n"], f"{dato['periodo_pico']:.1f} meses; interanual {dato['variabilidad_interanual_pct']:.1f} %"]
+         for nombre, versiones in _espectros_ventanas.items() for tipo, dato in versiones.items()])
+}, ensure_ascii=False)
+_ventana_inicio_ext, _ventana_fin_ext = str(_q_ext.index.min()), str(_q_ext.index.max())
+_comparacion_tabla = "".join(
+    f"<tr><td>{nombre}</td><td>{tipo}</td><td class='num'>{dato['n']}</td>"
+    f"<td class='num'>{dato['periodo_pico']:.1f}</td><td class='num'>{dato['variabilidad_interanual_pct']:.1f}%</td></tr>"
+    for nombre, versiones in _espectros_ventanas.items()
+    for tipo, dato in versiones.items())
 
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
@@ -2509,6 +2670,36 @@ a {{ color: var(--acento); }}
   {regimen["Q"]["var1"]:.0f} % de la forma del ciclo, y su fase es casi ruido.</p>
   </div>
 
+  <div class="revision" data-etiqueta="Análisis espectral de frecuencias">
+  <h3>Frecuencias dominantes de lluvia, caudal y temperatura</h3>
+  <p>El periodograma Lomb–Scargle estima la potencia para cada frecuencia usando las fechas con observación;
+  por eso Q mantiene sus meses observados sin interpolación. Se muestran las series originales y las anomalías,
+  calculadas restando a cada mes su climatología mensual. El período es el inverso de la frecuencia, en meses:
+  los ciclos anual y semianual corresponden a 12 y 6 meses.</p>
+  <div class="cifras"><div class="cifra"><b>{min(v['n'] for s in _espectro_datos['series'].values() for v in s.values())}</b><span>mínimo de observaciones entre series</span></div>
+    <div class="cifra"><b>{max(v['pico_periodo'] for s in _espectro_datos['series'].values() for v in s.values()):.1f} meses</b><span>mayor período de pico dominante estimado</span></div></div>
+  <div id="g-espectro-original" class="grafico" style="min-height:400px"></div>
+  <div id="g-espectro-anomalia" class="grafico" style="min-height:400px"></div>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Serie</th><th class="num">n</th><th class="num">Período del pico (meses)</th><th class="num">Potencia normalizada</th></tr></thead><tbody>{_espectro_resumen}</tbody></table></div>
+  <p class="nota">En el panel original se superpone FFT para PI cuando la serie no tiene huecos; el espectro principal de comparación es Lomb–Scargle. Un pico de período largo puede reflejar variabilidad interanual o tendencia y no se interpreta como ciclo estable sin evidencia adicional.</p>
+  <h3>Ventana común y registros extendidos</h3>
+  <p>La comparación PI–PL usa PL como referencia. Se calculan los errores sobre {_error_pi_metricas['n']} pares mensuales entre {_periodos_comunes[0]} y {_periodos_comunes[-1]}. Para Q y T se contrasta el período dominante de Lomb–Scargle en la ventana común con el registro CAMELS completo ({_ventana_inicio_ext} a {_ventana_fin_ext}); T corresponde a MSWX, para mantener la misma fuente en ambas ventanas.</p>
+  <div class="cifras">
+    <div class="cifra"><b>{_error_pi_metricas['mae']:.1f} mm/mes</b><span>MAE PI frente a PL</span></div>
+    <div class="cifra"><b>{_error_pi_metricas['rmse']:.1f} mm/mes</b><span>RMSE PI frente a PL</span></div>
+    <div class="cifra"><b>{_error_pi_metricas['sesgo']:+.1f} mm/mes</b><span>sesgo medio PI − PL ({_error_pi_metricas['sesgo_pct']:+.1f} % de PL)</span></div>
+    <div class="cifra"><b>{_comparacion_picos['Q_original']['cambio']:+.1f} meses</b><span>desplazamiento pico Q, extensión del registro</span></div>
+    <div class="cifra"><b>{_comparacion_picos['T_original']['cambio']:+.1f} meses</b><span>desplazamiento pico T MSWX, extensión del registro</span></div>
+    <div class="cifra"><b>{_coeficientes_c['PI']:.3f} / {_coeficientes_c['PL']:.3f}</b><span>C con PI / C con PL · {_filas_c.shape[0]} meses pareados</span></div>
+    <div class="cifra"><b>{_meses_q_comun} / {_meses_q_ext}</b><span>meses válidos de Q · común / registro completo</span></div>
+  </div>
+  <div id="g-ventanas-comunes" class="grafico" style="min-height:390px"></div>
+  <div id="g-ventanas-extendidas" class="grafico" style="min-height:390px"></div>
+  <div id="g-tabla-ventanas" class="grafico" style="min-height:420px"></div>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable y ventana</th><th>Serie</th><th class="num">Meses válidos</th><th class="num">Período pico (meses)</th><th class="num">Potencia interanual (%)</th></tr></thead><tbody>{_comparacion_tabla}</tbody></table></div>
+  <p class="nota">La potencia interanual es la fracción de potencia Lomb–Scargle a períodos mayores que el ciclo anual. Los errores PI−PL solo se calculan en el período común, pues no hay cobertura de ambas fuentes de precipitación fuera de él. C = Q/P se calcula en meses con Q y precipitación observados; ampliar Q no agrega meses al cálculo de C porque PI y PL comienzan en {_periodos_comunes[0]}.</p>
+  </div>
+
   <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
   <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
   serie: la correlación es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f} con PL) y sigue
@@ -3232,6 +3423,63 @@ a {{ color: var(--acento); }}
 
   }}
 
+  const ESPECTRO = {_espectro_json};
+  const VENTANAS = {_comparacion_ventanas_json};
+  const TABLA_VENTANAS = {_tabla_comparativa_plotly};
+  function dibujarEspectro(tipo) {{
+    if (!window.Plotly) return;
+    const colores = {{ PI: "#0072B2", PL: "#D55E00", Q: "#009E73", T: "#CC79A7" }};
+    const trazas = Object.entries(ESPECTRO.series).flatMap(([nombre, versiones]) => {{
+      const s = versiones[tipo], orden = s.frecuencia.map((f, i) => [1 / f, s.potencia[i]]).sort((a, b) => a[0] - b[0]);
+      const traza = {{ type: "scatter", mode: "lines", name: nombre + " · Lomb–Scargle", x: orden.map(p => p[0]), y: orden.map(p => p[1]),
+        line: {{ color: colores[nombre], width: 2 }},
+        hovertemplate: "%{{x:.1f}} meses<br>potencia %{{y:.3f}}<extra>" + nombre + " · Lomb–Scargle</extra>" }};
+      if (tipo === "original" && s.fft_frecuencia.length) {{
+        const fft = s.fft_frecuencia.map((f, i) => [1 / f, s.fft_potencia[i]]).sort((a, b) => a[0] - b[0]);
+        return [traza, {{ type: "scatter", mode: "lines+markers", name: nombre + " · FFT", x: fft.map(p => p[0]),
+          y: fft.map(p => p[1]), line: {{ color: colores[nombre], width: 1, dash: "dash" }}, marker: {{ size: 4 }},
+          hovertemplate: "%{{x:.1f}} meses<br>potencia %{{y:.3f}}<extra>" + nombre + " · FFT</extra>" }}];
+      }}
+      return [traza];
+    }});
+    const d = base(); d.xaxis.title.text = "período (meses)"; d.yaxis.title.text = "potencia normalizada";
+    d.xaxis.type = "log"; d.xaxis.autorange = "reversed"; d.margin.t = 28;
+    d.shapes = [12, 6].map(p => ({{ type: "line", x0: p, x1: p, y0: 0, y1: 1, yref: "paper",
+      line: {{ color: css("--tenue"), dash: "dot", width: 1 }} }}));
+    Plotly.react(tipo === "original" ? "g-espectro-original" : "g-espectro-anomalia", trazas, d, CONF);
+  }}
+
+  function dibujarVentanas() {{
+    if (!window.Plotly) return;
+    const colores = {{ PI: "#0072B2", PL: "#D55E00", Q: "#009E73", T: "#CC79A7" }};
+    const dibujarPanel = (id, nombres, tipo, titulo) => {{
+      const trazas = nombres.map(nombre => {{
+        const s = VENTANAS.series[nombre][tipo];
+        const puntos = s.frecuencia.map((f, i) => [1 / f, s.potencia[i]]).sort((a, b) => a[0] - b[0]);
+        return {{ type: "scatter", mode: "lines", name: nombre.replace(" · ", " / "),
+          x: puntos.map(p => p[0]), y: puntos.map(p => p[1]),
+          line: {{ color: colores[nombre.split(" · ")[0]], width: 2 }},
+          hovertemplate: "%{{x:.1f}} meses<br>potencia %{{y:.3f}}<extra>" + nombre + "</extra>" }};
+      }});
+      const d = base(); d.title = {{ text: titulo, x: 0.02, xanchor: "left" }};
+      d.xaxis.title.text = "período (meses)"; d.yaxis.title.text = "potencia Lomb–Scargle normalizada";
+      d.xaxis.type = "log"; d.xaxis.autorange = "reversed";
+      d.shapes = [12, 6].map(p => ({{ type: "line", x0: p, x1: p, y0: 0, y1: 1, yref: "paper",
+        line: {{ color: css("--tenue"), dash: "dot", width: 1 }} }}));
+      Plotly.react(id, trazas, d, CONF);
+    }};
+    dibujarPanel("g-ventanas-comunes", ["PL · común", "PI · común", "Q · común", "T · común"],
+      "original", "Período común · series originales");
+    dibujarPanel("g-ventanas-extendidas", ["Q · extendida", "T · extendida"],
+      "original", "Registro extendido · Q y T MSWX");
+    Plotly.react("g-tabla-ventanas", [{{ type: "table",
+      header: {{ values: TABLA_VENTANAS.encabezados, align: "left", fill: {{ color: "#17324D" }},
+        font: {{ color: "white", size: 12 }} }},
+      cells: {{ values: TABLA_VENTANAS.encabezados.map((_, i) => TABLA_VENTANAS.filas.map(f => f[i])),
+        align: "left", height: 28, fill: {{ color: ["#FFFFFF", "#F3F6F8"] }}, font: {{ size: 11 }} }}
+    }}], {{ ...base(), margin: {{ t: 8, r: 8, b: 8, l: 8 }} }}, CONF);
+  }}
+
   const GRAD = {grad_json};
 
   function dibujarGradiente() {{
@@ -3340,6 +3588,9 @@ a {{ color: var(--acento); }}
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();
+    dibujarEspectro("original");
+    dibujarEspectro("anomalia");
+    dibujarVentanas();
   }}
 
   dibujar();

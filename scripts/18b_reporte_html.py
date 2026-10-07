@@ -418,7 +418,14 @@ INDICE_HTML = """
 """
 
 
-pagina = f"""<title>Reporte cuenca del Fonce</title>
+# Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
+# sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
+pagina = f"""<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reporte cuenca del Fonce</title>
 <script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1708,12 +1715,14 @@ a {{ color: var(--acento); }}
   <b>{n(grad_caida)} mm/año</b>. Si la cuenca bajara hasta el piso del valle del Magdalena veríamos la otra
   mitad de la curva.</p>
 
+  <div class="tabla-caja">
   <table>
     <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
     <tbody>
 {filas_grad}
     </tbody>
   </table>
+  </div>
 
   <p class="nota">Cuidado al usar estas pendientes. La de IMERG ({aj_imerg['por_1000m']:+,.0f} mm/año por cada
   1 000 m) y la de los pluviómetros sin las dos estaciones apartadas ({aj_limpio['por_1000m']:+,.0f}) coinciden,

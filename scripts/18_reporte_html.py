@@ -1,13 +1,15 @@
 """Arma reporte/reporte-fonce.html a partir de las figuras de reporte/figuras/ y de los datos del proyecto.
 
-Las figuras se incrustan en base64 para que el HTML sea un solo archivo. Los números del texto se calculan
-aquí a partir de los datos, no se escriben a mano. Para regenerar:
+Las figuras se incrustan en base64 y Plotly va dentro del archivo (reporte/vendor/), así que el HTML es uno
+solo y se abre sin internet; solo las tipografías vienen de Google Fonts, y sin conexión se usan las de
+reemplazo. Los números del texto se calculan aquí a partir de los datos, no se escriben a mano. El HTML no
+se edita a mano: se edita este script y se regenera. Para regenerar:
 
     python scripts/08_mapas_y_pixeles.py
     python scripts/09_gradiente_altitudinal.py
     python scripts/18_reporte_html.py
 """
-import base64, html, json
+import base64, hashlib, html, json
 from pathlib import Path
 import geopandas as gpd
 from scipy import stats
@@ -16,6 +18,13 @@ import pandas as pd
 
 FIG = Path("reporte/figuras")
 SALIDA = Path("reporte/reporte-fonce.html")
+# Plotly se incrusta en el HTML para que abra sin internet. La copia está en el repositorio (origen y SHA-256
+# en DATOS_FUENTES.md); si el archivo cambia, el script se detiene.
+PLOTLY = Path("reporte/vendor/plotly-2.32.0.min.js")
+PLOTLY_SHA256 = "0a17719a72751704861215da0e5c5cdb3f9a8d50eff5cb84cb6f8b80786682b0"
+assert hashlib.sha256(PLOTLY.read_bytes()).hexdigest() == PLOTLY_SHA256, f"{PLOTLY} no es la versión registrada"
+PLOTLY_JS = PLOTLY.read_text(encoding="utf-8")
+assert "</script" not in PLOTLY_JS.lower()       # no puede cerrar la etiqueta <script> en la que va
 
 ESTACIONES = {
     24027010: ("San Gil", "Fonce"), 24027070: ("Mérida", "Fonce"), 24027030: ("Nemizaque", "Pienta"),
@@ -1551,7 +1560,7 @@ INDICE_HTML = """
 
 
 pagina = f"""<title>Reporte cuenca del Fonce</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
+<script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">

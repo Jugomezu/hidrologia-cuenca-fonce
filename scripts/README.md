@@ -49,7 +49,7 @@ Los paquetes están en `requirements.txt`, en la raíz.
 | 15 | `15_cauce_desde_dem.py` | Cauce principal derivado del DEM con pysheds, comparado con el de CAMELS-COL | DEM, `out/` de 13 | `out/comparacion_cauces.csv`, `out/perfil_cauce_dem.csv` |
 | 16 | `16_correlaciones_variables.py` | Correlaciones entre PI, PL, Q, ETP y las dos temperaturas | `out/` de 02, 05, 06, 06b, 07 | `out/correlaciones_*.csv`, `out/variables_mensuales.csv` |
 | 17 | `17_oni_enso.py` | Descarga el Índice Oceánico El Niño (ONI) de la NOAA y marca cada mes como El Niño, La Niña o neutro | internet (NOAA CPC), una sola vez; luego `data/noaa/` | `out/oni_mensual.csv` |
-| 18 | `18_reporte_html.py` | Arma el informe HTML | casi todo `out/` y `reporte/figuras/` | `reporte/reporte-fonce.html` |
+| 18 | `18_reporte_html.py` | Arma el informe HTML, un solo archivo que abre sin internet (Plotly incrustado). El informe se edita aquí, no en el HTML | casi todo `out/`, `reporte/figuras/` y `reporte/vendor/plotly-2.32.0.min.js` | `reporte/reporte-fonce.html` |
 
 El notebook va después de 16 (lee sus salidas); el informe (17) no depende del notebook.
 

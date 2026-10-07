@@ -118,7 +118,7 @@ efecto en el análisis y estado (**corregido**, **incierto** o **descartado**).
 - Capturas con Playwright de la sección nueva, en tema claro y oscuro.
 - Las cifras del texto salen del cálculo, nunca escritas a mano, y se revisan con una lectura directa
   del CSV.
-- Republicar el informe en el mismo artifact.
+- Regenerar el informe y revisarlo abriendo `reporte/reporte-fonce.html` en el navegador.
 
 ## Pendiente para más adelante (fuera de esta sección)
 - **Índice de flujo base (BFI).** Se quitó del informe el 2026-09-28: el 0.70 venía de CAMELS-COL

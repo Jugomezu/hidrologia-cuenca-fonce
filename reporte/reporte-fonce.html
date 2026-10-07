@@ -953,16 +953,13 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>Cómo se relacionan las variables entre sí</h2>
-  <p>Las 6 variables mensuales de la cuenca, cruzadas todas contra todas sobre los
-  <b>262 meses en que todas tienen dato</b>. Además de PI, PL y Q entran <b>ETP</b>, la
-  evapotranspiración potencial mensual de Hargreaves con ERA5-Land, y las dos temperaturas, <b>T MSWX</b> y <b>T ERA5</b>. Se usa la muestra común y no la propia de cada par
-  para que los coeficientes de la matriz sean comparables entre sí.</p>
+  <p>Las 6 variables mensuales (PI, PL, Q, la <b>ETP</b> de Hargreaves y las temperaturas
+  <b>T MSWX</b> y <b>T ERA5</b>), cruzadas todas contra todas sobre los <b>262 meses en que todas tienen
+  dato</b>, para que los coeficientes sean comparables entre sí.</p>
 
-  <p class="nota">Se muestra <b>solo el coeficiente de Spearman</b>, que mide la correlación sobre los
-  rangos en vez de sobre los valores: no supone que la relación sea una recta y no se deja arrastrar por
-  unos pocos meses extremos, que es lo prudente con variables meteorológicas. En estos datos apenas
-  cambia la lectura —la mayor distancia entre Spearman y Pearson en toda la matriz es de
-  0.08—, así que quedarse con la robusta no cuesta nada.</p>
+  <p class="nota">Se muestra <b>solo Spearman</b>, que trabaja con rangos: no supone una recta y no lo
+  arrastran unos pocos meses extremos. Con Pearson la lectura apenas cambia (diferencia máxima en la matriz:
+  0.08).</p>
 
   <div class="pestanas" role="tablist" aria-label="Qué series comparar">
     <button type="button" role="tab" id="pestana-crudas" aria-controls="panel-corr" aria-selected="true">Series tal cual</button>
@@ -972,54 +969,40 @@ section, section h3 { scroll-margin-top: 20px; }
   <div role="tabpanel" id="panel-corr" aria-labelledby="pestana-crudas">
     <div id="g-corr-matriz" class="grafico" style="min-height:860px"></div>
   </div>
-  <p class="nota">Cómo leer la matriz: en la <b>diagonal</b>, cómo se reparte cada variable; <b>debajo</b>,
-  la nube de puntos de cada par, donde cada punto es un mes; <b>encima</b>, el coeficiente de ese mismo
-  par, en azul si suben y bajan juntas y en naranja si van al revés.</p>
-  <p class="nota"><b>Los paneles están enlazados.</b> Arrastra sobre cualquiera de ellos para marcar un
-  grupo de meses y esos mismos meses se resaltan en todos los demás: sirve para seguir, por ejemplo, a
-  dónde van a parar los meses más lluviosos en el resto de las variables. Doble clic para soltar la
-  selección. <span id="corr-seleccion" style="color:var(--acento)"></span></p>
+  <p class="nota">En la <b>diagonal</b>, cómo se reparte cada variable; <b>debajo</b>, la nube de puntos de
+  cada par (un punto por mes); <b>encima</b>, su coeficiente, azul si suben juntas y naranja si van al revés.</p>
+  <p class="nota"><b>Los paneles están enlazados:</b> arrastra sobre uno para marcar meses y se resaltan en
+  todos los demás. Doble clic para soltar la selección. <span id="corr-seleccion" style="color:var(--acento)"></span></p>
 
   <h3>Qué dicen</h3>
-  <p><b>Las dos fuentes de lluvia concuerdan</b>: ρ = 0.84 entre PI y PL. Conviene no
-  leer eso como una confirmación mutua, porque <b>no son del todo independientes</b>: IMERG incorpora
-  ajuste con redes de estaciones parecidas a la que forma PL, así que parte del acuerdo viene de cómo
-  están construidas.</p>
+  <p><b>Las dos fuentes de lluvia concuerdan</b> (ρ = 0.84), pero no es una confirmación
+  mutua: IMERG se ajusta con redes de estaciones parecidas a PL, así que <b>no son del todo independientes</b>.</p>
 
-  <p><b>El caudal se lleva mejor con los pluviómetros que con el satélite</b>: ρ = 0.82
-  contra 0.71. La diferencia no es enorme, pero va siempre en el mismo sentido y apunta a
-  que la red mide algo que el satélite se pierde. Es un dato que pesa sobre la decisión de arrastrar las
-  dos fuentes en paralelo: en su relación con el caudal no están empatadas.</p>
+  <p><b>El caudal se lleva mejor con los pluviómetros que con el satélite</b> (ρ = 0.82
+  contra 0.71): la red parece captar algo que el satélite se pierde.</p>
 
   <div class="revision" data-etiqueta="Revisión · dispersión de la lluvia contra el caudal">
-  <p><b>Con más lluvia, el caudal es menos predecible.</b> En las nubes de lluvia contra caudal, los puntos se
-  abren a medida que llueve más: ajustando una recta, la varianza de lo que la recta no explica es
+  <p><b>Con más lluvia, el caudal es menos predecible.</b> Ajustando una recta, la varianza que no explica es
   2.7 veces mayor en el tercio de meses más lluviosos que en el más seco con PL, y
-  2.4 veces con PI. Un mes muy lluvioso puede dar caudales muy distintos, lo que es
-  coherente con que el caudal dependa también del agua que la cuenca trae guardada de los meses anteriores.</p>
+  2.4 con PI: el caudal depende también del agua que la cuenca trae guardada.</p>
   </div>
 
   <p><b>Las dos temperaturas se mueven juntas</b>, ρ = 0.78, pese a los
   2.19 °C que las separan. Discrepan en el nivel, no en el movimiento.</p>
 
   <h3>Lo que solo se ve al quitar el ciclo anual</h3>
-  <p>Cambia a la pestaña de anomalías y mira las casillas de la lluvia contra la temperatura y la
-  evapotranspiración. Esas relaciones <b>se refuerzan</b> al restarle a cada variable su propio ciclo
-  anual, que es lo contrario de lo que suele pasar. El caso más marcado es
-  <b>PI con ETP</b>, que pasa de
-  ρ = 0.03 a <b>-0.61</b>. También
-  PL con T MSWX, de 0.02 a -0.33 y PI con T MSWX, de -0.06 a -0.31. No es general: PL con Q, el par cuyos ciclos anuales sí van juntos
-  (ρ = 0.80), no se refuerza sino que se debilita un poco (0.82
-  a 0.77): donde no hay dilución, quitar el ciclo no agrega nada.</p>
-  <p>La razón está en el tamaño de los ciclos. <b>La lluvia tiene un ciclo anual enorme y la temperatura
-  casi no tiene</b>: las doce medias mensuales explican el 68 % de la
-  variación mensual de PI y el 59 % de la de PL, pero solo el
-  22 % de la de T ERA5. Y esos ciclos <b>no tienen relación entre sí</b>
-  (primera columna de la tabla): la temporada de lluvias no coincide ni con los meses cálidos ni con
-  los fríos. En las series tal cual, esa gran oscilación estacional de la lluvia, sin contraparte en la
-  temperatura, <b>diluye</b> la relación. Al quitarla queda solo la diferencia de cada mes con lo normal
-  para ese mes, y ahí aparece el vínculo, negativo y físicamente esperable: <b>un mes más lluvioso de lo
-  normal es un mes más nublado</b>, y por eso más fresco y con menos evapotranspiración potencial.</p>
+  <p>En la pestaña de anomalías, la lluvia contra la temperatura y la evapotranspiración <b>se refuerza</b> al
+  quitar el ciclo anual, al revés de lo usual. El caso más marcado es <b>PI con
+  ETP</b>: de ρ = 0.03 a
+  <b>-0.61</b>; también PL con T MSWX, de 0.02 a -0.33 y PI con T MSWX, de -0.06 a -0.31. PL con Q, cuyos ciclos sí van juntos
+  (ρ = 0.80), se debilita un poco (0.82 a
+  0.77).</p>
+  <p>La razón: <b>la lluvia tiene un ciclo anual enorme y la temperatura casi no</b> (el ciclo explica el
+  68 % de la variación de PI, el 59 % de la de PL y solo el
+  22 % de la de T ERA5), y esos ciclos <b>no se relacionan entre sí</b> (primera
+  columna de la tabla). En las series tal cual, la oscilación de la lluvia <b>diluye</b> la relación; sin ella
+  aparece el vínculo esperable: <b>un mes más lluvioso de lo normal es más nublado</b>, más fresco y con menos
+  evapotranspiración potencial.</p>
 
   <div class="tabla-caja">
   <table class="sin-destacar">
@@ -1040,37 +1023,32 @@ section, section h3 { scroll-margin-top: 20px; }
   ya asoma en las series tal cual (Q – T ERA5, ρ = -0.40); con MSWX desaparece del
   todo (PL – T MSWX, ρ = +0.02) y solo se ve en las anomalías.</p>
   <h3>Con un mes de rezago</h3>
-  <p>La tercera pestaña cruza cada variable en un mes con cada variable en el <b>mes siguiente</b>, sobre
-  los 239 pares de meses consecutivos en que las seis tienen dato. La matriz ya no es
-  simétrica: cada casilla es la correlación entre la variable de la <b>columna en el mes t</b> y la de la
-  <b>fila en el mes t+1</b>, y la diagonal dice cuánto se parece cada variable a sí misma un mes después.</p>
+  <p>La tercera pestaña cruza cada variable con las demás <b>un mes después</b> (239 pares de meses
+  consecutivos): cada casilla es la <b>columna en el mes t</b> contra la <b>fila en el mes t+1</b>, y la diagonal
+  dice cuánto se parece cada variable a sí misma un mes después.</p>
   <p class="nota">Esta pestaña usa las series tal cual, así que mezcla la respuesta de la cuenca con el
   desfase de los ciclos anuales. La pregunta de si Q responde a la lluvia con un mes de rezago se
   contesta mejor abajo.</p>
 
   <h3>¿Cuánto condiciona el ciclo de la lluvia al ciclo del caudal?</h3>
-  <p>El año típico lo dice a simple vista: PL tiene sus picos en <b>abril y octubre</b>, y Q en
-  <b>mayo y noviembre</b>. Para medirlo, el ciclo de Q se reconstruye con la lluvia: primero solo
-  con la del mismo mes, después con la del mes y la del mes anterior.</p>
+  <p>PL tiene sus picos en <b>abril y octubre</b>, y Q en <b>mayo y noviembre</b>. Para
+  medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
 
   <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
   <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
   <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
   del ciclo, no una prueba estadística fuerte).</p>
 
-  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y explica el
-  73 % de su forma. <b>Sumándole la del mes anterior, explica el
-  93 %</b> y los picos caen donde deben. En ese ajuste el
-  caudal de cada mes toma cerca del 55 % de su señal de la lluvia de ese mes y el
-  45 % de la del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
+  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
+  73 % de su forma; <b>sumando la del mes anterior, el
+  93 %</b>, con cerca del 55 % de la señal
+  del mes y el 45 % del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
   arrastre</b>. Con PI el ajuste es más pobre (59 % →
-  66 %): el ciclo del satélite se parece menos al del
-  caudal que el de los pluviómetros.</p>
+  66 %).</p>
 
-  <p class="aviso">Una correlación mensual no es ni causa ni capacidad de predicción. Que Q y PL vayan a
-  ρ = 0.82 no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La
-  relación entre lluvia y caudal tiene memoria</b>, y una correlación en la misma casilla temporal no la
-  captura; las correlaciones con un mes de rezago, arriba, muestran una parte.</p>
+  <p class="aviso">Una correlación mensual no es causa ni capacidad de predicción: que Q y PL vayan a
+  ρ = 0.82 no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La relación
+  tiene memoria</b>, y la correlación del mismo mes no la captura.</p>
 </section>
 
 <section>

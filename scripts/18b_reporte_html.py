@@ -551,7 +551,7 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>La cuenca y sus subcuencas</h2>
-  <p>El Fonce nace en el páramo al sureste (por encima de 4 000 m) y corre hacia el norte por un valle ancho hasta San Gil.
+  <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
   Las cinco estaciones aguas arriba dividen la cuenca en subcuencas de tamaños muy distintos: Mérida, sobre el mismo Fonce,
   drena casi toda la cuenca; Monchía y Mogoticos son pequeñas.</p>
   <div class="tabla-caja">
@@ -792,10 +792,8 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Control de calidad básico</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Se revisaron los archivos <b>tal como se descargaron</b>, antes de procesarlos: fechas legibles y en
-  orden, duplicados, unidades, códigos de faltante (−9999, −999, 9999…), valores imposibles según la física
-  de cada variable y banderas de calidad. Cada variable se juzga por lo suyo: una temperatura negativa es
-  posible, una lluvia o un caudal negativos no. De los {len(cc)} chequeos, <b>{cc_conteo.get("sin problemas", 0)}
+  <p>Los archivos se revisaron <b>tal como se descargaron</b>: fechas, duplicados, unidades, códigos de faltante
+  (−9999, −999, 9999…), valores imposibles según la física de cada variable y banderas de calidad. De los {len(cc)} chequeos, <b>{cc_conteo.get("sin problemas", 0)}
   pasan sin problemas</b>, {cc_conteo.get("anotado", 0)} dejan algo anotado, {cc_conteo.get("no disponible", 0)}
   no se pueden hacer porque la fuente no trae con qué y {cc_conteo.get("revisar", 0)} queda para revisar.</p>
   <div class="tabla-caja">
@@ -809,10 +807,8 @@ a {{ color: var(--acento); }}
   <p class="nota">Los chequeos corren en <code>scripts/07b_control_calidad_basico.py</code>. «Anotado» es un
   hallazgo que no es un error pero hay que tener presente; «no disponible», que la fuente no trae con qué
   hacer el chequeo.</p>
-  <p><b>Las unidades se confirmaron, no se supusieron.</b> El archivo de CAMELS-COL no dice en qué viene el
-  caudal, pero su caudal medio pasado a mm/día da justo el que publica su archivo de firmas: está en m³/s.
-  IMERG llega en mm/h y, por las horas del mes, reproduce el archivo que usa el análisis. ERA5-Land ya viene
-  en °C.</p>
+  <p><b>Las unidades se confirmaron:</b> el caudal de CAMELS-COL, pasado a mm/día, da el que publica su archivo de
+  firmas (está en m³/s); IMERG, en mm/h por las horas del mes, reproduce el archivo del análisis; ERA5-Land viene en °C.</p>
   <p><b>Para revisar:</b> {html.escape(cc_revisar.detalle.iloc[0]) if len(cc_revisar) else "nada"}</p>
 
   <h3>Qué es cada dato</h3>
@@ -824,10 +820,8 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p>Solo Q y PL vienen de un instrumento en la cuenca, y ninguno tiene valores rellenados: sus huecos se
-  quedan como huecos. PI es una estimación satelital, T la salida de un modelo y la ETP se calcula a partir
-  de él. Que no tengan huecos no quiere decir que sean exactas: un modelo o un algoritmo siempre da un
-  número.</p>
+  <p>Solo Q y PL vienen de un instrumento en la cuenca, y sus huecos se quedan como huecos. PI es una estimación
+  satelital, T la salida de un modelo y la ETP sale de él: que no tengan huecos no quiere decir que sean exactas.</p>
   </details>
 </section>
 
@@ -922,8 +916,7 @@ a {{ color: var(--acento); }}
   <details class="plegable" open>
   <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <div class="revision" data-etiqueta="Revisión · registro de anomalías">
-  <p>Todo lo que apareció raro en los datos, en un solo lugar: qué se comprobó, qué se decidió, qué efecto
-  tiene en el análisis y en qué estado quedó. De las {len(reg)} anomalías, <b>{reg_conteo.get("corregido", 0)}
+  <p>Lo que apareció raro en los datos, con qué se comprobó, qué se decidió y su efecto. De las {len(reg)} anomalías, <b>{reg_conteo.get("corregido", 0)}
   quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>{reg_conteo.get("incierto", 0)}
   quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
   {reg_conteo.get("descartado", 0)} se descartaron (se revisaron y no eran un problema).</p>
@@ -944,11 +937,9 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>El resumen de las cuatro variables mensuales con que trabaja el proyecto, en San Gil: <b>PI</b>, la
-  precipitación de IMERG promediada sobre la cuenca ponderando cada celda por su área; <b>PL</b>, la
-  precipitación de la red de {len(DENTRO)} pluviómetros del IDEAM dentro de la divisoria; <b>Q</b>, el
-  caudal, y la temperatura de ERA5-Land en sus tres versiones: <b>T media</b>, <b>T máx</b> y <b>T mín</b>,
-  cada una el promedio mensual del valor diario correspondiente.</p>
+  <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
+  {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
+  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estadístico</th><th class="num">PI (mm/mes)</th><th class="num">PL (mm/mes)</th>
@@ -990,12 +981,10 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Revisión de outliers</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Los meses atípicos de las seis variables, con el mismo criterio de los diagramas de caja: un mes es
-  atípico si se sale {FACTOR_ATIPICO:.1f} rangos intercuartiles por fuera de los cuartiles <b>de su propio
-  mes del calendario</b>. Hay {atip_conteo['PI']} en PI, {atip_conteo['PL']} en PL, {atip_conteo['Q']} en Q,
+  <p>Un mes es atípico si se sale {FACTOR_ATIPICO:.1f} rangos intercuartiles por fuera de los cuartiles <b>de su
+  propio mes del calendario</b>, como en los diagramas de caja. Hay {atip_conteo['PI']} en PI, {atip_conteo['PL']} en PL, {atip_conteo['Q']} en Q,
   {atip_conteo['T media']} en T media, {atip_conteo['T máx']} en T máx y {atip_conteo['T mín']} en T mín.
-  La tabla pone todas las variables de esos meses lado a lado, para ver qué pasó con las demás cuando
-  una se salió de lo normal.</p>
+  La tabla los pone lado a lado, para ver qué pasó con las demás variables cuando una se salió de lo normal.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Mes</th>{"".join(f"<th class='num'>{html.escape(v)}</th>" for v in VARS_ATIP)}</tr></thead>
@@ -1016,28 +1005,23 @@ a {{ color: var(--acento); }}
     <p class="lectura">{lectura_enso_lluvia}</p></li>
     <li><b>Posibles errores de PI:</b> {lista_meses(error_pi)}. Solo el satélite se sale de lo normal; la red
     está dentro de ±1 y el río no acompaña. Son el tipo de mes en que conviene creerle a PL.</li>
-    <li><b>Un caso que no cumple el criterio pero salta a la vista: {fecha_enso(_F99)}.</b> Es el febrero
-    más lluvioso del período en PL ({n(feb99['PL']['valor'])} mm, {(feb99['PL']['valor'] / feb99['PL']['segundo'] - 1) * 100:.0f} %
+    <li><b>Un caso que no cumple el criterio pero salta a la vista: {fecha_enso(_F99)}.</b> Es el febrero más
+    lluvioso del período en PL ({n(feb99['PL']['valor'])} mm, {(feb99['PL']['valor'] / feb99['PL']['segundo'] - 1) * 100:.0f} %
     más que el segundo) y en PI ({n(feb99['PI']['valor'])} mm, {(feb99['PI']['valor'] / feb99['PI']['segundo'] - 1) * 100:.0f} %
-    más que el segundo), pero se queda a {feb99['PL']['factor']:.2f} y {feb99['PI']['factor']:.2f} rangos
-    intercuartiles del percentil 75, por debajo del umbral de {FACTOR_ATIPICO:.1f}. Medido como en la tabla,
-    desde la mediana de los febreros, de hecho sí es bastante alto: PI está {atip_z.loc[_F99, "PI"]:+.1f} y
-    PL {atip_z.loc[_F99, "PL"]:+.1f} rangos intercuartiles por encima de lo normal para febrero.
-    {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Vale la pena tenerlo en cuenta como
-    evento extremo.</li>
+    más), pero queda a {feb99['PL']['factor']:.2f} y {feb99['PI']['factor']:.2f} rangos intercuartiles del percentil 75,
+    bajo el umbral de {FACTOR_ATIPICO:.1f}. Desde la mediana de los febreros sí es alto (PI {atip_z.loc[_F99, "PI"]:+.1f},
+    PL {atip_z.loc[_F99, "PL"]:+.1f}). {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Es un evento
+    extremo a tener en cuenta.</li>
     <li class="revision" data-etiqueta="Revisión · enero y febrero de 2005"><b>Enero y febrero de 2005: la emergencia
-    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de
-    2005, con Santander entre los departamentos más golpeados: inundaciones, la avalancha del río de Oro y la
-    declaratoria de calamidad pública en Bucaramanga y Girón. Según el IDEAM, citado en ese documento, las lluvias,
-    atípicas para la época, se debieron a cuatro frentes fríos del hemisferio norte, cuando entre enero y febrero
-    normalmente ocurren uno o dos ({CITA_DEFENSORIA}). En la cuenca, enero de 2005 estuvo
-    {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal para enero en PL, {ene05["z_pi"]:+.1f} en PI y
-    {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f} y {ene05["z_q_feb"]:+.1f}.
-    Enero de 2005 salía como atípico de PL ({n(ene05["pl"])} mm) antes de excluir el primer tramo de Pueblo Viejo:
-    el umbral de enero era {n(ene05["umbral_antes"])} mm y hoy es {n(ene05["umbral_hoy"])} mm. El valor del mes
-    no cambió; subió el umbral, porque ese tramo, que medía cerca de la cuarta parte que sus vecinos, bajaba los
-    eneros de 1998 a 2004. El documento no nombra la cuenca del Fonce, así que no se puede confirmar que esas lluvias
-    fueran las mismas que se ven aquí.</li>
+    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de 2005,
+    con inundaciones en Santander, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón; según el
+    IDEAM, por cuatro frentes fríos del hemisferio norte, cuando lo normal en enero y febrero son uno o dos
+    ({CITA_DEFENSORIA}). En la cuenca, enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal
+    en PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q, y febrero {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
+    y {ene05["z_q_feb"]:+.1f}. Enero ({n(ene05["pl"])} mm de PL) era atípico antes de excluir el primer tramo de Pueblo
+    Viejo, que medía {an_pv.razon_antes:.2f} veces lo de sus vecinos y bajaba los eneros de 1998 a 2004: el umbral pasó
+    de {n(ene05["umbral_antes"])} a {n(ene05["umbral_hoy"])} mm con el mismo valor del mes. El documento no nombra la
+    cuenca del Fonce, así que no se puede confirmar que sean las mismas lluvias.</li>
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
@@ -1478,12 +1462,11 @@ a {{ color: var(--acento); }}
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
-  <p>Hasta aquí, el caudal sigue a la lluvia del mismo mes y arrastra algo del anterior. La prueba más exigente
-  de esa relación es usarla para <b>estimar el caudal en años que el ajuste no vio</b>. Se ajusta una recta del
-  caudal contra la lluvia con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} y se evalúa con {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}. Los
-  dos bloques son continuos, para que meses vecinos, que se parecen entre sí, no queden uno en cada lado. La
-  referencia es la <b>climatología</b>: el caudal medio de cada mes del calendario en el bloque de ajuste.
-  Superarla quiere decir que la lluvia dice algo del caudal que el calendario solo no dice.</p>
+  <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
+  no vio</b>: una recta ajustada con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} se evalúa con
+  {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}, en bloques continuos para que meses vecinos no queden uno en cada lado.
+  La referencia es la <b>climatología</b> (el caudal medio de cada mes en el ajuste): superarla quiere decir que la
+  lluvia dice algo que el calendario solo no dice.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
@@ -1495,12 +1478,10 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p><b>La mejor estimación sale de {ev_mejor}</b>: en los años de evaluación se equivoca en
-  {ev_tabla[ev_mejor]["validacion"]["rmse"]:.1f} m³/s (RMSE), contra {ev_rmse_clima:.1f} de la climatología.
-  Con PI del mismo mes el error es de {ev_tabla["PI del mismo mes"]["validacion"]["rmse"]:.1f} m³/s: otra vez los
-  pluviómetros le ganan al satélite. Con la lluvia del mes anterior sola el error es mayor
-  ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f} con PL), como se espera de un río que responde sobre
-  todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  <p><b>La mejor estimación sale de {ev_mejor}</b>: RMSE de {ev_tabla[ev_mejor]["validacion"]["rmse"]:.1f} m³/s en la
+  evaluación, contra {ev_rmse_clima:.1f} de la climatología y {ev_tabla["PI del mismo mes"]["validacion"]["rmse"]:.1f}
+  con PI. Con la lluvia del mes anterior sola el error crece ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f}
+  con PL): el río responde sobre todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>

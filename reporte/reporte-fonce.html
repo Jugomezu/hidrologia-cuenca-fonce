@@ -170,7 +170,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>La cuenca y sus subcuencas</h2>
-  <p>El Fonce nace en el páramo al sureste (por encima de 4 000 m) y corre hacia el norte por un valle ancho hasta San Gil.
+  <p>El Fonce nace en el páramo al sureste (hasta 4 297 m) y corre hacia el norte por un valle ancho hasta San Gil.
   Las cinco estaciones aguas arriba dividen la cuenca en subcuencas de tamaños muy distintos: Mérida, sobre el mismo Fonce,
   drena casi toda la cuenca; Monchía y Mogoticos son pequeñas.</p>
   <div class="tabla-caja">
@@ -438,10 +438,8 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <details class="plegable" open>
   <summary><h2>Control de calidad básico</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Se revisaron los archivos <b>tal como se descargaron</b>, antes de procesarlos: fechas legibles y en
-  orden, duplicados, unidades, códigos de faltante (−9999, −999, 9999…), valores imposibles según la física
-  de cada variable y banderas de calidad. Cada variable se juzga por lo suyo: una temperatura negativa es
-  posible, una lluvia o un caudal negativos no. De los 31 chequeos, <b>25
+  <p>Los archivos se revisaron <b>tal como se descargaron</b>: fechas, duplicados, unidades, códigos de faltante
+  (−9999, −999, 9999…), valores imposibles según la física de cada variable y banderas de calidad. De los 31 chequeos, <b>25
   pasan sin problemas</b>, 2 dejan algo anotado, 3
   no se pueden hacer porque la fuente no trae con qué y 1 queda para revisar.</p>
   <div class="tabla-caja">
@@ -485,10 +483,8 @@ section, section h3 { scroll-margin-top: 20px; }
   <p class="nota">Los chequeos corren en <code>scripts/07b_control_calidad_basico.py</code>. «Anotado» es un
   hallazgo que no es un error pero hay que tener presente; «no disponible», que la fuente no trae con qué
   hacer el chequeo.</p>
-  <p><b>Las unidades se confirmaron, no se supusieron.</b> El archivo de CAMELS-COL no dice en qué viene el
-  caudal, pero su caudal medio pasado a mm/día da justo el que publica su archivo de firmas: está en m³/s.
-  IMERG llega en mm/h y, por las horas del mes, reproduce el archivo que usa el análisis. ERA5-Land ya viene
-  en °C.</p>
+  <p><b>Las unidades se confirmaron:</b> el caudal de CAMELS-COL, pasado a mm/día, da el que publica su archivo de
+  firmas (está en m³/s); IMERG, en mm/h por las horas del mes, reproduce el archivo del análisis; ERA5-Land viene en °C.</p>
   <p><b>Para revisar:</b> 9 meses con lluvia exactamente 0: Pavas Las 2000-08; Pavas Las 2001-08; Pavas Las 2009-07; Pavas Las 2013-07; Pavas Las 2018-05; Pavas Las 2019-07; Pueblo Viejo 2020-02; Valle de San Jose 2017-12; Valle de San Jose 2021-12. Son posibles en un mes seco, pero en esta cuenca húmeda hay que revisarlos contra los pluviómetros vecinos</p>
 
   <h3>Qué es cada dato</h3>
@@ -504,10 +500,8 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table>
   </div>
-  <p>Solo Q y PL vienen de un instrumento en la cuenca, y ninguno tiene valores rellenados: sus huecos se
-  quedan como huecos. PI es una estimación satelital, T la salida de un modelo y la ETP se calcula a partir
-  de él. Que no tengan huecos no quiere decir que sean exactas: un modelo o un algoritmo siempre da un
-  número.</p>
+  <p>Solo Q y PL vienen de un instrumento en la cuenca, y sus huecos se quedan como huecos. PI es una estimación
+  satelital, T la salida de un modelo y la ETP sale de él: que no tengan huecos no quiere decir que sean exactas.</p>
   </details>
 </section>
 
@@ -622,8 +616,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <details class="plegable" open>
   <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <div class="revision" data-etiqueta="Revisión · registro de anomalías">
-  <p>Todo lo que apareció raro en los datos, en un solo lugar: qué se comprobó, qué se decidió, qué efecto
-  tiene en el análisis y en qué estado quedó. De las 19 anomalías, <b>9
+  <p>Lo que apareció raro en los datos, con qué se comprobó, qué se decidió y su efecto. De las 19 anomalías, <b>9
   quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>8
   quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
   2 se descartaron (se revisaron y no eran un problema).</p>
@@ -662,11 +655,9 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <details class="plegable" open>
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>El resumen de las cuatro variables mensuales con que trabaja el proyecto, en San Gil: <b>PI</b>, la
-  precipitación de IMERG promediada sobre la cuenca ponderando cada celda por su área; <b>PL</b>, la
-  precipitación de la red de 7 pluviómetros del IDEAM dentro de la divisoria; <b>Q</b>, el
-  caudal, y la temperatura de ERA5-Land en sus tres versiones: <b>T media</b>, <b>T máx</b> y <b>T mín</b>,
-  cada una el promedio mensual del valor diario correspondiente.</p>
+  <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
+  7 pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
+  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estadístico</th><th class="num">PI (mm/mes)</th><th class="num">PL (mm/mes)</th>
@@ -721,12 +712,10 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <details class="plegable" open>
   <summary><h2>Revisión de outliers</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Los meses atípicos de las seis variables, con el mismo criterio de los diagramas de caja: un mes es
-  atípico si se sale 1.5 rangos intercuartiles por fuera de los cuartiles <b>de su propio
-  mes del calendario</b>. Hay 6 en PI, 2 en PL, 6 en Q,
+  <p>Un mes es atípico si se sale 1.5 rangos intercuartiles por fuera de los cuartiles <b>de su
+  propio mes del calendario</b>, como en los diagramas de caja. Hay 6 en PI, 2 en PL, 6 en Q,
   1 en T media, 7 en T máx y 8 en T mín.
-  La tabla pone todas las variables de esos meses lado a lado, para ver qué pasó con las demás cuando
-  una se salió de lo normal.</p>
+  La tabla los pone lado a lado, para ver qué pasó con las demás variables cuando una se salió de lo normal.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Mes</th><th class='num'>PI</th><th class='num'>PL</th><th class='num'>Q</th><th class='num'>T media</th><th class='num'>T máx</th><th class='num'>T mín</th></tr></thead>
@@ -772,28 +761,23 @@ section, section h3 { scroll-margin-top: 20px; }
     <p class="lectura">Todos cayeron en episodios de La Niña.</p></li>
     <li><b>Posibles errores de PI:</b> <span class='fase-nina' title='La Niña'>jul 1998</span>, jul 2001, <span class='fase-nino' title='El Niño'>dic 2018</span>. Solo el satélite se sale de lo normal; la red
     está dentro de ±1 y el río no acompaña. Son el tipo de mes en que conviene creerle a PL.</li>
-    <li><b>Un caso que no cumple el criterio pero salta a la vista: <span class='fase-nina' title='La Niña'>feb 1999</span>.</b> Es el febrero
-    más lluvioso del período en PL (355 mm, 56 %
+    <li><b>Un caso que no cumple el criterio pero salta a la vista: <span class='fase-nina' title='La Niña'>feb 1999</span>.</b> Es el febrero más
+    lluvioso del período en PL (355 mm, 56 %
     más que el segundo) y en PI (225 mm, 13 %
-    más que el segundo), pero se queda a 1.15 y 1.44 rangos
-    intercuartiles del percentil 75, por debajo del umbral de 1.5. Medido como en la tabla,
-    desde la mediana de los febreros, de hecho sí es bastante alto: PI está +1.9 y
-    PL +1.7 rangos intercuartiles por encima de lo normal para febrero.
-    El caudal de ese mes sí fue atípico. Vale la pena tenerlo en cuenta como
-    evento extremo.</li>
+    más), pero queda a 1.15 y 1.44 rangos intercuartiles del percentil 75,
+    bajo el umbral de 1.5. Desde la mediana de los febreros sí es alto (PI +1.9,
+    PL +1.7). El caudal de ese mes sí fue atípico. Es un evento
+    extremo a tener en cuenta.</li>
     <li class="revision" data-etiqueta="Revisión · enero y febrero de 2005"><b>Enero y febrero de 2005: la emergencia
-    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de
-    2005, con Santander entre los departamentos más golpeados: inundaciones, la avalancha del río de Oro y la
-    declaratoria de calamidad pública en Bucaramanga y Girón. Según el IDEAM, citado en ese documento, las lluvias,
-    atípicas para la época, se debieron a cuatro frentes fríos del hemisferio norte, cuando entre enero y febrero
-    normalmente ocurren uno o dos (<a class="cita" href="#ref-defensoria2005">Defensoría del Pueblo, 2005</a>). En la cuenca, enero de 2005 estuvo
-    +1.6 rangos intercuartiles sobre lo normal para enero en PL, +1.5 en PI y
-    +0.7 en Q; febrero, +0.5, +0.5 y +1.7.
-    Enero de 2005 salía como atípico de PL (207 mm) antes de excluir el primer tramo de Pueblo Viejo:
-    el umbral de enero era 205 mm y hoy es 234 mm. El valor del mes
-    no cambió; subió el umbral, porque ese tramo, que medía cerca de la cuarta parte que sus vecinos, bajaba los
-    eneros de 1998 a 2004. El documento no nombra la cuenca del Fonce, así que no se puede confirmar que esas lluvias
-    fueran las mismas que se ven aquí.</li>
+    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de 2005,
+    con inundaciones en Santander, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón; según el
+    IDEAM, por cuatro frentes fríos del hemisferio norte, cuando lo normal en enero y febrero son uno o dos
+    (<a class="cita" href="#ref-defensoria2005">Defensoría del Pueblo, 2005</a>). En la cuenca, enero de 2005 estuvo +1.6 rangos intercuartiles sobre lo normal
+    en PL, +1.5 en PI y +0.7 en Q, y febrero +0.5, +0.5
+    y +1.7. Enero (207 mm de PL) era atípico antes de excluir el primer tramo de Pueblo
+    Viejo, que medía 0.27 veces lo de sus vecinos y bajaba los eneros de 1998 a 2004: el umbral pasó
+    de 205 a 234 mm con el mismo valor del mes. El documento no nombra la
+    cuenca del Fonce, así que no se puede confirmar que sean las mismas lluvias.</li>
     <li><b>Caudal atípico sin lluvia atípica:</b> <span class='fase-nina' title='La Niña'>feb 1999</span>, <span class='fase-nina' title='La Niña'>sep 2010</span>, <span class='fase-nina' title='La Niña'>dic 2011</span>, <span class='fase-nina' title='La Niña'>nov 2022</span>. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     +1.7, +1.9, +1.1, +0.7): el río acumula varios meses húmedos
@@ -1318,12 +1302,11 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
-  <p>Hasta aquí, el caudal sigue a la lluvia del mismo mes y arrastra algo del anterior. La prueba más exigente
-  de esa relación es usarla para <b>estimar el caudal en años que el ajuste no vio</b>. Se ajusta una recta del
-  caudal contra la lluvia con 1998–2014 y se evalúa con 2015–2022. Los
-  dos bloques son continuos, para que meses vecinos, que se parecen entre sí, no queden uno en cada lado. La
-  referencia es la <b>climatología</b>: el caudal medio de cada mes del calendario en el bloque de ajuste.
-  Superarla quiere decir que la lluvia dice algo del caudal que el calendario solo no dice.</p>
+  <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
+  no vio</b>: una recta ajustada con 1998–2014 se evalúa con
+  2015–2022, en bloques continuos para que meses vecinos no queden uno en cada lado.
+  La referencia es la <b>climatología</b> (el caudal medio de cada mes en el ajuste): superarla quiere decir que la
+  lluvia dice algo que el calendario solo no dice.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
@@ -1339,12 +1322,10 @@ section, section h3 { scroll-margin-top: 20px; }
   </table>
   </div>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p><b>La mejor estimación sale de PL del mismo mes</b>: en los años de evaluación se equivoca en
-  25.6 m³/s (RMSE), contra 31.5 de la climatología.
-  Con PI del mismo mes el error es de 29.9 m³/s: otra vez los
-  pluviómetros le ganan al satélite. Con la lluvia del mes anterior sola el error es mayor
-  (31.4 con PL), como se espera de un río que responde sobre
-  todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  <p><b>La mejor estimación sale de PL del mismo mes</b>: RMSE de 25.6 m³/s en la
+  evaluación, contra 31.5 de la climatología y 29.9
+  con PI. Con la lluvia del mes anterior sola el error crece (31.4
+  con PL): el río responde sobre todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   45.5 mm/mes en la evaluación, contra 47.6 de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>

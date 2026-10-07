@@ -435,6 +435,25 @@ est_filas_mitades = "\n".join(
     f"<td class='num'>{' y '.join(f'{d:.1f}' for d in r['corrimiento']) if r['corrimiento'] else '—'}</td>"
     f"<td>{'sí' if r['estable'] else '<b>no</b>'}</td></tr>" for v, r in est_mitades.items())
 
+# años que se salen de lo normal: tabla y datos de las dos gráficas
+def _anom_z(v):
+    return "sin año completo" if v is None else f"{v:+.2f}"
+
+
+anom_filas = "\n".join(
+    f"<tr><td><b>{a}</b> ({r['tipo']})</td><td class='num'>{r['z_pl']:+.2f}</td><td class='num'>{r['z_pi']:+.2f}</td>"
+    f"<td class='num'>{_anom_z(r['z_q'])}</td><td class='num'>{n(r['pl'])}</td><td class='num'>{r['meses_sobre']} de 12</td>"
+    f"<td>{' y '.join(r['picos'])}</td><td class='num'>{r['razon']:.2f}</td>"
+    f"<td>{r['nina']} de La Niña, {r['nino']} de El Niño</td></tr>" for a, r in anom_anios.items())
+_anom_nube = atip_z[["PL", "Q"]].dropna()
+anom_json = json.dumps({
+    "nube": {"pl": _anom_nube.PL.round(2).tolist(), "q": _anom_nube.Q.round(2).tolist(),
+             "anio": [p.year for p in _anom_nube.index], "mes": [f"{MESES_LARGOS_ES[p.month - 1]} de {p.year}" for p in _anom_nube.index]},
+    "anios": {str(a): {"tipo": r["tipo"], "serie": r["serie"]} for a, r in anom_anios.items()},
+    "mediana": [round(float(v), 1) for v in anom_mediana_pl],
+    "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
+}, ensure_ascii=False)
+
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
 pagina = f"""<!doctype html>
@@ -1478,6 +1497,47 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>Años que se salen de lo normal</h2>
+  <div class="revision" data-etiqueta="Revisión · anomalías y años contrastantes">
+  <p>La <b>anomalía</b> de un mes es cuánto se aleja del valor normal de su mes del calendario, en rangos
+  intercuartiles (la misma medida de «Revisión de outliers»): un abril más seco o más lluvioso que un abril
+  normal. Quita el ciclo anual y deja la variación de un año a otro.</p>
+  <h3>Las nubes del caudal, sin el calendario</h3>
+  <p>Con los valores tal cual, parte de la relación entre lluvia y caudal viene de que comparten el calendario.
+  Con anomalías, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
+  PI con Q de {anom_rho["PI–Q"]["tal cual"]:.2f} a {anom_rho["PI–Q"]["anomalías"]:.2f} y la de PI con PL de
+  {anom_rho["PI–PL"]["tal cual"]:.2f} a {anom_rho["PI–PL"]["anomalías"]:.2f}. <b>Un mes más lluvioso de lo normal trae más
+  caudal de lo normal</b>, y con PL la relación se pierde menos que con PI.</p>
+  <div id="g-anom-dispersion" class="grafico" style="min-height:0; height:440px; max-width:620px"></div>
+  <p class="nota">Cada punto es un mes; en color, los años contrastantes.</p>
+  <h3>Los años contrastantes</h3>
+  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según la anomalía media de PL. La de Q solo se
+  calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL (ρ = {anom_rho_anual_pl_q:.2f}).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Año</th><th class="num">Anomalía PL</th><th class="num">PI</th><th class="num">Q</th>
+    <th class="num">PL del año (mm)</th><th class="num">Meses sobre lo normal</th><th>Picos</th><th class="num">A₂/A₁</th>
+    <th>ENSO (meses)</th></tr></thead>
+    <tbody>
+{anom_filas}
+    </tbody>
+  </table>
+  </div>
+  <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:400px"></div>
+  <p class="nota">PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes, {n(anom_tipico_pl)} mm
+  en el año).</p>
+  <p><b>{"Hasta en los años extremos el régimen sigue siendo bimodal" if anom_todos_bimodales else "En algún año extremo el régimen deja de ser bimodal"}</b>:
+  lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma. Un año húmedo tiene la mayoría de sus meses
+  sobre lo normal ({anom_anios[anom_humedos[0]]["meses_sobre"]} de 12 en {anom_humedos[0]}) y uno seco, pocos
+  ({anom_anios[anom_secos[0]]["meses_sobre"]} de 12 en {anom_secos[0]}). Los dos más contrastantes coinciden con el ENSO:
+  {anom_humedos[0]}, con {anom_anios[anom_humedos[0]]["nina"]} meses de La Niña, y {anom_secos[0]}, con
+  {anom_anios[anom_secos[0]]["nino"]} de El Niño; es una coincidencia observada, no una causa demostrada. PI no siempre
+  coincide en los extremos: sus años más húmedos son {" y ".join(map(str, anom_pi_humedos))} y los más secos
+  {" y ".join(map(str, anom_pi_secos))}.</p>
+  </div>
+</section>
+
+<section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
   mes a mes en años que el ajuste no vio.</p>
@@ -2127,6 +2187,49 @@ a {{ color: var(--acento); }}
   }}
 
 
+  const ANOM = {anom_json};
+
+  function dibujarAnomalias() {{
+    if (!window.Plotly) return;
+    const GRIS = css("--tenue");
+    const COLOR = {{ "húmedo": ["#0072B2", "#56B4E9"], "seco": ["#D55E00", "#E69F00"] }};
+    const anios = Object.keys(ANOM.anios);
+    const usados = {{ "húmedo": 0, "seco": 0 }};
+    const color = {{}};
+    anios.forEach(a => {{ const t = ANOM.anios[a].tipo; color[a] = COLOR[t][usados[t]++]; }});
+    const resto = ANOM.nube.anio.map(a => !(String(a) in ANOM.anios));
+    const trazas = [{{
+      type: "scatter", mode: "markers", name: "los demás meses",
+      x: ANOM.nube.pl.filter((_, i) => resto[i]), y: ANOM.nube.q.filter((_, i) => resto[i]),
+      text: ANOM.nube.mes.filter((_, i) => resto[i]),
+      marker: {{ size: 6, color: GRIS, opacity: 0.45 }}, hovertemplate: "%{{text}}<extra></extra>"
+    }}];
+    anios.forEach(a => {{
+      const idx = ANOM.nube.anio.map((x, i) => String(x) === a ? i : -1).filter(i => i >= 0);
+      trazas.push({{ type: "scatter", mode: "markers", name: a + " (" + ANOM.anios[a].tipo + ")",
+        x: idx.map(i => ANOM.nube.pl[i]), y: idx.map(i => ANOM.nube.q[i]), text: idx.map(i => ANOM.nube.mes[i]),
+        marker: {{ size: 9, color: color[a] }}, hovertemplate: "%{{text}}<extra></extra>" }});
+    }});
+    const d1 = base();
+    d1.hovermode = "closest";
+    d1.margin = {{ t: 64, r: 10, b: 48, l: 58 }};
+    d1.xaxis.title = {{ text: "anomalía de PL (rangos intercuartiles)", font: {{ size: 11, color: GRIS }} }};
+    d1.yaxis.title.text = "anomalía de Q (rangos intercuartiles)";
+    d1.yaxis.rangemode = "normal";
+    d1.xaxis.zeroline = true; d1.yaxis.zeroline = true;
+    d1.xaxis.zerolinecolor = GRIS; d1.yaxis.zerolinecolor = GRIS;
+    Plotly.react("g-anom-dispersion", trazas, d1, CONF);
+
+    const ciclo = [{{ type: "scatter", mode: "lines", name: "año típico (mediana)", x: ANOM.meses, y: ANOM.mediana,
+      line: {{ color: css("--tinta"), width: 3, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>típico</extra>" }}];
+    anios.forEach(a => ciclo.push({{ type: "scatter", mode: "lines+markers", name: a, x: ANOM.meses, y: ANOM.anios[a].serie,
+      line: {{ color: color[a], width: 2 }}, marker: {{ size: 5 }}, hovertemplate: "%{{y:.0f}} mm<extra>" + a + "</extra>" }}));
+    const d2 = base();
+    d2.margin.t = 46;
+    d2.yaxis.title.text = "PL (mm/mes)";
+    Plotly.react("g-anom-ciclo", ciclo, d2, CONF);
+  }}
+
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
 
@@ -2343,6 +2446,7 @@ a {{ color: var(--acento); }}
     dibujarCajas();
     dibujarBalance();
     dibujarPuntoDos();
+    dibujarAnomalias();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

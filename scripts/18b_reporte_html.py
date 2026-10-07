@@ -580,10 +580,10 @@ a {{ color: var(--acento); }}
       <h3>Figura 1 · Modelo digital de elevación</h3>
       <p>La mitad norte y oeste es un valle entre 1 100 y 2 000 m, donde está la estación de aforo de San Gil, la salida de la cuenca.
       La mitad sureste sube hasta el páramo, por encima de 3 500 m.</p>
-      <p>Los <b>{len(DENTRO)} pluviómetros</b> del IDEAM que caen dentro de la divisoria están marcados en el mapa, con su altitud.
-      Van de Valle de San Jose (1 300 m), en el fondo del valle, a Las Pavas (2 625 m), la estación más alta de la cuenca.
-      Se reparten entre el valle del norte y la vertiente oriental, pero <b>ninguno llega al páramo</b>: por encima de 2 625 m,
-      donde está casi un tercio del área, no hay ningún aparato midiendo lluvia.</p>
+      <p>Los <b>{len(DENTRO)} pluviómetros</b> dentro de la divisoria, con su altitud, van de
+      {html.escape(mapa_plu_baja.etiqueta)} ({n(mapa_plu_baja.altitud)} m), en el fondo del valle, a
+      {html.escape(mapa_plu_alta.etiqueta)} ({n(mapa_plu_alta.altitud)} m). <b>Ninguno llega al páramo</b>: por
+      encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la cuenca, no se mide la lluvia.</p>
       <p class="nota">Se descargó un octavo pluviómetro, Mamonal El Hacienda, que queda fuera de la divisoria, en la vertiente del
       Chicamocha. No aparece en el mapa ni entra en el promedio de la cuenca.</p>
       <dl class="lista-datos">
@@ -603,19 +603,20 @@ a {{ color: var(--acento); }}
     <div class="placa"><img src="{img('imerg_pixeles.png')}" alt="Grilla de píxeles de IMERG sobre la cuenca, coloreados por lluvia media anual, rotulados con el porcentaje de cada píxel dentro de la cuenca, con el aforo de San Gil y los siete pluviómetros" width="1088" height="1376"></div>
     <figcaption>
       <h3>Figura 2 · Píxeles de IMERG sobre la cuenca</h3>
-      <p>IMERG trabaja con píxeles de 0.1° (unos 11 km de lado). La lluvia de cada cuenca es el promedio de los píxeles que la
-      tocan, ponderado por la fracción de cada píxel que cae dentro (el número rotulado).</p>
+      <p>IMERG trabaja con píxeles de 0.1° (unos {mapa_km_lado:.0f} km de lado). La lluvia de la cuenca es el promedio de los
+      píxeles que la tocan, ponderado por la fracción de cada uno dentro (el número rotulado).</p>
       <dl class="lista-datos">
         <dt>Píxeles que tocan la cuenca</dt><dd>{n_pix}</dd>
         <dt>Con más de la mitad dentro</dt><dd>{n_mitad}</dd>
         <dt>Totalmente dentro</dt><dd>{n_llenos}</dd>
         <dt>Lluvia media anual</dt><dd>{n(p_dmin)}–{n(p_dmax)} mm/año (píxeles con más de la mitad dentro)</dd>
       </dl>
-      <p>Según IMERG, llueve más en el valle del oeste (unos 2 400 mm/año) que en el páramo del sureste (cerca de 2 000 mm/año).</p>
-      <p class="aviso">Hay que tomarlo con cautela. IMERG estima la lluvia con satélites y la corrige con pluviómetros, y en esta cuenca
-      no hay ningún pluviómetro por encima de 2 625 m, así que la parte alta del gradiente no tiene con qué contrastarse.</p>
-      <p class="nota">Las subcuencas pequeñas quedan cubiertas por muy pocos píxeles: Monchía (167 km²) y Mogoticos (185 km²) tienen
-      apenas el área de un píxel y medio de IMERG (cada píxel mide unos 122 km² a esta latitud), así que IMERG no puede ver variaciones de la lluvia dentro de ellas.</p>
+      <p>Según IMERG, llueve más en el valle del oeste que en el páramo del sureste.</p>
+      <p class="aviso">Con cautela: IMERG se corrige con pluviómetros, y aquí ninguno pasa de {n(mapa_plu_alta.altitud)} m, así que
+      la parte alta no tiene con qué contrastarse.</p>
+      <p class="nota">Monchía ({n(mapa_area_chicas['Monchía'])} km²) y Mogoticos ({n(mapa_area_chicas['Mogoticos'])} km²) miden
+      {mapa_area_chicas['Monchía'] / mapa_km2_pixel:.1f} y {mapa_area_chicas['Mogoticos'] / mapa_km2_pixel:.1f} píxeles de IMERG
+      (unos {n(mapa_km2_pixel)} km² cada uno): IMERG no ve variaciones de la lluvia dentro de ellas.</p>
     </figcaption>
   </figure>
   </div>
@@ -632,24 +633,19 @@ a {{ color: var(--acento); }}
         <dt>Temperatura media por píxel</dt><dd>{t_min_mitad:.1f}–{t_max_mitad:.1f} °C (píxeles con más de la mitad dentro)</dd>
         <dt>Promedio sobre la cuenca</dt><dd>{t_ponderada:.2f} °C (ponderado por área)</dd>
       </dl>
-      <p><b>De un extremo al otro de la cuenca hay {t_max_mitad - t_min_mitad:.1f} °C de diferencia</b>:
-      {t_max_mitad:.1f} °C en el píxel del noroeste, sobre el valle, y {t_min_mitad:.1f} °C en el del sur, sobre el
-      páramo, contando solo los píxeles que tienen más de la mitad del área dentro de la cuenca. Es más de diez veces
-      la diferencia entre el mes más frío y el más cálido del año, que en esta cuenca no llega a un grado. Aquí la
-      temperatura la manda la altura, no el calendario, y esa es la razón de haber preferido ERA5-Land sobre ERA5: con
-      los píxeles de 0.25° de ERA5 toda esta variación quedaría promediada dentro de dos o tres celdas.</p>
-      <p>Compara esta pestaña con la del relieve: el patrón es el mismo mapa. Los píxeles cálidos siguen el valle del
-      Fonce hacia el norte y los fríos se acumulan en la mitad sureste, que es donde el DEM pasa de 3 500 m.</p>
-      <p class="nota">El promedio ponderado de este mapa da {t_ponderada:.2f} °C y la serie diaria de la cuenca da
-      {t_serie_media:.2f} °C: la diferencia es de {abs(t_ponderada - t_serie_media):.2f} °C, que es el error de tomar
-      el valor en el centro de cada píxel en vez de dejar que Earth Engine lo integre sobre el polígono. Sirve como
-      chequeo de que el mapa y la serie están hablando del mismo dato.</p>
-      <p class="nota">Contando también los píxeles que solo rozan la cuenca, el rango llega a
-      {t_min_px:.1f}–{t_max_px:.1f} °C, pero esos valores describen sobre todo terreno de afuera: el más cálido de
-      todos apenas tiene un 6 % de su área dentro de la divisoria.</p>
-      <p class="aviso">La malla de ERA5-Land tiene el mismo paso que la de IMERG pero está <b>corrida medio píxel</b>:
-      sus centros caen en múltiplos exactos de 0.1° y los de IMERG en los terminados en 0.05°. Por eso son
-      {t_npix} píxeles aquí y {n_pix} allá, y por eso las dos cuadrículas no se superponen.</p>
+      <p><b>De un extremo al otro de la cuenca hay {t_max_mitad - t_min_mitad:.1f} °C de diferencia</b>
+      ({t_max_mitad:.1f} °C en el valle del noroeste y {t_min_mitad:.1f} °C en el páramo del sur, en los píxeles con más
+      de la mitad dentro): {(t_max_mitad - t_min_mitad) / mapa_t_amplitud_anual:.0f} veces la diferencia entre el mes más
+      cálido y el más frío ({mapa_t_amplitud_anual:.1f} °C). <b>Aquí la temperatura la manda la altura, no el
+      calendario</b>: por eso se usa ERA5-Land, de malla más fina que ERA5. El patrón es el del relieve: los píxeles
+      cálidos siguen el valle del Fonce y los fríos se acumulan en la mitad sureste, la más alta.</p>
+      <p class="nota">El promedio ponderado del mapa ({t_ponderada:.2f} °C) y la serie diaria de la cuenca
+      ({t_serie_media:.2f} °C) difieren en {abs(t_ponderada - t_serie_media):.2f} °C, el error de tomar el centro de cada
+      píxel en vez de integrar sobre el polígono. Con los píxeles que solo rozan la cuenca el rango llega a
+      {t_min_px:.1f}–{t_max_px:.1f} °C, pero describen terreno de afuera: el más cálido tiene apenas el
+      {mapa_pct_px_calido:.0f} % de su área dentro.</p>
+      <p class="aviso">La malla de ERA5-Land tiene el paso de la de IMERG pero <b>corrida medio píxel</b> (centros en
+      múltiplos de 0.1° contra los terminados en 0.05°): por eso son {t_npix} píxeles aquí y {n_pix} allá.</p>
     </figcaption>
   </figure>
   </div>

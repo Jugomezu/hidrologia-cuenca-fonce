@@ -861,19 +861,17 @@ a {{ color: var(--acento); }}
   <details class="plegable" open>
   <summary><h2>Anomalías en las series</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <div class="revision" data-etiqueta="Revisión · anomalías en las series">
-  <p>Si un dato es posible no quiere decir que la serie sea coherente en el tiempo. Un cambio de estación, de
-  instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie mide sistemáticamente más o
-  menos que sus vecinas. Para buscarlo, cada serie se compara con una referencia: cada pluviómetro con el
-  promedio de los demás, y PI y Q con PL.</p>
+  <p>Un cambio de estación, de instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie
+  mide sistemáticamente más o menos que sus vecinas. Para buscarlo, cada pluviómetro se compara con el promedio
+  de los demás, y PI y Q con PL.</p>
   <ul class="tratamiento">
     <li><b>Curva de doble masa:</b> el acumulado de la serie contra el de la referencia. Si miden lo mismo en
     proporción es una recta; un salto la quiebra.</li>
     <li><b>Prueba de Pettitt</b> ({CITA_PETTITT}): busca el punto que mejor parte la razón serie/referencia en
     dos niveles y da la probabilidad <i>p</i> de que eso ocurra por azar. Es significativo si <i>p</i> &lt; 0.05.</li>
   </ul>
-  <p>Una estación con un salto contaminaría la referencia de sus vecinas, así que se prueba por rondas: la
-  peor se aparta de las referencias y se vuelven a probar las demás. Los pluviómetros se revisan sobre la
-  serie como estaba antes de estas decisiones, sin el tramo de Encino ya excluido.</p>
+  <p>Como una estación con salto contaminaría la referencia de las demás, se prueba por rondas: la peor se
+  aparta y se repite. Se usa la serie anterior a estas decisiones, sin el tramo de Encino ya excluido.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Serie</th><th>Referencia</th><th class="num">Meses</th><th class="num">Primer mes del 2.º tramo</th>
@@ -898,28 +896,23 @@ a {{ color: var(--acento); }}
     {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fecha_anomala(pm)} (<i>p</i> {fmt_p_eq(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
   </ul>
   <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
-  <p><b>Pueblo Viejo tiene un segundo salto.</b> La prueba de Pettitt encuentra un solo corte por serie, así
-  que a cada pluviómetro con salto se le repitió en el tramo que queda después del primero, sobre la serie
-  depurada y contra el {html.escape(an_pv2.referencia)}. Pueblo Viejo pasa de {an_pv2.razon_antes:.2f} a
-  {an_pv2.razon_despues:.2f} veces sus vecinos desde {fecha_anomala(an_pv2.primer_mes_despues)}
-  ({an_pv2.cambio_pct:+.0f} %, <i>p</i> {fmt_p_eq(an_pv2.p)}).
+  <p><b>Pueblo Viejo tiene un segundo salto.</b> Como Pettitt encuentra un solo corte por serie, se repitió en el
+  tramo posterior al primero (serie depurada, contra el {html.escape(an_pv2.referencia)}): Pueblo Viejo pasa de
+  {an_pv2.razon_antes:.2f} a {an_pv2.razon_despues:.2f} veces sus vecinos desde
+  {fecha_anomala(an_pv2.primer_mes_despues)} ({an_pv2.cambio_pct:+.0f} %, <i>p</i> {fmt_p_eq(an_pv2.p)}).
   {" ".join(f"{html.escape(s.split(' · ')[1])} no tiene un segundo salto (<i>p</i> {fmt_p_eq(p)})." for s, p in an_seg_sin_salto.p.items())}
-  Como en Coromoro, no hay forma de saber cuál de los dos tramos de Pueblo Viejo está bien. <b>Se conserva,
-  marcado como incierto:</b> PL puede estar algo baja desde ese mes.</p>
+  No se sabe cuál tramo está bien: <b>se conserva, marcado como incierto</b>, y PL puede estar algo baja desde
+  ese mes.</p>
   <p><b>PI frente a PL: {an_pi.cambio_pct:+.0f} % desde {fecha_anomala(an_pi.primer_mes_despues)}</b> (<i>p</i>
-  {fmt_p_eq(an_pi.p)}): antes PI era {an_pi.razon_antes:.2f} veces PL, después {an_pi.razon_despues:.2f}. El corte
-  cae en el cambio de era de IMERG: hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
-  de 2014 con GPM ({CITA_IMERG_DOC}). Pero cae también {an_meses_pv2_pi} meses después del segundo salto de
-  Pueblo Viejo, que baja PL. Con una {html.escape(an_pi_sin.referencia)}, el salto de PI es de
-  {an_pi_sin.cambio_pct:+.0f} % (<i>p</i> {fmt_p_eq(an_pi_sin.p)})
-  {"y deja de ser significativo: buena parte del salto viene de Pueblo Viejo, no de IMERG. El cambio de TRMM a GPM puede aportar algo, pero no es la explicación principal." if not an_pi_sin.significativo else "y sigue siendo significativo: el cambio de TRMM a GPM sigue siendo una explicación posible."}
-  PI se conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene
-  salto (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
-  <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
-  cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
-  pluviómetros no se pueden confirmar ni descartar con metadatos. El cambio de calibración de IMERG sí está
-  documentado, pero no basta para atribuirle el salto de PI. Las pruebas del segundo salto corren en
-  <code>scripts/07c_anomalias.py</code> y quedan en <code>out/anomalias_segundo_corte.csv</code>.</p>
+  {fmt_p_eq(an_pi.p)}; de {an_pi.razon_antes:.2f} a {an_pi.razon_despues:.2f} veces PL). Coincide con el paso de
+  IMERG de la calibración con TRMM a la de GPM, el 1 de junio de 2014 ({CITA_IMERG_DOC}), pero también llega
+  {an_meses_pv2_pi} meses después del segundo salto de Pueblo Viejo, que baja PL. Con una
+  {html.escape(an_pi_sin.referencia)}, el salto es de {an_pi_sin.cambio_pct:+.0f} % (<i>p</i> {fmt_p_eq(an_pi_sin.p)})
+  {"y deja de ser significativo: buena parte viene de Pueblo Viejo, y TRMM → GPM no es la explicación principal." if not an_pi_sin.significativo else "y sigue siendo significativo: TRMM → GPM sigue siendo una explicación posible."}
+  PI se conserva, marcado como incierto. <b>Q frente a PL</b> no tiene salto (<i>p</i> {fmt_p_eq(an_q.p)}).</p>
+  <p class="nota">El catálogo del IDEAM no guarda reubicaciones ni cambios de instrumento (solo la fecha de
+  instalación, anterior a 1998, y el estado), así que los saltos de los pluviómetros no se pueden confirmar con
+  metadatos. Las pruebas corren en <code>scripts/07c_anomalias.py</code>.</p>
   </div>
 
   <h3>Meses en 0 mm</h3>
@@ -932,20 +925,18 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p>Un mes sin una gota en un pluviómetro, mientras todos los demás midieron al menos 20 mm, es más
-  probablemente una planilla vacía que un mes sin lluvia. Esos {len(an_ceros_fuera)} se tratan como no
-  registrados. Los {len(an_ceros_quedan)} restantes se conservan, porque algún vecino también midió casi
-  nada.</p>
+  <p>Un mes en 0 mm mientras todos los demás midieron al menos 20 mm es más probablemente una planilla vacía:
+  esos {len(an_ceros_fuera)} se excluyen. Los {len(an_ceros_quedan)} restantes se conservan, porque algún vecino
+  también midió casi nada.</p>
 
   <h3>Secuencias constantes, picos aislados y cobertura</h3>
   <p>{"No hay" if an_rachas_dia.empty else f"Hay {len(an_rachas_dia)}"} tramos de 5 días o más con el mismo
-  valor exacto en Q o en la temperatura, que es la huella de un instrumento trabado o de un dato copiado, y
+  valor en Q o en la temperatura (huella de un instrumento trabado o un dato copiado), y
   {"ningún día" if an_picos.empty else f"{len(an_picos)} día" + ("" if len(an_picos) == 1 else "s")} de Q que triplique a
-  sus dos vecinos. En los pluviómetros hay {len(an_rachas_pl)} pares de
-  meses seguidos con el mismo total, que no cambian nada. Cuando a PL le falta algún pluviómetro
-  ({len(an_cob)} meses), su valor se aleja del de los 7 un {an_sesgo.median():.1f} % en la mediana y un
-  {an_sesgo.max():.1f} % como máximo. Se estima en los meses en que están los 7, con el mismo grupo de
-  estaciones presentes. Queda como incertidumbre declarada; no se corrige.</p>
+  sus vecinos; en los pluviómetros, {len(an_rachas_pl)} pares de meses seguidos con el mismo total, sin efecto.
+  Cuando a PL le falta algún pluviómetro ({len(an_cob)} meses), se aleja del promedio de los {len(DENTRO)} un
+  {an_sesgo.median():.1f} % en la mediana y un {an_sesgo.max():.1f} % como máximo (estimado en los meses en que
+  están todos): incertidumbre declarada, no se corrige.</p>
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
   <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
   tramos excluidos: {exc_lista}.</p>

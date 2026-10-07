@@ -541,19 +541,17 @@ section, section h3 { scroll-margin-top: 20px; }
   <details class="plegable" open>
   <summary><h2>Anomalías en las series</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <div class="revision" data-etiqueta="Revisión · anomalías en las series">
-  <p>Si un dato es posible no quiere decir que la serie sea coherente en el tiempo. Un cambio de estación, de
-  instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie mide sistemáticamente más o
-  menos que sus vecinas. Para buscarlo, cada serie se compara con una referencia: cada pluviómetro con el
-  promedio de los demás, y PI y Q con PL.</p>
+  <p>Un cambio de estación, de instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie
+  mide sistemáticamente más o menos que sus vecinas. Para buscarlo, cada pluviómetro se compara con el promedio
+  de los demás, y PI y Q con PL.</p>
   <ul class="tratamiento">
     <li><b>Curva de doble masa:</b> el acumulado de la serie contra el de la referencia. Si miden lo mismo en
     proporción es una recta; un salto la quiebra.</li>
     <li><b>Prueba de Pettitt</b> (<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>): busca el punto que mejor parte la razón serie/referencia en
     dos niveles y da la probabilidad <i>p</i> de que eso ocurra por azar. Es significativo si <i>p</i> &lt; 0.05.</li>
   </ul>
-  <p>Una estación con un salto contaminaría la referencia de sus vecinas, así que se prueba por rondas: la
-  peor se aparta de las referencias y se vuelven a probar las demás. Los pluviómetros se revisan sobre la
-  serie como estaba antes de estas decisiones, sin el tramo de Encino ya excluido.</p>
+  <p>Como una estación con salto contaminaría la referencia de las demás, se prueba por rondas: la peor se
+  aparta y se repite. Se usa la serie anterior a estas decisiones, sin el tramo de Encino ya excluido.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Serie</th><th>Referencia</th><th class="num">Meses</th><th class="num">Primer mes del 2.º tramo</th>
@@ -586,28 +584,23 @@ section, section h3 { scroll-margin-top: 20px; }
     <li><b>Coromoro</b>: -20 % desde <span class='fase-neutra'>mar 2003</span> (<i>p</i> = 0.006), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>
   </ul>
   <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
-  <p><b>Pueblo Viejo tiene un segundo salto.</b> La prueba de Pettitt encuentra un solo corte por serie, así
-  que a cada pluviómetro con salto se le repitió en el tramo que queda después del primero, sobre la serie
-  depurada y contra el promedio de los demás pluviómetros (sin Pueblo Viejo, Coromoro). Pueblo Viejo pasa de 0.83 a
-  0.62 veces sus vecinos desde <span class='fase-neutra'>abr 2014</span>
-  (-25 %, <i>p</i> &lt; 0.001).
+  <p><b>Pueblo Viejo tiene un segundo salto.</b> Como Pettitt encuentra un solo corte por serie, se repitió en el
+  tramo posterior al primero (serie depurada, contra el promedio de los demás pluviómetros (sin Pueblo Viejo, Coromoro)): Pueblo Viejo pasa de
+  0.83 a 0.62 veces sus vecinos desde
+  <span class='fase-neutra'>abr 2014</span> (-25 %, <i>p</i> &lt; 0.001).
   Coromoro no tiene un segundo salto (<i>p</i> = 0.829).
-  Como en Coromoro, no hay forma de saber cuál de los dos tramos de Pueblo Viejo está bien. <b>Se conserva,
-  marcado como incierto:</b> PL puede estar algo baja desde ese mes.</p>
+  No se sabe cuál tramo está bien: <b>se conserva, marcado como incierto</b>, y PL puede estar algo baja desde
+  ese mes.</p>
   <p><b>PI frente a PL: +11 % desde <span class='fase-neutra'>jun 2014</span></b> (<i>p</i>
-  = 0.005): antes PI era 0.84 veces PL, después 0.94. El corte
-  cae en el cambio de era de IMERG: hasta mayo de 2014 se calibra con el satélite TRMM, y desde el 1 de junio
-  de 2014 con GPM (<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>). Pero cae también 2 meses después del segundo salto de
-  Pueblo Viejo, que baja PL. Con una PL sin Pueblo Viejo, el salto de PI es de
-  +6 % (<i>p</i> = 0.261)
-  y deja de ser significativo: buena parte del salto viene de Pueblo Viejo, no de IMERG. El cambio de TRMM a GPM puede aportar algo, pero no es la explicación principal.
-  PI se conserva, marcado como incierto; en lo que hay que escoger, manda PL. <b>Q frente a PL</b> no tiene
-  salto (<i>p</i> = 0.177).</p>
-  <p class="nota">El catálogo del IDEAM no guarda historia de reubicaciones ni de cambios de instrumento: de
-  cada estación solo da la fecha de instalación, todas anteriores a 1998, y el estado. Los saltos de los
-  pluviómetros no se pueden confirmar ni descartar con metadatos. El cambio de calibración de IMERG sí está
-  documentado, pero no basta para atribuirle el salto de PI. Las pruebas del segundo salto corren en
-  <code>scripts/07c_anomalias.py</code> y quedan en <code>out/anomalias_segundo_corte.csv</code>.</p>
+  = 0.005; de 0.84 a 0.94 veces PL). Coincide con el paso de
+  IMERG de la calibración con TRMM a la de GPM, el 1 de junio de 2014 (<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>), pero también llega
+  2 meses después del segundo salto de Pueblo Viejo, que baja PL. Con una
+  PL sin Pueblo Viejo, el salto es de +6 % (<i>p</i> = 0.261)
+  y deja de ser significativo: buena parte viene de Pueblo Viejo, y TRMM → GPM no es la explicación principal.
+  PI se conserva, marcado como incierto. <b>Q frente a PL</b> no tiene salto (<i>p</i> = 0.177).</p>
+  <p class="nota">El catálogo del IDEAM no guarda reubicaciones ni cambios de instrumento (solo la fecha de
+  instalación, anterior a 1998, y el estado), así que los saltos de los pluviómetros no se pueden confirmar con
+  metadatos. Las pruebas corren en <code>scripts/07c_anomalias.py</code>.</p>
   </div>
 
   <h3>Meses en 0 mm</h3>
@@ -628,20 +621,18 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table>
   </div>
-  <p>Un mes sin una gota en un pluviómetro, mientras todos los demás midieron al menos 20 mm, es más
-  probablemente una planilla vacía que un mes sin lluvia. Esos 7 se tratan como no
-  registrados. Los 2 restantes se conservan, porque algún vecino también midió casi
-  nada.</p>
+  <p>Un mes en 0 mm mientras todos los demás midieron al menos 20 mm es más probablemente una planilla vacía:
+  esos 7 se excluyen. Los 2 restantes se conservan, porque algún vecino
+  también midió casi nada.</p>
 
   <h3>Secuencias constantes, picos aislados y cobertura</h3>
   <p>No hay tramos de 5 días o más con el mismo
-  valor exacto en Q o en la temperatura, que es la huella de un instrumento trabado o de un dato copiado, y
+  valor en Q o en la temperatura (huella de un instrumento trabado o un dato copiado), y
   ningún día de Q que triplique a
-  sus dos vecinos. En los pluviómetros hay 3 pares de
-  meses seguidos con el mismo total, que no cambian nada. Cuando a PL le falta algún pluviómetro
-  (168 meses), su valor se aleja del de los 7 un 3.8 % en la mediana y un
-  8.1 % como máximo. Se estima en los meses en que están los 7, con el mismo grupo de
-  estaciones presentes. Queda como incertidumbre declarada; no se corrige.</p>
+  sus vecinos; en los pluviómetros, 3 pares de meses seguidos con el mismo total, sin efecto.
+  Cuando a PL le falta algún pluviómetro (168 meses), se aleja del promedio de los 7 un
+  3.8 % en la mediana y un 8.1 % como máximo (estimado en los meses en que
+  están todos): incertidumbre declarada, no se corrige.</p>
   <p class="nota">Color de las fechas, según el Índice Oceánico El Niño (ONI) de la NOAA (<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>):
   <span class="fase-nino">rojo</span>, el mes cae dentro de un episodio de El Niño;
   <span class="fase-nina">azul</span>, dentro de uno de La Niña; en negrita sin color, ninguno de los dos. Un episodio

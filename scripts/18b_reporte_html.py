@@ -675,18 +675,14 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Comparando PI con PL</h2>
-  <p>Se comparan las dos fuentes de lluvia del proyecto: <b>PI</b>, la precipitación de IMERG, que el
-  satélite estima como promedio de celdas de unos 100 km², y <b>PL</b>, la que miden en el suelo los
-  <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la divisoria (portal DHIME, datos
-  <b>preliminares</b>). Los pluviómetros aparecen tenues, uno a uno, y su promedio mensual (PL) a plena
-  opacidad; cada mes se promedia con los que tengan dato, sin rellenar ninguno.</p>
-  <p class="aviso"><b>De PL se excluyen los años 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses), en
-  todos los análisis. Sus totales anuales saltan a {n(enc_raros[2016])}, {n(enc_raros[2017])} y
-  {n(enc_raros[2018])} mm, cuando el resto de su serie ronda los {n(enc_normal)}, y vuelven a su nivel en
-  2019. Nada más acompaña ese salto: con esos años, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio en
-  2017 mientras PI sale {exc_2017['pi']:+.1f} %; sin ellos, PL queda en {exc_2017['depurado']:+.1f} %, y el
-  caudal de esos años es normal o bajo. Se trata como un problema de
-  registro de la estación.</p>
+  <p>Las dos fuentes de lluvia: <b>PI</b>, la de IMERG, que el satélite estima sobre celdas de unos
+  {n(mapa_km2_pixel)} km², y <b>PL</b>, el promedio de los <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la
+  divisoria (datos <b>preliminares</b>), con los que tengan dato cada mes, sin rellenar. En las gráficas, los
+  pluviómetros sueltos van tenues y su promedio a plena opacidad.</p>
+  <p class="aviso"><b>De PL se excluyen 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses): sus totales saltan a
+  {n(enc_raros[2016])}, {n(enc_raros[2017])} y {n(enc_raros[2018])} mm, contra unos {n(enc_normal)} en el resto de su
+  serie, y nada más acompaña el salto (en 2017, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio con esos años y
+  {exc_2017['depurado']:+.1f} % sin ellos, mientras PI sale {exc_2017['pi']:+.1f} %). Es un problema de registro.</p>
   <p class="nota">La precipitación CHIRPS que trae CAMELS-COL se retiró: no aporta un punto de vista
   independiente de las otras dos y arrastra los huecos del caudal.</p>
   <div class="tabla-caja">
@@ -710,14 +706,13 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Las dos figuras comparten la leyenda de arriba. Pasa el cursor por encima para ver los
   valores de un mes; arrastra sobre el gráfico para acercarte y haz doble clic para volver.</p>
-  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud.</b> Coinciden en el ciclo anual
-  —bimodal, con picos en abril-mayo y en octubre— y mes a mes (correlación
-  {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un {abs(cmp_stats[NOM_RED]["sesgo"]):.1f}% por debajo de
-  PL</b>: {n(cmp_stats[NOM_RED]["imerg"])} contra {n(cmp_stats[NOM_RED]["pluv"])} mm/mes, lo esperable en
-  lluvia orográfica de montaña, que los satélites tienden a subestimar. Los pluviómetros sueltos difieren
-  mucho entre sí ({n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
-  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes), porque la lluvia cambia de
-  ladera a ladera; por eso se usa su promedio y no una estación suelta.</p>
+  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud:</b> coinciden en la forma del ciclo
+  anual y mes a mes (correlación {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un
+  {abs(cmp_stats[NOM_RED]["sesgo"]):.1f} % por debajo de PL</b> ({n(cmp_stats[NOM_RED]["imerg"])} contra
+  {n(cmp_stats[NOM_RED]["pluv"])} mm/mes). Los pluviómetros sueltos van de
+  {n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
+  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
+  ladera: por eso se usa su promedio.</p>
 
   <div class="revision" data-etiqueta="Revisión · PI contra PL, mes a mes">
   <h3>Mes a mes, uno contra otro</h3>
@@ -730,16 +725,13 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
   </div>
   <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
-  <p class="nota">Cada punto es un mes, coloreado según el mes del calendario. El sesgo conserva el signo del
-  error; el MAE es el tamaño típico de la diferencia, con el signo que sea, y el RMSE pesa más las diferencias
-  grandes. Que el MAE sea mucho mayor que el sesgo dice que, además de quedarse corto en promedio, PI se aleja
-  de PL hacia los dos lados según el mes.</p>
+  <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
+  pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
+  en promedio, se aleja de PL hacia los dos lados.</p>
   </div>
-  <p class="aviso"><b>En la mayoría de los cálculos se usan las dos, PI y PL, y se reportan en paralelo;
-  cuando haya que escoger, manda PL</b>, porque son medidas reales de lluvia en la cuenca y no una
-  estimación indirecta. Se tiene presente su límite: son {len(DENTRO)} puntos sin validar para
-  {n(AREA_SG_KM2)} km² de montaña, y ninguno llega al páramo. PI sirve de contraste, con la ventaja de cubrir
-  toda la cuenca y los {len(comp)} meses sin huecos.</p>
+  <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
+  la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
+  PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
 </section>
 
 <section>
@@ -1111,14 +1103,12 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>La evapotranspiración potencial (ETP)</h2>
-  <p><b>Qué es y de dónde sale.</b> La ETP es el agua que evaporaría y transpiraría un pasto bien regado
-  con el clima de cada día. No se mide, se calcula, y no es la evapotranspiración real de la cuenca.
-  CAMELS-COL publica una, calculada con el método de Hargreaves ({CITA_HARGREAVES}) a partir de la
+  <p>La <b>ETP</b> es el agua que evaporaría un pasto bien regado con el clima de cada día: se calcula, no se mide,
+  y no es la evapotranspiración real. CAMELS-COL publica una con el método de Hargreaves ({CITA_HARGREAVES}) y la
   temperatura de MSWX ({CITA_JIMENEZ}, ecuación 1):</p>
   <p class="formula">ETP = 0.0023 · R<sub>a</sub> · (T + 17.8) · √(T<sub>máx</sub> − T<sub>mín</sub>) &nbsp;&nbsp;[mm/día]</p>
-  <p class="nota">T = (T<sub>máx</sub> + T<sub>mín</sub>) / 2, en °C. R<sub>a</sub> es la radiación que llega al
-  tope de la atmósfera: depende solo de la latitud y del día del año, se calcula con las ecuaciones 21 a 25
-  de FAO-56 ({CITA_FAO}) y se pasa a mm/día multiplicándola por 0.408.</p>
+  <p class="nota">T = (T<sub>máx</sub> + T<sub>mín</sub>) / 2, en °C. R<sub>a</sub>, la radiación en el tope de la
+  atmósfera, depende de la latitud y del día (FAO-56, ecuaciones 21 a 25; {CITA_FAO}) y pasa a mm/día por 0.408.</p>
   <p><b>La recalculamos</b> con esa misma fórmula (<code>scripts/06b_etp_hargreaves.py</code>), dos veces: con
   la temperatura de MSWX, la misma que usó CAMELS-COL, y con la de ERA5-Land, la del proyecto. La latitud
   es la del centroide del polígono ({etp_lat:.2f}° N).</p>
@@ -1138,25 +1128,18 @@ a {{ color: var(--acento); }}
   mediana de los cocientes mes a mes.</p>
   <div id="g-etp" class="grafico" style="min-height:0; height:420px"></div>
 
-  <p><b>La ETP de CAMELS-COL no cuadra con su propia fórmula.</b> Sale {etp_cociente.median():.2f} veces la
-  de Hargreaves con MSWX, y ese factor casi no cambia de un mes a otro (entre {etp_cociente.min():.2f} y
-  {etp_cociente.max():.2f}): es la misma cuenta multiplicada por una constante. No es solo un error de
-  unidades en R<sub>a</sub>: si se hubiera dejado en MJ m⁻² día⁻¹, el factor sería {etp_cociente_mj:.2f}. No
-  se pudo identificar la causa.</p>
-  <p><b>¿Está mal nuestra R<sub>a</sub>?</b> No. Se comprobó de tres formas. Coincide con el ejemplo 8 de FAO-56
-  (20° S, 3 de septiembre: 32.2 MJ m⁻² día⁻¹). Coincide con integrar minuto a minuto la radiación que llega
-  al tope de la atmósfera; estas dos comprobaciones van dentro de <code>06b_etp_hargreaves.py</code>, que se
-  detiene si fallan. Y, al revés, para obtener la ETP de CAMELS-COL con su fórmula haría falta una
-  R<sub>a</sub> media de {etp_ra_implicita.mean():.1f} mm/día, cuando en el tope de la atmósfera, a
-  {etp_lat:.1f}° N, nunca pasa de {etp_ra_max:.1f} mm/día ({etp_ra_max / 0.408:.1f} MJ m⁻² día⁻¹). Esa
-  R<sub>a</sub> imposible tiene la misma forma estacional que la nuestra (el cociente va de
-  {etp_ra_cociente_mes.min():.2f} a {etp_ra_cociente_mes.max():.2f} según el mes), así que no es un error de
-  latitud ni de fecha: es un factor de escala.</p>
-  <p><b>El valor recalculado es el plausible.</b> Los {n(etp_anual.mswx)} a {n(etp_anual.era)} mm/año caen en
-  el rango de 1 200 a 1 400 mm/año que el propio artículo de CAMELS-COL da para Colombia, según el IDEAM
-  ({CITA_JIMENEZ}), y quedan por encima de lo que la cuenca pierde en el balance (PL − Q =
-  {n(etp_pl_menos_q)} mm/año), como corresponde si la evapotranspiración real no supera a la potencial. Los
-  {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(etp_pl_anual) + " mm/año)" if etp_anual.camels > etp_pl_anual else ""}.</p>
+  <p><b>La ETP de CAMELS-COL no cuadra con su propia fórmula:</b> sale {etp_cociente.median():.2f} veces la de
+  Hargreaves con MSWX, con un factor casi constante (entre {etp_cociente.min():.2f} y {etp_cociente.max():.2f}). No
+  es un error de unidades en R<sub>a</sub> (daría {etp_cociente_mj:.2f}); la causa no se pudo identificar.</p>
+  <p><b>¿Está mal nuestra R<sub>a</sub>?</b> No: coincide con el ejemplo 8 de FAO-56 (20° S, 3 de septiembre:
+  32.2 MJ m⁻² día⁻¹) y con integrarla minuto a minuto (las dos comprobaciones van en
+  <code>06b_etp_hargreaves.py</code>). Y para obtener la ETP de CAMELS-COL haría falta una R<sub>a</sub> media de
+  {etp_ra_implicita.mean():.1f} mm/día, cuando a {etp_lat:.1f}° N nunca pasa de {etp_ra_max:.1f}; como esa
+  R<sub>a</sub> imposible tiene la misma forma estacional que la nuestra (cociente de
+  {etp_ra_cociente_mes.min():.2f} a {etp_ra_cociente_mes.max():.2f} según el mes), es un factor de escala.</p>
+  <p><b>El valor recalculado es el plausible:</b> {n(etp_anual.mswx)} a {n(etp_anual.era)} mm/año, dentro del rango
+  de 1 200 a 1 400 mm/año que el artículo de CAMELS-COL da para Colombia ({CITA_JIMENEZ}) y por encima de lo que la
+  cuenca pierde en el balance (PL − Q = {n(etp_pl_menos_q)} mm/año). Los {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(etp_pl_anual) + " mm/año)" if etp_anual.camels > etp_pl_anual else ""}.</p>
   <p><b>Con MSWX o con ERA5-Land da casi lo mismo</b> ({etp_era_vs_mswx:+.1f} %, r = {etp_r_era_mswx:.2f} mes a
   mes), aunque ERA5-Land es más fría: también tiene más amplitud diaria, y en la fórmula de Hargreaves las
   dos cosas se compensan.</p>
@@ -1263,10 +1246,8 @@ a {{ color: var(--acento); }}
   <p class="nota">De aquí en adelante, y en todo el informe, tres siglas: <b>PI</b> es la precipitación de
   IMERG (satélite) promediada sobre la cuenca, <b>PL</b> la precipitación de los pluviómetros del IDEAM
   (el promedio de las {len(DENTRO)} estaciones de la red) y <b>Q</b> el caudal.</p>
-  <p>El caudal se mide en m³/s y la lluvia en milímetros, así que no se pueden comparar de frente.
-  Dividiendo el caudal por el área de la cuenca ({n(AREA_SG_KM2)} km²) queda también como lámina de agua,
-  en mm: lo que sale por el río, repartido sobre toda la cuenca. Así entran los dos en el mismo eje, sin
-  necesidad de ejes dobles que engañan la lectura.</p>
+  <p>Dividido por el área de la cuenca ({n(AREA_SG_KM2)} km²), el caudal queda como lámina de agua, en mm, y se
+  compara con la lluvia en el mismo eje.</p>
   <div class="cifras" style="margin: 18px 0 6px">
     <div class="cifra"><b>{n(bal_p_anual)} mm/año</b><span>lluvia (PI), en los meses con caudal</span></div>
     <div class="cifra"><b>{n(bal_q_anual)} mm/año</b><span>caudal</span></div>
@@ -1277,35 +1258,29 @@ a {{ color: var(--acento); }}
   <div id="g-escorrentia" class="grafico" style="min-height:0; height:300px"></div>
   <p class="nota">La franja azul es la lluvia; la línea naranja, el caudal. Donde el caudal se interrumpe
   es porque ese mes no cumple la regla de los cuatro días faltantes.</p>
-  <p><b>Sale como caudal cerca del {coef_periodo * 100:.0f} % de la lluvia.</b> El resto se evapora o se
-  queda almacenado en el suelo. Es un valor alto, pero razonable en una cuenca andina húmeda y empinada.
-  La distancia entre las dos curvas se angosta en las temporadas húmedas: cuando el suelo ya está mojado,
-  una fracción mayor de la lluvia se convierte en caudal.</p>
-  <p class="nota"><b>CAMELS-COL confirma este número por su cuenta.</b> Su archivo de firmas
-  hidrológicas publica para San Gil un <code>runoff_ratio</code> de
-  {float(firmas_sg.runoff_ratio):.2f} y un caudal medio de {float(firmas_sg.q_mean):.2f} mm/día, es decir
-  {n(float(firmas_sg.q_mean) * 365)} mm/año. Nosotros obtuvimos {coef_periodo:.2f} y
-  {n(bal_q_anual)} mm/año por un camino distinto —agregando la serie diaria con la regla del proyecto y
-  dividiendo por el área—, así que los dos cálculos coinciden.</p>
+  <p><b>Sale como caudal cerca del {coef_periodo * 100:.0f} % de la lluvia</b>; el resto se evapora o queda
+  almacenado.</p>
+  <p class="nota"><b>CAMELS-COL lo confirma por su cuenta:</b> publica para San Gil un <code>runoff_ratio</code> de
+  {float(firmas_sg.runoff_ratio):.2f} y {n(float(firmas_sg.q_mean) * 365)} mm/año de caudal; aquí, por otro camino,
+  salen {coef_periodo:.2f} y {n(bal_q_anual)} mm/año.</p>
 
   <div class="revision" data-etiqueta="Revisión · coeficiente con PL y PI">
   <p class="aviso">Meses en que salió más agua de la que cayó (coeficiente &gt; 1): <b>{bal_sobre1_pl} con PL</b>
   (máximo {bal_max_pl:.2f} en {fmt_mes(bal_max_mes_pl)}) y {bal_sobre1} con PI (máximo {bal_max:.2f} en
-  {fmt_mes(bal_max_mes)}). Con PL, {bal_pl_tras_lluvia} de los {bal_sobre1_pl} vienen después de dos meses más
-  lluviosos que lo normal: es agua guardada que sale después. Con PI son más porque PI mide menos lluvia.</p>
+  {fmt_mes(bal_max_mes)}). Con PL, {bal_pl_tras_lluvia} de los {bal_sobre1_pl} siguen a dos meses más
+  lluviosos que lo normal: agua guardada que sale después. Con PI son más porque PI mide menos lluvia.</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · P − Q contra la evapotranspiración">
   <h3>Lo que llueve menos lo que sale, contra la evapotranspiración</h3>
-  <p>Lo que llueve (P) se reparte en lo que sale por el río (Q), lo que se evapora y transpira y lo que la
-  cuenca guarda o libera del suelo y del acuífero. Por eso <b>P − Q no es la evapotranspiración</b>: mes a
-  mes incluye el almacenamiento. Aquí se compara con la ETP de Hargreaves (ver «La evapotranspiración
-  potencial (ETP)»), con las dos fuentes de lluvia.</p>
+  <p>La lluvia (P) se reparte en caudal (Q), evapotranspiración y lo que la cuenca guarda o libera, así que
+  <b>P − Q no es la evapotranspiración</b>: mes a mes incluye el almacenamiento. Se compara con la ETP de
+  Hargreaves, con las dos fuentes de lluvia.</p>
   <div id="g-pq-mensual" class="grafico" style="min-height:0; height:380px"></div>
-  <p>Mes a mes, P − Q oscila mucho más que la ETP. Con PL supera a la ETP en {pq_res["pl"]["sobre_etp"]} de
-  {pq_n_meses} meses: en el año típico, en {", ".join(pq_meses_guarda)}, que es cuando la cuenca guarda agua. En
-  {pq_res["pl"]["negativo"]} meses sale más agua de la que cae (P − Q &lt; 0); con PI son {pq_res["pi"]["negativo"]}.
-  Eso no es un error: es el río drenando lo que la cuenca guardó.</p>
+  <p>Mes a mes, P − Q oscila mucho más que la ETP: con PL la supera en {pq_res["pl"]["sobre_etp"]} de
+  {pq_n_meses} meses ({", ".join(pq_meses_guarda)} en el año típico, cuando la cuenca guarda agua), y en
+  {pq_res["pl"]["negativo"]} meses sale más agua de la que cae ({pq_res["pi"]["negativo"]} con PI): el río drenando
+  lo guardado.</p>
   <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
   <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de

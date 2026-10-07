@@ -38,6 +38,8 @@ organiza por punto del taller:
 |---|---|---|
 | 1.0–1.8 | Series mensuales: exploración y validación (estadísticos, cajas, IMERG, comparación PI–PL, lluvia contra caudal, completitud, temperatura, gradiente altitudinal, Encino, ETP) | hecho |
 | 1.9 | Ciclo anual: estadísticos por mes y régimen (mediana por mes, temporadas, concentración, armónicos de Fourier, Kruskal-Wallis; PL, PI y Q bimodales) | hecho |
+| 1.10 | Desfase estacional entre la lluvia y el caudal (fase del armónico de 6 meses, PL y PI) | hecho |
+| 1.11 | Variabilidad (DE y CV, con su inestabilidad), asimetría e influencia de cada año, mes a mes | hecho |
 | 2.1–2.5 | Morfometría (forma, perfil del cauce, curva hipsométrica, pendientes, problemas de CAMELS-COL) | hecho |
 | 3 | Cómo se relacionan las variables (correlaciones, anomalías) | hecho |
 | 4.1 | Completitud: días válidos, criterio de los 4 días | hecho |

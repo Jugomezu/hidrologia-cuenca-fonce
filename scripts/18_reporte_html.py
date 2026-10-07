@@ -560,6 +560,60 @@ ciclo_esc_max = ciclo.escorrentia_imerg.max()
 # meses húmedos. Q va en mm/mes en todo el régimen (volumen por área, misma unidad que PL y PI). Forma: armónicos 1 y 2 (Horn y Bryson, 1960); los
 # picos se cuentan sobre la curva ajustada. Estacionalidad: Kruskal-Wallis entre los 12 meses (Kruskal y
 # Wallis, 1952). Clasificación: débil si p >= ALFA_KW; si no, bimodal con dos picos; si no, unimodal.
+# ---------------------------------------------------------------- variabilidad, asimetría e influencia (1.11)
+# El mismo cálculo de la sección 1.11 del notebook, con la misma semilla y en el mismo orden, para que el
+# intervalo del CV salga idéntico. Temperatura en K: en °C el CV no tiene sentido (cero convencional).
+VAR_KELVIN = 273.15
+VAR_REMUESTREOS = 2000
+VAR_SEMILLA = 1
+VAR_SERIES = {"PL": (variables_resumen["PL"], "mm/mes"), "PI": (variables_resumen["PI"], "mm/mes"),
+              "Q": (variables_resumen["Q"], "m³/s"), "T media": (variables_resumen["T media"] + VAR_KELVIN, "K")}
+
+
+def _var_cv(x):
+    return np.std(x, ddof=1) / np.mean(x) * 100
+
+
+def _var_bowley(x):
+    q1, me, q3 = np.quantile(x, [0.25, 0.5, 0.75])
+    return (q3 + q1 - 2 * me) / (q3 - q1)
+
+
+_var_rng = np.random.default_rng(VAR_SEMILLA)
+_var_filas, var_influencia = [], {}
+for _n, (_s, _u) in VAR_SERIES.items():
+    var_influencia[_n] = {}
+    for _m in range(1, 13):
+        _x = _s[_s.index.month == _m].dropna()
+        _v = _x.to_numpy()
+        _cv = _var_cv(_v)
+        _jk = np.array([_var_cv(np.delete(_v, i)) for i in range(len(_v))])
+        _bs = np.array([_var_cv(_var_rng.choice(_v, len(_v))) for _ in range(VAR_REMUESTREOS)])
+        for _a in _x.index.year:
+            var_influencia[_n][(_a, _m)] = (_x[_x.index.year != _a].mean() / _x.mean() - 1) * 100
+        _var_filas.append({"var": _n, "mes": _m, "n": len(_v), "unidad": _u, "media": _v.mean(), "de": np.std(_v, ddof=1),
+                           "cv": _cv, "jk": np.abs(_jk - _cv).max(), "ic_bajo": np.percentile(_bs, 2.5),
+                           "ic_alto": np.percentile(_bs, 97.5), "asim": stats.skew(_v, bias=False),
+                           "bowley": _var_bowley(_v)})
+var_tabla = pd.DataFrame(_var_filas).set_index(["var", "mes"])
+var_tabla["ancho"] = var_tabla.ic_alto - var_tabla.ic_bajo
+_VAR_LC = ["PL", "PI", "Q"]
+var_corr = {v: np.corrcoef(var_tabla.loc[v, "media"], var_tabla.loc[v, "ancho"])[0, 1] for v in _VAR_LC}
+var_rel = var_tabla.ancho / var_tabla.cv * 100
+var_mas = {v: (var_tabla.loc[v, "cv"].idxmax(), var_tabla.loc[v, "de"].idxmax()) for v in VAR_SERIES}
+var_fuertes = {v: [m for m in range(1, 13) if var_tabla.loc[(v, m), "asim"] > 1] for v in _VAR_LC}
+_var_mf = [(v, m) for v in _VAR_LC for m in var_fuertes[v]]
+var_bowley_max = var_tabla.loc[_var_mf, "bowley"].abs().max() if _var_mf else float("nan")
+var_por_pocos = bool(_var_mf) and var_bowley_max < 0.5 * var_tabla.loc[_var_mf, "asim"].min()
+var_top = {v: max(var_influencia[v].items(), key=lambda kv: abs(kv[1])) for v in VAR_SERIES}
+_mes = lambda m: MESES_LARGOS_ES[m - 1]
+var_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td><td>{_mes(var_mas[v][0])} ({var_tabla.loc[(v, var_mas[v][0]), 'cv']:.{2 if v == 'T media' else 0}f} %)</td>"
+    f"<td>{_mes(var_mas[v][1])} ({var_tabla.loc[(v, var_mas[v][1]), 'de']:.{2 if v == 'T media' else 1}f} {VAR_SERIES[v][1]})</td>"
+    f"<td>{', '.join(_mes(m) for m in var_fuertes[v]) or 'ninguno' if v in _VAR_LC else '—'}</td>"
+    f"<td>{_mes(var_top[v][0][1])} de {var_top[v][0][0]} ({var_top[v][1]:+.{2 if v == 'T media' else 1}f} %)</td></tr>"
+    for v in VAR_SERIES)
+
 ALFA_KW = 0.05
 REG_PASOS = 1200
 _reg_t = np.arange(12)
@@ -2575,6 +2629,37 @@ a {{ color: var(--acento); }}
     }}));
   }})();
   </script>
+  </div>
+
+  <div class="revision" data-etiqueta="Revisión · variabilidad, asimetría e influencia">
+  <h3>Qué meses cambian más de un año a otro</h3>
+  <p>Para cada mes del calendario: la <b>desviación estándar</b> (DE), en las unidades de la variable, y el
+  <b>coeficiente de variación</b> (CV = DE / media), que la expresa como fracción de la media; la
+  <b>asimetría</b>, clásica y de Bowley (esta última solo con los cuartiles, así que un año extremo no la mueve);
+  y la <b>influencia de cada año</b>: cuánto cambia la media del mes al quitar ese año. La temperatura va en
+  kelvin: en °C el CV no tiene sentido, porque su cero es convencional.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th>Mayor CV</th><th>Mayor DE</th><th>Asimetría clásica mayor que 1</th>
+    <th>Año que más mueve una media</th></tr></thead>
+    <tbody>
+{var_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>El CV y la DE no tienen por qué coincidir:</b> la DE crece con el tamaño del mes y el CV corrige por
+  él, así que los meses secos pueden ser los más variables en proporción aunque no en milímetros.
+  <b>El CV es inestable cerca de una media nula</b>, porque divide por ella. Aquí se nota: mientras menor es la
+  media del mes, más ancho es su intervalo de confianza (correlación de {var_corr["PL"]:.2f} con PL,
+  {var_corr["PI"]:.2f} con PI y {var_corr["Q"]:.2f} con Q). Pero ningún mes está cerca de cero (el más bajo:
+  {var_tabla.loc["PI", "media"].min():.0f} mm/mes con PI), así que el CV pierde precisión en la temporada seca
+  sin dispararse. En la temperatura en K el CV va de {var_tabla.loc["T media", "cv"].min():.2f} % a
+  {var_tabla.loc["T media", "cv"].max():.2f} % y no agrega nada a la DE, porque la media apenas cambia entre
+  meses; aun así su intervalo mide entre {var_rel.loc["T media"].min():.0f} % y {var_rel.loc["T media"].max():.0f} %
+  del propio CV, como en la lluvia: con {var_tabla.n.max()} años
+  por mes como mucho, la imprecisión viene sobre todo del tamaño de la muestra.</p>
+  <p>{("<b>La asimetría fuerte la ponen pocos años:</b> donde la clásica pasa de 1, la de Bowley no pasa de " + f"{var_bowley_max:.2f}" + " en valor absoluto: uno o dos años muy altos cargan la distribución, no el conjunto.") if var_por_pocos else "<b>La asimetría fuerte es del conjunto de los años</b>, no de uno o dos: la de Bowley también es alta."}
+  Con la temperatura, ningún año mueve una media más de {max(abs(x) for x in var_influencia["T media"].values()):.2f} %.</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">

@@ -968,23 +968,7 @@ section, section h3 { scroll-margin-top: 20px; }
   dice cuánto se parece cada variable a sí misma un mes después.</p>
   <p class="nota">Esta pestaña usa las series tal cual, así que mezcla la respuesta de la cuenca con el
   desfase de los ciclos anuales. La pregunta de si Q responde a la lluvia con un mes de rezago se
-  contesta mejor abajo.</p>
-
-  <h3>¿Cuánto condiciona el ciclo de la lluvia al ciclo del caudal?</h3>
-  <p>PL tiene sus picos en <b>abril y octubre</b>, y Q en <b>mayo y noviembre</b>. Para
-  medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
-
-  <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
-  <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
-  <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
-  del ciclo, no una prueba estadística fuerte).</p>
-
-  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
-  73 % de su forma; <b>sumando la del mes anterior, el
-  93 %</b>, con cerca del 55 % de la señal
-  del mes y el 45 % del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
-  arrastre</b>. Con PI el ajuste es más pobre (59 % →
-  66 %).</p>
+  contesta en «¿Sirve la lluvia para estimar el caudal?».</p>
 
   <p class="aviso">Una correlación mensual no es causa ni capacidad de predicción: que Q y PL vayan a
   ρ = 0.82 no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La relación
@@ -1346,7 +1330,26 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
+  <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
+  mes a mes en años que el ajuste no vio.</p>
+  <h3>Primero, en el año típico</h3>
+  <p>PL tiene sus picos en <b>abril y octubre</b>, y Q en <b>mayo y noviembre</b>. Para
+  medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
+
+  <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
+  <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
+  <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
+  del ciclo, no una prueba estadística fuerte).</p>
+
+  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
+  73 % de su forma; <b>sumando la del mes anterior, el
+  93 %</b>, con cerca del 55 % de la señal
+  del mes y el 45 % del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
+  arrastre</b>. Con PI el ajuste es más pobre (59 % →
+  66 %).</p>
+
   <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
+  <h3>Después, en años que el ajuste no vio</h3>
   <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
   no vio</b>: una recta ajustada con 1998–2014 se evalúa con
   2015–2022, en bloques continuos para que meses vecinos no queden uno en cada lado.

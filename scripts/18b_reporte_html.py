@@ -1219,23 +1219,7 @@ a {{ color: var(--acento); }}
   dice cuánto se parece cada variable a sí misma un mes después.</p>
   <p class="nota">Esta pestaña usa las series tal cual, así que mezcla la respuesta de la cuenca con el
   desfase de los ciclos anuales. La pregunta de si Q responde a la lluvia con un mes de rezago se
-  contesta mejor abajo.</p>
-
-  <h3>¿Cuánto condiciona el ciclo de la lluvia al ciclo del caudal?</h3>
-  <p>PL tiene sus picos en <b>{pico_pl[0]} y {pico_pl[1]}</b>, y Q en <b>{pico_q[0]} y {pico_q[1]}</b>. Para
-  medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
-
-  <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
-  <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
-  <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
-  del ciclo, no una prueba estadística fuerte).</p>
-
-  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
-  {ajuste_lq.loc[('PL', 'mes'), 'r2'] * 100:.0f} % de su forma; <b>sumando la del mes anterior, el
-  {ajuste_lq.loc[('PL', 'mes_y_anterior'), 'r2'] * 100:.0f} %</b>, con cerca del {peso_mes_pl * 100:.0f} % de la señal
-  del mes y el {(1 - peso_mes_pl) * 100:.0f} % del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
-  arrastre</b>. Con PI el ajuste es más pobre ({ajuste_lq.loc[('PI', 'mes'), 'r2'] * 100:.0f} % →
-  {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %).</p>
+  contesta en «¿Sirve la lluvia para estimar el caudal?».</p>
 
   <p class="aviso">Una correlación mensual no es causa ni capacidad de predicción: que Q y PL vayan a
   ρ = {rho('PL', 'Q'):.2f} no quiere decir que la lluvia de un mes explique el caudal de ese mes. <b>La relación
@@ -1519,7 +1503,26 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
+  <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
+  mes a mes en años que el ajuste no vio.</p>
+  <h3>Primero, en el año típico</h3>
+  <p>PL tiene sus picos en <b>{pico_pl[0]} y {pico_pl[1]}</b>, y Q en <b>{pico_q[0]} y {pico_q[1]}</b>. Para
+  medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
+
+  <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
+  <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
+  <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
+  del ciclo, no una prueba estadística fuerte).</p>
+
+  <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
+  {ajuste_lq.loc[('PL', 'mes'), 'r2'] * 100:.0f} % de su forma; <b>sumando la del mes anterior, el
+  {ajuste_lq.loc[('PL', 'mes_y_anterior'), 'r2'] * 100:.0f} %</b>, con cerca del {peso_mes_pl * 100:.0f} % de la señal
+  del mes y el {(1 - peso_mes_pl) * 100:.0f} % del anterior: <b>el ciclo de PL condiciona el de Q, con un mes de
+  arrastre</b>. Con PI el ajuste es más pobre ({ajuste_lq.loc[('PI', 'mes'), 'r2'] * 100:.0f} % →
+  {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %).</p>
+
   <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
+  <h3>Después, en años que el ajuste no vio</h3>
   <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
   no vio</b>: una recta ajustada con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} se evalúa con
   {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}, en bloques continuos para que meses vecinos no queden uno en cada lado.

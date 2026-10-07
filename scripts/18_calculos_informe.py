@@ -1269,3 +1269,83 @@ mapa_area_chicas = {"Monchía": float(m.loc[24027060, "area"]), "Mogoticos": flo
 _t_ciclo_mes = variables_resumen["T media"].groupby(variables_resumen.index.month).mean()
 mapa_t_amplitud_anual = float(_t_ciclo_mes.max() - _t_ciclo_mes.min())    # mes más cálido menos el más frío
 mapa_pct_px_calido = float(tpx.loc[tpx.t_media.idxmax(), "frac_dentro"]) * 100   # el píxel más cálido, % dentro
+
+
+# ---------------------------------------------------------------- ¿se repite cada año? ¿es estable?
+# 1. Año por año: a cada año con los 12 meses se le ajusta la misma curva de dos armónicos del régimen; el año
+#    es bimodal si la curva tiene dos picos, y un pico del promedio «aparece» si algún pico del año cae a
+#    ±EST_TOL meses. Como esa curva no puede tener más de dos picos, se contrasta con un método simple: el mes
+#    más lluvioso de cada semestre a ±1 mes del mes del pico promedio. Q solo tiene los años con 12 meses: los
+#    meses faltantes no se rellenan.
+# 2. Dos mitades: el régimen completo en cada una, con un intervalo de A2/A1 remuestreando años. La
+#    clasificación es estable si las dos mitades dan la misma clase y los picos no se corren más de EST_TOL.
+EST_TOL = 1.0                                   # meses (decidido por el usuario)
+EST_MITADES = {"1998–2010": ("1998-01", "2010-12"), "2011–2022": ("2011-01", "2022-12")}
+EST_REMUESTREOS, EST_SEMILLA = 2000, 1
+_est_t = np.arange(REG_PASOS) * 12 / REG_PASOS
+_est_series = {"PL": variables_resumen["PL"], "PI": variables_resumen["PI"], "Q": _reg_q_mm}
+
+
+def _est_picos(x):
+    y = _reg_curva(np.asarray(x, float), _est_t)
+    return _est_t[(y > np.roll(y, 1)) & (y > np.roll(y, -1))]
+
+
+def _est_dist(a, b):
+    """Distancia circular en meses (diciembre está a un mes de enero)."""
+    d = abs(a - b) % 12
+    return min(d, 12 - d)
+
+
+def _est_razon(x):
+    return np.hypot(*_reg_armonico(np.asarray(x, float), 2)) / np.hypot(*_reg_armonico(np.asarray(x, float), 1))
+
+
+est_anual = {}
+for _n, _s in _est_series.items():
+    _p_clim = _est_picos(_reg_medianas(_s))
+    _anios = [a for a in sorted(set(_s.index.year)) if _s[_s.index.year == a].notna().sum() == 12]
+    _f = []
+    for _a in _anios:
+        _x = _s[_s.index.year == _a].to_numpy()
+        _pa = _est_picos(_x)
+        _d = [min(_est_dist(pc, p) for p in _pa) for pc in _p_clim]
+        _m1, _m2 = int(np.argmax(_x[:6])), 6 + int(np.argmax(_x[6:]))
+        _f.append({"bimodal": len(_pa) == 2, "p1": _d[0] <= EST_TOL, "p2": _d[1] <= EST_TOL, "dist": max(_d),
+                   "a1_domina": _est_razon(_x) < 1,
+                   "simple": _est_dist(_m1, round(_p_clim[0]) % 12) <= 1 and _est_dist(_m2, round(_p_clim[1]) % 12) <= 1})
+    _f = pd.DataFrame(_f)
+    est_anual[_n] = {"anios": len(_anios), "picos": [MESES_LARGOS_ES[int(round(p)) % 12] for p in _p_clim],
+                     "bimodales": int(_f.bimodal.sum()), "p1": int(_f.p1.sum()), "p2": int(_f.p2.sum()),
+                     "los_dos": int((_f.p1 & _f.p2).sum()), "dist_mediana": float(_f.dist.median()),
+                     "dist_max": float(_f.dist.max()), "a1_domina": int(_f.a1_domina.sum()), "simple": int(_f.simple.sum())}
+
+_est_rng = np.random.default_rng(EST_SEMILLA)
+est_mitades = {}
+for _n, _s in _est_series.items():
+    est_mitades[_n] = {}
+    for _nom, (_ini, _fin) in EST_MITADES.items():
+        _x = _s.loc[_ini:_fin]
+        _med = _reg_medianas(_x)
+        _kw = stats.kruskal(*[_x[_x.index.month == m].dropna() for m in range(1, 13)]).pvalue
+        _pk = _est_picos(_med)
+        _por = {a: _x[_x.index.year == a] for a in sorted(set(_x.index.year))}
+        _bs = [_est_razon(_reg_medianas(pd.concat([_por[a] for a in _est_rng.choice(list(_por), len(_por))])))
+               for _ in range(EST_REMUESTREOS)]
+        est_mitades[_n][_nom] = {
+            "clase": "estacionalidad débil" if _kw >= ALFA_KW else ("bimodal" if len(_pk) == 2 else "unimodal"),
+            "kw": _kw, "pk": _pk, "picos": [MESES_LARGOS_ES[int(round(p)) % 12] for p in _pk],
+            "razon": _est_razon(_med), "ic": tuple(np.percentile(_bs, [2.5, 97.5])), "meses": int(_x.notna().sum())}
+    _m1, _m2 = est_mitades[_n].values()
+    _corr = ([_est_dist(a, b) for a, b in zip(sorted(_m1["pk"]), sorted(_m2["pk"]))]
+             if len(_m1["pk"]) == len(_m2["pk"]) else None)
+    est_mitades[_n]["corrimiento"] = _corr
+    est_mitades[_n]["estable"] = _m1["clase"] == _m2["clase"] and _corr is not None and all(d <= EST_TOL for d in _corr)
+    est_mitades[_n]["ic_se_traslapan"] = _m1["ic"][0] <= _m2["ic"][1] and _m2["ic"][0] <= _m1["ic"][1]
+est_todas_estables = all(est_mitades[n]["estable"] for n in _est_series)
+# la serie cuya razón A2/A1 más cambia entre mitades, en proporción
+est_mas_cambia = max(_est_series, key=lambda n: abs(np.log(est_mitades[n]["2011–2022"]["razon"] /
+                                                            est_mitades[n]["1998–2010"]["razon"])))
+est_enso = {nom: oni_fase[(oni_fase.index >= pd.Period(a, "M")) & (oni_fase.index <= pd.Period(b, "M"))].value_counts()
+            for nom, (a, b) in EST_MITADES.items()}
+

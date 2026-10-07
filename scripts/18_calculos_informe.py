@@ -12,6 +12,7 @@ desde la raíz del repositorio:
 Las figuras fijas de reporte/figuras/ las hacen 08, 09, 10 y 14.
 """
 import geopandas as gpd
+from pyproj import Geod
 from scipy import stats
 import numpy as np
 import pandas as pd
@@ -1250,3 +1251,21 @@ section, section h3 { scroll-margin-top: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .indice, .envoltura { transition: none; } }
 """
+
+
+# ---------------------------------------------------------------- cifras de los mapas
+# Lo que antes estaba escrito a mano en los textos de los mapas, calculado.
+_plu_dentro = cat_plu.loc[DENTRO]
+mapa_plu_baja = _plu_dentro.loc[_plu_dentro.altitud.idxmin()]          # el pluviómetro más bajo
+mapa_plu_alta = _plu_dentro.loc[_plu_dentro.altitud.idxmax()]          # y el más alto
+_hips = pd.read_csv("out/curva_hipsometrica_fonce.csv")                 # fracción del área por encima de cada altura
+mapa_pct_sin_pluvio = float(np.interp(mapa_plu_alta.altitud, _hips.altura_m, _hips.fraccion_area_encima)) * 100
+# área de una celda de 0.1° x 0.1° a la latitud media de los píxeles de IMERG, en el elipsoide WGS84
+_lat = float(pix.lat.mean())
+mapa_km2_pixel = abs(Geod(ellps="WGS84").polygon_area_perimeter(
+    [0, 0.1, 0.1, 0], [_lat - 0.05, _lat - 0.05, _lat + 0.05, _lat + 0.05])[0]) / 1e6
+mapa_km_lado = mapa_km2_pixel ** 0.5
+mapa_area_chicas = {"Monchía": float(m.loc[24027060, "area"]), "Mogoticos": float(m.loc[24027040, "area"])}
+_t_ciclo_mes = variables_resumen["T media"].groupby(variables_resumen.index.month).mean()
+mapa_t_amplitud_anual = float(_t_ciclo_mes.max() - _t_ciclo_mes.min())    # mes más cálido menos el más frío
+mapa_pct_px_calido = float(tpx.loc[tpx.t_media.idxmax(), "frac_dentro"]) * 100   # el píxel más cálido, % dentro

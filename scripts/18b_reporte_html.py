@@ -419,8 +419,6 @@ INDICE_HTML = """
 
 
 # ¿se repite cada año? ¿es estable?: filas de las dos tablas
-# el texto dice que el segundo salto de Pueblo Viejo cae en la segunda mitad: si deja de ser así, se detiene
-assert pd.Period(an_pv2.primer_mes_despues, "M") >= pd.Period(EST_MITADES["2011–2022"][0], "M")
 est_filas_anual = "\n".join(
     f"<tr><td><b>{v}</b> ({' y '.join(r['picos'])})</td><td class='num'>{r['anios']}</td>"
     f"<td class='num'>{r['bimodales']}</td><td class='num'>{r['p1']}</td><td class='num'>{r['p2']}</td>"
@@ -1459,13 +1457,9 @@ a {{ color: var(--acento); }}
   <p><b>{"La clasificación es estable con las tres series." if est_todas_estables else "La clasificación no es estable con todas las series."}</b>
   La diferencia más grande es la de {est_mas_cambia}: A₂/A₁ pasa de {est_mitades[est_mas_cambia]["1998–2010"]["razon"]:.2f} a
   {est_mitades[est_mas_cambia]["2011–2022"]["razon"]:.2f}{" (los intervalos se traslapan)" if est_mitades[est_mas_cambia]["ic_se_traslapan"] else " (los intervalos no se traslapan)"}.
-  No se atribuye a una tendencia climática: la segunda mitad incluye el cambio de calibración de IMERG de TRMM a GPM
-  ({CITA_IMERG_DOC}) y el segundo salto de Pueblo Viejo, que baja PL, desde {fecha_anomala(an_pv2.primer_mes_despues)};
-  las mitades no tienen el mismo ENSO ({est_enso["1998–2010"].get("La Niña", 0)} meses de La Niña en la primera y
-  {est_enso["2011–2022"].get("La Niña", 0)} en la segunda; {est_enso["1998–2010"].get("El Niño", 0)} y
-  {est_enso["2011–2022"].get("El Niño", 0)} de El Niño); Q tiene {est_mitades["Q"]["1998–2010"]["meses"]} y
-  {est_mitades["Q"]["2011–2022"]["meses"]} meses con dato, y dos mitades de unos 12 años son pocas para
-  hablar de tendencia.</p>
+  No se atribuye a una tendencia climática: las dos mitades no tienen el mismo ENSO
+  ({est_enso["1998–2010"].get("La Niña", 0)} meses de La Niña en la primera y {est_enso["2011–2022"].get("La Niña", 0)} en
+  la segunda; {est_enso["1998–2010"].get("El Niño", 0)} y {est_enso["2011–2022"].get("El Niño", 0)} de El Niño).</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · desfase estacional">

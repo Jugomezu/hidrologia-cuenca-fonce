@@ -11,22 +11,11 @@ desde la raíz del repositorio:
 
 Las figuras fijas de reporte/figuras/ las hacen 08, 09, 10 y 14.
 """
-import base64, hashlib, html, json
-from pathlib import Path
 import geopandas as gpd
 from scipy import stats
 import numpy as np
 import pandas as pd
 
-FIG = Path("reporte/figuras")
-SALIDA = Path("reporte/reporte-fonce.html")
-# Plotly se incrusta en el HTML para que abra sin internet. La copia está en el repositorio (origen y SHA-256
-# en DATOS_FUENTES.md); si el archivo cambia, el script se detiene.
-PLOTLY = Path("reporte/vendor/plotly-2.32.0.min.js")
-PLOTLY_SHA256 = "0a17719a72751704861215da0e5c5cdb3f9a8d50eff5cb84cb6f8b80786682b0"
-assert hashlib.sha256(PLOTLY.read_bytes()).hexdigest() == PLOTLY_SHA256, f"{PLOTLY} no es la versión registrada"
-PLOTLY_JS = PLOTLY.read_text(encoding="utf-8")
-assert "</script" not in PLOTLY_JS.lower()       # no puede cerrar la etiqueta <script> en la que va
 
 ESTACIONES = {
     24027010: ("San Gil", "Fonce"), 24027070: ("Mérida", "Fonce"), 24027030: ("Nemizaque", "Pienta"),
@@ -44,21 +33,7 @@ p_imerg = im.groupby(["id_estacion", "anio"])["p_imerg_mm"].sum().groupby("id_es
 pix = pd.read_csv("out/imerg_pixeles_fonce.csv")
 
 
-def img(nombre):
-    return "data:image/png;base64," + base64.b64encode((FIG / nombre).read_bytes()).decode()
-
-
-def n(x, dec=0):
-    return f"{x:,.{dec}f}".replace(",", " ")        # separador de miles con espacio
-
-
 sg = m.loc[24027010]
-filas = "\n".join(
-    f"<tr><td class='cod'>{i}</td><td>{html.escape(nom)}</td><td>{rio}</td>"
-    f"<td class='num'>{n(m.loc[i, 'area'])}</td><td class='num'>{m.loc[i, 'area'] / sg['area'] * 100:.0f}%</td>"
-    f"<td class='num'>{n(m.loc[i, 'minimum_ele'])}–{n(m.loc[i, 'maximum_ele'])}</td>"
-    f"<td class='num'>{n(m.loc[i, 'mean_ele'])}</td><td class='num'>{n(p_imerg[i])}</td></tr>"
-    for i, (nom, rio) in ESTACIONES.items())
 
 n_pix = len(pix)
 n_mitad = int((pix.frac_dentro > 0.5).sum())
@@ -213,11 +188,6 @@ _pi_mensual = imm[imm.id_estacion == 24027010].set_index("periodo")["p_imerg_mm"
 exc_2017 = {"crudo": _anom(_red_cruda)[2017], "depurado": _anom(red)[2017], "pi": _anom(_pi_mensual)[2017]}
 exclusiones = pd.read_csv("out/pluviometros_exclusiones.csv", dtype={"evidencia": str})
 exc_meses = int(exclusiones[exclusiones.codigo == 24020040].meses_excluidos.sum())      # los de Encino
-cmp_json = json.dumps(cmp_datos, ensure_ascii=False)
-filas_cmp = "\n".join(
-    f"<tr><td>{html.escape(nom)}</td><td class='num'>{v['n']}</td><td class='num'>{v['imerg']:.0f}</td>"
-    f"<td class='num'>{v['pluv']:.0f}</td><td class='num'>{v['sesgo']:+.0f}%</td>"
-    f"<td class='num'>{v['r']:.2f}</td></tr>" for nom, v in cmp_stats.items())
 mes_ini, mes_fin = str(comp.index.min()), str(comp.index.max())
 
 
@@ -242,7 +212,6 @@ bal_datos = {
     # el mismo coeficiente con PL, que manda
     "coef_pl": [None if pd.isna(v) else round(float(v), 3) for v in (balance.q / red.reindex(PERIODOS))],
 }
-bal_json = json.dumps(bal_datos, ensure_ascii=False)
 
 
 # ---------------------------------------------------------------- estadísticos de las cuatro variables
@@ -277,10 +246,6 @@ def estadisticos(serie):
 
 
 tabla_resumen = pd.DataFrame({col: estadisticos(variables_resumen[col]) for col in variables_resumen})
-# para los diagramas de caja: los valores de cada variable agrupados por mes del calendario
-NOMBRE_MES_COMPLETO = {1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio", 7: "julio",
-                       8: "agosto", 9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"}
-UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C", "T máx": "°C", "T mín": "°C"}
 # ---------------------------------------------------------------- revisión de atípicos
 # Mismo criterio que los diagramas de caja: un mes es atípico si se sale FACTOR_ATIPICO rangos
 # intercuartiles por encima del percentil 75 o por debajo del 25 DE SU PROPIO MES DEL CALENDARIO
@@ -385,81 +350,21 @@ assert abs(ene05["pl"] - ene05["pl_con_pv"]) < 1e-9
 # el texto dice que antes era atípico y hoy no: si los datos dejan de respaldarlo, el script se detiene
 assert ene05["umbral_antes"] < ene05["pl"] <= ene05["umbral_hoy"]
 
-# citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
-CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
-CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
-CITA_HARGREAVES = '<a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a>'
-CITA_PETTITT = '<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>'
-CITA_IMERG_DOC = '<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>'
-CITA_FAO = '<a class="cita" href="#ref-allen1998">Allen et al., 1998</a>'
-CITA_DEFENSORIA = '<a class="cita" href="#ref-defensoria2005">Defensoría del Pueblo, 2005</a>'
-CITA_BECK = '<a class="cita" href="#ref-beck2022">Beck et al., 2022</a>'
-CITA_HYNDMAN = '<a class="cita" href="#ref-hyndman1996">Hyndman y Fan, 1996</a>'
-CITA_ONI = '<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>'
-CITA_KRUSKAL = '<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>'
-CITA_HORN = '<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>'
-
-NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
-                    9: "sep", 10: "oct", 11: "nov", 12: "dic"}
-fmt_mes = lambda p: f"{NOMBRE_MES_CORTO[p.month]} {p.year}"
 
 # fase de El Niño / La Niña de cada mes según el ONI de la NOAA (17_oni_enso.py); solo se usa para
 # colorear las fechas, sin sacar conclusiones todavía
 oni_fase = pd.read_csv("out/oni_mensual.csv")
 oni_fase = oni_fase.set_index(pd.PeriodIndex(oni_fase.periodo, freq="M"))["fase"]
-CLASE_FASE = {"El Niño": "fase-nino", "La Niña": "fase-nina"}
 
-
-def fecha_enso(p):
-    clase = CLASE_FASE.get(oni_fase.get(p, "neutro"))
-    texto = fmt_mes(p)
-    return f"<span class='{clase}' title='{oni_fase.get(p)}'>{texto}</span>" if clase else texto
-
-
-lista_meses = lambda meses: ", ".join(fecha_enso(p) for p in meses) if len(meses) else "ninguno"
 
 # Lectura ENSO de la lluvia extrema confirmada: cuáles cayeron en La Niña y cuáles no. Para enero de 2005,
 # la única excepción al escribir esto, hay un documento que describe el evento; si la lista cambiara, el
 # texto se arma igual con lo que haya.
 _confirmada_nina = [p for p in lluvia_confirmada if oni_fase.get(p) == "La Niña"]
 _confirmada_otras = [p for p in lluvia_confirmada if oni_fase.get(p) != "La Niña"]
-lectura_enso_lluvia = (
-    f"Todos, menos {lista_meses(_confirmada_otras)}, cayeron en episodios de La Niña."
-    if _confirmada_nina and _confirmada_otras else
-    "Todos cayeron en episodios de La Niña." if _confirmada_nina else "")
 # enero y febrero de 2005 (emergencia invernal en Santander) tienen su propio punto en la lista, siempre visible
 
 
-def _celda_atip(p, v):
-    z = atip_z.loc[p, v]
-    if pd.isna(z):
-        return "<td class='num cod'>—</td>"
-    marca = atip_marca.loc[p, v]
-    clase = {"alto": " atip-alto", "bajo": " atip-bajo"}.get(marca, "")
-    return f"<td class='num{clase}'>{z:+.1f}</td>"
-
-
-filas_atip = "\n".join(
-    f"<tr><td>{fmt_mes(p)}</td>" + "".join(_celda_atip(p, v) for v in VARS_ATIP) + "</tr>"
-    for p in atip_meses)
-
-cajas_json = json.dumps({
-    "variables": list(variables_resumen.columns),
-    "unidades": [UNIDAD_RESUMEN[v] for v in variables_resumen.columns],
-    "valores": {v: [[round(float(x), 2) for x in variables_resumen[v][variables_resumen.index.month == m].dropna()]
-                    for m in range(1, 13)] for v in variables_resumen.columns},
-    # el mes exacto de cada valor (año-mes), para que el cursor diga cuál es cada punto
-    "fechas": {v: [[f"{NOMBRE_MES_COMPLETO[p.month]} de {p.year}"
-                    for p in variables_resumen[v][variables_resumen.index.month == m].dropna().index]
-                   for m in range(1, 13)] for v in variables_resumen.columns},
-    "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
-}, ensure_ascii=False)
-
-filas_resumen = "\n".join(
-    f"<tr><td>{html.escape(fila)}</td>"
-    + "".join(f"<td class='num'>{v:.0f}</td>" if fila == "meses válidos"
-              else f"<td class='num'>{n(v, 2)}</td>" for v in tabla_resumen.loc[fila])
-    + "</tr>" for fila in tabla_resumen.index)
 bal_n = len(bal_completos)
 bal_p_anual = bal_completos.p.mean() * 12
 bal_q_anual = bal_completos.q.mean() * 12
@@ -503,17 +408,6 @@ def ciclo_estadisticos(serie):
                          "p90": g.quantile(0.90)})
 
 
-def ciclo_tabla_html(clave, columna, decimales):
-    e = ciclo_estadisticos(variables_resumen[columna])
-    fmt = lambda v: f"{v:,.{decimales}f}".replace(",", " ")
-    filas = "\n".join(
-        f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td><td class='num'>{int(f.n)}</td>"
-        + "".join(f"<td class='num'>{fmt(f[c])}</td>" for c in ("media", "mediana", "sd", "p10", "q1", "q3", "p90"))
-        + "</tr>" for m, f in e.iterrows())
-    return filas
-
-
-ciclo_tablas = {clave: ciclo_tabla_html(clave, col, dec) for clave, _, _, col, dec in CICLO_VARIABLES}
 ciclo_base = pd.DataFrame({
     "imerg": imm[imm.id_estacion == 24027010].set_index("periodo")["p_imerg_mm"],
     "red": red,
@@ -532,7 +426,6 @@ ciclo_datos = {
     "escImerg": ciclo.escorrentia_imerg.round(3).tolist(),
     "escRed": ciclo.escorrentia_red.round(3).tolist(),
 }
-ciclo_json = json.dumps(ciclo_datos, ensure_ascii=False)
 
 ciclo_n = len(ciclo_comun)
 
@@ -608,13 +501,6 @@ _var_mf = [(v, m) for v in _VAR_LC for m in var_fuertes[v]]
 var_bowley_max = var_tabla.loc[_var_mf, "bowley"].abs().max() if _var_mf else float("nan")
 var_por_pocos = bool(_var_mf) and var_bowley_max < 0.5 * var_tabla.loc[_var_mf, "asim"].min()
 var_top = {v: max(var_influencia[v].items(), key=lambda kv: abs(kv[1])) for v in VAR_SERIES}
-_mes = lambda m: MESES_LARGOS_ES[m - 1]
-var_filas = "\n".join(
-    f"<tr><td><b>{v}</b></td><td>{_mes(var_mas[v][0])} ({var_tabla.loc[(v, var_mas[v][0]), 'cv']:.{2 if v == 'T media' else 0}f} %)</td>"
-    f"<td>{_mes(var_mas[v][1])} ({var_tabla.loc[(v, var_mas[v][1]), 'de']:.{2 if v == 'T media' else 1}f} {VAR_SERIES[v][1]})</td>"
-    f"<td>{', '.join(_mes(m) for m in var_fuertes[v]) or 'ninguno' if v in _VAR_LC else '—'}</td>"
-    f"<td>{_mes(var_top[v][0][1])} de {var_top[v][0][0]} ({var_top[v][1]:+.{2 if v == 'T media' else 1}f} %)</td></tr>"
-    for v in VAR_SERIES)
 
 ALFA_KW = 0.05
 REG_PASOS = 1200
@@ -688,20 +574,6 @@ for _n, (_s, _s_conc, _u) in REG_SERIES.items():
     }
 reg_clases = sorted({r["clase"] for r in regimen.values()})
 reg_kw_max = max(r["kw_p"] for r in regimen.values())
-_reg_indicadores = [
-    ("Máximo", lambda r: r["max"]), ("Mínimo", lambda r: r["min"]),
-    ("Amplitud (% del mes típico)", lambda r: f"{r['amp']:.1f} {r['unidad']} ({r['amp_rel']:.0f} %)"),
-    ("Temporadas húmedas", lambda r: "; ".join(r["humedas"])),
-    ("Temporadas secas", lambda r: "; ".join(r["secas"])),
-    ("Concentración en los meses húmedos", lambda r: f"{r['conc']:.1f} % en {r['conc_meses']} meses"),
-    ("A₂/A₁", lambda r: f"{r['a2a1']:.2f}"),
-    ("Varianza que explican A₁ · A₂", lambda r: f"{r['var1']:.0f} % · {r['var2']:.0f} %"),
-    ("Picos de la curva", lambda r: f"{len(r['picos'])} ({' y '.join(r['picos'])})"),
-    ("Kruskal-Wallis <i>p</i>", lambda r: f"{r['kw_p']:.0e}"),
-    ("Régimen", lambda r: f"<b>{r['clase']}</b>"),
-]
-reg_filas = "\n".join(f"<tr><td>{nombre}</td>" + "".join(f"<td>{f(r)}</td>" for r in regimen.values()) + "</tr>"
-                      for nombre, f in _reg_indicadores)
 
 # ---------------------------------------------------------------- desfase estacional (sección 1.10 del notebook)
 # Fase del armónico de 6 meses de PL, PI y Q (Q en mm/mes), sobre las mismas medianas del régimen: el desfase
@@ -751,8 +623,6 @@ _p2_err = _p2.IMERG - _p2.RED
 p2_pipl = {"n": len(_p2), "sesgo": _p2_err.mean(), "mae": _p2_err.abs().mean(),
            "rmse": float(np.sqrt((_p2_err ** 2).mean())), "debajo_pct": (_p2_err < 0).mean() * 100}
 assert p2_pipl["mae"] > 1.5 * abs(p2_pipl["sesgo"])
-p2_pipl_json = json.dumps({"pi": _p2.IMERG.round(1).tolist(), "pl": _p2.RED.round(1).tolist(),
-                           "mes": [p.month for p in _p2.index], "periodo": [str(p) for p in _p2.index]})
 
 
 # ---------------------------------------------------------------- lluvia contra caudal: cómo cambia la dispersión
@@ -808,19 +678,10 @@ ev_tabla = {m: {"ajuste": _ev_metricas(_ev_aj.Q, e.loc[_ev_aj.index]), "validaci
             for m, e in ev_estimados.items()}
 ev_mejor = min((m for m in ev_tabla if m != "climatología mensual de Q"), key=lambda m: ev_tabla[m]["validacion"]["rmse"])
 ev_rmse_clima = ev_tabla["climatología mensual de Q"]["validacion"]["rmse"]
-ev_filas = "\n".join(
-    f"<tr><td>{'<b>' + m + '</b>' if m == ev_mejor else m}</td><td class='num'>{t['ajuste']['rmse']:.1f}</td>"
-    f"<td class='num'>{t['validacion']['rmse']:.1f}</td><td class='num'>{t['validacion']['mae']:.1f}</td>"
-    f"<td class='num'>{t['validacion']['sesgo']:+.1f}</td><td class='num'>{t['validacion']['n']}</td></tr>"
-    for m, t in ev_tabla.items())
 # ¿sirve corregir PI con una regresión contra PL? (el proyecto decidió no corregirla)
 _ev_pl_ols, _ = _ev_ols("PI", "PL")
 ev_correccion = {"ols": _ev_metricas(_ev_val.PL, _ev_pl_ols.loc[_ev_val.index]),
                  "sin": _ev_metricas(_ev_val.PL, _ev_val.PI)}
-ev_json = json.dumps({"meses": [str(p) for p in _ev_val.index], "q": _ev_val.Q.round(2).tolist(),
-                      **{k: ev_estimados[m].loc[_ev_val.index].round(2).tolist() for k, m in
-                         (("clima", "climatología mensual de Q"), ("pl", "PL del mismo mes"), ("pi", "PI del mismo mes"))}},
-                     default=lambda v: None).replace("NaN", "null")
 assert all(t["validacion"]["negativas"] == 0 for t in ev_tabla.values())   # el texto dice que no hay estimados negativos
 # el texto dice que corregir PI «casi no gana nada»: menos de un 10 % de mejora en el RMSE
 assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
@@ -871,7 +732,6 @@ for fuente, col in [("mswx", "mswx_media"), ("era", "era_media")]:
     for etiqueta, q in [("p10", 0.10), ("p25", 0.25), ("p50", 0.50), ("p75", 0.75), ("p90", 0.90)]:
         t_ciclo[f"{fuente}_{etiqueta}"] = _g[col].quantile(q).round(2).tolist()
 
-t_json = json.dumps({"meses": MESES_ES, "ciclo": t_ciclo}, ensure_ascii=False)
 
 # ---------------------------------------------------------------- ETP: la de CAMELS-COL y Hargreaves recalculado
 # 06b_etp_hargreaves.py aplica la fórmula que declara CAMELS-COL (Hargreaves y Samani, 1985, con Ra de
@@ -920,7 +780,6 @@ pq_anios_sobre = {f: [str(x) for x in pq_anual.index[pq_anual[f"{f}_q"] > pq_anu
 pq_seca = plu[DENTRO].mean().idxmin()
 pq_seca_nombre = cat_plu.loc[pq_seca, "etiqueta"]
 pq_falta_seca = {a: int(plu.loc[plu.index.year == int(a), pq_seca].isna().sum()) for a in pq_anios_sobre["pl"]}
-_lista_y = lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else (l[0] if l else "")
 
 
 def prueba_recarga(lluvia, caudal):
@@ -943,36 +802,9 @@ def prueba_recarga(lluvia, caudal):
 rec = {f: prueba_recarga(pq[f], pq.q) for f in ("pl", "pi")}
 _rec_anio = next((int(a) for a in pq_anios_sobre["pl"] if int(a) + 1 in rec["pl"][0].index), None)
 _pi_anual = pq.pi.groupby(pq.index.year).sum()
-pq_recarga = "" if _rec_anio is None else (
-    f"""<p><b>¿Fue recarga?</b> Si un año recarga, en la temporada seca siguiente (enero a marzo) el río trae más
-  caudal del que explica su lluvia. Con PI se ve claro: ese exceso crece con la lluvia de septiembre a
-  noviembre anterior (ρ = {rec['pi'][1].statistic:.2f}, p = {rec['pi'][1].pvalue:.3f}); con PL va en el mismo sentido,
-  sin ser significativo (ρ = {rec['pl'][1].statistic:.2f}, p = {rec['pl'][1].pvalue:.2f}). Pero después de {_rec_anio} el río trajo
-  {"menos" if rec['pl'][0].residuo[_rec_anio + 1] < 0 else "más"} de lo esperado
-  ({rec['pl'][0].residuo[_rec_anio + 1]:+.0f} mm con PL), y PI {"no ve" if _pi_anual[_rec_anio] < _pi_anual.mean() else "sí ve"}
-  {_rec_anio} como un año lluvioso. {"La recarga no explica ese año; apunta más a la lluvia sobrestimada." if rec['pl'][0].residuo[_rec_anio + 1] < 0 and _pi_anual[_rec_anio] < _pi_anual.mean() else ""}</p>""")
-pq_explicaciones = f"""<ul class="tratamiento">
-    <li><b>Quedarse guardada:</b> recargar el suelo o el acuífero y salir por el río meses o años después.</li>
-    <li><b>Salir sin pasar por la estación:</b> por flujo subterráneo profundo, o por captaciones de acueductos y
-    riego que no vuelven al río.</li>
-    <li><b>Evaporarse más de lo que dice la ETP:</b> la de Hargreaves es la de un pasto de referencia y un
-    bosque puede superarla; además es una estimación, no una medida.</li>
-    <li><b>No haber existido:</b> lluvia sobrestimada o caudal subestimado. Para PL hay una causa conocida: en
-    esos años le falta {pq_seca_nombre}, la estación más seca, en {_lista_y([f"{k} meses de {a}" for a, k in pq_falta_seca.items()])},
-    y sin ella PL queda alta (el sesgo de cobertura de «Anomalías en las series»).</li>
-  </ul>
-  <p class="nota">Ninguna de las cuatro está comprobada.</p>
-  {pq_recarga}"""
 _pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.groupby(_pq_con_q.index.month).etp.mean())
 pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
-_red1 = lambda s: [None if pd.isna(v) else round(float(v), 1) for v in s]
-pq_json = json.dumps({"meses": [f"{p}-01" for p in pq.index], "pl_q": _red1(pq.pl_q), "pi_q": _red1(pq.pi_q),
-                      "etp": _red1(pq.etp), "anios": [str(a) for a in pq_anual.index],
-                      "pl_q_anual": _red1(pq_anual.pl_q), "pi_q_anual": _red1(pq_anual.pi_q),
-                      "etp_anual": _red1(pq_anual.etp)}, ensure_ascii=False)
 
-etp_json = json.dumps({"meses": MESES_ES, **{k: _etp_ciclo[k].round(1).tolist() for k in etp_comun},
-                       "pl_q": _etp_pq_ciclo.round(1).tolist()}, ensure_ascii=False)
 
 t_sesgo_media = tc.mswx_media.mean() - tc.era_media.mean()
 t_sesgo_p5 = float(t_cuantiles.loc["p5", "dif"])
@@ -1013,8 +845,6 @@ corr_vars = pd.read_csv("out/variables_mensuales.csv", index_col=0)
 corr_vars.index = pd.PeriodIndex(corr_vars.index, freq="M")
 corr_anom = corr_vars - corr_vars.groupby(corr_vars.index.month).transform("mean")
 VARIABLES_CORR = list(corr_vars.columns)
-UNIDAD_VAR = {"PI": "mm/mes", "PL": "mm/mes", "Q": "mm/mes",
-              "ETP": "mm/mes", "T MSWX": "°C", "T ERA5": "°C"}
 
 corr_spearman = pd.read_csv("out/correlaciones_spearman.csv", index_col=0)
 corr_spearman_anom = pd.read_csv("out/correlaciones_spearman_anomalias.csv", index_col=0)
@@ -1050,30 +880,12 @@ def picos(serie):
 pico_pl, pico_q = picos(ciclo_lq.PL), picos(ciclo_lq.Q)
 _c = ajuste_lq.loc[("PL", "mes_y_anterior")]
 peso_mes_pl = _c.coef_mes / (_c.coef_mes + _c.coef_mes_anterior)      # parte que viene del mismo mes
-ciclo_lq_json = json.dumps({
-    "meses": MESES_ES,
-    "PL": ciclo_lq.PL.round(1).tolist(), "Q": ciclo_lq.Q.round(1).tolist(),
-    "ajusteMes": ciclo_lq.Q_ajuste_PL_mes.round(1).tolist(),
-    "ajusteMesAnterior": ciclo_lq.Q_ajuste_PL_mes_y_anterior.round(1).tolist(),
-}, ensure_ascii=False)
-
 
 
 def rho_rezago(antes, despues):
     """Spearman entre `antes` en el mes t y `despues` en el mes t+1."""
     return float(corr_rezago.loc[despues, antes])
 
-
-corr_json = json.dumps({
-    "variables": VARIABLES_CORR,
-    "unidades": [UNIDAD_VAR[v] for v in VARIABLES_CORR],
-    "crudas": {v: corr_vars[v].round(2).tolist() for v in VARIABLES_CORR},
-    "anomalias": {v: corr_anom[v].round(2).tolist() for v in VARIABLES_CORR},
-    "rhoCrudas": corr_spearman.round(3).values.tolist(),
-    "rhoAnomalias": corr_spearman_anom.round(3).values.tolist(),
-    "rhoRezago": corr_rezago.round(3).values.tolist(),
-    "meses": [str(p) for p in corr_vars.index],
-}, ensure_ascii=False)
 
 corr_n = len(corr_vars)
 # la mayor distancia entre Pearson y Spearman en toda la matriz, para justificar quedarse con una sola
@@ -1104,10 +916,6 @@ corr_tambien = " y ".join(f"{x} con {y}, de {rho(x, y):.2f} a {rho(x, y, anomali
                            for x, y in corr_saltos[1:3])
 PARES_CICLO = [("PI", "T ERA5"), ("PL", "T ERA5"), ("Q", "T ERA5"), ("PI", "ETP"), ("PL", "T MSWX"),
                ("Q", "ETP"), ("PL", "Q")]
-filas_ciclo = "\n".join(
-    f"<tr><td>{a} – {b}</td><td class='num'>{corr_ciclo_rho.loc[a, b]:+.2f}</td>"
-    f"<td class='num'>{rho(a, b):+.2f}</td><td class='num'>{rho(a, b, anomalias=True):+.2f}</td></tr>"
-    for a, b in PARES_CICLO)
 
 
 # ---------------------------------------------------------------- control de calidad de los datos
@@ -1204,15 +1012,7 @@ for nombre, paso, serie in FUENTES_CALIDAD:
         "perdidos": int((~utilizable.fillna(False)).sum()),
     })
 
-cal_json = json.dumps({"meses": [f"{p}-01" for p in periodos], "fuentes": cal_filas,
-                       "maxFaltantes": MAX_DIAS_FALTANTES}, ensure_ascii=False)
 cal_total = len(periodos)
-filas_disp = "\n".join(
-    f"<tr><td>{html.escape(v['nombre'])}</td><td>{v['paso']}</td>"
-    f"<td class='num'>{v['usables']}</td>"
-    f"<td class='num'>{v['parciales'] if v['paso'] == 'diario' else '—'}</td>"
-    f"<td class='num'>{v['perdidos']}</td>"
-    f"<td class='num'>{v['usables'] / cal_total * 100:.0f}%</td></tr>" for v in cal_resumen)
 
 # Las cinco series de CAMELS-COL deberían fallar exactamente los mismos días, porque el archivo omite
 # la fila completa de los días sin caudal. Se comprueba en vez de darlo por hecho.
@@ -1244,34 +1044,12 @@ an_picos = pd.read_csv("out/anomalias_picos_q.csv")
 an_cob = pd.read_csv("out/anomalias_cobertura_pl.csv")
 an_ceros = pd.read_csv("out/anomalias_ceros_pl.csv")
 an_fila = lambda serie: an_h.set_index("serie").loc[serie]
-fmt_p = lambda p: "&lt; 0.001" if p < 0.001 else f"{p:.3f}"
 fmt_p_eq = lambda p: "&lt; 0.001" if p < 0.001 else f"= {p:.3f}"     # para escribir «p < 0.001» o «p = 0.006»
-fmt_mes_an = lambda p: fmt_mes(pd.Period(p, "M"))
-nota_enso = f"""  <p class="nota">Color de las fechas, según el Índice Oceánico El Niño (ONI) de la NOAA ({CITA_ONI}):
-  <span class="fase-nino">rojo</span>, el mes cae dentro de un episodio de El Niño;
-  <span class="fase-nina">azul</span>, dentro de uno de La Niña; sin color, ninguno de los dos. Un episodio
-  exige al menos 5 trimestres móviles seguidos con el ONI en +0.5 °C o más (El Niño) o en −0.5 °C o menos
-  (La Niña).</p>"""
 
 
-def fecha_anomala(p):
-    """Mes marcado como anómalo: con el color de su fase ENSO (como en «Revisión de outliers»), o en
-    negrita si no cae en El Niño ni en La Niña."""
-    p = pd.Period(p, "M")
-    return fecha_enso(p) if CLASE_FASE.get(oni_fase.get(p, "neutro")) else f"<span class='fase-neutra'>{fmt_mes(p)}</span>"
 an_pl = an_h[an_h.serie.str.startswith("PL")]
 an_pl_sig = an_pl[an_pl.significativo]
 an_pl_ok = an_pl[~an_pl.significativo]
-filas_an = "\n".join(
-    f"<tr><td>{html.escape(s)}</td><td class='detalle'>{html.escape(ref)}</td><td class='num'>{m}</td>"
-    f"<td class='num'>{fecha_anomala(pm) if sig else fmt_mes_an(pm)}</td><td class='num{' res-revisar' if sig else ''}'>{fmt_p(p)}</td>"
-    f"<td class='num'>{a:.2f}</td><td class='num'>{d:.2f}</td><td class='num'>{c:+.0f} %</td></tr>"
-    for s, ref, m, pm, p, sig, a, d, c in an_h[["serie", "referencia", "meses", "primer_mes_despues", "p",
-                                                "significativo", "razon_antes", "razon_despues", "cambio_pct"]].itertuples(index=False))
-an_dm_json = json.dumps({s: {"x": g.acumulado_referencia.round(0).tolist(), "y": g.acumulado_serie.round(0).tolist(),
-                             "meses": g.periodo.tolist(), "referencia": g.referencia.iloc[0],
-                             "corte": (an_fila(s).primer_mes_despues if an_fila(s).significativo else None)}
-                         for s, g in an_dm.groupby("serie", sort=False)}, ensure_ascii=False)
 an_pi, an_q = an_fila("PI (IMERG)"), an_fila("Q")
 an_pv = an_fila("PL · Pueblo Viejo")
 # segundo corte (07c, paso 1b): la prueba repetida en el tramo posterior al primer salto de cada pluviómetro
@@ -1285,18 +1063,10 @@ an_pi_sin = an_seg.loc["PI (IMERG)"]
 an_meses_pv2_pi = (pd.Period(an_pi.primer_mes_despues, "M") - pd.Period(an_pv2.primer_mes_despues, "M")).n
 an_ceros_fuera = an_ceros[an_ceros.dificil_de_creer]
 an_ceros_quedan = an_ceros[~an_ceros.dificil_de_creer]
-filas_ceros = "\n".join(
-    f"<tr><td>{html.escape(pl_)}</td><td>{fecha_anomala(m) if dif else fmt_mes_an(m)}</td><td class='num'>{mn:.0f}</td><td class='num'>{pr:.0f}</td>"
-    f"<td class='num'>{pi_:.0f}</td><td class='{'res-revisar' if dif else ''}'>{'se excluye' if dif else 'se conserva'}</td></tr>"
-    for pl_, m, mn, pr, pi_, dif in an_ceros[["pluviometro", "periodo", "otros_minimo_mm", "otros_promedio_mm",
-                                               "pi_mm", "dificil_de_creer"]].itertuples(index=False))
 an_rachas_pl = an_rachas[an_rachas.variable.str.startswith("PL")]
 an_rachas_dia = an_rachas[~an_rachas.variable.str.startswith("PL")]
 an_sesgo = an_cob.sesgo_estimado_pct.abs()
 _nombre_pluvio = {c: cat_plu.loc[c, "etiqueta"] for c in cat_plu.index}
-exc_lista = "; ".join(
-    f"{_nombre_pluvio[c]} de {fmt_mes_an(d)} a {fmt_mes_an(h)}" if d != h else f"{_nombre_pluvio[c]} en {fecha_anomala(d)}"
-    for c, d, h in exclusiones[["codigo", "desde", "hasta"]].itertuples(index=False))
 sesgo_pi_pl = (comp["IMERG"].mean() / comp["RED"].mean() - 1) * 100
 
 # ---------------------------------------------------------------- control de calidad básico (4.2)
@@ -1306,28 +1076,12 @@ cc = pd.read_csv("out/control_calidad_basico.csv")
 cc_naturaleza = pd.read_csv("out/naturaleza_fuentes.csv")
 cc_conteo = cc.resultado.value_counts()
 cc_revisar = cc[cc.resultado == "revisar"]
-CLASE_RESULTADO = {"sin problemas": "", "anotado": "res-anotado", "revisar": "res-revisar", "no disponible": "res-nd"}
-filas_cc = "\n".join(
-    f"<tr><td>{html.escape(f)}</td><td>{html.escape(c)}</td><td class='{CLASE_RESULTADO[res]}'>{res}</td>"
-    f"<td class='detalle'>{html.escape(d)}</td></tr>"
-    for f, c, res, d in cc[["fuente", "chequeo", "resultado", "detalle"]].itertuples(index=False))
-filas_naturaleza = "\n".join(
-    f"<tr><td><b>{html.escape(v)}</b></td><td>{html.escape(fu)}</td><td>{html.escape(ti)}</td>"
-    f"<td class='detalle'>{html.escape(co)}</td><td class='detalle'>{html.escape(re_)}</td></tr>"
-    for v, fu, ti, co, re_ in cc_naturaleza.itertuples(index=False))
 
 # ---------------------------------------------------------------- registro de anomalías (4.4)
 # El registro lo arma scripts/07d_trazabilidad.py con las cifras de los demás scripts; aquí solo se muestra.
 # La columna «evidencia» (sección del notebook) no se muestra: el informe no nombra los puntos del taller.
 reg = pd.read_csv("out/registro_anomalias.csv")
 reg_conteo = reg.estado.value_counts()
-CLASE_ESTADO = {"corregido": "", "incierto": "res-revisar", "descartado": "res-nd"}
-filas_reg = "\n".join(
-    f"<tr><td class='num'>{n_}</td><td class='{CLASE_ESTADO[es]}'>{es}</td><td>{html.escape(se)}</td>"
-    f"<td class='reg-anomalia'>{html.escape(an)}</td><td class='detalle'>{html.escape(co)}</td>"
-    f"<td class='detalle'>{html.escape(de)}</td><td class='detalle'>{html.escape(ef)}</td></tr>"
-    for n_, an, se, co, de, ef, es in reg[["n", "anomalia", "serie", "comprobacion", "decision", "efecto",
-                                           "estado"]].itertuples(index=False))
 
 
 # ¿Por qué cuatro días? La misma prueba de la sección 4.1 del notebook: a cada mes COMPLETO de Q se le quita
@@ -1449,19 +1203,12 @@ grad_datos = {
                           "y": [round(aj_imerg["intercepto"] + aj_imerg["por_1000m"] / 1000 * grad_limpio.altitud.min(), 0),
                                 round(aj_imerg["intercepto"] + aj_imerg["por_1000m"] / 1000 * grad_limpio.altitud.max(), 0)]},
 }
-grad_json = json.dumps(grad_datos, ensure_ascii=False)
 
-filas_grad = "\n".join(
-    f"<tr><td>{html.escape(e.nombre_corto)}</td><td class='num'>{n(e.altitud)}</td>"
-    f"<td class='num'>{n(e.p_anual_mm)}</td>"
-    f"<td>{'dentro' if e.dentro_cuenca else 'fuera'}</td></tr>"
-    for e in grad_plu.itertuples())
 
 # la estación con más lluvia y la más alta, para el texto
 grad_mas_lluviosa = grad_dentro.loc[grad_dentro.p_anual_mm.idxmax()]
 grad_mas_alta = grad_dentro.loc[grad_dentro.altitud.idxmax()]
 grad_mas_seca = grad_dentro.loc[grad_dentro.p_anual_mm.idxmin()]
-
 
 
 # ---------------------------------------------------------------- índice lateral
@@ -1502,114 +1249,4 @@ section, section h3 { scroll-margin-top: 20px; }
   .envoltura { padding-top: 64px; }
 }
 @media (prefers-reduced-motion: reduce) { .indice, .envoltura { transition: none; } }
-"""
-
-INDICE_HTML = """
-<button class="indice-boton" type="button" aria-controls="indice" aria-expanded="false">
-  <svg viewBox="0 0 16 16" fill="none" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
-    <path d="M2 4h12M2 8h12M2 12h8"/></svg><span>Índice</span>
-</button>
-<div class="indice-velo" hidden></div>
-<nav class="indice" id="indice" aria-label="Índice del documento">
-  <h2>Contenido</h2>
-  <ol></ol>
-</nav>
-<script>
-(() => {
-  const raiz = document.documentElement;
-  const boton = document.querySelector(".indice-boton");
-  const velo = document.querySelector(".indice-velo");
-  const lista = document.querySelector("#indice > ol");
-  const CLAVE = "indice-abierto";
-  const ancho = window.matchMedia("(min-width: 1200px)");
-
-  // --- el esquema, a partir de los títulos del documento ---
-  const slug = s => s.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
-                     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const usados = new Set();
-  const idPara = (el, texto) => {
-    if (el.id) return el.id;
-    let base = slug(texto) || "seccion", id = base, k = 2;
-    while (usados.has(id) || document.getElementById(id)) id = base + "-" + k++;
-    usados.add(id); el.id = id; return id;
-  };
-  const enlaces = [];
-  let sublista = null;
-  document.querySelectorAll(".envoltura section h2, .envoltura section h3").forEach(h => {
-    const texto = h.textContent.trim();
-    const destino = h.tagName === "H2" ? h.closest("section") : h;
-    const li = document.createElement("li");
-    const a = document.createElement("a");
-    a.href = "#" + idPara(destino, texto);
-    a.textContent = texto;
-    li.appendChild(a);
-    if (h.tagName === "H2") {
-      lista.appendChild(li);
-      sublista = document.createElement("ol");
-      li.appendChild(sublista);
-    } else if (sublista) {
-      sublista.appendChild(li);
-    } else {
-      lista.appendChild(li);
-    }
-    enlaces.push({ a, destino });
-  });
-
-  // --- abrir y cerrar; se recuerda la preferencia (si el navegador deja guardarla) ---
-  const leer = () => { try { return localStorage.getItem(CLAVE); } catch (e) { return null; } };
-  const guardar = v => { try { localStorage.setItem(CLAVE, v); } catch (e) {} };
-  const avisarGraficos = () => setTimeout(() => window.dispatchEvent(new Event("resize")), 230);
-  function fijar(abierto, recordar) {
-    raiz.classList.toggle("indice-abierto", abierto);
-    boton.setAttribute("aria-expanded", String(abierto));
-    velo.hidden = !abierto;
-    if (recordar) guardar(abierto ? "1" : "0");
-    avisarGraficos();
-  }
-  const guardado = leer();
-  fijar(guardado === null ? ancho.matches : guardado === "1" && ancho.matches, false);
-  boton.addEventListener("click", () => fijar(!raiz.classList.contains("indice-abierto"), true));
-  velo.addEventListener("click", () => fijar(false, true));
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && raiz.classList.contains("indice-abierto") && !ancho.matches) {
-      fijar(false, true); boton.focus();
-    }
-  });
-
-  // --- al saltar: si el destino está dentro de un bloque plegado, se despliega primero ---
-  lista.addEventListener("click", e => {
-    const a = e.target.closest("a");
-    if (!a) return;
-    const destino = document.getElementById(a.getAttribute("href").slice(1));
-    const plegado = destino && destino.closest("details:not([open])");
-    if (plegado) plegado.open = true;
-    if (!ancho.matches) fijar(false, false);
-  });
-
-  // --- resaltar dónde va el lector ---
-  let actual = null;
-  function marcar() {
-    const tope = window.innerHeight * 0.25;
-    let elegido = enlaces[0];
-    for (const x of enlaces) {
-      if (x.destino.offsetParent === null) continue;          // oculto dentro de un plegado
-      if (x.destino.getBoundingClientRect().top <= tope) elegido = x; else break;
-    }
-    if (elegido === actual) return;
-    lista.querySelectorAll("a.activo").forEach(a => a.classList.remove("activo", "padre"));
-    elegido.a.classList.add("activo");
-    actual = elegido;
-    // la sección padre también se marca, para que se vea en qué parte del documento se está
-    const padre = elegido.a.closest("ol ol");
-    if (padre) padre.parentElement.firstElementChild.classList.add("padre", "activo");
-  }
-  let pendiente = false;
-  window.addEventListener("scroll", () => {
-    if (pendiente) return;
-    pendiente = true;
-    requestAnimationFrame(() => { marcar(); pendiente = false; });
-  }, { passive: true });
-  marcar();
-})();
-</script>
 """

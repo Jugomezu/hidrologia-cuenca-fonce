@@ -1150,10 +1150,9 @@ section, section h3 { scroll-margin-top: 20px; }
   <h2>El ciclo anual</h2>
   <div class="revision" data-etiqueta="Revisión · ciclo anual, mes a mes">
   <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
-  <p>El <b>ciclo anual</b> es cómo se comporta cada variable en cada mes del calendario, separado de la
-  variabilidad de un año a otro: se juntan todos los eneros, todos los febreros…, de 1998 a 2022, y se resume
-  cada mes. La media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango entre p10 y
-  p90 dicen cuánto cambia ese mes de un año a otro.</p>
+  <p>El <b>ciclo anual</b> junta todos los eneros, todos los febreros…, de 1998 a 2022, y resume cada mes:
+  la media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango p10–p90, cuánto cambia
+  de un año a otro.</p>
   <div class="pestanas" role="tablist" aria-label="Variable del ciclo anual">
     <button type="button" role="tab" id="pestana-ciclo-pl" aria-controls="panel-ciclo-pl" aria-selected="true">PL (mm/mes)</button>
     <button type="button" role="tab" id="pestana-ciclo-pi" aria-controls="panel-ciclo-pi" aria-selected="false" tabindex="-1">PI (mm/mes)</button>
@@ -1272,11 +1271,10 @@ section, section h3 { scroll-margin-top: 20px; }
 
   <div class="revision" data-etiqueta="Revisión · variabilidad, asimetría e influencia">
   <h3>Qué meses cambian más de un año a otro</h3>
-  <p>Para cada mes del calendario: la <b>desviación estándar</b> (DE), en las unidades de la variable, y el
-  <b>coeficiente de variación</b> (CV = DE / media), que la expresa como fracción de la media; la
-  <b>asimetría</b>, clásica y de Bowley (esta última solo con los cuartiles, así que un año extremo no la mueve);
-  y la <b>influencia de cada año</b>: cuánto cambia la media del mes al quitar ese año. La temperatura va en
-  kelvin: en °C el CV no tiene sentido, porque su cero es convencional.</p>
+  <p>Para cada mes: la <b>desviación estándar</b> (DE) y el <b>coeficiente de variación</b> (CV = DE / media);
+  la <b>asimetría</b> clásica y la de Bowley, que usa solo los cuartiles y no la mueve un año extremo; y la
+  <b>influencia de cada año</b>, cuánto cambia la media al quitarlo. La temperatura va en kelvin, porque en °C el
+  CV no tiene sentido (su cero es convencional).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th></th><th>Mayor CV</th><th>Mayor DE</th><th>Asimetría clásica mayor que 1</th>
@@ -1289,30 +1287,27 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table>
   </div>
-  <p><b>El CV y la DE no tienen por qué coincidir:</b> la DE crece con el tamaño del mes y el CV corrige por
-  él, así que los meses secos pueden ser los más variables en proporción aunque no en milímetros.
-  <b>El CV es inestable cerca de una media nula</b>, porque divide por ella. Aquí se nota: mientras menor es la
-  media del mes, más ancho es su intervalo de confianza (correlación de -0.79 con PL,
-  -0.81 con PI y -0.42 con Q). Pero ningún mes está cerca de cero (el más bajo:
-  73 mm/mes con PI), así que el CV pierde precisión en la temporada seca
-  sin dispararse. En la temperatura en K el CV va de 0.10 % a
-  0.27 % y no agrega nada a la DE, porque la media apenas cambia entre
-  meses; aun así su intervalo mide entre 43 % y 58 %
-  del propio CV, como en la lluvia: con 25 años
-  por mes como mucho, la imprecisión viene sobre todo del tamaño de la muestra.</p>
+  <p><b>La DE crece con el tamaño del mes; el CV corrige por él</b>, así que un mes seco puede ser el más
+  variable en proporción aunque no en milímetros. <b>El CV es inestable cerca de una media nula</b>: aquí,
+  mientras menor es la media del mes, más ancho es su intervalo (correlación de -0.79 con PL,
+  -0.81 con PI y -0.42 con Q), pero ningún mes se acerca a cero (mínimo:
+  73 mm/mes con PI), así que pierde precisión sin dispararse. En la
+  temperatura en K, el CV (0.10 % a 0.27 %)
+  no agrega nada a la DE, y su intervalo mide entre 43 % y
+  58 % del propio CV, como en la lluvia: la imprecisión viene sobre todo de tener
+  25 años por mes como mucho.</p>
   <p><b>La asimetría fuerte la ponen pocos años:</b> donde la clásica pasa de 1, la de Bowley no pasa de 0.51 en valor absoluto: uno o dos años muy altos cargan la distribución, no el conjunto.
   Con la temperatura, ningún año mueve una media más de 0.03 %.</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">
   <h3>El régimen: picos, temporadas, concentración y forma</h3>
-  <p>Con la <b>mediana</b> de cada mes del calendario se describe el régimen de PL, PI y Q. El <b>mes típico</b> es el
-  promedio de las 12 medianas: un mes es <b>húmedo</b> si su mediana lo supera y <b>seco</b> si no, y las temporadas
-  son las rachas de meses seguidos (diciembre y enero cuentan como seguidos). La <b>concentración</b> es la parte de
-  la suma de las medianas que cae en los meses húmedos. Q va en mm/mes: sumar caudales medios en m³/s no da un
-  volumen, y en mm/mes las tres series quedan en la misma unidad. La <b>forma</b> sale de los dos primeros armónicos de Fourier, el de 12 meses (A₁) y el de 6 meses
-  (A₂) (<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>): si A₂ domina, el ciclo tiene dos picos, y los picos se cuentan sobre la curva ajustada con esos
-  dos armónicos. Si hay estacionalidad lo dice la prueba de Kruskal-Wallis entre los 12 meses (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>).</p>
+  <p>El régimen se describe con la <b>mediana</b> de cada mes. Un mes es <b>húmedo</b> si supera al <b>mes
+  típico</b> (el promedio de las 12 medianas), y las temporadas son rachas de meses seguidos, con diciembre y
+  enero contiguos. La <b>concentración</b> es la parte del total que cae en los meses húmedos (Q en mm/mes, para
+  que sea un volumen). La <b>forma</b> sale de los armónicos de 12 y 6 meses, A₁ y A₂ (<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>): si domina
+  A₂, hay dos picos, que se cuentan sobre la curva ajustada. La prueba de Kruskal-Wallis entre los 12 meses dice
+  si hay estacionalidad (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>).</p>
   <p><b>Clasificación:</b> estacionalidad débil si Kruskal-Wallis no es significativa (<i>p</i> ≥ 0.05); si no,
   bimodal si la curva ajustada tiene dos picos; si no, unimodal.</p>
   <div class="tabla-caja">
@@ -1333,60 +1328,51 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table>
   </div>
-  <p><b>El régimen es bimodal en las tres series.</b> Kruskal-Wallis
-  rechaza que los 12 meses sean iguales con <i>p</i> de 2e-24 o menos. Con PL los picos caen en
-  abril y octubre, con PI en mayo y octubre y con Q en
-  mayo y noviembre. Los porcentajes de concentración de PI y PL no se comparan directamente: con PI
-  hay 7 meses húmedos y con PL, 5.</p>
+  <p><b>El régimen es bimodal en las tres series</b>
+  (Kruskal-Wallis: <i>p</i> ≤ 2e-24). Picos: con PL en abril y octubre, con PI en
+  mayo y octubre y con Q en mayo y noviembre. La concentración de PI y PL
+  no se compara directamente: PI tiene 7 meses húmedos y PL, 5.</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · desfase estacional">
   <h3>Desfase estacional: cuánto se atrasa el río respecto a la lluvia</h3>
-  <p>Cada armónico es una onda, y su <b>fase</b> dice en qué momento del año está su máximo. Con el armónico de
-  6 meses, que da la forma de dos picos, el <b>desfase estacional</b> es cuánto después llega el máximo de Q que el
-  de la lluvia. Se mide sobre el año típico (las mismas medianas del régimen), así que da el atraso en días aunque
-  los datos sean mensuales. La incertidumbre sale de remuestrear años completos 2 000 veces.</p>
+  <p>La <b>fase</b> de un armónico dice cuándo está su máximo. El <b>desfase estacional</b> es cuánto después
+  llega el máximo del armónico de 6 meses de Q que el de la lluvia; medido sobre el año típico, da el atraso en
+  días aunque los datos sean mensuales. La incertidumbre sale de remuestrear años completos
+  2 000 veces.</p>
   <div class="cifras" style="margin-bottom:18px">
     <div class="cifra"><b>17 días</b><span>Q después de PL · IC 95 % 13 a 21</span></div>
     <div class="cifra"><b>14 días</b><span>Q después de PI · IC 95 % 8 a 17</span></div>
     <div class="cifra"><b>4 días</b><span>PI después de PL · IC 95 % 0.1 a 8.5</span></div>
   </div>
-  <p><b>Con las dos fuentes, el río va atrasado respecto a la lluvia</b>, mucho más que el tiempo de
-  concentración, que va de 4 a 20 horas según la fórmula. El atraso del año
-  típico no es el tiempo de viaje del agua por el cauce: apunta a agua que se guarda en el suelo y el acuífero y
-  sale después. <b>La fuente cambia poco el resultado:</b> el ciclo de PI tiene sus máximos 4
-  días después que el de PL, y en esa misma cantidad el desfase con PI sale más corto. El intervalo de esa
-  diferencia va de 0.1 a 8.5 días
-  (excluye el cero por muy poco, y es pequeña frente a la resolución mensual de los datos).</p>
+  <p><b>Con las dos fuentes, el río va atrasado respecto a la lluvia</b> mucho más que el tiempo de
+  concentración (4 a 20 horas): no es el viaje del agua por el cauce, sino agua
+  que se guarda en el suelo y el acuífero. <b>La fuente cambia poco:</b> el ciclo de PI va 4
+  días detrás del de PL, y su desfase sale esos mismos días más corto (intervalo de la diferencia:
+  0.1 a 8.5 días;
+  excluye el cero por muy poco, y es pequeña frente a la resolución mensual).</p>
   <p class="nota">La fase del armónico de 12 meses no se usa: en PL y en Q explica el 4 % y el
   1 % de la forma del ciclo, y su fase es casi ruido.</p>
   </div>
 
   <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
-  <p>Comparando la lluvia de cada mes con el caudal de ese mes, del siguiente y del anterior, en toda la
-  serie: la correlación es máxima en el mismo mes (ρ = 0.82 con PL) y sigue
-  alta con la lluvia un mes antes (0.68), mientras que con el caudal un
-  mes antes cae a 0.07: la relación va de la lluvia al caudal, y dura un
-  mes. A tres meses de distancia la correlación es negativa (-0.33 y
-  -0.40): es el mismo ciclo visto de otro lado, porque con dos temporadas al
-  año, tres meses de corrimiento enfrentan la temporada de lluvias con la seca.</p>
-  <p class="nota">¿Es solo el calendario? No del todo. Quitándole a cada serie su ciclo anual medio, la
-  lluvia del mes anterior sigue aportando: la correlación parcial con Q, descontada la lluvia del mes, es
-  0.52. La cuenca guarda agua de un mes al siguiente también en
-  los años que se salen de lo normal.</p>
+  <p>La correlación entre la lluvia y el caudal es máxima en el mismo mes (ρ = 0.82
+  con PL), sigue alta con la lluvia del mes anterior (0.68) y cae a
+  0.07 con el caudal del mes anterior: la relación va de la lluvia al caudal y
+  dura un mes. A tres meses es negativa (-0.33 y
+  -0.40), porque con dos temporadas al año ese corrimiento enfrenta la lluviosa
+  con la seca.</p>
+  <p class="nota">Sin el ciclo anual, la lluvia del mes anterior sigue aportando (correlación parcial con Q,
+  descontada la del mes: 0.52): la cuenca guarda agua de un mes al
+  siguiente también en los años anómalos.</p>
 
   <h3>El año típico: cuándo llueve y cuándo baja el río</h3>
-  <p>Promediando cada mes del calendario a lo largo del período se ve el <b>año típico</b> de la cuenca.
-  Aquí van las tres series juntas: la lluvia según el satélite, la lluvia según la red de pluviómetros y
-  el caudal, todas en mm/mes. Las tres se promedian sobre los mismos <b>262 meses</b>, los que
-  tienen dato en las tres a la vez; si cada una usara su propia muestra las curvas no serían comparables
-  de frente.</p>
+  <p>El <b>año típico</b> de PI, PL y Q, en mm/mes, promediados sobre los mismos <b>262 meses</b> en que
+  las tres tienen dato, para que las curvas sean comparables.</p>
 
   <div id="g-ciclo-anual" class="grafico" style="min-height:420px"></div>
 
-  <p><b>El régimen es bimodal</b>, como corresponde a los Andes colombianos: dos temporadas de lluvia
-  separadas por dos secas. La primera lluviosa va de marzo a junio, la segunda de septiembre a diciembre.
-  El mes más seco es ene, y el caudal toca fondo un mes después, en feb.</p>
+  <p>El mes más seco de PI es ene y el caudal toca fondo en feb.</p>
 
   <div class="cifras" style="margin: 18px 0 6px">
     <div class="cifra"><b>oct</b><span>pico de lluvia · IMERG</span></div>
@@ -1395,10 +1381,10 @@ section, section h3 { scroll-margin-top: 20px; }
     <div class="cifra"><b>feb</b><span>caudal mínimo</span></div>
   </div>
 
-  <p>Las dos fuentes de lluvia tienen la misma forma bimodal: la red pone sus picos en
-  abr y oct, y el satélite en may y oct.
-  Se separan sobre todo en la magnitud: la red mide más que el satélite en 10 de los 12
-  meses, que es el sesgo del 12.0 % ya conocido.
+  <p>Las dos fuentes tienen la misma forma: la red pone sus picos en abr y
+  oct, y el satélite en may y oct. Se separan en la
+  magnitud: la red mide más en 10 de los 12 meses (el sesgo del
+  12.0 %).
   En el calendario difieren a lo sumo en un mes de pico.</p>
 
 </section>

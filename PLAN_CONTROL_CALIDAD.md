@@ -9,7 +9,7 @@ reutiliza, y solo se agrega lo que falta.
 Cada paso se hace en dos lugares:
 - en el notebook, como un punto nuevo, **«4. Control de calidad de los datos»**, con subsecciones
   4.1 a 4.5; el número se cambia si el taller usa otro;
-- en el informe (`scripts/18_reporte_html.py`), como resumen.
+- en el informe (hoy `scripts/18_calculos_informe.py` y `scripts/18b_reporte_html.py`), como resumen.
 
 Después de cada paso se republica el informe. Se espera la aprobación del usuario antes de pasar al
 siguiente.
@@ -42,7 +42,7 @@ Resaltado pendiente de revisión.
 
 ## Hallazgo antes de empezar (entra en el paso 1)
 Dos series se **suman** con `a_mensual(..., "sum")` aunque la regla permita hasta 4 días faltantes:
-- Q en mm: notebook 1.3 y `18_reporte_html.py:207`;
+- Q en mm: notebook 1.3 y el script del informe (entonces `18_reporte_html.py`);
 - ETP: `16_correlaciones_variables.py:76`.
 
 Un mes al que le faltan días queda entonces como una suma parcial presentada como acumulado completo,
@@ -112,7 +112,7 @@ efecto en el análisis y estado (**corregido**, **incierto** o **descartado**).
 
 ## Verificación en cada paso
 - El notebook corre completo sin errores.
-- `python scripts/16_correlaciones_variables.py` y `python scripts/18_reporte_html.py` corren sin
+- `python scripts/16_correlaciones_variables.py` y `python scripts/18b_reporte_html.py` corren sin
   errores.
 - `node --check` sobre los `<script>` extraídos del informe.
 - Capturas con Playwright de la sección nueva, en tema claro y oscuro.

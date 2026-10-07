@@ -1265,6 +1265,40 @@ section, section h3 { scroll-margin-top: 20px; }
   </script>
   </div>
 
+  <div class="revision" data-etiqueta="Revisión · variabilidad, asimetría e influencia">
+  <h3>Qué meses cambian más de un año a otro</h3>
+  <p>Para cada mes del calendario: la <b>desviación estándar</b> (DE), en las unidades de la variable, y el
+  <b>coeficiente de variación</b> (CV = DE / media), que la expresa como fracción de la media; la
+  <b>asimetría</b>, clásica y de Bowley (esta última solo con los cuartiles, así que un año extremo no la mueve);
+  y la <b>influencia de cada año</b>: cuánto cambia la media del mes al quitar ese año. La temperatura va en
+  kelvin: en °C el CV no tiene sentido, porque su cero es convencional.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th>Mayor CV</th><th>Mayor DE</th><th>Asimetría clásica mayor que 1</th>
+    <th>Año que más mueve una media</th></tr></thead>
+    <tbody>
+<tr><td><b>PL</b></td><td>febrero (54 %)</td><td>febrero (75.8 mm/mes)</td><td>julio</td><td>febrero de 1999 (-6.4 %)</td></tr>
+<tr><td><b>PI</b></td><td>febrero (44 %)</td><td>mayo (50.3 mm/mes)</td><td>julio</td><td>febrero de 1999 (-4.1 %)</td></tr>
+<tr><td><b>Q</b></td><td>febrero (55 %)</td><td>octubre (40.3 m³/s)</td><td>febrero, julio, septiembre</td><td>febrero de 1999 (-8.3 %)</td></tr>
+<tr><td><b>T media</b></td><td>febrero (0.27 %)</td><td>febrero (0.77 K)</td><td>—</td><td>enero de 1998 (-0.03 %)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><b>El CV y la DE no tienen por qué coincidir:</b> la DE crece con el tamaño del mes y el CV corrige por
+  él, así que los meses secos pueden ser los más variables en proporción aunque no en milímetros.
+  <b>El CV es inestable cerca de una media nula</b>, porque divide por ella. Aquí se nota: mientras menor es la
+  media del mes, más ancho es su intervalo de confianza (correlación de -0.79 con PL,
+  -0.81 con PI y -0.42 con Q). Pero ningún mes está cerca de cero (el más bajo:
+  73 mm/mes con PI), así que el CV pierde precisión en la temporada seca
+  sin dispararse. En la temperatura en K el CV va de 0.10 % a
+  0.27 % y no agrega nada a la DE, porque la media apenas cambia entre
+  meses; aun así su intervalo mide entre 43 % y 58 %
+  del propio CV, como en la lluvia: con 25 años
+  por mes como mucho, la imprecisión viene sobre todo del tamaño de la muestra.</p>
+  <p><b>La asimetría fuerte la ponen pocos años:</b> donde la clásica pasa de 1, la de Bowley no pasa de 0.51 en valor absoluto: uno o dos años muy altos cargan la distribución, no el conjunto.
+  Con la temperatura, ningún año mueve una media más de 0.03 %.</p>
+  </div>
+
   <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">
   <h3>El régimen: picos, temporadas, concentración y forma</h3>
   <p>Con la <b>mediana</b> de cada mes del calendario se describe el régimen de PL, PI y Q. El <b>mes típico</b> es el

@@ -1511,8 +1511,10 @@ a {{ color: var(--acento); }}
   <div id="g-anom-dispersion" class="grafico" style="min-height:0; height:440px; max-width:620px"></div>
   <p class="nota">Cada punto es un mes; en color, los años contrastantes.</p>
   <h3>Los años contrastantes</h3>
-  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según la anomalía media de PL. La de Q solo se
-  calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL (ρ = {anom_rho_anual_pl_q:.2f}).</p>
+  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según el promedio de las anomalías de PL y
+  PI, para quedarse con años en que las dos fuentes de lluvia coinciden{(": con PL sola habría entrado " + ", ".join(f"{a} (PI {anom_anual.PI[a]:+.2f})" for a in anom_solo_pl)) if anom_solo_pl else ""}.
+  La anomalía de Q solo se calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL
+  (ρ = {anom_rho_anual_pl_q:.2f}).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Año</th><th class="num">Anomalía PL</th><th class="num">PI</th><th class="num">Q</th>
@@ -1527,13 +1529,15 @@ a {{ color: var(--acento); }}
   <p class="nota">PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes, {n(anom_tipico_pl)} mm
   en el año).</p>
   <p><b>{"Hasta en los años extremos el régimen sigue siendo bimodal" if anom_todos_bimodales else "En algún año extremo el régimen deja de ser bimodal"}</b>:
-  lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma. Un año húmedo tiene la mayoría de sus meses
+  lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma.{"".join(f" En {a} el armónico de 12 meses pesa más (A₂/A₁ {anom_anios[a]['razon']:.2f}): sus meses muy húmedos ({', '.join(m)}) rellenan en parte el valle entre los dos picos." for a, m in anom_a1_domina.items())} Un año húmedo tiene la mayoría de sus meses
   sobre lo normal ({anom_anios[anom_humedos[0]]["meses_sobre"]} de 12 en {anom_humedos[0]}) y uno seco, pocos
   ({anom_anios[anom_secos[0]]["meses_sobre"]} de 12 en {anom_secos[0]}). Los dos más contrastantes coinciden con el ENSO:
   {anom_humedos[0]}, con {anom_anios[anom_humedos[0]]["nina"]} meses de La Niña, y {anom_secos[0]}, con
-  {anom_anios[anom_secos[0]]["nino"]} de El Niño; es una coincidencia observada, no una causa demostrada. PI no siempre
-  coincide en los extremos: sus años más húmedos son {" y ".join(map(str, anom_pi_humedos))} y los más secos
-  {" y ".join(map(str, anom_pi_secos))}.</p>
+  {anom_anios[anom_secos[0]]["nino"]} de El Niño; es una coincidencia observada, no una causa demostrada. El mes más extremo
+  de toda la serie es {MESES_LARGOS_ES[anom_mes_extremo.month - 1]} de {anom_mes_extremo.year}: PL
+  {n(variables_resumen.loc[anom_mes_extremo, "PL"])} mm, {variables_resumen.loc[anom_mes_extremo, "PL"] / anom_mediana_pl[anom_mes_extremo.month]:.1f}
+  veces su mediana, y caudal atípico también ({atip_z.loc[anom_mes_extremo, "PL"]:+.1f}, {atip_z.loc[anom_mes_extremo, "PI"]:+.1f} y
+  {atip_z.loc[anom_mes_extremo, "Q"]:+.1f} rangos intercuartiles con PL, PI y Q).</p>
   </div>
 </section>
 

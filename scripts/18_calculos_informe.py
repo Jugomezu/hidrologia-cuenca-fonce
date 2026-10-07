@@ -1354,7 +1354,8 @@ est_enso = {nom: oni_fase[(oni_fase.index >= pd.Period(a, "M")) & (oni_fase.inde
 # Anomalía de un mes = (valor - mediana de su mes del calendario) / rango intercuartil de ese mes: es atip_z, la
 # misma de «Revisión de outliers» (decidido por el usuario). La anomalía de un año es el promedio de sus 12
 # anomalías mensuales; para Q solo en los años con los 12 meses. Los años contrastantes son los
-# ANOM_N_EXTREMOS más húmedos y los ANOM_N_EXTREMOS más secos según PL (manda PL).
+# ANOM_N_EXTREMOS más húmedos y los ANOM_N_EXTREMOS más secos según el promedio de las anomalías anuales de PL
+# y PI: años en que las dos fuentes de lluvia coinciden (decidido por el usuario).
 ANOM_N_EXTREMOS = 2
 _anom = atip_z[["PL", "PI", "Q"]]
 anom_rho = {f"{a}–{b}": {"tal cual": stats.spearmanr(*variables_resumen[[a, b]].dropna().T.values)[0],
@@ -1365,7 +1366,8 @@ _anom_q_meses = _anom.Q.notna().groupby(_anom.index.year).sum()
 anom_anual["Q"] = _anom.Q.groupby(_anom.index.year).mean().where(_anom_q_meses == 12)
 anom_n_q = int(anom_anual.Q.notna().sum())
 anom_rho_anual_pl_q = stats.spearmanr(*anom_anual[["PL", "Q"]].dropna().T.values)[0]
-_orden = anom_anual.PL.sort_values()
+anom_anual["PL y PI"] = anom_anual[["PL", "PI"]].mean(axis=1)
+_orden = anom_anual["PL y PI"].sort_values()
 anom_humedos = list(_orden.index[::-1][:ANOM_N_EXTREMOS])
 anom_secos = list(_orden.index[:ANOM_N_EXTREMOS])
 anom_pi_humedos = list(anom_anual.PI.sort_values().index[::-1][:ANOM_N_EXTREMOS])
@@ -1386,6 +1388,14 @@ for _a in anom_humedos + anom_secos:
                       "razon": _est_razon(_x), "nina": int(_fases.get("La Niña", 0)), "nino": int(_fases.get("El Niño", 0)),
                       "serie": [round(float(v), 1) for v in _x]}
 anom_todos_bimodales = all(len(r["picos"]) == 2 for r in anom_anios.values())
+# años que serían extremos con PL sola pero no con las dos fuentes
+anom_solo_pl = [a for a in anom_anual.PL.sort_values().index[::-1][:ANOM_N_EXTREMOS] if a not in anom_humedos]
+# el mes más extremo de la serie: el de mayor anomalía promedio de PL, PI y Q, con las tres sobre lo normal
+_anom_tres = _anom.dropna()
+anom_mes_extremo = _anom_tres[(_anom_tres > 0).all(axis=1)].mean(axis=1).idxmax()
+# años contrastantes en que el armónico de 12 meses pesa más que el de 6, y sus meses muy húmedos (anomalía de PL > 1)
+anom_a1_domina = {a: [MESES_LARGOS_ES[p.month - 1] for p in _anom.index[(_anom.index.year == a) & (_anom.PL > 1)]]
+                  for a, r in anom_anios.items() if r["razon"] < 1}
 # lo que el texto afirma; si los datos dejan de respaldarlo, el script se detiene
 assert anom_rho["PL–Q"]["anomalías"] > 0
 assert (anom_rho["PL–Q"]["tal cual"] - anom_rho["PL–Q"]["anomalías"]) < (anom_rho["PI–Q"]["tal cual"] - anom_rho["PI–Q"]["anomalías"])

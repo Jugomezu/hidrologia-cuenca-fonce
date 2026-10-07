@@ -46,12 +46,13 @@ organiza por punto del taller:
 | 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | hecho |
 | 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | hecho |
 
-Pendientes ya identificados, fuera de la sección 4:
-- **Análisis de Fourier** de las series. Ahí se retomará el **índice de flujo base**: el de CAMELS-COL
-  se quitó del informe, y la idea es calcular uno propio con el filtro de Ladson et al. (2013).
+El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
+(2026-10-04).
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
-`scripts/18_reporte_html.py`. Se abre en un navegador y necesita internet para cargar Plotly.
+`scripts/18_reporte_html.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
+figuras y Plotly van dentro (sin conexión, solo cambian las tipografías por otras de reemplazo). Cómo
+editarlo: sección 9.
 
 ## 3. Los datos ya están descargados: no hace falta correr las descargas
 
@@ -191,3 +192,33 @@ pip install -r requirements.txt
   se consultan antes: mueven cifras en todo el notebook y el informe.
 - **Antes de dar algo por terminado,** ejecutar el notebook completo y, si se tocó el informe,
   regenerarlo.
+
+## 9. Cómo editar el informe (personas y agentes)
+
+El informe `reporte/reporte-fonce.html` **no se edita a mano**: lo genera `scripts/18_reporte_html.py`, y
+cualquier cambio hecho directamente en el HTML se pierde la próxima vez que alguien lo regenere. Tampoco se
+publica en otro lado como fuente: la única fuente del informe es ese script, en este repositorio.
+
+1. **Dónde está cada cosa en el script.**
+   - Arriba, los **cálculos**: cada sección del informe tiene un bloque que lee de `out/` y calcula sus
+     cifras (por ejemplo `# ---- régimen del ciclo anual`).
+   - Después, la **página**: una f-string enorme, `pagina`, con el HTML, el CSS y el JavaScript. Dentro de
+     ella, **las llaves de CSS y de JavaScript van dobladas** (`{{` y `}}`); las llaves sencillas son
+     expresiones de Python, como `{n(AREA_SG_KM2)}`.
+   - Al final, el **JavaScript de las gráficas** (Plotly), con una función `dibujar...()` por gráfica, que
+     se llama desde `dibujar()`.
+2. **Reglas al escribir** (detalle en `CLAUDE.md`):
+   - toda cifra del texto sale de una variable calculada (regla 16); si el texto afirma algo sobre los datos
+     («es mucho mayor que…»), se protege con un `assert` o se redacta de forma condicional;
+   - el informe no nombra los puntos del taller (4.1, 4.3…), usa títulos de sección;
+   - lo nuevo va dentro de `<div class="revision" data-etiqueta="Revisión · …">` hasta que se apruebe;
+   - punto decimal, espacio para los miles, todo en español; PI y PL en paralelo.
+3. **Verificar:**
+   - `python scripts/18_reporte_html.py` (desde la raíz) tiene que terminar sin errores;
+   - extraer los `<script>` sin `src` del HTML y pasarlos por `node --check`;
+   - abrir `reporte/reporte-fonce.html` en el navegador y mirar la sección cambiada, en tema claro y oscuro.
+4. **Entregar:** el script y el HTML regenerado en el mismo commit, en una rama, con un pull request con
+   descripción (reglas 20 y 21).
+
+Plotly está copiado en `reporte/vendor/plotly-2.32.0.min.js` y el script lo mete dentro del HTML; no hay
+que tocarlo. Si se cambia de versión, se actualiza el SHA-256 en el script y en `DATOS_FUENTES.md`.

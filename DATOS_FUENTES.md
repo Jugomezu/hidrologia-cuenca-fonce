@@ -853,6 +853,17 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
   referencia.
 
 
+## Plotly.js 2.32.0 (biblioteca de gráficas del informe)
+
+- **Qué es:** la biblioteca de JavaScript con que se dibujan las gráficas interactivas del informe. No es un
+  dato: se registra aquí porque es un archivo descargado que el proyecto guarda y usa.
+- **URL:** https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js
+- **Licencia:** MIT (Plotly, Inc.; el aviso va en la cabecera del archivo).
+- **Descargado:** 2026-10-06, con `curl`, a `reporte/vendor/plotly-2.32.0.min.js`.
+- **SHA-256:** `0a17719a72751704861215da0e5c5cdb3f9a8d50eff5cb84cb6f8b80786682b0`
+- **Uso:** `scripts/18_reporte_html.py` lo incrusta en `reporte/reporte-fonce.html` para que el informe abra
+  sin internet, y se detiene si el SHA-256 no coincide.
+
 ## Notas de reproducibilidad
 
 - El archivo de credenciales de Earthdata (`_netrc.txt`) **no** forma parte del proyecto y no debe versionarse ni compartirse. Para volver a descargar IMERG (`scripts/04_imerg_descarga_mensual.py`) hay que proveer credenciales propias de NASA Earthdata; el aviso esta al comienzo del script.

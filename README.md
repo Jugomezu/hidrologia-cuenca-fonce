@@ -1,8 +1,8 @@
 # Análisis de la cuenca del río Fonce hasta San Gil
 
 Tarea 1 de Hidrología: análisis de la cuenca del río Fonce hasta la estación de aforo **San Gil (IDEAM
-24027010)**, en Santander, Colombia. El análisis se hace en Python, en un notebook, y hay además un
-informe en HTML generado por un script.
+24027010)**, en Santander, Colombia. El análisis se hace en scripts de Python y se presenta en un informe
+HTML. El notebook del análisis inicial quedó congelado el 2026-10-07 (sección 2).
 
 Este README está escrito para que **cualquier persona o agente** que llegue al repositorio entienda el
 proyecto y pueda trabajar en un punto del taller en paralelo con otros, sin romper lo que ya está hecho.
@@ -31,8 +31,10 @@ proyecto y pueda trabajar en un punto del taller en paralelo con otros, sin romp
 
 ## 2. Estado del trabajo
 
-El notebook [`notebooks/02_precipitacion_vs_caudal.ipynb`](notebooks/02_precipitacion_vs_caudal.ipynb) se
-organiza por punto del taller:
+El análisis vive en `scripts/` y se presenta en el informe. El notebook
+[`notebooks/02_precipitacion_vs_caudal.ipynb`](notebooks/02_precipitacion_vs_caudal.ipynb) quedó **congelado
+el 2026-10-07**: se conserva, corre de principio a fin y se puede entregar, pero ya no se le agrega nada;
+todo lo nuevo va a los scripts y al informe. Lo que tiene, por punto del taller:
 
 | Sección | Contenido | Estado |
 |---|---|---|
@@ -52,7 +54,7 @@ El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió 
 (2026-10-04).
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
-`scripts/18_reporte_html.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
+`scripts/18b_reporte_html.py`, con los cálculos de `scripts/18_calculos_informe.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
 figuras y Plotly van dentro (sin conexión, solo cambian las tipografías por otras de reemplazo). Cómo
 editarlo: sección 9.
 
@@ -86,19 +88,14 @@ Cómo bajarlo de Zenodo está en `DATOS_FUENTES.md`.
   - Cada quien tiene que poder explicar de memoria lo que entrega.
 - **Nada inventado.** Todo número sale de los datos o de su procesamiento. Si falta un dato se dice; no
   se rellena ni se estima «a ojo».
-- **Las cifras de los textos salen calculadas, no escritas a mano.**
-  - En el notebook, las lecturas con números se generan con `display(Markdown(f"..."))`; el markdown fijo
-    queda cualitativo.
-  - En el informe, todo número sale de la f-string de `18_reporte_html.py`.
-  - Así, cuando cambian los datos, no hay cifras viejas que perseguir.
-- **Código revisable y reproducible.** El profesor ejecuta el notebook completo, que debe correr de
-  principio a fin sin errores.
+- **Las cifras de los textos salen calculadas, no escritas a mano**: se calculan en `scripts/18_calculos_informe.py` y
+  la página las inserta. Así, cuando cambian los datos, no hay cifras viejas que perseguir.
+- **Código revisable y reproducible.** El profesor ejecuta y revisa los scripts; corren de principio a fin
+  sin errores desde la raíz.
 - **Todo en español**: textos, comentarios, variables y figuras.
-- **El notebook se organiza por punto del taller** (1.x, 2.x, 3, 4.x). El informe **no** nombra los
-  puntos: usa títulos de sección.
-- **Imports y carga de datos en la primera celda de código** del notebook. Ninguna otra celda importa ni
-  lee archivos.
-- **Figuras del notebook con matplotlib** (nada de Plotly en el notebook). El informe HTML sí usa Plotly.
+- **El notebook está congelado** (2026-10-07): no se modifica. El informe **no** nombra los puntos del
+  taller: usa títulos de sección.
+- **Figuras:** las fijas con matplotlib; las interactivas del informe con Plotly, incrustado en el HTML.
 - **Período 1998–2022**, el de IMERG. **Sujeto: San Gil**; las subcuencas solo si aportan.
 - **Punto decimal y espacio para los miles** (2 098.85).
 
@@ -148,11 +145,11 @@ CLAUDE.md                 reglas del proyecto (obligatorias)
 DATOS_FUENTES.md          procedencia de cada dato y decisiones sobre las fuentes
 PLAN_CONTROL_CALIDAD.md   plan y estado de la sección 4 (control de calidad)
 requirements.txt          paquetes de Python, con versión
-notebooks/                el análisis (02_precipitacion_vs_caudal.ipynb es el principal)
+notebooks/                el notebook del análisis inicial, congelado el 2026-10-07
 scripts/                  la tubería, numerada en el orden en que se corre (ver scripts/README.md)
   historico/              scripts que ya no se usan (no correrlos)
 data/                     datos crudos tal como se descargaron (no se editan)
-out/                      productos intermedios (CSV, shapefiles) que leen el notebook y el informe
+out/                      productos intermedios (CSV, shapefiles) que leen los scripts y el informe
 reporte/                  informe HTML y sus figuras
 InfoPreliminar/           dos artículos de referencia sobre la cuenca (PDF y texto extraído)
 ```
@@ -165,50 +162,47 @@ Desde la **raíz del repositorio**, con Python 3.13:
 pip install -r requirements.txt
 ```
 
-- **Solo el análisis:** abrir y ejecutar `notebooks/02_precipitacion_vs_caudal.ipynb` completo. Lee de
-  `out/` y de `data/`. Desde la terminal:
-  `jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 notebooks/02_precipitacion_vs_caudal.ipynb`
-  (tarda unos 10 minutos).
 - **Rehacer productos de `out/`:** correr los scripts que hagan falta, en orden, desde la raíz:
   `python scripts/NN_nombre.py`. Qué depende de qué está en `scripts/README.md`. Por ejemplo, si se cambia
-  una exclusión de PL: 07, 07b, 07c, 09, 10, 11, 16 y 18, y después el notebook.
-- **Rehacer el informe:** `python scripts/18_reporte_html.py` escribe `reporte/reporte-fonce.html`.
+  una exclusión de PL: 07, 07b, 07c, 07d, 09, 10, 11, 16 y 18b.
+- **Rehacer el informe:** `python scripts/18b_reporte_html.py` corre los cálculos de `scripts/18_calculos_informe.py` y escribe
+  `reporte/reporte-fonce.html` (unos segundos).
+- **El notebook congelado,** si se quiere ver: `jupyter nbconvert --to notebook --execute --inplace
+  --ExecutePreprocessor.timeout=1200 notebooks/02_precipitacion_vs_caudal.ipynb` (unos 10 minutos).
 
 ## 8. Cómo trabajar en paralelo sin pisarse
 
 - **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`, **con
   descripción** (qué, por qué, cómo se verificó). Nadie fusiona su propio PR, y **nada entra a `main` sin
-  verificar antes que cumple las reglas** (reglas 18 a 21 de `CLAUDE.md`, sin excepciones).
-- **El notebook es un solo archivo JSON grande**, así que dos personas editándolo a la vez chocan en el
-  merge. Recomendaciones:
-  - cada quien agrega **su propia sección al final**, con celdas nuevas, sin reescribir las de otros;
-  - al terminar, antes del pull request, ejecutar el notebook completo y confirmar que no hay errores;
-  - si el punto es grande, desarrollarlo en un notebook aparte (`notebooks/03_...ipynb`) que lea las mismas
-    salidas de `out/`, y llevarlo al principal al final.
+  verificar antes que cumple las reglas** (reglas 20 y 21 de `CLAUDE.md`, sin excepciones).
+- **El notebook no se toca** (regla 18): está congelado.
 - **Scripts nuevos:** se numeran según dónde caen en la tubería (se usaron sufijos como `06b`, `07b` y `07c`
   para no renumerar). Se registran en `scripts/README.md`.
-- **Un solo informe (regla 22):** todo lo que vaya al informe entra como sección de `scripts/18_reporte_html.py`; no se hacen informes ni visores HTML aparte.
+- **Un solo informe (regla 22):** todo lo que vaya al informe entra como sección de `scripts/18_calculos_informe.py` (el
+  cálculo) y de `scripts/18b_reporte_html.py` (la página); no se hacen informes ni visores HTML aparte.
 - **Fuentes nuevas:** toda fuente descargada se registra en `DATOS_FUENTES.md`, con DOI o URL, licencia y
   SHA-256.
 - **Decisiones que cambian datos compartidos**, como una exclusión, un umbral o la fuente de una variable,
-  se consultan antes: mueven cifras en todo el notebook y el informe.
-- **Antes de dar algo por terminado,** ejecutar el notebook completo y, si se tocó el informe,
-  regenerarlo.
+  se consultan antes: mueven cifras en todo el informe.
+- **Antes de dar algo por terminado,** correr los scripts que cambiaron y, si se tocó el informe,
+  regenerarlo y abrirlo en el navegador.
 
 ## 9. Cómo editar el informe (personas y agentes)
 
-El informe `reporte/reporte-fonce.html` **no se edita a mano**: lo genera `scripts/18_reporte_html.py`, y
-cualquier cambio hecho directamente en el HTML se pierde la próxima vez que alguien lo regenere. Tampoco se
-publica en otro lado como fuente: la única fuente del informe es ese script, en este repositorio.
+El informe `reporte/reporte-fonce.html` **no se edita a mano**: lo generan dos scripts, y cualquier cambio
+hecho directamente en el HTML se pierde la próxima vez que alguien lo regenere. Tampoco se publica en otro
+lado como fuente: la única fuente del informe son esos scripts, en este repositorio.
 
-1. **Dónde está cada cosa en el script.**
-   - Arriba, los **cálculos**: cada sección del informe tiene un bloque que lee de `out/` y calcula sus
-     cifras (por ejemplo `# ---- régimen del ciclo anual`).
-   - Después, la **página**: una f-string enorme, `pagina`, con el HTML, el CSS y el JavaScript. Dentro de
-     ella, **las llaves de CSS y de JavaScript van dobladas** (`{{` y `}}`); las llaves sencillas son
-     expresiones de Python, como `{n(AREA_SG_KM2)}`.
-   - Al final, el **JavaScript de las gráficas** (Plotly), con una función `dibujar...()` por gráfica, que
-     se llama desde `dibujar()`.
+1. **Dónde está cada cosa.**
+   - **`scripts/18_calculos_informe.py`: el análisis.** Lee de `out/` y `data/` y calcula todo lo que el informe muestra, en
+     bloques por tema (por ejemplo `# ---- régimen del ciclo anual`). Solo cálculos: deja resultados en
+     variables (números, tablas de pandas, series para las gráficas), sin HTML.
+   - **`scripts/18b_reporte_html.py`: la página.** Corre los cálculos, arma las filas de las tablas y escribe el HTML con
+     una f-string enorme, `pagina`, que contiene el texto, el CSS y el JavaScript. Dentro de ella, **las
+     llaves de CSS y de JavaScript van dobladas** (`{{` y `}}`); las llaves sencillas son expresiones de
+     Python, como `{n(AREA_SG_KM2)}`. Al final van las funciones `dibujar...()` de las gráficas (Plotly),
+     que se llaman desde `dibujar()`.
+   - Un tema nuevo lleva su bloque de cálculo en el primero y su texto en el segundo.
 2. **Reglas al escribir** (detalle en `CLAUDE.md`):
    - toda cifra del texto sale de una variable calculada (regla 16); si el texto afirma algo sobre los datos
      («es mucho mayor que…»), se protege con un `assert` o se redacta de forma condicional;
@@ -216,11 +210,11 @@ publica en otro lado como fuente: la única fuente del informe es ese script, en
    - lo nuevo va dentro de `<div class="revision" data-etiqueta="Revisión · …">` hasta que se apruebe;
    - punto decimal, espacio para los miles, todo en español; PI y PL en paralelo.
 3. **Verificar:**
-   - `python scripts/18_reporte_html.py` (desde la raíz) tiene que terminar sin errores;
+   - `python scripts/18b_reporte_html.py` (desde la raíz) tiene que terminar sin errores;
    - extraer los `<script>` sin `src` del HTML y pasarlos por `node --check`;
    - abrir `reporte/reporte-fonce.html` en el navegador y mirar la sección cambiada, en tema claro y oscuro.
-4. **Entregar:** el script y el HTML regenerado en el mismo commit, en una rama, con un pull request con
+4. **Entregar:** los scripts y el HTML regenerado en el mismo commit, en una rama, con un pull request con
    descripción (reglas 20 y 21).
 
 Plotly está copiado en `reporte/vendor/plotly-2.32.0.min.js` y el script lo mete dentro del HTML; no hay
-que tocarlo. Si se cambia de versión, se actualiza el SHA-256 en el script y en `DATOS_FUENTES.md`.
+que tocarlo. Si se cambia de versión, se actualiza el SHA-256 en `scripts/18b_reporte_html.py` y en `DATOS_FUENTES.md`.

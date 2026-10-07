@@ -1,29 +1,31 @@
 # Tarea 1 — Análisis de cuenca (Hidrología)
 
 Análisis de la cuenca del río Fonce (San Gil, IDEAM 24027010) y su informe. El análisis se hace en
-Python, en notebooks; el informe se arma aparte en HTML.
+scripts de Python (`scripts/`) y se presenta en un informe HTML. **El notebook
+`notebooks/02_precipitacion_vs_caudal.ipynb` quedó congelado el 2026-10-07**: se conserva, corre y se puede
+entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
 
 ## Reglas del proyecto
 
 1. **Nada inventado.** Todo número, tabla o afirmación del notebook y del informe sale de los datasets
-   descargados o del procesamiento de esos datasets dentro del notebook. Si un dato no se consiguió, se
+   descargados o del procesamiento de esos datasets dentro de los scripts del proyecto. Si un dato no se consiguió, se
    dice que falta; no se rellena, no se estima "a ojo" ni se escribe de memoria. Los umbrales y
    supuestos se declaran explícitamente en el código.
-2. **Código revisable.** El profesor ejecuta y revisa el código. Debe correr de principio a fin sin
-   errores, ser legible, con nombres claros, pasos explícitos y comentarios donde la decisión no sea
-   obvia. Nada de resultados pegados a mano ni de celdas que dependan de haber corrido otra cosa antes
+2. **Código revisable.** El profesor ejecuta y revisa el código; el análisis está en `scripts/18_calculos_informe.py`.
+   Debe correr de principio a fin sin errores, ser legible, con nombres claros, pasos explícitos y comentarios donde la decisión no sea
+   obvia. Nada de resultados pegados a mano ni de pasos que dependan de haber corrido otra cosa antes
    en otro orden.
 3. **Todo en español**: texto, comentarios, nombres de variables y funciones, etiquetas de las figuras.
    Lo que venga de una fuente externa en inglés (nombres de columnas de CAMELS-COL, DOI, títulos de
    papers) se conserva tal cual y se explica en español.
-4. **El notebook se organiza por punto del taller.** Cada sección lleva el número y el nombre del punto,
-   por ejemplo `1. Series mensuales: exploración y validación`. Se avanza de a un punto: el usuario
-   avisa cuándo pasar al siguiente. No adelantarse a puntos que no se han pedido.
+4. **Se avanza de a un punto del taller**: el usuario avisa cuándo pasar al siguiente. No adelantarse a
+   puntos que no se han pedido. El notebook congelado está organizado por punto del taller; el informe se
+   organiza por temas y no nombra los puntos.
 5. **De diario a mensual, siempre con la misma regla.** Al agregar una serie diaria a mensual, un mes
    al que le falten **cinco o más días** de registro queda **vacío** (NaN); hasta cuatro días faltantes
    el mes se calcula. (El umbral empezó en un día y se amplió a cuatro el 2026-09-24, porque con el
    umbral estricto se perdía el 28 % de los meses de caudal de San Gil por faltantes dispersos.) Esta regla vale para toda serie diaria del proyecto (precipitación, caudal, lo que
-   sea) y se aplica con una única función compartida en el notebook, no reescribiéndola cada vez.
+   sea) y se aplica con la función `a_mensual` de los scripts, no reescribiéndola cada vez.
 6. **El período de estudio es 1998–2022**, unos 25 años. Es el período en que existe IMERG, que es la
    fuente de precipitación principal. Toda serie se recorta a esa ventana antes de analizarla, y los
    datos que existan fuera de ella (CAMELS-COL y los pluviómetros llegan hasta 1981) solo se usan si el
@@ -33,11 +35,11 @@ Python, en notebooks; el informe se arma aparte en HTML.
    Nemizaque, Puente Llano, Puente Cabra, Puente Arco) son herramientas para entender a San Gil y se
    usan únicamente cuando aportan a esa lectura; ampliarles el análisis es un extra que se hace solo si
    sobra tiempo, nunca por defecto.
-8. **Las figuras se hacen con matplotlib o seaborn.** Nada de Plotly: VS Code no renderiza sus figuras
-   en el notebook.
-9. **Todos los `import` van en la primera celda** del notebook, junto con la carga de datos. Ninguna
-   celda posterior importa nada.
-10. **Los datos se cargan en una sola celda** al comienzo del notebook, antes de la primera sección.
+8. **Figuras.** Las imágenes fijas (`reporte/figuras/`) se hacen con matplotlib o seaborn; las gráficas
+   interactivas del informe, con Plotly, que va incrustado en el HTML.
+9. **Los `import` van al comienzo de cada script.**
+10. **Los datos se leen de `data/` y `out/`**, con rutas relativas a la raíz del repositorio. Ningún script
+    depende de haber corrido el notebook.
 11. **Todo análisis que dependa de la precipitación se hace dos veces**, una con cada fuente, y se
     reportan los dos resultados en paralelo:
     - **IMERG**, satélite, promediado sobre el polígono de la cuenca ponderando cada celda por su área
@@ -49,7 +51,7 @@ Python, en notebooks; el informe se arma aparte en HTML.
 
     La razón es que las dos fuentes no coinciden: IMERG queda un 12.0 % por debajo de la red
     (185.3 contra 210.7 mm/mes al 2026-09-28, con todas las exclusiones de abajo; la cifra vigente la
-    calcula el notebook, sección 4.3). No hay forma de arbitrar cuál tiene la razón —el satélite estima
+    calcula `scripts/18_calculos_informe.py`). No hay forma de arbitrar cuál tiene la razón —el satélite estima
     indirectamente sobre celdas de 122 km², los pluviómetros miden en puntos, vienen marcados como
     preliminares y ninguno está por encima de 2 625 m—, así que en vez de elegir una y esconder la
     incertidumbre, se arrastra explícitamente hasta el resultado final. Esto **reemplaza** la
@@ -88,13 +90,13 @@ Python, en notebooks; el informe se arma aparte en HTML.
 15. **La ETP es la de Hargreaves calculada por el proyecto con ERA5-Land** (decidido el 2026-09-28):
     `scripts/06b_etp_hargreaves.py` → `out/etp_hargreaves_fonce.csv`, columna `etp_era5land`. La ETP que
     publica CAMELS-COL (`poten_evapo`) sale unas 2.75 veces más alta que su propia fórmula y no se usa en
-    ningún cálculo; solo aparece en la comparación de la sección 1.8 del notebook.
+    ningún cálculo; solo aparece en la comparación de la sección de la ETP del informe.
 
 16. **Las cifras de los textos salen calculadas, no escritas a mano** (decidido el 2026-09-29). En el
-    notebook, una lectura con números se genera desde código (`display(Markdown(f"..."))` con los valores
-    calculados) y el markdown fijo queda cualitativo; en el informe, todo número sale de la f-string de
-    `scripts/18_reporte_html.py`. El informe no nombra los puntos del taller (4.1, 4.3…): usa los títulos
-    de sus secciones.
+    informe, todo número se calcula en `scripts/18_calculos_informe.py` y se inserta en la página desde `scripts/18b_reporte_html.py`;
+    si un texto afirma algo sobre los datos («es mucho mayor que…»), se protege con un `assert` o se
+    redacta de forma condicional. El informe no nombra los puntos del taller (4.1, 4.3…): usa los títulos de
+    sus secciones.
 
 17. **La persona debe entender cada cambio que hace el agente.** Quien trabaja en este proyecto tiene que
     poder explicar de memoria cada cambio que entrega: el profesor revisa el trabajo y lo pregunta. Por
@@ -115,20 +117,12 @@ Python, en notebooks; el informe se arma aparte en HTML.
       explicando: el objetivo es que la persona aprenda y pueda defender el trabajo, no solo que el trabajo
       quede hecho.
 
-18. **Cómo se modifica el notebook** (agregada el 2026-10-03, después de un PR que lo dejó roto):
-    - **Cada línea de una celda termina en salto de línea.** En el JSON del `.ipynb`, cada elemento de
-      `source` termina en `"\n"`, salvo el último. Si se pierden los saltos, un título queda pegado a su
-      texto y el código deja de compilar. Toda celda lleva su `id`.
-    - **Después de cualquier cambio, se ejecuta el notebook completo** de principio a fin
-      (`jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 …`) y se
-      guarda con sus salidas. Ninguna celda de código queda sin ejecutar ni con error, y no se usan
-      funciones que la librería marque como obsoletas.
-    - **La numeración se revisa antes de agregar una sección.** No se inventan subnúmeros que choquen con
-      la estructura existente (por ejemplo, un «2.1.3» del taller dentro de la sección 2, que en el
-      notebook es Morfometría). Si el número del punto del taller no coincide con el del notebook, se
-      consulta antes.
-    - **Lo que un texto anuncia, existe.** Si una celda dice que vienen figuras o métricas, la celda que las
-      produce está y corre.
+18. **El notebook está congelado** (decidido el 2026-10-07). No se le agregan secciones ni se cambia su
+    contenido. Si alguna vez hubiera que corregirlo, cada elemento de `source` termina en `"\n"` salvo el
+    último, toda celda lleva su `id` y después se ejecuta completo con
+    `jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=1200 …`.
+    **Lo que un texto anuncia, existe**, en el informe igual que en el notebook: si un texto dice que viene
+    una figura o una tabla, está.
 
 19. **Cada archivo va en su lugar.**
     - Los scripts van en `scripts/`, numerados según su lugar en la tubería (con sufijo, como `16b`, para no
@@ -143,24 +137,25 @@ Python, en notebooks; el informe se arma aparte en HTML.
 21. **Nada entra a `main` sin verificar antes que cumple las reglas, sin excepciones** (decidido el
     2026-10-03; aplica a todos, también al dueño del repositorio y a su agente). Antes de fusionar un PR o de
     hacer push a `main` se comprueba, y se deja constancia en el PR o en el mensaje de commit:
-    - el notebook corre completo sin errores ni celdas sin ejecutar (regla 18);
-    - si cambió algo que lee el informe, se regenera con `scripts/18_reporte_html.py` y su JavaScript pasa
-      `node --check`;
-    - las reglas 1 a 20: nada inventado; todo en español; imports y carga de datos solo en la primera celda;
-      PI y PL en paralelo, con la PL depurada; cifras de los textos calculadas; punto decimal y espacio para
-      los miles; archivos en su lugar; PR con descripción.
+    - los scripts que cambiaron corren sin errores desde la raíz;
+    - si cambió algo que lee el informe, se regenera con `python scripts/18b_reporte_html.py`, su JavaScript pasa
+      `node --check` y el HTML abre en el navegador sin errores;
+    - el notebook congelado no cambió (regla 18);
+    - las reglas 1 a 20: nada inventado; todo en español; PI y PL en paralelo, con la PL depurada; cifras de
+      los textos calculadas; punto decimal y espacio para los miles; archivos en su lugar; PR con
+      descripción.
 
     Si algo no cumple, no se fusiona: se pide la corrección en el mismo PR.
 
 22. **Hay un solo informe** (decidido el 2026-10-04): `reporte/reporte-fonce.html`, generado por
-    `scripts/18_reporte_html.py`. Todo lo que vaya al informe, de cualquier punto y de cualquier persona,
-    entra como una sección de ese script. **No se hacen informes, visores ni páginas HTML aparte.** El visor
+    `scripts/18b_reporte_html.py` con los cálculos de `scripts/18_calculos_informe.py`. Todo lo que vaya al informe, de cualquier
+    punto y de cualquier persona, entra como una sección de esos dos scripts. El HTML no se edita a mano. **No se hacen informes, visores ni páginas HTML aparte.** El visor
     `reporte/punto2_i.html` del Punto 2, anterior a esta regla, se integró al informe y se borró el 2026-10-04.
 
 ## Estructura
 
 - `README.md` — punto de entrada para personas y agentes: estado del trabajo, decisiones y cómo trabajar en paralelo.
-- `notebooks/` — el análisis.
+- `notebooks/` — el notebook del análisis inicial, congelado el 2026-10-07.
 - `scripts/` — descargas, preparación de datos y generación de figuras e informes, numerados en el orden
   en que se corren; `scripts/README.md` explica la tubería y `scripts/historico/` guarda lo que ya no se usa.
 - `data/` — datos crudos tal como se descargaron; no se editan.

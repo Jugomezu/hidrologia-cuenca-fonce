@@ -217,7 +217,7 @@ como temperatura de la cuenca, por tres razones:
 - **Trae la media diaria verdadera** (promedio de las 24 horas). CAMELS-COL solo publica la minima y la
   maxima de MSWX, y la media hay que aproximarla con el punto medio (min + max) / 2, que sobreestima la
   media real porque la temperatura pasa mas horas cerca de la minima. El tamano de ese sesgo se mide
-  dentro de ERA5-Land (que trae las dos cosas) en `scripts/18_reporte_html.py` (`t_sesgo_metodo`) y en
+  dentro de ERA5-Land (que trae las dos cosas) en `scripts/18_calculos_informe.py` (`t_sesgo_metodo`) y en
   la seccion 1.5 del notebook.
 - **No tiene huecos:** 9 131 dias, los 300 meses del periodo. MSWX dentro de CAMELS-COL hereda los huecos
   del caudal (8 601 dias).
@@ -240,7 +240,7 @@ observaciones.
 por resolucion no se distinguen. (La resolucion si fue el criterio para preferir ERA5-Land sobre ERA5, que
 esta a 0,25 grados; eso se documenta mas abajo y es una decision distinta.)
 
-**Lo que se comparo** (8 601 dias con las dos fuentes, `scripts/18_reporte_html.py`):
+**Lo que se comparo** (8 601 dias con las dos fuentes, `scripts/18_calculos_informe.py`):
 
 | | MSWX | ERA5-Land |
 |---|---|---|
@@ -861,7 +861,7 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
 - **Licencia:** MIT (Plotly, Inc.; el aviso va en la cabecera del archivo).
 - **Descargado:** 2026-10-06, con `curl`, a `reporte/vendor/plotly-2.32.0.min.js`.
 - **SHA-256:** `0a17719a72751704861215da0e5c5cdb3f9a8d50eff5cb84cb6f8b80786682b0`
-- **Uso:** `scripts/18_reporte_html.py` lo incrusta en `reporte/reporte-fonce.html` para que el informe abra
+- **Uso:** `scripts/18b_reporte_html.py` lo incrusta en `reporte/reporte-fonce.html` para que el informe abra
   sin internet, y se detiene si el SHA-256 no coincide.
 
 ## Notas de reproducibilidad

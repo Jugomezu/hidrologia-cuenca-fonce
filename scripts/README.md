@@ -1,11 +1,12 @@
 # Scripts del proyecto
 
-Los scripts preparan todo lo que el notebook (`notebooks/02_precipitacion_vs_caudal.ipynb`) y el informe
-(`reporte/reporte-fonce.html`) leen de `out/`. Están numerados **en el orden en que hay que correrlos**:
+Los scripts preparan todo lo que el informe (`reporte/reporte-fonce.html`) lee de `out/`, y el análisis del
+informe vive en `18_calculos_informe.py`. El notebook `notebooks/02_precipitacion_vs_caudal.ipynb` quedó
+congelado el 2026-10-07 y ya no se modifica. Están numerados **en el orden en que hay que correrlos**:
 cada uno solo necesita lo que producen los anteriores.
 
 **Para reproducir el análisis no hace falta correr ninguno.** Los productos de `out/` ya vienen en el
-proyecto, y el notebook corre directamente sobre ellos. Los scripts sirven para rehacer esos productos
+proyecto, y el informe se regenera directamente sobre ellos con `python scripts/18b_reporte_html.py`. Los scripts sirven para rehacer esos productos
 desde los datos crudos de `data/` y para revisar cómo se obtuvo cada uno.
 
 ## Cómo se corren
@@ -49,9 +50,10 @@ Los paquetes están en `requirements.txt`, en la raíz.
 | 15 | `15_cauce_desde_dem.py` | Cauce principal derivado del DEM con pysheds, comparado con el de CAMELS-COL | DEM, `out/` de 13 | `out/comparacion_cauces.csv`, `out/perfil_cauce_dem.csv` |
 | 16 | `16_correlaciones_variables.py` | Correlaciones entre PI, PL, Q, ETP y las dos temperaturas | `out/` de 02, 05, 06, 06b, 07 | `out/correlaciones_*.csv`, `out/variables_mensuales.csv` |
 | 17 | `17_oni_enso.py` | Descarga el Índice Oceánico El Niño (ONI) de la NOAA y marca cada mes como El Niño, La Niña o neutro | internet (NOAA CPC), una sola vez; luego `data/noaa/` | `out/oni_mensual.csv` |
-| 18 | `18_reporte_html.py` | Arma el informe HTML, un solo archivo que abre sin internet (Plotly incrustado). El informe se edita aquí, no en el HTML | casi todo `out/`, `reporte/figuras/` y `reporte/vendor/plotly-2.32.0.min.js` | `reporte/reporte-fonce.html` |
+| 18 | `18_calculos_informe.py` | **El análisis del informe**: lee `out/` y `data/` y calcula todas las cifras, tablas y series que muestra el informe, por tema. Sin HTML. No se corre solo: lo corre 18b | casi todo `out/` | (variables en memoria para 18b) |
+| 18b | `18b_reporte_html.py` | **La página del informe**: corre 18, arma el HTML (texto, tablas, CSS y JavaScript de las gráficas) e incrusta las figuras y Plotly; el informe se edita en 18 y 18b, nunca en el HTML | lo que calcula 18, `reporte/figuras/`, `reporte/vendor/plotly-2.32.0.min.js` | `reporte/reporte-fonce.html` |
 
-El notebook va después de 16 (lee sus salidas); el informe (17) no depende del notebook.
+El informe (18 y 18b) no depende del notebook congelado, que también lee las salidas de 16.
 
 ## ⚠️ Los tres pasos que no se pueden rehacer sin acceso externo
 
@@ -85,7 +87,7 @@ Scripts que ya no forman parte de la tubería. Se conservan como registro de có
 - **`26_imerg_diario_fonce.py`**: IMERG diario sobre la cuenca. Se descargó pero ningún análisis lo usa.
 - **`16b_punto2_json.py`**: exportaba los pares PI–PL, PL–Q y PI–Q y la evaluación fuera del período de
   ajuste para el visor del Punto 2 (`reporte/punto2_i.html`). El visor se integró al informe y se borró el
-  2026-10-04 (regla 22); el informe calcula lo mismo en `18_reporte_html.py`.
+  2026-10-04 (regla 22); el informe calcula lo mismo en `18_calculos_informe.py`.
 - **`27_era5land_temperatura.py`**: primer intento de bajar ERA5-Land por el Climate Data Store,
   abandonado porque la cola del servicio no avanzaba; se reemplazó por Earth Engine (06). **No correrlo**:
   escribe el mismo archivo de temperatura que usa el análisis.

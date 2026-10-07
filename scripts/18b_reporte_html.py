@@ -731,7 +731,6 @@ a {{ color: var(--acento); }}
   {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
   ladera: por eso se usa su promedio.</p>
 
-  <div class="revision" data-etiqueta="Revisión · PI contra PL, mes a mes">
   <h3>Mes a mes, uno contra otro</h3>
   <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
   concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
@@ -745,7 +744,6 @@ a {{ color: var(--acento); }}
   <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
   pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
   en promedio, se aleja de PL hacia los dos lados.</p>
-  </div>
   <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
   la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
   PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
@@ -845,7 +843,6 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Anomalías en las series</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <div class="revision" data-etiqueta="Revisión · anomalías en las series">
   <p>Un cambio de estación, de instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie
   mide sistemáticamente más o menos que sus vecinas. Para buscarlo, cada pluviómetro se compara con el promedio
   de los demás, y PI y Q con PL.</p>
@@ -880,7 +877,6 @@ a {{ color: var(--acento); }}
     sale de PL.</b></li>
     {"".join(f"<li><b>{html.escape(s.split(' · ')[1])}</b>: {c:+.0f} % desde {fecha_anomala(pm)} (<i>p</i> {fmt_p_eq(p)}), pero año por año no se ve un escalón limpio. <b>Se conserva, marcado como incierto.</b></li>" for s, c, pm, p in an_pl_sig[an_pl_sig.serie != "PL · Pueblo Viejo"][["serie", "cambio_pct", "primer_mes_despues", "p"]].itertuples(index=False))}
   </ul>
-  <div class="revision" data-etiqueta="Revisión · segundo salto de Pueblo Viejo y salto de PI">
   <p><b>Pueblo Viejo tiene un segundo salto.</b> Como Pettitt encuentra un solo corte por serie, se repitió en el
   tramo posterior al primero (serie depurada, contra el {html.escape(an_pv2.referencia)}): Pueblo Viejo pasa de
   {an_pv2.razon_antes:.2f} a {an_pv2.razon_despues:.2f} veces sus vecinos desde
@@ -898,7 +894,6 @@ a {{ color: var(--acento); }}
   <p class="nota">El catálogo del IDEAM no guarda reubicaciones ni cambios de instrumento (solo la fecha de
   instalación, anterior a 1998, y el estado), así que los saltos de los pluviómetros no se pueden confirmar con
   metadatos. Las pruebas corren en <code>scripts/07c_anomalias.py</code>.</p>
-  </div>
 
   <h3>Meses en 0 mm</h3>
   <div class="tabla-caja">
@@ -925,14 +920,12 @@ a {{ color: var(--acento); }}
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
   <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
   tramos excluidos: {exc_lista}.</p>
-  </div>
   </details>
 </section>
 
 <section>
   <details class="plegable" open>
   <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <div class="revision" data-etiqueta="Revisión · registro de anomalías">
   <p>Lo que apareció raro en los datos, con qué se comprobó, qué se decidió y su efecto. De las {len(reg)} anomalías, <b>{reg_conteo.get("corregido", 0)}
   quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>{reg_conteo.get("incierto", 0)}
   quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
@@ -947,7 +940,6 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">El registro lo arma <code>scripts/07d_trazabilidad.py</code> a partir de lo que producen los
   demás scripts, así que sus cifras cambian si cambian los datos.</p>
-  </div>
   </details>
 </section>
 
@@ -1029,7 +1021,7 @@ a {{ color: var(--acento); }}
     bajo el umbral de {FACTOR_ATIPICO:.1f}. Desde la mediana de los febreros sí es alto (PI {atip_z.loc[_F99, "PI"]:+.1f},
     PL {atip_z.loc[_F99, "PL"]:+.1f}). {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Es un evento
     extremo a tener en cuenta.</li>
-    <li class="revision" data-etiqueta="Revisión · enero y febrero de 2005"><b>Enero y febrero de 2005: la emergencia
+    <li><b>Enero y febrero de 2005: la emergencia
     invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de 2005,
     con inundaciones en Santander, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón; según el
     IDEAM, por cuatro frentes fríos del hemisferio norte, cuando lo normal en enero y febrero son uno o dos
@@ -1178,11 +1170,9 @@ a {{ color: var(--acento); }}
   <p><b>El caudal se lleva mejor con los pluviómetros que con el satélite</b> (ρ = {rho('PL', 'Q'):.2f}
   contra {rho('PI', 'Q'):.2f}): la red parece captar algo que el satélite se pierde.</p>
 
-  <div class="revision" data-etiqueta="Revisión · dispersión de la lluvia contra el caudal">
   <p><b>Con más lluvia, el caudal es menos predecible.</b> Ajustando una recta, la varianza que no explica es
   {p2_dispersion["PL"]:.1f} veces mayor en el tercio de meses más lluviosos que en el más seco con PL, y
   {p2_dispersion["PI"]:.1f} con PI: el caudal depende también del agua que la cuenca trae guardada.</p>
-  </div>
 
   <p><b>Las dos temperaturas se mueven juntas</b>, ρ = {rho('T MSWX', 'T ERA5'):.2f}, pese a los
   {t_sesgo_media:.2f} °C que las separan. Discrepan en el nivel, no en el movimiento.</p>
@@ -1249,14 +1239,11 @@ a {{ color: var(--acento); }}
   {float(firmas_sg.runoff_ratio):.2f} y {n(float(firmas_sg.q_mean) * 365)} mm/año de caudal; aquí, por otro camino,
   salen {coef_periodo:.2f} y {n(bal_q_anual)} mm/año.</p>
 
-  <div class="revision" data-etiqueta="Revisión · coeficiente con PL y PI">
   <p class="aviso">Meses en que salió más agua de la que cayó (coeficiente &gt; 1): <b>{bal_sobre1_pl} con PL</b>
   (máximo {bal_max_pl:.2f} en {fmt_mes(bal_max_mes_pl)}) y {bal_sobre1} con PI (máximo {bal_max:.2f} en
   {fmt_mes(bal_max_mes)}). Con PL, {bal_pl_tras_lluvia} de los {bal_sobre1_pl} siguen a dos meses más
   lluviosos que lo normal: agua guardada que sale después. Con PI son más porque PI mide menos lluvia.</p>
-  </div>
 
-  <div class="revision" data-etiqueta="Revisión · P − Q contra la evapotranspiración">
   <h3>Lo que llueve menos lo que sale, contra la evapotranspiración</h3>
   <p>La lluvia (P) se reparte en caudal (Q), evapotranspiración y lo que la cuenca guarda o libera, así que
   <b>P − Q no es la evapotranspiración</b>: mes a mes incluye el almacenamiento. Se compara con la ETP de
@@ -1271,12 +1258,10 @@ a {{ color: var(--acento); }}
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
   {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
   {"" if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else pq_explicaciones}
-  </div>
 </section>
 
 <section>
   <h2>El ciclo anual</h2>
-  <div class="revision" data-etiqueta="Revisión · ciclo anual, mes a mes">
   <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
   <p>El <b>ciclo anual</b> junta todos los eneros, todos los febreros…, de 1998 a 2022, y resume cada mes:
   la media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango p10–p90, cuánto cambia
@@ -1351,9 +1336,7 @@ a {{ color: var(--acento); }}
     }}));
   }})();
   </script>
-  </div>
 
-  <div class="revision" data-etiqueta="Revisión · variabilidad, asimetría e influencia">
   <h3>Qué meses cambian más de un año a otro</h3>
   <p>Para cada mes: la <b>desviación estándar</b> (DE) y el <b>coeficiente de variación</b> (CV = DE / media);
   la <b>asimetría</b> clásica y la de Bowley, que usa solo los cuartiles y no la mueve un año extremo; y la
@@ -1379,9 +1362,7 @@ a {{ color: var(--acento); }}
   {var_tabla.n.max()} años por mes como mucho.</p>
   <p>{("<b>La asimetría fuerte la ponen pocos años:</b> donde la clásica pasa de 1, la de Bowley no pasa de " + f"{var_bowley_max:.2f}" + " en valor absoluto: uno o dos años muy altos cargan la distribución, no el conjunto.") if var_por_pocos else "<b>La asimetría fuerte es del conjunto de los años</b>, no de uno o dos: la de Bowley también es alta."}
   Con la temperatura, ningún año mueve una media más de {max(abs(x) for x in var_influencia["T media"].values()):.2f} %.</p>
-  </div>
 
-  <div class="revision" data-etiqueta="Revisión · régimen del ciclo anual">
   <h3>El régimen: picos, temporadas, concentración y forma</h3>
   <p>El régimen se describe con la <b>mediana</b> de cada mes. Un mes es <b>húmedo</b> si supera al <b>mes
   típico</b> (el promedio de las 12 medianas), y las temporadas son rachas de meses seguidos, con diciembre y
@@ -1403,9 +1384,7 @@ a {{ color: var(--acento); }}
   (Kruskal-Wallis: <i>p</i> ≤ {reg_kw_max:.0e}). Picos: con PL en {" y ".join(regimen["PL"]["picos"])}, con PI en
   {" y ".join(regimen["PI"]["picos"])} y con Q en {" y ".join(regimen["Q"]["picos"])}. La concentración de PI y PL
   no se compara directamente: PI tiene {regimen["PI"]["conc_meses"]} meses húmedos y PL, {regimen["PL"]["conc_meses"]}.</p>
-  </div>
 
-  <div class="revision" data-etiqueta="Revisión · ¿se repite cada año? ¿es estable?">
   <h3>¿Se repite cada año? ¿Es estable?</h3>
   <p>A cada año con los 12 meses se le ajusta la misma curva de dos armónicos y se mira si tiene dos picos y si
   cada uno cae a ±{EST_TOL:.0f} mes del pico promedio. Q solo tiene {est_anual["Q"]["anios"]} años completos: los meses
@@ -1444,9 +1423,7 @@ a {{ color: var(--acento); }}
   No se atribuye a una tendencia climática: las dos mitades no tienen el mismo ENSO
   ({est_enso["1998–2010"].get("La Niña", 0)} meses de La Niña en la primera y {est_enso["2011–2022"].get("La Niña", 0)} en
   la segunda; {est_enso["1998–2010"].get("El Niño", 0)} y {est_enso["2011–2022"].get("El Niño", 0)} de El Niño).</p>
-  </div>
 
-  <div class="revision" data-etiqueta="Revisión · desfase estacional">
   <h3>Desfase estacional: cuánto se atrasa el río respecto a la lluvia</h3>
   <p>La <b>fase</b> de un armónico dice cuándo está su máximo. El <b>desfase estacional</b> es cuánto después
   llega el máximo del armónico de 6 meses de Q que el de la lluvia; medido sobre el año típico, da el atraso en
@@ -1465,7 +1442,6 @@ a {{ color: var(--acento); }}
   {(("excluye el cero por muy poco" if desfase_ic["PI_PL"][0] < 1 else "no incluye el cero") + ", y es pequeña frente a la resolución mensual") if desfase_dif_concluyente else "incluye el cero: no es concluyente"}).</p>
   <p class="nota">La fase del armónico de 12 meses no se usa: en PL y en Q explica el {regimen["PL"]["var1"]:.0f} % y el
   {regimen["Q"]["var1"]:.0f} % de la forma del ciclo, y su fase es casi ruido.</p>
-  </div>
 
   <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
   <p>La correlación entre la lluvia y el caudal es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f}
@@ -1521,7 +1497,6 @@ a {{ color: var(--acento); }}
   arrastre</b>. Con PI el ajuste es más pobre ({ajuste_lq.loc[('PI', 'mes'), 'r2'] * 100:.0f} % →
   {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %).</p>
 
-  <div class="revision" data-etiqueta="Revisión · estimación fuera del período de ajuste">
   <h3>Después, en años que el ajuste no vio</h3>
   <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
   no vio</b>: una recta ajustada con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} se evalúa con
@@ -1549,7 +1524,6 @@ a {{ color: var(--acento); }}
   <p class="nota">Una recta mensual simplifica mucho: no representa el agua guardada en el suelo, la humedad
   que trae la cuenca ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Además,
   IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
-  </div>
 </section>
 
 <section>

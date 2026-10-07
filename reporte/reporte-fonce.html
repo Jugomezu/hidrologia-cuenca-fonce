@@ -375,24 +375,18 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>Qué meses tienen dato y cuáles no</h2>
-  <p>Antes de analizar nada hay que ver dónde están los huecos. Cada franja es un mes de una fuente. El
-  color no es un sí o un no: es el <b>porcentaje de días del mes con registro</b>, para las series que
-  vienen en paso diario. Así se distingue un mes completo de uno al que le faltan tres días, cosa que un
-  mapa de dos colores esconde.</p>
-  <p class="nota">Las variables llevan las siglas que se usan en todo el informe: <b>PI</b>, la
-  precipitación de IMERG promediada sobre la cuenca; <b>PL</b>, la de los pluviómetros del IDEAM dentro de
-  la divisoria (su promedio, o cada uno); <b>Q</b>, el caudal en San Gil, y <b>ETP</b>, la
-  evapotranspiración potencial, calculada por el proyecto con Hargreaves y ERA5-Land (ver «La
-  evapotranspiración potencial (ETP)»).</p>
-  <p>La regla del proyecto acepta un mes al que le falten <b>4 días o menos</b>. Pero
-  cuatro días sueltos no son lo mismo que cuatro seguidos, así que el detalle de cada mes dice también
-  <b>cuántos de los días faltantes son consecutivos</b>. Pasa el cursor por cualquier franja, y arrastra
-  sobre el gráfico para ampliar un tramo.</p>
+  <p>Cada franja es un mes de una fuente, y en las series diarias su color es el <b>porcentaje de días del mes
+  con registro</b>: así se distingue un mes completo de uno al que le faltan unos días.</p>
+  <p class="nota"><b>PI</b>: lluvia de IMERG sobre la cuenca. <b>PL</b>: la de los pluviómetros del IDEAM dentro de
+  la divisoria (su promedio o cada uno). <b>Q</b>: caudal en San Gil. <b>ETP</b>: evapotranspiración potencial de
+  Hargreaves con ERA5-Land.</p>
+  <p>La regla acepta un mes al que le falten <b>4 días o menos</b>; como no es lo mismo que
+  falten sueltos o seguidos, el detalle de cada mes (al pasar el cursor) dice también <b>cuántos son
+  consecutivos</b>.</p>
 
   <div id="g-calidad" class="grafico" style="min-height:566px"></div>
-  <p class="nota">Las fuentes de paso mensual (IMERG y los pluviómetros del IDEAM) solo pueden estar o no
-  estar: se pintan del verde pleno o del rojo pleno, sin valores intermedios. Los meses excluidos de PL
-  aparecen vacíos: Encino de ene 2016 a dic 2018; Pueblo Viejo de ene 1998 a nov 2004; Pavas Las en <span class='fase-neutra'>ago 2000</span>; Pavas Las en <span class='fase-nino' title='El Niño'>jul 2009</span>; Pavas Las en <span class='fase-neutra'>jul 2013</span>; Pavas Las en <span class='fase-neutra'>may 2018</span>; Pavas Las en <span class='fase-neutra'>jul 2019</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2017</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2021</span> (ver «Comparando PI con PL» y «Anomalías en las series»).</p>
+  <p class="nota">Las fuentes mensuales (IMERG y los pluviómetros) solo están o no están: verde o rojo pleno. Los
+  meses excluidos de PL aparecen vacíos: Encino de ene 2016 a dic 2018; Pueblo Viejo de ene 1998 a nov 2004; Pavas Las en <span class='fase-neutra'>ago 2000</span>; Pavas Las en <span class='fase-nino' title='El Niño'>jul 2009</span>; Pavas Las en <span class='fase-neutra'>jul 2013</span>; Pavas Las en <span class='fase-neutra'>may 2018</span>; Pavas Las en <span class='fase-neutra'>jul 2019</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2017</span>; Valle de San Jose en <span class='fase-nina' title='La Niña'>dic 2021</span>.</p>
 
   <div class="tabla-caja">
   <table>
@@ -421,40 +415,32 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
   <p class="nota">«Incompletos» son meses que entran al análisis pero a los que les falta entre 1 y
   4 días. «Perdidos» son los que la regla descarta, más los que no existen.</p>
-  <p>De las 16 fuentes, <b>7 no pierden ni un mes</b>: las de malla —IMERG y
-  ERA5-Land— y los pluviómetros que el IDEAM tiene completos. No dependen de que alguien vaya a leer un
-  instrumento todos los días. La que menos meses conserva es <b>Pueblo Viejo</b>
+  <p>De las 16 fuentes, <b>7 no pierden ni un mes</b>: las de malla (IMERG y
+  ERA5-Land) y los pluviómetros completos. La que menos meses conserva es <b>Pueblo Viejo</b>
   (191 de 300), y le siguen <b>las 3 series que vienen de CAMELS-COL</b>,
   con 262 cada una.</p>
 
-  <p>El caudal de San Gil conserva 262 meses y pierde 38. Pero hay un
-  dato que un mapa de dos colores no deja ver: <b>63 de los meses que sí entran al
-  análisis están incompletos</b>, con entre 1 y 4 días sin registro. Son válidos según
-  la regla, pero no son meses perfectos, y en el degradado se distinguen.</p>
+  <p>El caudal de San Gil conserva 262 meses y pierde 38, y
+  <b>63 de los que conserva están incompletos</b> (de 1 a 4 días sin registro):
+  válidos según la regla, pero no perfectos.</p>
 
-  <p><b>Por qué 4 días.</b> Se probó sobre los 199 meses completos de Q:
-  si se les quitan 4 días seguidos, en cualquier posición, el caudal medio del mes se
-  aleja del verdadero un 2.9 % en la mediana y hasta un 8.8 % en el 95 % de
-  los casos. El error crece parejo con los días que faltan, sin un salto que marque un límite natural. El
-  umbral es un compromiso: con él se conservan 262 meses de Q; exigiendo meses completos
-  quedarían 199.</p>
+  <p><b>Por qué 4 días.</b> Quitándoles 4 días seguidos a los
+  199 meses completos de Q, el caudal medio se aleja del verdadero un 2.9 % en la
+  mediana y hasta un 8.8 % en el 95 % de los casos. El error crece parejo, sin un límite natural: el
+  umbral es un compromiso que conserva 262 meses de Q, contra 199 si se
+  exigieran meses completos.</p>
 
-  <p><b>Un mes incompleto no se presenta como completo.</b> En los promedios (Q en m³/s, temperatura) se
-  promedian los días que hay. En los acumulados (Q en mm) el valor del mes es ese promedio por los
-  días del mes. Si solo se sumaran los días con dato, los 63 meses incompletos quedarían
-  en promedio un 7.7 % por debajo, y hasta un 14.3 %.</p>
+  <p><b>Un mes incompleto no se presenta como completo:</b> los acumulados (Q en mm) son el promedio de los días
+  con dato por los días del mes. Sumando solo los días con dato, los 63 meses incompletos
+  quedarían un 7.7 % por debajo en promedio, y hasta un 14.3 %.</p>
 
-  <p>Entre los meses que la regla descarta, el detalle importa: a
-  <b>26 de 38</b> les faltan días <b>dispersos</b> —ninguna racha pasa
-  de 4 días seguidos—, mientras que el peor caso, 2022-09, se queda sin
-  <b>30 días consecutivos</b>. Un mes con cinco faltantes sueltos y otro sin medio mes
-  seguido caen los dos fuera por la misma regla, pero no merecen la misma desconfianza.</p>
+  <p>De los meses descartados, a <b>26 de 38</b> les faltan días
+  <b>dispersos</b> (ninguna racha pasa de 4), y el peor, 2022-09, se queda sin
+  <b>30 días seguidos</b>: la misma regla los descarta, pero no merecen la misma desconfianza.</p>
 
-  <p class="aviso">Las series de CAMELS-COL tienen <b>exactamente el mismo patrón</b>: el caudal y las dos
-  temperaturas de MSWX fallan los mismos días, sin una sola excepción. No es casualidad: esos archivos
-  omiten la fila completa de los días sin caudal, y con ella se va todo lo demás, aunque MSWX sí tenga ese
-  día. <b>Los huecos de la temperatura de MSWX en CAMELS-COL no son suyos: son heredados del
-  caudal.</b></p>
+  <p class="aviso">En CAMELS-COL el caudal y las temperaturas de MSWX fallan <b>exactamente los mismos días</b>:
+  los archivos omiten la fila entera de los días sin caudal. <b>Los huecos de MSWX en CAMELS-COL son heredados
+  del caudal.</b></p>
 </section>
 
 <section>

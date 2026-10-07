@@ -418,6 +418,23 @@ INDICE_HTML = """
 """
 
 
+# ¿se repite cada año? ¿es estable?: filas de las dos tablas
+est_filas_anual = "\n".join(
+    f"<tr><td><b>{v}</b> ({' y '.join(r['picos'])})</td><td class='num'>{r['anios']}</td>"
+    f"<td class='num'>{r['bimodales']}</td><td class='num'>{r['p1']}</td><td class='num'>{r['p2']}</td>"
+    f"<td class='num'>{r['dist_mediana']:.1f} (máx. {r['dist_max']:.1f})</td><td class='num'>{r['simple']}</td></tr>"
+    for v, r in est_anual.items())
+
+
+def _est_celda(m):
+    return f"{m['clase']}, {' y '.join(m['picos'])}; A₂/A₁ {m['razon']:.2f} [{m['ic'][0]:.2f}–{m['ic'][1]:.2f}]"
+
+
+est_filas_mitades = "\n".join(
+    f"<tr><td><b>{v}</b></td><td>{_est_celda(r['1998–2010'])}</td><td>{_est_celda(r['2011–2022'])}</td>"
+    f"<td class='num'>{' y '.join(f'{d:.1f}' for d in r['corrimiento']) if r['corrimiento'] else '—'}</td>"
+    f"<td>{'sí' if r['estable'] else '<b>no</b>'}</td></tr>" for v, r in est_mitades.items())
+
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
 pagina = f"""<!doctype html>
@@ -1402,6 +1419,47 @@ a {{ color: var(--acento); }}
   (Kruskal-Wallis: <i>p</i> ≤ {reg_kw_max:.0e}). Picos: con PL en {" y ".join(regimen["PL"]["picos"])}, con PI en
   {" y ".join(regimen["PI"]["picos"])} y con Q en {" y ".join(regimen["Q"]["picos"])}. La concentración de PI y PL
   no se compara directamente: PI tiene {regimen["PI"]["conc_meses"]} meses húmedos y PL, {regimen["PL"]["conc_meses"]}.</p>
+  </div>
+
+  <div class="revision" data-etiqueta="Revisión · ¿se repite cada año? ¿es estable?">
+  <h3>¿Se repite cada año? ¿Es estable?</h3>
+  <p>A cada año con los 12 meses se le ajusta la misma curva de dos armónicos y se mira si tiene dos picos y si
+  cada uno cae a ±{EST_TOL:.0f} mes del pico promedio. Q solo tiene {est_anual["Q"]["anios"]} años completos: los meses
+  faltantes no se rellenan. Como esa curva no puede tener más de dos picos, se contrasta con algo más simple: el mes más
+  lluvioso de cada semestre a ±1 mes del pico promedio.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Serie (picos del promedio)</th><th class="num">Años</th><th class="num">Bimodales</th>
+    <th class="num">Con el pico 1</th><th class="num">Con el pico 2</th><th class="num">Distancia al pico (meses)</th>
+    <th class="num">Método simple</th></tr></thead>
+    <tbody>
+{est_filas_anual}
+    </tbody>
+  </table>
+  </div>
+  <p>{"<b>Los dos picos del promedio aparecen en la mayoría de los años</b>" if all(r["los_dos"] > r["anios"] / 2 for r in est_anual.values()) else "<b>Los picos del promedio no aparecen en la mayoría de los años</b> con alguna serie"}:
+  con la curva, en {est_anual["PL"]["los_dos"]} de {est_anual["PL"]["anios"]} años con PL, {est_anual["PI"]["los_dos"]} de
+  {est_anual["PI"]["anios"]} con PI y {est_anual["Q"]["los_dos"]} de {est_anual["Q"]["anios"]} con Q; con el método simple,
+  {est_anual["PL"]["simple"]}, {est_anual["PI"]["simple"]} y {est_anual["Q"]["simple"]}. En {est_anual["PI"]["a1_domina"]} años
+  de PI el armónico de 12 meses pesa más que el de 6 ({est_anual["PL"]["a1_domina"]} con PL, {est_anual["Q"]["a1_domina"]} con Q):
+  su ciclo es el menos marcado.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th>1998–2010</th><th>2011–2022</th><th class="num">Corrimiento de los picos (meses)</th>
+    <th>¿Estable?</th></tr></thead>
+    <tbody>
+{est_filas_mitades}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Entre corchetes, el intervalo del 95 % de A₂/A₁ remuestreando años ({f"{EST_REMUESTREOS:,}".replace(",", " ")} veces).
+  Estable: la misma clase en las dos mitades y los picos corridos a lo sumo {EST_TOL:.0f} mes.</p>
+  <p><b>{"La clasificación es estable con las tres series." if est_todas_estables else "La clasificación no es estable con todas las series."}</b>
+  La diferencia más grande es la de {est_mas_cambia}: A₂/A₁ pasa de {est_mitades[est_mas_cambia]["1998–2010"]["razon"]:.2f} a
+  {est_mitades[est_mas_cambia]["2011–2022"]["razon"]:.2f}{" (los intervalos se traslapan)" if est_mitades[est_mas_cambia]["ic_se_traslapan"] else " (los intervalos no se traslapan)"}.
+  No se atribuye a una tendencia climática: las dos mitades no tienen el mismo ENSO
+  ({est_enso["1998–2010"].get("La Niña", 0)} meses de La Niña en la primera y {est_enso["2011–2022"].get("La Niña", 0)} en
+  la segunda; {est_enso["1998–2010"].get("El Niño", 0)} y {est_enso["2011–2022"].get("El Niño", 0)} de El Niño).</p>
   </div>
 
   <div class="revision" data-etiqueta="Revisión · desfase estacional">

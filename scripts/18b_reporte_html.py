@@ -812,6 +812,122 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>En esta cuenca llueve menos arriba</h2>
+  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
+  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
+  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
+  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
+  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
+
+  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
+  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
+  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
+    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
+  </div>
+
+  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
+  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
+  círculo hueco es la estación fuera de la divisoria.</p>
+
+  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
+  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
+  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
+  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
+  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
+  que la altitud sola no explica.</p>
+
+  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
+  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
+  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
+  </div>
+
+  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
+  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
+  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
+  estaciones apartadas.</p>
+
+  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
+  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
+  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
+  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
+  (r² = {aj_limpio['r2']:.2f}).</p>
+
+  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
+  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
+  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
+
+  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
+  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
+  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
+  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
+  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
+
+  <figure>
+    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
+    <figcaption>
+      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
+      oriental, la parte más alta y escarpada de la cuenca.</p>
+      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
+      que la contiene, porque están anidadas unas dentro de otras.</p>
+    </figcaption>
+  </figure>
+
+  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
+
+  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
+  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
+  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
+  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
+
+  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
+  {sub_seca.estaciones_en_subcuenca} estaciones del
+  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
+  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
+  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
+  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
+  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
+
+  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
+  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
+  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
+  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
+  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
+
+  <h3>Por qué pasa: el óptimo pluviográfico</h3>
+  <p>La lluvia no crece indefinidamente con la altura. En los valles interandinos colombianos hay una franja
+  donde es máxima, el <b>óptimo pluviográfico</b> ({CITA_POVEDA}), y por encima <b>disminuye</b>: las lluvias
+  tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el vapor que condensar.</p>
+
+  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m: <b>está entero por encima de esa franja</b>, y solo se ve
+  la rama descendente. De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a
+  las más altas ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>.</p>
+
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
+    <tbody>
+{filas_grad}
+    </tbody>
+  </table>
+  </div>
+
+  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
+  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
+  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
+</section>
+
+<section>
   <h2>Mapas de la cuenca</h2>
   <div class="pestanas" role="tablist" aria-label="Mapa a mostrar">
     <button type="button" role="tab" id="pestana-dem" aria-controls="panel-dem" aria-selected="true">Relieve (DEM)</button>
@@ -1707,7 +1823,6 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Anomalías y anomalías estandarizadas</h2>
-  <div class="revision" data-etiqueta="Revisión · anomalías y anomalías estandarizadas">
   <p>Cada variable se puede mirar de tres maneras. La <b>serie original</b> X<sub>t</sub>. La <b>anomalía</b>
   a<sub>t</sub> = X<sub>t</sub> − µ<sub>j</sub>, donde µ<sub>j</sub> es la media del mes j del calendario: cuánto se
   aleja un mes de lo normal para ese mes, en las unidades de la variable. Y la <b>anomalía estandarizada</b>
@@ -1784,12 +1899,10 @@ a {{ color: var(--acento); }}
   <p class="nota">Las anomalías de «Revisión de outliers» y «Años que se salen de lo normal» son otras: se miden respecto a la
   mediana y en rangos intercuartiles, para buscar extremos sin que los propios extremos muevan la referencia. Se usan
   tal como estaban.</p>
-  </div>
 </section>
 
 <section>
   <h2>Años que se salen de lo normal</h2>
-  <div class="revision" data-etiqueta="Revisión · anomalías y años contrastantes">
   <p>La <b>anomalía</b> de un mes es cuánto se aleja del valor normal de su mes del calendario, en rangos
   intercuartiles (la misma medida de «Revisión de outliers»): un abril más seco o más lluvioso que un abril
   normal. Quita el ciclo anual y deja la variación de un año a otro.</p>
@@ -1825,7 +1938,6 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes,
   {n(anom_tipico_pl)} mm en el año). Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
-  <div class="revision" data-etiqueta="Revisión · PL contra PI en los años contrastantes">
   <p><b>PL y PI no se separan igual todos los años.</b> En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, PL suma en promedio
   {anom_pl_pi_habitual:.2f} veces lo de PI. En los años contrastantes:
   {"; ".join(f"{a}, {r['razon']:.2f} ({n(r['pl_total'])} contra {n(r['pi_total'])} mm)" for a, r in anom_pl_pi.items())}.
@@ -1833,7 +1945,6 @@ a {{ color: var(--acento); }}
   {", ".join(anom_pl_pi[anom_pl_pi_raro]["meses_dif"][:-1])} y {anom_pl_pi[anom_pl_pi_raro]["meses_dif"][-1]}: los pluviómetros
   registraron mucha más lluvia que el satélite en esos meses. Con los datos disponibles no se puede saber cuál de los dos
   se acerca más a la lluvia real; por eso el año se clasifica con PL y PI juntas.</p>
-  </div>
   <p><b>{"Hasta en los años extremos el régimen sigue siendo bimodal" if anom_todos_bimodales else "En algún año extremo el régimen deja de ser bimodal"}</b>:
   lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma.{"".join(f" En {a} el armónico de 12 meses pesa más (A₂/A₁ {anom_anios[a]['razon']:.2f}): sus meses muy húmedos ({', '.join(m)}) rellenan en parte el valle entre los dos picos." for a, m in anom_a1_domina.items())} Un año húmedo tiene la mayoría de sus meses
   sobre lo normal ({anom_anios[anom_humedos[0]]["meses_sobre"]} de 12 en {anom_humedos[0]}) y uno seco, pocos
@@ -1844,12 +1955,10 @@ a {{ color: var(--acento); }}
   {n(variables_resumen.loc[anom_mes_extremo, "PL"])} mm, {variables_resumen.loc[anom_mes_extremo, "PL"] / anom_mediana_pl[anom_mes_extremo.month]:.1f}
   veces su mediana, y caudal atípico también ({atip_z.loc[anom_mes_extremo, "PL"]:+.1f}, {atip_z.loc[anom_mes_extremo, "PI"]:+.1f} y
   {atip_z.loc[anom_mes_extremo, "Q"]:+.1f} rangos intercuartiles con PL, PI y Q).</p>
-  </div>
 </section>
 
 <section>
   <h2>Tendencias de largo plazo</h2>
-  <div class="revision" data-etiqueta="Revisión · tendencias">
   <p>Aquí la pregunta cambia: no se comparan variables, sino cómo cambia cada una con los años. Por eso cada variable
   se usa con <b>todo su registro</b>, desde {LARGO_DESDE[:4]} cuando existe, y no solo en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}:
   la menor duración de IMERG no recorta a las demás. Aparte, todo se repite en el período común
@@ -2037,7 +2146,6 @@ a {{ color: var(--acento); }}
   Mann-Kendall usuales, con el intervalo de Sen de Kendall. Varias subseries de la lluvia y de Q suben y después bajan (o al
   revés): una sola pendiente puede ocultar esas inversiones, pero con tan pocos años no hay base para darlas por cambios reales.</p>
 {met_mes_detalles}
-  </div>
 </section>
 
 <section>
@@ -2089,121 +2197,6 @@ a {{ color: var(--acento); }}
   IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
 </section>
 
-<section>
-  <h2>En esta cuenca llueve menos arriba</h2>
-  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
-  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
-  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
-  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
-  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
-
-  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
-  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
-  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
-    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
-  </div>
-
-  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
-  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
-  círculo hueco es la estación fuera de la divisoria.</p>
-
-  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
-  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
-  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
-  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
-  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
-  que la altitud sola no explica.</p>
-
-  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
-  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
-  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
-  </div>
-
-  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
-  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
-  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
-  estaciones apartadas.</p>
-
-  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
-  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
-  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
-  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
-  (r² = {aj_limpio['r2']:.2f}).</p>
-
-  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
-  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
-  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
-
-  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
-  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
-  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
-  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
-  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
-
-  <figure>
-    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
-    <figcaption>
-      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
-      oriental, la parte más alta y escarpada de la cuenca.</p>
-      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
-      que la contiene, porque están anidadas unas dentro de otras.</p>
-    </figcaption>
-  </figure>
-
-  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
-
-  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
-  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
-  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
-  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
-
-  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
-  {sub_seca.estaciones_en_subcuenca} estaciones del
-  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
-  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
-  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
-  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
-  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
-
-  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
-  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
-  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
-  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
-  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
-
-  <h3>Por qué pasa: el óptimo pluviográfico</h3>
-  <p>La lluvia no crece indefinidamente con la altura. En los valles interandinos colombianos hay una franja
-  donde es máxima, el <b>óptimo pluviográfico</b> ({CITA_POVEDA}), y por encima <b>disminuye</b>: las lluvias
-  tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el vapor que condensar.</p>
-
-  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m: <b>está entero por encima de esa franja</b>, y solo se ve
-  la rama descendente. De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a
-  las más altas ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>.</p>
-
-  <div class="tabla-caja">
-  <table>
-    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
-    <tbody>
-{filas_grad}
-    </tbody>
-  </table>
-  </div>
-
-  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
-  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
-  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
-</section>
 
 <section>
   <h2>Bibliografía</h2>

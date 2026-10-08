@@ -288,16 +288,23 @@ meses que CAMELS-COL pierde y para repetir cualquier calculo con la otra fuente.
 - **Cobertura:** global terrestre, malla de 0.1 grados (resolucion nativa ~9 km, ~11 132 m)
 - **Bandas usadas:** `temperature_2m` (media diaria), `temperature_2m_min` (minima diaria),
   `temperature_2m_max` (maxima diaria)
-- **Periodo descargado:** 1998-01-01 a 2022-12-31, el periodo de estudio del proyecto
+- **Periodo descargado:** 1998-01-01 a 2022-12-31, el periodo de estudio del proyecto (acceso
+  2026-09-24); **ampliado a 1981-01-01 el 2026-10-07** para las tendencias de largo plazo (regla 6),
+  con el mismo script, coleccion, bandas y poligono
 - **Region:** el poligono de la cuenca de San Gil (24027010), no un recorte rectangular
 - **Unidades:** la coleccion entrega kelvin; el script convierte a grados Celsius
-- **Fecha de acceso:** 2026-09-24
-- **Destino local:** `data/era5land_gee/t2m_<anio>.csv` (crudo, 25 archivos) y
-  `out/era5land_temperatura_diaria_fonce.csv` (serie de la cuenca)
+- **Fecha de acceso:** 2026-09-24 (1998-2022) y 2026-10-07 (1981-1997)
+- **Destino local:** `data/era5land_gee/t2m_<anio>.csv` (crudo, 42 archivos),
+  `out/era5land_temperatura_diaria_fonce.csv` (serie de la cuenca, 1998-2022; la que lee el informe) y
+  `out/era5land_temperatura_diaria_fonce_1981_2022.csv` (registro largo, solo para tendencias)
 - **SHA-256 de `out/era5land_temperatura_diaria_fonce.csv`:**
-  `99e9dd241a3cf14d089012f50d23f8971240c146b2a9b4dea642c8524238cb50`
+  `99e9dd241a3cf14d089012f50d23f8971240c146b2a9b4dea642c8524238cb50` (sin cambios tras la ampliacion)
+- **SHA-256 de `out/era5land_temperatura_diaria_fonce_1981_2022.csv`:**
+  `538d364ecb832fd9e7030b1a4ac2511d0df8892a4a081ac383a0d3efbf6360f8`
 - **Contenido verificado:** 9 131 dias, 1998-01-01 a 2022-12-31, **cero dias faltantes**, cero nulos;
-  se cumple `t_min <= t_media <= t_max` en los 9 131 dias.
+  se cumple `t_min <= t_media <= t_max` en los 9 131 dias. El registro largo: 15 340 dias, 1981-01-01 a
+  2022-12-31, cero faltantes, cero nulos, la misma desigualdad en todos los dias y ninguna racha de 5 o mas
+  dias con el mismo valor.
 
 **Por que ERA5-Land y no ERA5**
 

@@ -11,7 +11,7 @@ import base64, html, json
 from pathlib import Path
 import geopandas as gpd
 from scipy import stats
-from scipy.signal import lombscargle, periodogram
+from scipy.signal import lombscargle, periodogram, welch
 import numpy as np
 import pandas as pd
 
@@ -707,6 +707,7 @@ _espectro_periodos_referencia = (12.0, 6.0, 36.0, 84.0)
 _espectro_frecuencia = np.linspace(1 / (len(PERIODOS) * _dt_espectro),
                                     _frecuencia_nyquist_espectro, len(PERIODOS) * 4)
 _espectro_datos["nyquist"] = _frecuencia_nyquist_espectro
+_espectro_datos["periodos_referencia"] = np.geomspace(2 * _dt_espectro, len(PERIODOS) * _dt_espectro, 5).tolist()
 _espectro_ciclos = (_espectro_periodos_referencia[2], _espectro_periodos_referencia[3])
 for _nombre, _serie in _espectro_series.items():
     _valores = _serie.to_numpy(dtype=float)
@@ -885,6 +886,7 @@ for _ventana_413, _series_ventana_413 in _ventanas_tabla_413:
         for _transformacion_413, _transformada_413 in {
             "centrada global": _serie_ventana_413 - _serie_ventana_413.mean(),
             "anomalía mensual": _serie_ventana_413 - _clima_ventana_413,
+            "anomalía detrended": _detrendar_espectro(_serie_ventana_413),
         }.items():
             _validos_413 = _transformada_413.notna().to_numpy()
             _tiempo_413 = np.flatnonzero(_validos_413) * _dt_ventana_413
@@ -943,6 +945,27 @@ _tabla_picos_413 = json.dumps({
     "filas": _filas_picos_413,
 }, ensure_ascii=False)
 _alto_tabla_picos_413 = max(680, 30 * len(_filas_picos_413) + 70)
+# Pico dominante por variable y transformación, con resolución física de su ventana común.
+_filas_pico_dominante_42 = []
+for _v42, _serie42 in _series_comunes_ventana.items():
+    _n42 = len(_serie42)
+    _dt42 = float(np.median(np.diff(_serie42.index.asi8)))
+    _df42 = 1 / (_n42 * _dt42)
+    _versiones42 = _espectros_ventanas[f"{_v42} · común"]
+    for _transformacion42, _etiqueta42 in (("centrada", "Original Centrada"), ("anomalia", "Anomalías Mensuales"), ("detrended", "Anomalías Detrended")):
+        _es42 = _versiones42[_transformacion42]
+        _f42 = np.asarray(_es42["frecuencia"], dtype=float)
+        _p42 = np.asarray(_es42["potencia"], dtype=float)
+        _ik42 = int(np.argmax(_p42))
+        _fk42 = float(_f42[_ik42])
+        _tk42 = 1 / _fk42
+        _deltat42 = _tk42 ** 2 * _df42
+        _dec42 = max(0, min(3, int(-np.floor(np.log10(_deltat42))))) if _deltat42 > 0 else 0
+        _ciclos42 = _n42 * _dt42 / _tk42
+        _filas_pico_dominante_42.append(
+            f"<tr><td>{_v42}</td><td>{_etiqueta42}</td><td class='num'>{_tk42:.{_dec42}f}</td>"
+            f"<td class='num'>{_tk42 / 12:.{_dec42}f}</td><td class='num'>{_df42:.3g}</td>"
+            f"<td class='num'>{_deltat42:.2g}</td><td class='num'>{_ciclos42:.1f}</td></tr>")
 
 # Síntesis física 4.13: integrar PSD/varianza en bandas para la ventana común.
 def _fraccion_banda_413(frecuencias, densidad, f_baja, f_alta):
@@ -963,7 +986,7 @@ _bandas_interpretacion_413 = {
     "alta": (1 / _periodo_alta_max_413, _nyquist_comun_413),
 }
 for _variable_interpretacion_413 in ("PL", "PI", "Q", "T"):
-    for _transformacion_interpretacion_413 in ("centrada", "anomalia"):
+    for _transformacion_interpretacion_413 in ("centrada", "anomalia", "detrended"):
         _espectro_interpretacion_413 = _espectros_ventanas[
             f"{_variable_interpretacion_413} · común"][_transformacion_interpretacion_413]
         _frecuencias_interpretacion_413 = np.asarray(_espectro_interpretacion_413["frecuencia"])
@@ -1065,8 +1088,44 @@ _filas_interpretacion_413 = "".join(
     f"<tr><td>{_v}</td><td>{_t}</td>" + "".join(
         f"<td class='num'>{_resumen_interpretacion_413[(_v, _t)][_b]:.1f} %</td>"
         for _b in ("anual", "semestral", "interanual", "alta")) + "</tr>"
-    for _v in ("PL", "PI", "Q", "T") for _t in ("centrada", "anomalia"))
+    for _v in ("PL", "PI", "Q", "T") for _t in ("centrada", "anomalia", "detrended"))
+_filas_bandas_42 = "".join(
+    f"<tr><td>{_v}</td><td>{_t}</td>" + "".join(
+        f"<td class='num'>{_resumen_interpretacion_413[(_v, _t)][_b]:.1f} %</td>"
+        for _b in ("anual", "semestral", "interanual")) + "</tr>"
+    for _v in ("PL", "PI", "Q", "T") for _t in ("centrada", "anomalia", "detrended"))
+_media_estacional_centrada_42 = float(np.nanmean([
+    _resumen_interpretacion_413[(_v, "centrada")]["anual"] +
+    _resumen_interpretacion_413[(_v, "centrada")]["semestral"] for _v in ("PL", "PI", "Q", "T")]))
+_media_estacional_anomalia_42 = float(np.nanmean([
+    _resumen_interpretacion_413[(_v, "anomalia")]["anual"] +
+    _resumen_interpretacion_413[(_v, "anomalia")]["semestral"] for _v in ("PL", "PI", "Q", "T")]))
+_media_estacional_detrended_42 = float(np.nanmean([
+    _resumen_interpretacion_413[(_v, "detrended")]["anual"] +
+    _resumen_interpretacion_413[(_v, "detrended")]["semestral"] for _v in ("PL", "PI", "Q", "T")]))
+_media_interanual_anomalia_42 = float(np.nanmean([
+    _resumen_interpretacion_413[(_v, "anomalia")]["interanual"] for _v in ("PL", "PI", "Q", "T")]))
+_media_interanual_detrended_42 = float(np.nanmean([
+    _resumen_interpretacion_413[(_v, "detrended")]["interanual"] for _v in ("PL", "PI", "Q", "T")]))
+_t_anual_42 = _resumen_interpretacion_413[("T", "centrada")]["anual"]
+_t_semi_42 = _resumen_interpretacion_413[("T", "centrada")]["semestral"]
+_p_anual_42 = float(np.nanmean([_resumen_interpretacion_413[(_v, "centrada")]["anual"] for _v in ("PL", "PI")]))
+_p_semi_42 = float(np.nanmean([_resumen_interpretacion_413[(_v, "centrada")]["semestral"] for _v in ("PL", "PI")]))
+_q_anual_42 = _resumen_interpretacion_413[("Q", "centrada")]["anual"]
+_q_semi_42 = _resumen_interpretacion_413[("Q", "centrada")]["semestral"]
+_lectura_t_42 = ("la banda anual es mayor que la semianual" if _t_anual_42 > _t_semi_42
+                 else "la banda anual no supera la semianual en esta estimación")
 
+_lectura_estacional_42 = (
+    f"la energía estacional baja {_media_estacional_centrada_42 - _media_estacional_anomalia_42:.1f} puntos porcentuales al quitar la climatología mensual"
+    if _media_estacional_centrada_42 > _media_estacional_anomalia_42 else
+    f"la energía estacional no disminuye al quitar la climatología mensual; el cambio es {_media_estacional_anomalia_42 - _media_estacional_centrada_42:.1f} puntos"
+)
+_lectura_interanual_42 = (
+    f"la fracción interanual aumenta {_media_interanual_detrended_42 - _media_interanual_anomalia_42:.1f} puntos tras detrending"
+    if _media_interanual_detrended_42 > _media_interanual_anomalia_42 else
+    f"la fracción interanual cambia en {_media_interanual_detrended_42 - _media_interanual_anomalia_42:.1f} puntos tras detrending"
+)
 _campos_banda = ("potencia_12m_pct", "potencia_6m_pct", "potencia_enso_3_7a_pct", "potencia_rapida_pct")
 _nombres_comunes_espectro = ("PL · común", "PI · común", "Q · común", "T · común")
 _promedios_banda = {
@@ -1914,6 +1973,72 @@ INDICE_HTML = """
 """
 
 
+# Sensibilidad espectral y síntesis dinámica de 4.2: no se usan cifras narrativas prefijadas.
+_sensibilidad_espectral_42 = []
+for _v42, _serie42 in _series_comunes_ventana.items():
+    _dt42 = float(np.median(np.diff(_serie42.index.asi8)))
+    _n42 = len(_serie42)
+    _df42 = 1 / (_n42 * _dt42)
+    _freq42 = np.asarray(_espectros_ventanas[f"{_v42} · común"]["centrada"]["frecuencia"], dtype=float)
+    _clima42 = _serie42.groupby(_serie42.index.month).transform("mean")
+    _transformadas42 = {
+        "centrada": _serie42 - _serie42.mean(),
+        "anomalia": _serie42 - _clima42,
+        "detrended": _detrendar_espectro(_serie42),
+    }
+    for _tipo42, _x42 in _transformadas42.items():
+        _ix42 = np.flatnonzero(_x42.notna().to_numpy())
+        _y42 = _x42.to_numpy(dtype=float)[_ix42]
+        if len(_y42) < 8:
+            continue
+        _p42 = lombscargle(_ix42 * _dt42, _y42 - _y42.mean(), 2 * np.pi * _freq42, normalize=True)
+        _tfull42 = 1 / _freq42[int(np.argmax(_p42))]
+        _q142, _q342 = np.quantile(_y42, [0.25, 0.75])
+        _iqr42 = _q342 - _q142
+        _keep42 = (_y42 >= _q142 - 1.5 * _iqr42) & (_y42 <= _q342 + 1.5 * _iqr42)
+        _trimix42, _trimy42 = _ix42[_keep42], _y42[_keep42]
+        _ttrim42 = np.nan
+        if len(_trimy42) >= 4:
+            _ptrim42 = lombscargle(_trimix42 * _dt42, _trimy42 - _trimy42.mean(), 2 * np.pi * _freq42, normalize=True)
+            _ttrim42 = 1 / _freq42[int(np.argmax(_ptrim42))]
+        _blocks42 = np.split(_ix42, np.flatnonzero(np.diff(_ix42) > 1) + 1)
+        _block42 = max(_blocks42, key=len) if _blocks42 else np.array([], dtype=int)
+        if len(_block42) < 8:
+            continue
+        _yb42 = _x42.iloc[_block42].to_numpy(dtype=float)
+        _fh42, _ph42 = periodogram(_yb42, fs=1 / _dt42, window="hann", detrend="constant", scaling="density")
+        _nseg42 = max(4, len(_yb42) // 2)
+        _fw42, _pw42 = welch(_yb42, fs=1 / _dt42, window="hann", nperseg=_nseg42,
+                              noverlap=_nseg42 // 2, detrend="constant", scaling="density")
+        _hm42, _wm42 = _fh42 > 0, _fw42 > 0
+        _th42 = 1 / _fh42[_hm42][np.argmax(_ph42[_hm42])]
+        _tw42 = 1 / _fw42[_wm42][np.argmax(_pw42[_wm42])]
+        _tolhw42 = max(_th42 ** 2 / (len(_block42) * _dt42), _tw42 ** 2 / (_nseg42 * _dt42))
+        _sensibilidad_espectral_42.append({
+            "hann_welch_estable": abs(_th42 - _tw42) <= _tolhw42,
+            "extremos_evaluable": np.isfinite(_ttrim42),
+            "extremos_estable": np.isfinite(_ttrim42) and abs(_tfull42 - _ttrim42) <= _tfull42 ** 2 * _df42,
+        })
+_n_hann_welch_42 = [x for x in _sensibilidad_espectral_42]
+_pct_hann_welch_42 = 100 * np.mean([x["hann_welch_estable"] for x in _n_hann_welch_42]) if _n_hann_welch_42 else float("nan")
+_n_extremos_42 = [x for x in _n_hann_welch_42 if x["extremos_evaluable"]]
+_pct_extremos_42 = 100 * np.mean([x["extremos_estable"] for x in _n_extremos_42]) if _n_extremos_42 else float("nan")
+_comparacion_detrend_42 = []
+for _v42 in ("PL", "PI", "Q", "T"):
+    _es42 = _espectros_ventanas[f"{_v42} · común"]
+    _tc42 = _es42["centrada"]["periodo_pico"]
+    _td42 = _es42["detrended"]["periodo_pico"]
+    _dt42 = float(np.median(np.diff(_series_comunes_ventana[_v42].index.asi8)))
+    _df42 = 1 / (len(_series_comunes_ventana[_v42]) * _dt42)
+    _comparacion_detrend_42.append(abs(_tc42 - _td42) <= _tc42 ** 2 * _df42)
+_pct_detrend_42 = 100 * np.mean(_comparacion_detrend_42) if _comparacion_detrend_42 else float("nan")
+_ciclos_inter_bajo_42 = len(_periodos_comunes) * _dt_comun_413 / _periodo_enso_max_413
+_ciclos_inter_alto_42 = len(_periodos_comunes) * _dt_comun_413 / _periodo_enso_min_413
+_lectura_almacenamiento_42 = (
+    f"La fracción de alta frecuencia es {_pl_pi_alta_413:.1f}% en la media de PL/PI y {_q_alta_413:.1f}% en Q; la menor fracción en Q es compatible con amortiguación pasa-bajo y persistencia por almacenamiento en suelo y acuíferos."
+    if np.isfinite(_q_alta_413) and np.isfinite(_pl_pi_alta_413) and _q_alta_413 < _pl_pi_alta_413 else
+    f"La fracción de alta frecuencia es {_pl_pi_alta_413:.1f}% en PL/PI y {_q_alta_413:.1f}% en Q; esta banda no confirma una atenuación pasa-bajo de Q para el registro analizado."
+)
 pagina = f"""<title>Reporte cuenca del Fonce</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2956,14 +3081,24 @@ a {{ color: var(--acento); }}
   </div>
 
   <div class="revision" data-etiqueta="Análisis espectral de frecuencias">
-  <h3>4.13 Espectros de potencia unilaterales y normalización por varianza</h3>
+  <h3>4.2. Construir e interpretar los espectros</h3>
+  <h4>Espectros unilaterales de potencia y densidad espectral (PSD)</h4>
   <p>El periodograma Lomb–Scargle estima la potencia para cada frecuencia usando las fechas con observación;
   por eso Q mantiene sus meses observados sin interpolación. Original Centrada resta la media global; Anomalías Mensuales resta la climatología mensual; Detrended retira la tendencia lineal en el eje mensual. El caudal conserva los meses ausentes y Lomb–Scargle usa solo los tiempos observados. El período es el inverso de la frecuencia:
   los ciclos anual y semianual corresponden a 12 y 6 meses.</p>
+  <div class="cifras">
+    <div class="cifra"><b>PSD / $\sigma^2$</b><span>espectro unilateral normalizado; área positiva igual a 1 (100 % de la varianza)</span></div>
+    <div class="cifra"><b>{_frecuencia_nyquist_espectro:.3f} ciclos/mes</b><span>límite de Nyquist, derivado del intervalo de muestreo</span></div>
+    <div class="cifra"><b>f (ciclos/mes) · T = 1/f</b><span>frecuencia y período equivalente en escala secundaria</span></div>
+  </div>
+  <p>La normalización permite comparar la forma espectral de PL, PI, Q y T aunque tengan unidades distintas (mm/mes, m³/s y °C). El área normalizada es uno, equivalente al 100 % de la varianza. La altura relativa de cada pico describe la distribución porcentual de energía; no representa la variabilidad absoluta en unidades físicas, que debe compararse mediante la varianza.</p>
   <div class="cifras"><div class="cifra"><b>{min(v['n'] for s in _espectro_datos['series'].values() for v in s.values())}</b><span>mínimo de observaciones entre series</span></div>
     <div class="cifra"><b>{max(v['pico_periodo'] for s in _espectro_datos['series'].values() for v in s.values()):.1f} meses</b><span>mayor período de pico dominante estimado</span></div></div>
+  <h4>Original Centrada</h4>
   <div id="g-espectro-centrada" class="grafico" style="min-height:400px"></div>
+  <h4>Anomalías Mensuales</h4>
   <div id="g-espectro-anomalia" class="grafico" style="min-height:400px"></div>
+  <h4>Anomalías Sin Tendencia / Detrended</h4>
   <div id="g-espectro-detrended" class="grafico" style="min-height:400px"></div>
   <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Serie</th><th class="num">n</th><th class="num">Período del pico (meses)</th><th class="num">Potencia normalizada</th></tr></thead><tbody>{_espectro_resumen}</tbody></table></div>
   <p class="nota">En el panel centrado se superpone FFT cuando hay un tramo regular suficiente. La potencia en la banda de 3–7 años es compatible con escalas interanuales asociadas a ENOS, pero el espectro por sí solo no atribuye causalidad. La banda rápida tampoco es ruido puro: incluye variabilidad de menor período.</p>
@@ -2971,7 +3106,28 @@ a {{ color: var(--acento); }}
   <h4>Respuesta espectral de precipitación, caudal y temperatura · 4.13</h4>
   <p>En las series centradas, la potencia relativa media en la banda anual de 12 meses es {_est_anual_centrada_413:.1f}% y en la semianual de 6 meses {_est_semi_centrada_413:.1f}%; ambas suman {_promedio_estacional_centrada_413:.1f}%, por lo que {_lectura_dominancia_413}. Esta estructura es coherente con el ciclo bimodal andino asociado al paso estacional de la ZCIT. {_lectura_desestacionalizacion_413}: la anomalía conserva {_enso_pl_pi_413:.1f}% de potencia media de PL/PI, {_enso_q_413:.1f}% de Q y {_enso_t_413:.1f}% de T en la banda interanual ENOS de {_periodo_enso_min_413:g}–{_periodo_enso_max_413:g} meses. El solapamiento espectral es compatible con variabilidad climática de gran escala, pero no es una correlación con un índice ENOS. La banda rápida aporta {_alta_media_anomalia_413:.1f}% de potencia media residual en anomalías; reúne tanto señal rápida como ruido y no debe interpretarse como ruido puro.</p>
   <p>{_lectura_dispersion_precip_413} {_lectura_filtro_413} {_lectura_temperatura_413} En la anomalía de T, la fracción interanual es {_enso_t_413:.1f}%; cuantifica potencia de baja frecuencia, no correlación con un índice macroclimático.</p>
-  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Transformación</th><th class="num">Anual 12 m</th><th class="num">Semianual 6 m</th><th class="num">Interanual 36–72 m</th><th class="num">Alta frecuencia 2–6 m</th></tr></thead><tbody>{_filas_interpretacion_413}</tbody></table></div>
+  <h4>Numeral 1 · Picos dominantes y resolución física</h4>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Transformación</th><th class="num">T pico (meses)</th><th class="num">T pico (años)</th><th class="num">Δf (ciclos/mes)</th><th class="num">ΔT (meses)</th><th class="num">Ciclos observados</th></tr></thead><tbody>{"".join(_filas_pico_dominante_42)}</tbody></table></div>
+  <p class="nota">T = 1/f; Δf = 1/(N Δt); ΔT = T² Δf; N ciclos = N Δt/T. El período se redondea de acuerdo con ΔT: los decimales no expresan una precisión superior a la resolución física del registro. N y Δt se obtienen de la ventana común de cada variable; Lomb–Scargle conserva las fechas observadas de Q.</p>
+  <h4>Numeral 2 · Energía por bandas y comparación entre variables</h4>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Transformación</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual</th></tr></thead><tbody>{_filas_bandas_42}</tbody></table></div>
+  <div class="cifras"><div class="cifra"><b>{_media_estacional_centrada_42:.1f}% → {_media_estacional_anomalia_42:.1f}% → {_media_estacional_detrended_42:.1f}%</b><span>potencia anual + semianual media: centrada → anomalía mensual → detrended</span></div>
+    <div class="cifra"><b>{_media_interanual_anomalia_42:.1f}% → {_media_interanual_detrended_42:.1f}%</b><span>potencia media interanual: anomalía mensual → detrended</span></div>
+    <div class="cifra"><b>T: {_t_anual_42:.1f}% anual · {_t_semi_42:.1f}% semianual</b><span>{_lectura_t_42}; P (PL/PI): {_p_anual_42:.1f}% / {_p_semi_42:.1f}%; Q: {_q_anual_42:.1f}% / {_q_semi_42:.1f}%</span></div></div>
+  <p>En T, {_lectura_t_42}. En precipitación y Q, la tabla muestra la contribución conjunta de las bandas de 12 y 6 meses para evaluar el patrón bimodal. {_lectura_estacional_42}. {_lectura_interanual_42}; las proporciones corresponden a la banda interanual calculada para cada espectro. Las fracciones provienen de la integral de PSD normalizada y describen energía relativa.</p>
+  <h4>Numeral 3 · Almacenamiento y advertencia de fase</h4>
+  <div class="cifras"><div class="cifra"><b>{_pl_pi_alta_413:.1f}% → {_q_alta_413:.1f}%</b><span>potencia relativa de alta frecuencia: precipitación PL/PI → caudal Q</span></div>
+    <div class="cifra"><b>{_pct_hann_welch_42:.0f}%</b><span>comparaciones Hann/Welch dentro de resolución</span></div>
+    <div class="cifra"><b>{_pct_detrend_42:.0f}%</b><span>picos centrada/detrended dentro de resolución</span></div>
+    <div class="cifra"><b>{_pct_extremos_42:.0f}%</b><span>comparaciones con/sin extremos dentro de la resolución física</span></div>
+    <div class="cifra"><b>{_ciclos_inter_bajo_42:.1f}–{_ciclos_inter_alto_42:.1f}</b><span>ciclos contenidos en la banda interanual de este registro</span></div></div>
+  <p>{_lectura_almacenamiento_42}</p>
+  <blockquote><b>Advertencia de fase.</b> Un espectro unilateral de potencia descarta la fase relativa. Por ello <b>no permite inferir desfases temporales ni tiempos de respuesta entre P y Q únicamente desde la PSD</b>; se requiere espectro cruzado y coherencia de fase.</blockquote>
+  <h4>Numeral 4 · Estabilidad y marco de significancia</h4>
+  <p>La sensibilidad compara los períodos pico usando ventana Hann y Welch en tramos válidos, entre las transformaciones centrada y detrended, y con/sin valores extremos detectados por rango intercuartílico. El segmento Welch es más corto y reduce resolución; el criterio de estabilidad exige que la diferencia quede dentro de la incertidumbre de período asociada a la resolución pertinente. Estos porcentajes describen robustez de estimación, no significancia estadística.</p>
+  <p>Un pico de PSD no garantiza una periodicidad físicamente significativa. La significancia requiere contrastar el máximo observado con un espectro nulo de ruido rojo AR(1), adecuado como modelo de memoria serial hidrológica, y corregir la búsqueda simultánea entre frecuencias (por ejemplo, max-statistic o FDR). Este reporte no presenta esa prueba como realizada.</p>
+  <h4>Conclusión · síntesis climatológica regional</h4>
+  <p>Los períodos dominantes anual y semianual son compatibles con la estacionalidad andina ligada a la migración de la ZCIT; la banda interanual de {_periodo_enso_min_413:g}–{_periodo_enso_max_413:g} meses es compatible con variabilidad en la que puede influir el ENOS. La ventana contiene solo {_ciclos_inter_bajo_42:.1f}–{_ciclos_inter_alto_42:.1f} ciclos de esa banda. Una concentración interanual no constituye prueba de atribución causal directa al ENOS: el bajo número de ciclos limita la inferencia y se requiere contraste con índices climáticos y significancia frente al ruido rojo.</p>  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Variable</th><th>Transformación</th><th class="num">Anual 12 m</th><th class="num">Semianual 6 m</th><th class="num">Interanual 36–72 m</th><th class="num">Alta frecuencia 2–6 m</th></tr></thead><tbody>{_filas_interpretacion_413}</tbody></table></div>
   </div>
   <p>La tabla de picos evalúa cuatro bandas definidas en frecuencia y localiza el máximo Lomb–Scargle observado en cada una. N, Δf = 1/(NΔt), la frecuencia central y los ciclos disponibles se calculan por variable y ventana. La resolución uniforme en frecuencia produce intervalos de período no uniformes; por ello las bajas frecuencias se presentan como banda de {_periodo_enso_min_413:g}–{_periodo_enso_max_413:g} meses, ampliada según Δf, no como un período puntual exacto.</p>
   <div id="g-tabla-picos-413" class="grafico" style="height:{_alto_tabla_picos_413}px;min-height:680px"></div>
@@ -3741,21 +3897,21 @@ a {{ color: var(--acento); }}
     const colores = {{ PI: "#0072B2", PL: "#D55E00", Q: "#009E73", T: "#CC79A7" }};
     const trazas = Object.entries(ESPECTRO.series).flatMap(([nombre, versiones]) => {{
       const s = versiones[tipo];
-      const traza = {{ type: "scatter", mode: "lines", name: nombre + " · Lomb–Scargle · PSD/σ²", x: s.frecuencia, y: s.potencia,
+      const traza = {{ type: "scatter", mode: "lines", name: nombre + " · Lomb–Scargle · PSD/σ²", x: s.frecuencia, y: s.potencia, customdata: s.frecuencia.map(f => 1 / f),
         line: {{ color: colores[nombre], width: 2 }},
-        hovertemplate: "%{{x:.4f}} ciclos/mes<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · Lomb–Scargle</extra>" }};
+        hovertemplate: "%{{x:.4f}} ciclos/mes<br>T = %{{customdata:.2f}} meses<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · Lomb–Scargle</extra>" }};
       if (tipo === "centrada" && s.fft_frecuencia.length) {{
         return [traza, {{ type: "scatter", mode: "lines+markers", name: nombre + " · FFT · PSD/σ²", x: s.fft_frecuencia,
-          y: s.fft_potencia, line: {{ color: colores[nombre], width: 1, dash: "dash" }}, marker: {{ size: 4 }},
-          hovertemplate: "%{{x:.4f}} ciclos/mes<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · FFT</extra>" }}];
+          y: s.fft_potencia, customdata: s.fft_frecuencia.map(f => 1 / f), line: {{ color: colores[nombre], width: 1, dash: "dash" }}, marker: {{ size: 4 }},
+          hovertemplate: "%{{x:.4f}} ciclos/mes<br>T = %{{customdata:.2f}} meses<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · FFT</extra>" }}];
       }}
       return [traza];
     }});
     const d = base(); d.xaxis.title.text = "frecuencia f (ciclos/mes)"; d.yaxis.title.text = "PSD / σ² (distribución relativa de energía)";
     d.xaxis.range = [0, ESPECTRO.nyquist]; d.xaxis.dtick = ESPECTRO.nyquist / 5;
-    const refs = [84, 36, 12, 6, 2].map(p => 1 / p);
+    const periodosRef = ESPECTRO.periodos_referencia; const refs = periodosRef.map(p => 1 / p);
     d.xaxis2 = {{ title: "período equivalente T = 1/f (meses)", overlaying: "x", side: "top",
-      tickmode: "array", tickvals: refs, ticktext: ["84 (7 a)", "36 (3 a)", "12 (1 a)", "6 (0.5 a)", "2"],
+      tickmode: "array", tickvals: refs, ticktext: periodosRef.map(p => p.toPrecision(3)),
       range: [0, ESPECTRO.nyquist], matches: "x" }};
     d.shapes = [{{ type: "rect", x0: 1/84, x1: 1/36, y0: 0, y1: 1, yref: "paper",
       fillcolor: "rgba(204,121,167,0.12)", line: {{ width: 0 }} }}].concat([12, 6].map(p => ({{ type: "line", x0: 1/p, x1: 1/p, y0: 0, y1: 1, yref: "paper",
@@ -3774,15 +3930,15 @@ a {{ color: var(--acento); }}
         const s = VENTANAS.series[nombre][tipo];
         const puntos = s.frecuencia.map((f, i) => [f, s.potencia[i]]);
         const lomb = {{ type: "scatter", mode: "lines",
-          x: puntos.map(p => p[0]), y: puntos.map(p => p[1]),
+          x: puntos.map(p => p[0]), y: puntos.map(p => p[1]), customdata: puntos.map(p => 1 / p[0]),
           line: {{ color: colores[nombre.split(" · ")[0]], width: 2 }},
           name: nombre.replace(" · ", " / ") + " · PSD/σ²",
-          hovertemplate: "%{{x:.4f}} ciclos/mes<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · Lomb–Scargle</extra>" }};
+          hovertemplate: "%{{x:.4f}} ciclos/mes<br>T = %{{customdata:.2f}} meses<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · Lomb–Scargle</extra>" }};
         if (tipo === "centrada" && s.fft_frecuencia.length) {{
           return [lomb, {{ type: "scatter", mode: "lines+markers", name: nombre + " / FFT · PSD/σ²",
-            x: s.fft_frecuencia, y: s.fft_potencia,
+            x: s.fft_frecuencia, y: s.fft_potencia, customdata: s.fft_frecuencia.map(f => 1 / f),
             line: {{ color: colores.T, width: 1, dash: "dash" }}, marker: {{ size: 4 }},
-            hovertemplate: "%{{x:.4f}} ciclos/mes<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · FFT</extra>" }}];
+            hovertemplate: "%{{x:.4f}} ciclos/mes<br>T = %{{customdata:.2f}} meses<br>PSD/σ² %{{y:.3f}}<extra>" + nombre + " · FFT</extra>" }}];
         }}
         return lomb;
       }});

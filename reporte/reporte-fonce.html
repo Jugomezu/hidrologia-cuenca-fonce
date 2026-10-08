@@ -110,6 +110,9 @@ figcaption p { max-width: none; }
 .lista-datos { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 18px 0; padding: 14px 0; border-block: 1px solid var(--linea); font: 400 13px/1.45 var(--f-dato); }
 .lista-datos dt { color: var(--tenue); }
 .lista-datos dd { margin: 0; font-variant-numeric: tabular-nums; }
+.resumen-caja { border: 2px solid var(--acento); border-radius: 8px; padding: 6px 16px 12px; margin: 22px 0; background: var(--superficie); }
+.resumen-caja h3 { margin-top: 10px; }
+.resumen-caja table { font-size: 15px; }
 .aviso { border-left: 3px solid var(--acento); padding: 4px 0 4px 14px; font-size: 15px; }
 footer { border-top: 1px solid var(--linea); padding-top: 24px; font-size: 14px; color: var(--tenue); }
 footer ul { padding-left: 18px; margin: 8px 0 0; }
@@ -1476,6 +1479,28 @@ section, section h3 { scroll-margin-top: 20px; }
   se usa con <b>todo su registro</b>, desde 1981 cuando existe, y no solo en 1998–2022:
   la menor duración de IMERG no recorta a las demás. Aparte, todo se repite en el período común
   1998–2022, para comparar fuentes con la misma ventana.</p>
+  <div class="resumen-caja">
+  <h3>En resumen: cuánto cambia cada variable por década</h3>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Pendiente de X<br><small>(unidades de la variable por década)</small></th><th class="num">Pendiente de z<br><small>(unidades estandarizadas/década)</small></th>
+    <th>Lectura</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b></td><td>1981–2022</td><td class='num'><b>+1.7</b> ± 6.5 <small>mm/mes por década</small></td><td class='num'>+0.03 ± 0.11</td><td>sin tendencia</td></tr>
+<tr><td><b>PI</b></td><td>1998–2022</td><td class='num'><b>-2.3</b> ± 10.0 <small>mm/mes por década</small></td><td class='num'>-0.06 ± 0.23</td><td>sin tendencia</td></tr>
+<tr><td><b>Q</b></td><td>1981–2022</td><td class='num'><b>-0.76</b> ± 4.12 <small>m³/s por década</small></td><td class='num'>-0.04 ± 0.14</td><td>sin tendencia</td></tr>
+<tr><td><b>T mín</b></td><td>1981–2022</td><td class='num'><b>+0.14</b> ± 0.06 <small>°C/década</small></td><td class='num'>+0.33 ± 0.13</td><td><b>sube</b>, con los dos métodos</td></tr>
+<tr><td><b>T media</b></td><td>1981–2022</td><td class='num'><b>+0.14</b> ± 0.08 <small>°C/década</small></td><td class='num'>+0.34 ± 0.17</td><td><b>sube</b>, con los dos métodos</td></tr>
+<tr><td><b>T máx</b></td><td>1981–2022</td><td class='num'><b>+0.15</b> ± 0.10 <small>°C/década</small></td><td class='num'>+0.25 ± 0.16</td><td><b>sube</b>, con los dos métodos</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendiente por década ± intervalo de 95 % (mínimos cuadrados con una constante por mes y error de
+  Newey-West), sobre el registro completo de cada variable. En la lluvia (PL* y PI), la pendiente es el cambio del
+  <b>acumulado mensual</b>, en mm/mes por década, <b>no del total anual</b>. z está en unidades estandarizadas (desviaciones
+  estándar del mes) por década, comparable entre variables. «Con los dos métodos»: significativa con la recta (Newey-West)
+  y con Mann-Kendall estacional (p &lt; 0.05).</p>
+  </div>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Fuente</th><th>Desde</th><th>Hasta</th><th class="num">Meses</th>

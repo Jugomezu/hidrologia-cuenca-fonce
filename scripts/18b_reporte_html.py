@@ -614,6 +614,31 @@ met_botones_rep = "\n".join(
     for i, nombre in enumerate(("anomalía a", "original X", "estandarizada z")))
 
 
+# tendencias: tabla resumen (pendiente por década con sus unidades, en X y en z, registro completo)
+RES_UNIDAD_DECADA = {"PL*": "mm/mes por década", "PI": "mm/mes por década", "Q": "m³/s por década",
+                     "T mín": "°C/década", "T media": "°C/década", "T máx": "°C/década"}
+
+
+def _res_fila(v):
+    f = met_global[(v, "completo")]
+    x, z = f["ols_Xmes"], f["ols_z"]
+    d = ANZ_DEC[v] + 1 if not v.startswith("T") else 2
+    ols_sig, sen_sig = x["p_hac"] < TEND_ALFA, f["mk_X"]["p"] < TEND_ALFA
+    if ols_sig and sen_sig:
+        lectura = "<b>sube</b>" if x["pend"] > 0 else "<b>baja</b>"
+        lectura += ", con los dos métodos"
+    elif ols_sig or sen_sig:
+        lectura = "señal débil: solo un método la da significativa"
+    else:
+        lectura = "sin tendencia"
+    return (f"<tr><td><b>{v}</b></td><td>{f['inicio'].year}–{f['fin'].year}</td>"
+            f"<td class='num'><b>{x['pend']:+.{d}f}</b> ± {x['ic_hac']:.{d}f} <small>{RES_UNIDAD_DECADA[v]}</small></td>"
+            f"<td class='num'>{z['pend']:+.2f} ± {z['ic_hac']:.2f}</td>"
+            f"<td>{lectura}</td></tr>")
+
+
+res_filas = "\n".join(_res_fila(v) for v in LARGO_VARS)
+
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
     return "sin año completo" if v is None else f"{v:+.2f}"
@@ -740,6 +765,9 @@ figcaption p {{ max-width: none; }}
 .lista-datos {{ display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 18px 0; padding: 14px 0; border-block: 1px solid var(--linea); font: 400 13px/1.45 var(--f-dato); }}
 .lista-datos dt {{ color: var(--tenue); }}
 .lista-datos dd {{ margin: 0; font-variant-numeric: tabular-nums; }}
+.resumen-caja {{ border: 2px solid var(--acento); border-radius: 8px; padding: 6px 16px 12px; margin: 22px 0; background: var(--superficie); }}
+.resumen-caja h3 {{ margin-top: 10px; }}
+.resumen-caja table {{ font-size: 15px; }}
 .aviso {{ border-left: 3px solid var(--acento); padding: 4px 0 4px 14px; font-size: 15px; }}
 footer {{ border-top: 1px solid var(--linea); padding-top: 24px; font-size: 14px; color: var(--tenue); }}
 footer ul {{ padding-left: 18px; margin: 8px 0 0; }}
@@ -1826,6 +1854,23 @@ a {{ color: var(--acento); }}
   se usa con <b>todo su registro</b>, desde {LARGO_DESDE[:4]} cuando existe, y no solo en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}:
   la menor duración de IMERG no recorta a las demás. Aparte, todo se repite en el período común
   {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, para comparar fuentes con la misma ventana.</p>
+  <div class="resumen-caja">
+  <h3>En resumen: cuánto cambia cada variable por década</h3>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Pendiente de X<br><small>(unidades de la variable por década)</small></th><th class="num">Pendiente de z<br><small>(unidades estandarizadas/década)</small></th>
+    <th>Lectura</th></tr></thead>
+    <tbody>
+{res_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendiente por década ± intervalo de 95 % (mínimos cuadrados con una constante por mes y error de
+  Newey-West), sobre el registro completo de cada variable. En la lluvia (PL* y PI), la pendiente es el cambio del
+  <b>acumulado mensual</b>, en mm/mes por década, <b>no del total anual</b>. z está en unidades estandarizadas (desviaciones
+  estándar del mes) por década, comparable entre variables. «Con los dos métodos»: significativa con la recta (Newey-West)
+  y con Mann-Kendall estacional (p &lt; {TEND_ALFA}).</p>
+  </div>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Fuente</th><th>Desde</th><th>Hasta</th><th class="num">Meses</th>

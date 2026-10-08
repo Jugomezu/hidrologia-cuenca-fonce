@@ -1543,7 +1543,7 @@ _ok = _q_mm.notna() & _p_ch.notna()
 _coef = pd.DataFrame({"q": _q_mm[_ok], "p": _p_ch[_ok]}).groupby(lambda p: p.year).sum()
 _coef = (_coef.q / _coef.p)[_ok.groupby(lambda p: p.year).sum() >= LARGO_MESES_ANIO]
 _k_coef, _p_coef = _pettitt(_coef.to_numpy())
-_ev = _era_largo.dropna()
+_era_ok = _era_largo.dropna()
 _mswx = ((_cam_largo["t_min"] + _cam_largo["t_max"]) / 2).groupby(lambda d: d.year).mean()
 _dif_t = (_era_largo["t_media"].groupby(lambda d: d.year).mean() - _mswx).dropna()
 _k_dif, _p_dif = _pettitt(_dif_t.to_numpy())
@@ -1555,8 +1555,8 @@ largo_qc = {
     "coef_anios": len(_coef), "coef_p": _p_coef,
     "q_media_antes": float(largo["Q"].loc[:"1997-12"].mean()), "q_media_despues": float(largo["Q"].loc["1998-01":].mean()),
     "t_faltantes": int(_era_largo["t_media"].isna().sum()),
-    "t_desigualdad": int((~((_ev.t_min <= _ev.t_media) & (_ev.t_media <= _ev.t_max))).sum()),
-    "t_rachas": int(sum((_ev[c].groupby((_ev[c] != _ev[c].shift()).cumsum()).size() >= LARGO_RACHA_DIAS).sum()
+    "t_desigualdad": int((~((_era_ok.t_min <= _era_ok.t_media) & (_era_ok.t_media <= _era_ok.t_max))).sum()),
+    "t_rachas": int(sum((_era_ok[c].groupby((_era_ok[c] != _era_ok[c].shift()).cumsum()).size() >= LARGO_RACHA_DIAS).sum()
                         for c in ("t_min", "t_media", "t_max"))),
     "mswx_dif_media": float(_dif_t.mean()), "mswx_corte": int(_dif_t.index[_k_dif]), "mswx_p": _p_dif,
     "mswx_salto": float(_dif_t.iloc[_k_dif + 1:].mean() - _dif_t.iloc[: _k_dif + 1].mean()),

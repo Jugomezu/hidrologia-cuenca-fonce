@@ -84,6 +84,9 @@ CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
+CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
+CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
+CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -678,6 +681,42 @@ marzo_html = "".join(
     f"{r['pi']['n']} años no resiste la corrección; el caudal de {MESES_LARGOS_ES[m - 1]} no lo acompaña "
     f"({r['q_mes']['ols']:+.1f} m³/s por década, p {_p_txt(r['q_mes']['p'])}).</p>"
     for m, r in inc_lluvia_fdr.items())
+
+# frecuencias (Fourier): tablas y datos de la gráfica
+FOU_NOMBRE = {"original": "original", "anomalía": "anomalía", "anomalía sin tendencia": "anomalía sin tendencia"}
+
+
+def _fou_fila(ven, v, tipo):
+    e = fou[(ven, v, tipo)]
+    b = e["bandas"]
+    dec = 1 if e["dT"] < 1 else 0
+    ar1 = f"{_p_txt(e['ar1_p'])}" if "ar1_p" in e else "—"
+    return (f"<tr><td><b>{v}</b></td><td>{FOU_NOMBRE[tipo]}</td><td class='num'>{e['n']}</td>"
+            f"<td class='num'>{e['pico']:.{dec}f} ± {e['dT']:.{dec}f}</td><td class='num'>{e['ciclos']:.1f}</td>"
+            f"<td class='num'>{b['anual']:.1f} %</td><td class='num'>{b['semianual']:.1f} %</td>"
+            f"<td class='num'>{b['interanual']:.1f} %</td><td class='num'>{b['alta']:.1f} %</td><td class='num'>{ar1}</td></tr>")
+
+
+fou_filas = "\n".join(_fou_fila("común 1998–2022", v, t) for v in FOU_VENTANAS["común 1998–2022"] for t in FOU_TRANSFORMACIONES)
+fou_filas_ext = "\n".join(_fou_fila("extendida 1981–2022", v, t) for v in FOU_VENTANAS["extendida 1981–2022"]
+                          for t in FOU_TRANSFORMACIONES)
+fou_json = json.dumps({
+    ven: {v: {t: {"f": [round(float(x), 5) for x in fou[(ven, v, t)]["f"]],
+                  "p": [round(float(x), 4) for x in fou[(ven, v, t)]["p"]]}
+              for t in FOU_TRANSFORMACIONES} for v in series}
+    for ven, series in FOU_VENTANAS.items()}, ensure_ascii=False)
+fou_botones_tipo = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-fou-t{i}" aria-controls="panel-fou" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{t}</button>'
+    for i, t in enumerate(FOU_TRANSFORMACIONES))
+fou_botones_ven = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-fou-v{i}" aria-controls="panel-fou" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>Ventana {ven}</button>'
+    for i, ven in enumerate(FOU_VENTANAS))
+_fc = "común 1998–2022"
+fou_sens_txt = "; ".join(
+    f"{v}: Hann {r['hann']:.1f} y Welch {r['welch']:.1f} meses" for v, r in fou_sens.items())
+fou_inestables = [v for v, r in fou_sens.items() if not r["hann_welch_estable"]]
 
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
@@ -2247,6 +2286,83 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>Frecuencias: análisis de Fourier</h2>
+  <p>El espectro de potencia dice cómo se reparte la varianza de una serie entre escalas de tiempo: el ciclo anual
+  (12 meses), el semianual (6 meses, el régimen bimodal), la variabilidad interanual (de 3 a 7 años, la escala del ENSO) y la
+  alta frecuencia (menos de 6 meses). Se calcula para PL, PI, Q y T en tres versiones: la serie original, su anomalía (sin el
+  ciclo anual) y la anomalía sin tendencia.</p>
+  <ul>
+    <li><b>La lluvia y el caudal tienen su pico en 6 meses, no en 12</b>: el ciclo semianual concentra el
+    {fou[(_fc, "PL", "original")]["bandas"]["semianual"]:.0f} % de la varianza de PL, el {fou[(_fc, "PI", "original")]["bandas"]["semianual"]:.0f} % de PI
+    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de Q, contra {fou[(_fc, "PL", "original")]["bandas"]["anual"]:.0f},
+    {fou[(_fc, "PI", "original")]["bandas"]["anual"]:.0f} y {fou[(_fc, "Q", "original")]["bandas"]["anual"]:.0f} % del anual. Es el régimen bimodal
+    visto en frecuencia. <b>La temperatura</b>, en cambio, tiene su pico en {fou[(_fc, "T", "original")]["pico"]:.0f} meses.</li>
+    <li><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el {fou_alta_q:.0f} % de la
+    varianza de Q y el {fou_alta_lluvia:.0f} % de la lluvia (promedio de PL y PI). La cuenca filtra las fluctuaciones rápidas:
+    es la misma memoria que atrasa al río dos semanas (ver «El ciclo anual»).</li>
+    <li><b>Quitado el ciclo anual, la temperatura varía sobre todo de un año a otro y la lluvia de un mes a otro</b>: la banda
+    interanual es el {fou_interanual["T"]:.0f} % de la anomalía de T, el {fou_interanual["Q"]:.0f} % de la de Q y apenas el
+    {fou_interanual["PL"]:.0f} y {fou_interanual["PI"]:.0f} % de la de PL y PI.</li>
+    <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)).{"".join(f" Solo {v} ({ven}) supera el ruido rojo, con su pico en {fou[(ven, v, 'anomalía sin tendencia')]['pico']:.0f} meses (p = {fou[(ven, v, 'anomalía sin tendencia')]['ar1_p']:.2f}), pero ese período cabe apenas {c:.1f} veces en el registro y es una de {sum(1 for k in fou if k[2] == 'anomalía sin tendencia')} pruebas: no alcanza para hablar de un ciclo." for (ven, v), c in fou_signif_ciclos.items())} La variabilidad
+    interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.</li>
+    <li><b>El registro extendido (1981–2022) no cambia los picos</b>: PL*, Q y T tienen el mismo pico que en la ventana común.</li>
+  </ul>
+
+  <div class="pestanas" role="tablist" aria-label="Qué versión de la serie">
+{fou_botones_tipo}
+  </div>
+  <div class="pestanas" role="tablist" aria-label="Qué ventana">
+{fou_botones_ven}
+  </div>
+  <div role="tabpanel" id="panel-fou" aria-labelledby="pestana-fou-t0">
+    <div id="g-fou" class="grafico" style="min-height:0; height:420px"></div>
+  </div>
+  <p class="nota">Periodograma de Lomb-Scargle ({CITA_LOMB}; {CITA_SCARGLE}) normalizado para que el área sea 1 (el 100 % de la
+  varianza): compara la forma del espectro entre variables con unidades distintas; la altura no es variabilidad absoluta. Eje
+  inferior en ciclos por mes; arriba, el período. Franjas: 12 y 6 meses, y la banda interanual de 3 a 7 años.</p>
+
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Versión</th><th class="num">Meses</th><th class="num">Pico ± ΔT (meses)</th>
+    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
+    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
+    <tbody>
+{fou_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Ventana común {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Porcentajes: fracción de la varianza en cada banda. La resolución
+  es Δf = 1/N ciclos por mes y, en período, ΔT = T²·Δf: los decimales del pico no dicen más que eso. «Ciclos observados»:
+  cuántas veces cabe el período en el registro; con pocos ciclos el pico es incierto. Ruido rojo: el pico más alto de la anomalía
+  sin tendencia contra el de {FOU_SIMULACIONES} series AR(1) con la misma autocorrelación y las mismas fechas observadas (al comparar
+  el máximo se corrige que se buscó en todas las frecuencias a la vez).</p>
+
+  <details class="plegable-mini"><summary><b>Ventana extendida 1981–2022</b> <small>(PL*, Q y T)</small></summary>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Versión</th><th class="num">Meses</th><th class="num">Pico ± ΔT (meses)</th>
+    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
+    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
+    <tbody>
+{fou_filas_ext}
+    </tbody>
+  </table>
+  </div>
+  </details>
+
+  <h3>Qué tan estables son los picos</h3>
+  <p>El pico de la serie original con la FFT y ventana de Hann, contra el de Welch ({CITA_WELCH}), con segmentos de
+  {FOU_WELCH_SEGMENTO} meses: {fou_sens_txt}. {("Coinciden dentro de la resolución, salvo " + ", ".join(fou_inestables) + ": en la temperatura el ciclo anual y la variabilidad de unos tres años tienen un peso parecido, y según la ventana gana uno u otro.") if fou_inestables else "Coinciden dentro de la resolución en todas."}
+  Quitar los meses extremos (más de {FOU_EXTREMOS_RIC:.0f} RIC de la mediana) no mueve ningún pico de las anomalías, y quitar la
+  tendencia tampoco cambia la conclusión.</p>
+  <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
+  y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual»). Q tiene meses vacíos, por eso se usa
+  Lomb-Scargle, que trabaja con las fechas observadas sin rellenar; la FFT se calcula en el tramo continuo más largo
+  ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Calcular más frecuencias que las de Fourier solo afina el dibujo: no agrega
+  resolución. Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
+</section>
+
+<section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
   mes a mes en años que el ajuste no vio.</p>
@@ -2340,6 +2456,8 @@ a {{ color: var(--acento); }}
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
+    <li id="ref-lomb1976">Lomb, N. R. (1976). Least-squares frequency analysis of unequally spaced data. <i>Astrophysics and
+    Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
@@ -2354,12 +2472,18 @@ a {{ color: var(--acento); }}
     inter-decadal hasta la escala diurna. <i>Revista de la Academia Colombiana de Ciencias Exactas, Físicas y
     Naturales</i>, 28(107), 201–221.
     <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
+    <li id="ref-scargle1982">Scargle, J. D. (1982). Studies in astronomical time series analysis. II. Statistical aspects of
+    spectral analysis of unevenly spaced data. <i>The Astrophysical Journal</i>, 263, 835 y siguientes.
+    <a href="https://doi.org/10.1086/160554">https://doi.org/10.1086/160554</a></li>
     <li id="ref-sen1968">Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
     <i>Journal of the American Statistical Association</i>, 63(324), 1379–1389.
     <a href="https://doi.org/10.1080/01621459.1968.10480934">https://doi.org/10.1080/01621459.1968.10480934</a></li>
     <li id="ref-shapiro1965">Shapiro, S. S., y Wilk, M. B. (1965). An analysis of variance test for normality (complete
     samples). <i>Biometrika</i>, 52(3–4), 591–611.
     <a href="https://doi.org/10.1093/biomet/52.3-4.591">https://doi.org/10.1093/biomet/52.3-4.591</a></li>
+    <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
+    based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
+    70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
   </ol>
   <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
 </section>
@@ -3073,6 +3197,46 @@ a {{ color: var(--acento); }}
     }}));
   }})();
 
+  const FOU = {fou_json};
+  let fouTipo = 0, fouVen = 0;
+  const FOU_TIPOS = ["original", "anomalía", "anomalía sin tendencia"];
+  const FOU_COLOR = {{ "PL": "#D55E00", "PL*": "#D55E00", "PI": "#0072B2", "Q": "#009E73", "T": "#7C5BC7" }};
+
+  function dibujarFourier() {{
+    if (!window.Plotly) return;
+    const ven = Object.keys(FOU)[fouVen], tipo = FOU_TIPOS[fouTipo];
+    const trazas = Object.entries(FOU[ven]).map(([v, d]) => ({{
+      type: "scatter", mode: "lines", name: v, x: d[tipo].f, y: d[tipo].p,
+      line: {{ color: FOU_COLOR[v], width: 1.6 }},
+      hovertemplate: "f = %{{x:.4f}} ciclos/mes (T = %{{customdata:.1f}} meses)<br>%{{y:.2f}}<extra>" + v + "</extra>",
+      customdata: d[tipo].f.map(f => 1 / f) }}));
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 64, r: 10, b: 44, l: 62 }};
+    d.xaxis.title = {{ text: "frecuencia (ciclos/mes)", font: {{ size: 11, color: css("--tenue") }} }};
+    d.xaxis.range = [0, 0.5];
+    d.yaxis.title.text = "potencia normalizada";
+    const T = [84, 36, 12, 6, 4, 3, 2];
+    d.xaxis2 = {{ overlaying: "x", side: "top", range: [0, 0.5], tickvals: T.map(t => 1 / t), ticktext: T.map(t => t + " m"),
+                  tickfont: {{ color: css("--tenue"), size: 10 }}, showgrid: false }};
+    trazas.push({{ type: "scatter", x: [0.25], y: [0], xaxis: "x2", showlegend: false, hoverinfo: "skip", mode: "markers",
+                   marker: {{ opacity: 0 }} }});
+    d.shapes = [[1 / 84, 1 / 36, "rgba(124,91,199,0.10)"], [1 / 12 - 0.004, 1 / 12 + 0.004, "rgba(120,120,120,0.18)"],
+                [1 / 6 - 0.004, 1 / 6 + 0.004, "rgba(120,120,120,0.18)"]].map(([x0, x1, c]) => ({{
+      type: "rect", xref: "x", yref: "paper", x0: x0, x1: x1, y0: 0, y1: 1, fillcolor: c, line: {{ width: 0 }}, layer: "below" }}));
+    Plotly.react("g-fou", trazas, d, CONF);
+  }}
+
+  [["pestana-fou-t", 3, i => {{ fouTipo = i; dibujarFourier(); }}],
+   ["pestana-fou-v", Object.keys(FOU).length, i => {{ fouVen = i; dibujarFourier(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+    const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      accion(i);
+    }}));
+  }});
+
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
 
@@ -3294,6 +3458,7 @@ a {{ color: var(--acento); }}
     dibujarTendMes();
     dibujarMetodos();
     dibujarPendMes();
+    dibujarFourier();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

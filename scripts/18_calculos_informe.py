@@ -13,7 +13,9 @@ Las figuras fijas de reporte/figuras/ las hacen 08, 09, 10 y 14.
 """
 import geopandas as gpd
 from pyproj import Geod
+from pathlib import Path
 from scipy import stats
+from scipy.signal import lfilter, lombscargle, periodogram, welch
 import numpy as np
 import pandas as pd
 
@@ -1432,7 +1434,7 @@ pl_estrella_rachas = pd.read_csv("out/pluviometros_pl_larga_rachas.csv")
 # los umbrales del criterio de picos viven en scripts/07; aquí se repiten solo para citarlos en el texto, y se
 # comprueba que coincidan con los de ese script
 PICO_VECES_MEDIANA_INF, PICO_MINIMO_INF, PICO_VECES_VECINOS_INF = 3.0, 300.0, 3.0
-_s07 = open("scripts/07_pluviometros_dhime.py", encoding="utf-8").read()
+_s07 = Path("scripts/07_pluviometros_dhime.py").read_text(encoding="utf-8")
 assert all(f"{n} = {v}" in _s07 for n, v in (("PICO_VECES_MEDIANA", PICO_VECES_MEDIANA_INF), ("PICO_MINIMO_MM", PICO_MINIMO_INF),
                                               ("PICO_VECES_VECINOS", PICO_VECES_VECINOS_INF)))
 largo = pd.DataFrame({
@@ -1474,8 +1476,9 @@ def _pettitt(x):
     """Prueba de Pettitt (1979), la misma de scripts/07c: índice del último elemento del primer tramo y p."""
     x = np.asarray(x, dtype=float)
     n = len(x)
-    signo = np.sign(x[:, None] - x[None, :])
-    u = np.array([signo[: t + 1, t + 1:].sum() for t in range(n - 1)])
+    # U_t = Σ_{i<=t} Σ_{j>t} sgn(x_i - x_j) = suma acumulada de Σ_j sgn(x_i - x_j): la misma U que en scripts/07c,
+    # calculada en orden n² en vez de n³ (comprobado igual, también con empates)
+    u = np.cumsum(np.sign(x[:, None] - x[None, :]).sum(axis=1))[:-1]
     k = int(np.argmax(np.abs(u)))
     return k, min(1.0, 2 * np.exp(-6 * float(abs(u[k])) ** 2 / (n ** 3 + n ** 2)))
 
@@ -1772,13 +1775,19 @@ def _ols_completo(y, X):
     return beta, se_cl, se_hac, p_hac, e
 
 
+_loess_pesos = {}          # los pesos tricúbicos solo dependen de las fechas y la ventana: se calculan una vez
+
+
 def _loess(t, y, frac, iteraciones=MET_ITER_ROBUSTAS):
     """LOESS local lineal (Cleveland, 1979), vectorizado. t ordenado, sin vacíos."""
     n = len(t)
-    k = max(int(np.ceil(frac * n)), 3)
-    d = np.abs(t[:, None] - t[None, :])
-    h = np.sort(d, axis=1)[:, k - 1][:, None]
-    w0 = np.clip(1 - (d / np.where(h > 0, h, 1)) ** 3, 0, None) ** 3
+    clave = (t.tobytes(), frac)
+    if clave not in _loess_pesos:
+        k = max(int(np.ceil(frac * n)), 3)
+        d = np.abs(t[:, None] - t[None, :])
+        h = np.sort(d, axis=1)[:, k - 1][:, None]
+        _loess_pesos[clave] = np.clip(1 - (d / np.where(h > 0, h, 1)) ** 3, 0, None) ** 3
+    w0 = _loess_pesos[clave]
     robusto = np.ones(n)
     for _ in range(iteraciones + 1):
         w = w0 * robusto[None, :]
@@ -2059,8 +2068,7 @@ _rng_salto = np.random.default_rng(31)
 
 
 def _pettitt_K(x):
-    signo = np.sign(x[:, None] - x[None, :])
-    return np.abs(np.array([signo[: t + 1, t + 1:].sum() for t in range(len(x) - 1)])).max()
+    return np.abs(np.cumsum(np.sign(x[:, None] - x[None, :]).sum(axis=1))[:-1]).max()
 
 
 def _bic(y, X):
@@ -2207,3 +2215,185 @@ for _m in inc_fdr["PL*"]["ols"]:
 assert set(inc_fdr["PL*"]["ols"]) == {3} and not inc_fdr["PI"]["ols"] and not inc_fdr["Q"]["ols"]
 assert all(r["p_jk"] < TEND_ALFA and r["suben"] == r["estaciones"] and r["pi"]["ols"] > 0 and r["q_mes"]["p"] >= TEND_ALFA
            for r in inc_lluvia_fdr.values())
+
+
+# ---------------------------------------------------------------- frecuencias: análisis de Fourier
+# Integra el trabajo de angomezma-cyber (rama punto-4, 2026-10-08), pasado a la estructura de los scripts y a las
+# decisiones vigentes (PL* y ERA5-Land en el registro extendido, referencia 1998-2022 para las anomalías).
+#
+# Qué se calcula. El espectro de potencia de cada serie mensual dice cómo se reparte su varianza entre las escalas de
+# tiempo: el ciclo anual (12 meses), el semianual (6 meses, el régimen bimodal), la variabilidad interanual (de 3 a 7
+# años, la escala del ENSO) y la alta frecuencia (menos de 6 meses). Se usa el periodograma de Lomb-Scargle (Lomb,
+# 1976; Scargle, 1982), que trabaja con las fechas observadas y admite meses vacíos (Q los tiene); como contraste,
+# el periodograma de la FFT con ventana de Hann sobre el tramo continuo más largo.
+#
+# Tres transformaciones de cada serie: la original centrada (menos su media), la anomalía (menos la media de su mes
+# del calendario en 1998-2022, la misma referencia de «Anomalías y anomalías estandarizadas») y la anomalía sin
+# tendencia (la anomalía menos su recta). Dos ventanas: la común 1998-2022 (PL, PI, Q y T, para comparar fuentes) y
+# la extendida 1981-2022 (PL*, Q y T, regla 6).
+#
+# Normalización: cada espectro se divide por su área, así que integra 1 (el 100 % de la varianza) y se pueden comparar
+# formas entre variables con unidades distintas; la altura no es variabilidad absoluta.
+#
+# Significancia: un pico no es una periodicidad por ser el más alto. Se contrasta el pico más alto de la anomalía sin
+# tendencia con el de FOU_SIMULACIONES series de ruido rojo AR(1) con la misma autocorrelación, varianza y fechas
+# observadas; comparar el MÁXIMO del espectro corrige que se buscó en todas las frecuencias a la vez.
+#
+# Correcciones al código original (documentadas en el PR): la «anomalía sin tendencia» se calcula sobre la anomalía
+# (en el original se quitaba la recta a la serie con su ciclo anual); la banda interanual es una sola, 3-7 años (había
+# 3-6 y 3-7); np.trapz, obsoleta, se reemplaza por np.trapezoid; la temperatura extendida es ERA5-Land, no MSWX.
+FOU_SOBREMUESTREO = 4                 # puntos de frecuencia por cada frecuencia de Fourier: solo afina el dibujo
+FOU_BANDAS = {"anual": 12.0, "semianual": 6.0}
+FOU_INTERANUAL = (36.0, 84.0)         # meses: 3 a 7 años
+FOU_ALTA_MAX = 6.0                    # meses: alta frecuencia = períodos menores que 6 meses
+FOU_SIMULACIONES = 300
+FOU_WELCH_SEGMENTO = 120              # meses por segmento de Welch (10 años)
+FOU_EXTREMOS_RIC = 3.0                # un mes es extremo si su anomalía se aleja más de 3 RIC de la mediana
+_rng_fou = np.random.default_rng(41)
+
+FOU_VENTANAS = {
+    "común 1998–2022": {"PL": variables_resumen["PL"], "PI": variables_resumen["PI"], "Q": variables_resumen["Q"],
+                        "T": variables_resumen["T media"]},
+    "extendida 1981–2022": {"PL*": largo["PL*"], "Q": largo["Q"], "T": largo["T media"]},
+}
+FOU_TRANSFORMACIONES = ("original", "anomalía", "anomalía sin tendencia")
+
+
+def _fou_transformar(serie, tipo):
+    """Serie mensual (PeriodIndex) -> la transformación pedida, con los meses vacíos conservados."""
+    if tipo == "original":
+        return serie - serie.mean()
+    ref = serie.loc[PERIODOS[0]:PERIODOS[-1]]
+    anom = serie - ref.groupby(ref.index.month).mean().reindex(serie.index.month).to_numpy()
+    if tipo == "anomalía":
+        return anom
+    ok = anom.notna().to_numpy()
+    t = np.arange(len(anom), dtype=float)
+    recta = np.polyval(np.polyfit(t[ok], anom.to_numpy()[ok], 1), t)
+    return anom - recta
+
+
+def _fou_lomb(serie, sobremuestreo=FOU_SOBREMUESTREO):
+    """Periodograma de Lomb-Scargle normalizado a área 1, en ciclos/mes, desde 1/N hasta Nyquist (0.5)."""
+    ok = serie.notna().to_numpy()
+    t = np.flatnonzero(ok).astype(float)
+    y = serie.to_numpy(dtype=float)[ok]
+    y = y - y.mean()
+    n_total = len(serie)
+    f = np.linspace(1 / n_total, 0.5, n_total * sobremuestreo // 2)
+    p = lombscargle(t, y, 2 * np.pi * f, normalize=True)
+    return f, p / np.trapezoid(p, f), t, y
+
+
+def _fou_fft(serie, ventana="hann"):
+    """Periodograma de la FFT (o de Welch) sobre el tramo continuo más largo, normalizado a área 1."""
+    ok = np.flatnonzero(serie.notna().to_numpy())
+    bloques = np.split(ok, np.flatnonzero(np.diff(ok) > 1) + 1)
+    bloque = max(bloques, key=len)
+    y = serie.to_numpy(dtype=float)[bloque]
+    if ventana == "welch":
+        f, p = welch(y, window="hann", nperseg=min(FOU_WELCH_SEGMENTO, len(y)), detrend="constant")
+    else:
+        f, p = periodogram(y, window="hann", detrend="constant", scaling="density")
+    f, p = f[1:], p[1:]
+    return f, p / np.trapezoid(p, f), len(bloque)
+
+
+def _fou_fraccion(f, p, f_baja, f_alta):
+    m = (f >= f_baja) & (f <= f_alta)
+    return float(100 * np.trapezoid(p[m], f[m])) if m.sum() >= 2 else float("nan")
+
+
+def _fou_ar1(t, y):
+    """Autocorrelación de lag 1 con los pares de meses consecutivos observados."""
+    pares = np.flatnonzero(np.diff(t) == 1)
+    return float(np.corrcoef(y[pares], y[pares + 1])[0, 1])
+
+
+def _fou_espectro(serie):
+    n = len(serie)
+    f, p, t, y = _fou_lomb(serie)
+    df = 1 / n
+    i = int(np.argmax(p))
+    periodo = 1 / f[i]
+    bandas = {nombre: _fou_fraccion(f, p, 1 / T - df / 2, 1 / T + df / 2) for nombre, T in FOU_BANDAS.items()}
+    bandas["interanual"] = _fou_fraccion(f, p, 1 / FOU_INTERANUAL[1], 1 / FOU_INTERANUAL[0])
+    bandas["alta"] = _fou_fraccion(f, p, 1 / FOU_ALTA_MAX + df / 2, 0.5)     # sin solaparse con la semianual
+    f_fft, p_fft, n_fft = _fou_fft(serie)
+    return {"f": f, "p": p, "n": int(serie.notna().sum()), "N": n, "df": df, "pico": periodo,
+            "dT": periodo ** 2 * df, "ciclos": n / periodo, "bandas": bandas,
+            "pico_fft": float(1 / f_fft[np.argmax(p_fft)]), "n_fft": n_fft, "t": t, "y": y}
+
+
+fou = {}
+for _ven, _series in FOU_VENTANAS.items():
+    for _v, _s in _series.items():
+        _s = _s.loc[_s.first_valid_index():_s.last_valid_index()]
+        for _tipo in FOU_TRANSFORMACIONES:
+            fou[(_ven, _v, _tipo)] = _fou_espectro(_fou_transformar(_s, _tipo))
+
+# significancia del pico más alto de la anomalía sin tendencia contra ruido rojo AR(1)
+for (_ven, _v, _tipo), _e in fou.items():
+    if _tipo != "anomalía sin tendencia":
+        continue
+    _phi = max(_fou_ar1(_e["t"], _e["y"]), 0.0)
+    _sd = np.std(_e["y"])
+    _maximos = np.empty(FOU_SIMULACIONES)
+    _idx = _e["t"].astype(int)
+    for _b in range(FOU_SIMULACIONES):
+        # AR(1) estacionario de varianza 1: x_k = φ x_(k-1) + √(1-φ²) ε_k, con x_0 ~ N(0, 1)
+        _eps = _rng_fou.normal(size=_e["N"])
+        _ruido = lfilter([np.sqrt(1 - _phi ** 2)], [1, -_phi], _eps, zi=[_phi * _rng_fou.normal()])[0]
+        _sim = pd.Series(np.nan, index=range(_e["N"]))
+        _sim.iloc[_idx] = _ruido[_idx] * _sd
+        _f, _p, _, _ = _fou_lomb(_sim, sobremuestreo=1)      # basta con las frecuencias de Fourier (k/N)
+        _maximos[_b] = _p.max()
+    _e["ar1_phi"] = _phi
+    _obs = _fou_lomb(pd.Series(_e["y"], index=_e["t"].astype(int)).reindex(range(_e["N"])), sobremuestreo=1)[1].max()
+    _e["ar1_p"] = float((np.sum(_maximos >= _obs) + 1) / (FOU_SIMULACIONES + 1))
+    _e["ar1_umbral"] = float(np.percentile(_maximos, 95))
+
+# sensibilidad (ventana común, original): ventana Hann contra Welch, y anomalía con y sin los meses extremos; un pico
+# es estable si cambia menos que la resolución del espectro (ΔT = T² Δf)
+fou_sens = {}
+for _v, _s in FOU_VENTANAS["común 1998–2022"].items():
+    _e = fou[("común 1998–2022", _v, "original")]
+    _f_w, _p_w, _ = _fou_fft(_s - _s.mean(), "welch")
+    _pico_w = float(1 / _f_w[np.argmax(_p_w)])
+    _dT_w = _pico_w ** 2 / FOU_WELCH_SEGMENTO
+    _a = _fou_transformar(_s, "anomalía")
+    _q1, _q3 = _a.quantile([0.25, 0.75])
+    _sin_ext = _a.where((_a - _a.median()).abs() <= FOU_EXTREMOS_RIC * (_q3 - _q1))
+    _pico_a = fou[("común 1998–2022", _v, "anomalía")]["pico"]
+    _pico_se = _fou_espectro(_sin_ext)["pico"]
+    _dT_a = _pico_a ** 2 / len(_a)
+    fou_sens[_v] = {"hann": _e["pico_fft"], "welch": _pico_w,
+                    "hann_welch_estable": abs(_e["pico_fft"] - _pico_w) <= max(_dT_w, _e["dT"]),
+                    "extremos": int(_a.notna().sum() - _sin_ext.notna().sum()), "pico_sin_extremos": _pico_se,
+                    "extremos_estable": abs(_pico_se - _pico_a) <= _dT_a}
+
+# lecturas para el texto (todas calculadas; los textos que dependen de ellas se protegen abajo)
+_com = "común 1998–2022"
+fou_estacional = {v: fou[(_com, v, "original")]["bandas"]["anual"] + fou[(_com, v, "original")]["bandas"]["semianual"]
+                  for v in FOU_VENTANAS[_com]}
+fou_semi_mayor = [v for v in FOU_VENTANAS[_com]
+                  if fou[(_com, v, "original")]["bandas"]["semianual"] > fou[(_com, v, "original")]["bandas"]["anual"]]
+fou_alta_lluvia = float(np.mean([fou[(_com, v, "anomalía")]["bandas"]["alta"] for v in ("PL", "PI")]))
+fou_alta_q = fou[(_com, "Q", "anomalía")]["bandas"]["alta"]
+fou_interanual = {v: fou[(_com, v, "anomalía sin tendencia")]["bandas"]["interanual"] for v in FOU_VENTANAS[_com]}
+fou_significativos = [(ven, v) for (ven, v, tipo), e in fou.items()
+                      if tipo == "anomalía sin tendencia" and e["ar1_p"] < TEND_ALFA]
+fou_extendida = {v: (fou[(_com, "PL" if v == "PL*" else v, "original")]["pico"],
+                     fou[("extendida 1981–2022", v, "original")]["pico"]) for v in ("PL*", "Q", "T")}
+# lo que el texto de frecuencias afirma; si los datos dejan de respaldarlo, el script se detiene
+_orig = {v: fou[(_com, v, "original")] for v in FOU_VENTANAS[_com]}
+assert {"PL", "PI", "Q"} <= set(fou_semi_mayor) and "T" not in fou_semi_mayor
+assert all(abs(_orig[v]["pico"] - 6) <= max(_orig[v]["dT"], 0.5) for v in ("PL", "PI", "Q"))
+assert abs(_orig["T"]["pico"] - 12) <= max(_orig["T"]["dT"], 0.5)
+assert fou_alta_q < fou_alta_lluvia
+assert fou_interanual["T"] > fou_interanual["Q"] > max(fou_interanual["PL"], fou_interanual["PI"])
+# si algún pico sale significativo, el texto lo nombra y advierte cuántas veces cabe en el registro
+fou_signif_ciclos = {(ven, v): fou[(ven, v, "anomalía sin tendencia")]["ciclos"] for ven, v in fou_significativos}
+assert all(c < 3 for c in fou_signif_ciclos.values())
+assert all(abs(a - b) <= 0.5 for a, b in fou_extendida.values())
+assert all(r["extremos_estable"] for r in fou_sens.values())

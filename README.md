@@ -53,10 +53,14 @@ todo lo nuevo va a los scripts y al informe. Lo que tiene, por punto del taller:
 El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
 (2026-10-04).
 
-Después de congelar el notebook, lo nuevo está solo en el informe: años contrastantes y anomalías respecto al
-ciclo anual; **anomalías y anomalías estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis
-variables); y **tendencias de largo plazo** (registro completo de cada variable desde 1981 cuando existe: Q y
-temperatura; secuencia de meses y mes a mes, en X, a y z). Pendiente: la PL de 1981–1997 (descarga de DHIME).
+Después de congelar el notebook, **todo el análisis nuevo está solo en los scripts y el informe** (el notebook no hace
+falta para reproducirlo): años contrastantes y anomalías respecto al ciclo anual; **anomalías y anomalías
+estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis variables); **tendencias de largo plazo**
+(registro completo desde 1981 cuando existe: Q, temperatura y PL*, la red fija de pluviómetros; OLS con Newey-West,
+Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); **frecuencias** (Fourier: Lomb-Scargle y FFT,
+bandas, ruido rojo AR(1)); y el **Punto 2 ampliado** (modelos con la lluvia del mes y del anterior, ecuaciones con unidades,
+modelo en anomalías, rezagos de −3 a +3). Fourier y el Punto 2 ampliado vienen de la rama `punto-4` de angomezma-cyber,
+integrados a los scripts el 2026-10-08.
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
 `scripts/18b_reporte_html.py`, con los cálculos de `scripts/18_calculos_informe.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las

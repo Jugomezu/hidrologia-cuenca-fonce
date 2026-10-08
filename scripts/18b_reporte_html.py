@@ -178,7 +178,8 @@ p2_pipl_json = json.dumps({"pi": _p2.IMERG.round(1).tolist(), "pl": _p2.RED.roun
 ev_filas = "\n".join(
     f"<tr><td>{'<b>' + m + '</b>' if m == ev_mejor else m}</td><td class='num'>{t['ajuste']['rmse']:.1f}</td>"
     f"<td class='num'>{t['validacion']['rmse']:.1f}</td><td class='num'>{t['validacion']['mae']:.1f}</td>"
-    f"<td class='num'>{t['validacion']['sesgo']:+.1f}</td><td class='num'>{t['validacion']['n']}</td></tr>"
+    f"<td class='num'>{t['validacion']['sesgo']:+.1f}</td><td class='num'>{t['validacion']['n']}</td>"
+    f"<td class='num'>{t['rho1']:+.2f}</td></tr>"
     for m, t in ev_tabla.items())
 
 ev_json = json.dumps({"meses": [str(p) for p in _ev_val.index], "q": _ev_val.Q.round(2).tolist(),
@@ -717,6 +718,33 @@ _fc = "común 1998–2022"
 fou_sens_txt = "; ".join(
     f"{v}: Hann {r['hann']:.1f} y Welch {r['welch']:.1f} meses" for v, r in fou_sens.items())
 fou_inestables = [v for v, r in fou_sens.items() if not r["hann_welch_estable"]]
+
+# ¿sirve la lluvia para estimar el caudal?: ecuaciones, modelo en anomalías; y tabla de pares (Punto 2 ampliado)
+def _ev_ecuacion(coef, y="Q", unidad_y="m³/s"):
+    """Ecuación con los coeficientes y sus unidades: el término independiente en unidades de y, cada pendiente en
+    unidades de y por mm/mes de lluvia."""
+    terminos = [f"{coef['intercepto']:+.2f} {unidad_y}"]
+    for k, c in coef.items():
+        if k == "intercepto":
+            continue
+        nombre = k.replace("_t-1", "<sub>t−1</sub>").replace("_t", "<sub>t</sub>")
+        terminos.append(f"{c:+.3f} ({unidad_y})/(mm/mes) · {nombre}")
+    return f"{y}<sub>t</sub> = " + " ".join(terminos).lstrip("+")
+
+
+ev_ecuaciones = "\n".join(
+    f"<li><b>{m}</b>: {_ev_ecuacion(d['coef'])} <small>(R² {d['r2']:.2f}; R² ajustado {d['r2_aj']:.2f}; {d['n']} meses de ajuste)</small></li>"
+    for m, d in ev_modelos.items())
+ev_ecuaciones_anom = "\n".join(
+    f"<li><b>{f}</b>: {_ev_ecuacion(d['coef'], 'Q′')} <small>(R² {d['r2']:.2f}; R² ajustado {d['r2_aj']:.2f})</small></li>"
+    .replace("PL<sub>", "PL′<sub>").replace("PI<sub>", "PI′<sub>") for f, d in ev_anom.items())
+corr_pares_filas = "\n".join(
+    f"<tr><td><b>{a}–{b}</b></td><td class='num'>{corr_pearson.loc[a, b]:.2f}</td><td class='num'>{corr_spearman.loc[a, b]:.2f}</td>"
+    f"<td class='num'>{corr_pearson_anom.loc[a, b]:.2f}</td><td class='num'>{corr_spearman_anom.loc[a, b]:.2f}</td></tr>"
+    for a, b in (("PI", "PL"), ("PL", "Q"), ("PI", "Q")))
+rezagos_json = json.dumps({f"{ll} · {se}": {"k": g.sort_values("rezago_meses").rezago_meses.tolist(),
+                                            "rho": g.sort_values("rezago_meses").rho.round(3).tolist()}
+                           for (ll, se), g in cruzada.groupby(["lluvia", "series"])}, ensure_ascii=False)
 
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
@@ -1587,6 +1615,17 @@ a {{ color: var(--acento); }}
   todos los demás. Doble clic para soltar la selección. <span id="corr-seleccion" style="color:var(--acento)"></span></p>
 
   <h3>Qué dicen</h3>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Par</th><th class="num">Pearson</th><th class="num">Spearman</th><th class="num">Pearson en anomalías</th>
+    <th class="num">Spearman en anomalías</th></tr></thead>
+    <tbody>
+{corr_pares_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pearson mide asociación lineal y lo mueven los valores extremos; Spearman usa rangos y mide asociación monótona.
+  Si difieren, conviene mirar la forma de la nube. Anomalías: cada serie menos su ciclo anual medio.</p>
   <p><b>Las dos fuentes de lluvia concuerdan</b> (ρ = {rho('PI', 'PL'):.2f}), pero no es una confirmación
   mutua: IMERG se ajusta con redes de estaciones parecidas a PL, así que <b>no son del todo independientes</b>.</p>
 
@@ -1867,6 +1906,9 @@ a {{ color: var(--acento); }}
   {regimen["Q"]["var1"]:.0f} % de la forma del ciclo, y su fase es casi ruido.</p>
 
   <h3>Mes a mes: correlación cruzada entre la lluvia y el caudal</h3>
+  <div id="g-rezagos" class="grafico" style="min-height:0; height:340px"></div>
+  <p class="nota">Spearman entre la lluvia del mes t−k y el caudal del mes t, de −3 a +3 meses. k positivo: la lluvia va antes
+  (memoria de la cuenca); k negativo: es un control, porque la lluvia futura no puede causar el caudal de hoy.</p>
   <p>La correlación entre la lluvia y el caudal es máxima en el mismo mes (ρ = {rho_cruzada('PL', 0, 'tal cual'):.2f}
   con PL), sigue alta con la lluvia del mes anterior ({rho_cruzada('PL', 1, 'tal cual'):.2f}) y cae a
   {rho_cruzada('PL', -1, 'tal cual'):.2f} con el caudal del mes anterior: la relación va de la lluvia al caudal y
@@ -2392,7 +2434,8 @@ a {{ color: var(--acento); }}
   <table class="sin-destacar">
     <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
     <th class="num">RMSE en la evaluación (m³/s)</th><th class="num">MAE en la evaluación</th>
-    <th class="num">Sesgo en la evaluación</th><th class="num">Meses evaluados</th></tr></thead>
+    <th class="num">Sesgo en la evaluación</th><th class="num">Meses evaluados</th>
+    <th class="num">ρ₁ de los residuos</th></tr></thead>
     <tbody>
 {ev_filas}
     </tbody>
@@ -2400,15 +2443,37 @@ a {{ color: var(--acento); }}
   </div>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
   <p><b>La mejor estimación sale de {ev_mejor}</b>: RMSE de {ev_tabla[ev_mejor]["validacion"]["rmse"]:.1f} m³/s en la
-  evaluación, contra {ev_rmse_clima:.1f} de la climatología y {ev_tabla["PI del mismo mes"]["validacion"]["rmse"]:.1f}
-  con PI. Con la lluvia del mes anterior sola el error crece ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f}
-  con PL): el río responde sobre todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  evaluación, contra {ev_tabla["PL del mismo mes"]["validacion"]["rmse"]:.1f} con la lluvia del mes sola y {ev_rmse_clima:.1f} de la
+  climatología; con PI, {ev_tabla["PI del mes y del anterior"]["validacion"]["rmse"]:.1f}. La lluvia del mes anterior sola sirve poco
+  ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f} con PL), pero sumada a la del mes baja el error: el río responde sobre
+  todo dentro del mismo mes y arrastra algo del anterior, la misma memoria del desfase y de la correlación cruzada.
+  Ninguna estimación da caudales negativos.</p>
+  <details class="plegable-mini"><summary><b>Las ecuaciones</b> <small>(coeficientes con sus unidades, ajustados con
+  {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]})</small></summary>
+  <ul>
+{ev_ecuaciones}
+  </ul>
+  </details>
+  <p><b>Sin el calendario, la lluvia sigue ayudando.</b> Con las anomalías (cada variable menos su media mensual del
+  bloque de ajuste), la lluvia del mes y la del anterior estiman la anomalía del caudal con un RMSE de
+  {ev_anom["PL"]["rmse"]:.1f} m³/s con PL y {ev_anom["PI"]["rmse"]:.1f} con PI, contra {ev_anom_cero["rmse"]:.1f} de suponer anomalía cero
+  (que es la climatología). Así el R² no lo infla el ciclo anual.</p>
+  <details class="plegable-mini"><summary><b>Las ecuaciones en anomalías</b> <small>(′ = anomalía)</small></summary>
+  <ul>
+{ev_ecuaciones_anom}
+  </ul>
+  </details>
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
   <p class="nota">Una recta mensual simplifica mucho: no representa el agua guardada en el suelo, la humedad
   que trae la cuenca ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Además,
-  IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes. La OLS supone una relación
+  lineal, varianza constante, residuos independientes y normales; ρ₁ muestra que los residuos sí dependen de un mes al
+  siguiente, así que los R² describen el ajuste pero no sirven para pruebas formales. No se usó una validación cruzada
+  con meses al azar porque mezclaría meses vecinos entre el ajuste y la evaluación. Si un modelo diera caudales negativos
+  se contarían como error, sin recortarlos: una regresión no garantiza el balance de masa. Modelos ampliados con el trabajo
+  de angomezma-cyber.</p>
 </section>
 
 
@@ -3237,6 +3302,28 @@ a {{ color: var(--acento); }}
     }}));
   }});
 
+  const REZ = {rezagos_json};
+
+  function dibujarRezagos() {{
+    if (!window.Plotly) return;
+    const estilo = {{ "PL · tal cual": ["#D55E00", "solid"], "PL · anomalías": ["#D55E00", "dot"],
+                     "PI · tal cual": ["#0072B2", "solid"], "PI · anomalías": ["#0072B2", "dot"] }};
+    const trazas = Object.entries(REZ).map(([nombre, d]) => ({{
+      type: "scatter", mode: "lines+markers", name: nombre, x: d.k, y: d.rho,
+      line: {{ color: (estilo[nombre] || ["#888", "solid"])[0], dash: (estilo[nombre] || ["#888", "solid"])[1], width: 2 }},
+      hovertemplate: "k = %{{x}} meses<br>ρ = %{{y:.2f}}<extra>" + nombre + "</extra>" }}));
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 56, r: 10, b: 44, l: 54 }};
+    d.xaxis.title = {{ text: "rezago k (meses; positivo = la lluvia va antes)", font: {{ size: 11, color: css("--tenue") }} }};
+    d.xaxis.dtick = 1;
+    d.yaxis.rangemode = "normal";
+    d.yaxis.zeroline = true;
+    d.yaxis.zerolinecolor = css("--tenue");
+    d.yaxis.title.text = "ρ de Spearman";
+    Plotly.react("g-rezagos", trazas, d, CONF);
+  }}
+
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
 
@@ -3459,6 +3546,7 @@ a {{ color: var(--acento); }}
     dibujarMetodos();
     dibujarPendMes();
     dibujarFourier();
+    dibujarRezagos();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

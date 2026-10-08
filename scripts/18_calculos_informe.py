@@ -674,19 +674,62 @@ def _ev_ols(x, y, rezago=0):
 
 _ev_clima = _ev_aj.groupby(_ev_aj.index.month).Q.mean()
 ev_estimados = {"climatología mensual de Q": pd.Series([_ev_clima[p.month] for p in _ev.index], index=_ev.index)}
-ev_pendientes = {}
-for _f in ("PL", "PI"):
-    for _r, _nombre in ((0, f"{_f} del mismo mes"), (1, f"{_f} del mes anterior")):
-        ev_estimados[_nombre], ev_pendientes[_nombre] = _ev_ols(_f, "Q", _r)
+# Modelos (ampliados con el trabajo de angomezma-cyber, rama punto-4): la lluvia del mismo mes, la del mes anterior y
+# las dos juntas, con PL y con PI. De cada uno se guardan la ecuación (coeficientes con sus unidades), el R² del
+# ajuste, el R² ajustado y la autocorrelación de lag 1 de los residuos de la evaluación (si es alta, el modelo deja
+# sin explicar una persistencia de un mes al siguiente).
+EV_MODELOS = {f"{f} {nombre}": [(f, r) for r in rezagos] for f in ("PL", "PI")
+              for nombre, rezagos in (("del mismo mes", (0,)), ("del mes anterior", (1,)), ("del mes y del anterior", (0, 1)))}
+
+
+def _ev_ols_multi(datos, y, predictores):
+    """OLS de `y` contra la lluvia con los rezagos dados, ajustado solo con el bloque de ajuste."""
+    X = pd.DataFrame({f"{v}_t-{r}" if r else f"{v}_t": datos[v].shift(r) for v, r in predictores})
+    aj = pd.concat([datos[y].rename("y"), X], axis=1).loc[EV_AJUSTE[0]:EV_AJUSTE[1]].dropna()
+    A = np.column_stack([np.ones(len(aj)), aj.drop(columns="y").to_numpy()])
+    b = np.linalg.lstsq(A, aj.y.to_numpy(), rcond=None)[0]
+    res = aj.y.to_numpy() - A @ b
+    r2 = 1 - np.sum(res ** 2) / np.sum((aj.y - aj.y.mean()) ** 2)
+    n, k = A.shape
+    estimado = b[0] + X.to_numpy() @ b[1:]
+    return pd.Series(estimado, index=datos.index), {"coef": dict(zip(["intercepto"] + list(X.columns), b)),
+                                                     "r2": float(r2), "r2_aj": float(1 - (1 - r2) * (n - 1) / (n - k)), "n": n}
+
+
+def _ev_rho1(observado, estimado):
+    """Autocorrelación de lag 1 de los residuos de la evaluación, con los meses consecutivos que tienen dato."""
+    r = (observado - estimado).loc[EV_VALIDACION[0]:EV_VALIDACION[1]]
+    return float(r.corr(r.shift(1)))
+
+
+ev_modelos = {}
+for _nombre, _pred in EV_MODELOS.items():
+    ev_estimados[_nombre], ev_modelos[_nombre] = _ev_ols_multi(_ev, "Q", _pred)
+ev_pendientes = {m: list(d["coef"].values())[1] for m, d in ev_modelos.items() if len(EV_MODELOS[m]) == 1}
 ev_tabla = {m: {"ajuste": _ev_metricas(_ev_aj.Q, e.loc[_ev_aj.index]), "validacion": _ev_metricas(_ev_val.Q, e.loc[_ev_val.index])}
             for m, e in ev_estimados.items()}
+for _m in ev_tabla:
+    ev_tabla[_m]["rho1"] = _ev_rho1(_ev.Q, ev_estimados[_m])
 ev_mejor = min((m for m in ev_tabla if m != "climatología mensual de Q"), key=lambda m: ev_tabla[m]["validacion"]["rmse"])
+# Modelo en anomalías: ¿la lluvia anómala (del mes y del anterior) predice el caudal anómalo? Las anomalías restan la
+# climatología de cada variable calculada SOLO con el bloque de ajuste; la referencia es «anomalía cero» (= la
+# climatología). Es la misma pregunta que superar a la climatología, pero sin que el ciclo anual infle el R².
+_ev_clim = _ev_aj.groupby(_ev_aj.index.month)[["PI", "PL", "Q"]].mean()
+_ev_anom = _ev - _ev_clim.reindex(_ev.index.month).to_numpy()
+ev_anom = {}
+for _f in ("PL", "PI"):
+    _est, _info = _ev_ols_multi(_ev_anom, "Q", [(_f, 0), (_f, 1)])
+    ev_anom[_f] = {**_info, **_ev_metricas(_ev_anom.Q.loc[EV_VALIDACION[0]:EV_VALIDACION[1]], _est.loc[EV_VALIDACION[0]:EV_VALIDACION[1]]),
+                   "rho1": _ev_rho1(_ev_anom.Q, _est)}
+ev_anom_cero = _ev_metricas(_ev_anom.Q.loc[EV_VALIDACION[0]:EV_VALIDACION[1]], _ev_anom.Q.loc[EV_VALIDACION[0]:EV_VALIDACION[1]] * 0)
+ev_negativas = {m: t["validacion"]["negativas"] for m, t in ev_tabla.items()}
 ev_rmse_clima = ev_tabla["climatología mensual de Q"]["validacion"]["rmse"]
 # ¿sirve corregir PI con una regresión contra PL? (el proyecto decidió no corregirla)
 _ev_pl_ols, _ = _ev_ols("PI", "PL")
 ev_correccion = {"ols": _ev_metricas(_ev_val.PL, _ev_pl_ols.loc[_ev_val.index]),
                  "sin": _ev_metricas(_ev_val.PL, _ev_val.PI)}
 assert all(t["validacion"]["negativas"] == 0 for t in ev_tabla.values())   # el texto dice que no hay estimados negativos
+assert all(ev_anom[f]["rmse"] < ev_anom_cero["rmse"] for f in ("PL", "PI"))   # el texto dice que la lluvia anómala ayuda
 # el texto dice que corregir PI «casi no gana nada»: menos de un 10 % de mejora en el RMSE
 assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
 
@@ -853,6 +896,7 @@ VARIABLES_CORR = list(corr_vars.columns)
 corr_spearman = pd.read_csv("out/correlaciones_spearman.csv", index_col=0)
 corr_spearman_anom = pd.read_csv("out/correlaciones_spearman_anomalias.csv", index_col=0)
 corr_pearson = pd.read_csv("out/correlaciones_pearson.csv", index_col=0)
+corr_pearson_anom = pd.read_csv("out/correlaciones_pearson_anomalias.csv", index_col=0)
 # con un mes de rezago (16_correlaciones_variables.py): fila en el mes t+1, columna en el mes t
 corr_rezago = pd.read_csv("out/correlaciones_spearman_rezago1.csv", index_col=0)
 _completo = corr_vars.reindex(PERIODOS)

@@ -53,6 +53,11 @@ todo lo nuevo va a los scripts y al informe. Lo que tiene, por punto del taller:
 El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
 (2026-10-04).
 
+Después de congelar el notebook, lo nuevo está solo en el informe: años contrastantes y anomalías respecto al
+ciclo anual; **anomalías y anomalías estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis
+variables); y **tendencias de largo plazo** (registro completo de cada variable desde 1981 cuando existe: Q y
+temperatura; secuencia de meses y mes a mes, en X, a y z). Pendiente: la PL de 1981–1997 (descarga de DHIME).
+
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
 `scripts/18b_reporte_html.py`, con los cálculos de `scripts/18_calculos_informe.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
 figuras y Plotly van dentro (sin conexión, solo cambian las tipografías por otras de reemplazo). Cómo

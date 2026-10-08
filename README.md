@@ -96,7 +96,7 @@ Cómo bajarlo de Zenodo está en `DATOS_FUENTES.md`.
 - **El notebook está congelado** (2026-10-07): no se modifica. El informe **no** nombra los puntos del
   taller: usa títulos de sección.
 - **Figuras:** las fijas con matplotlib; las interactivas del informe con Plotly, incrustado en el HTML.
-- **Período 1998–2022**, el de IMERG. **Sujeto: San Gil**; las subcuencas solo si aportan.
+- **Período 1998–2022**, el de IMERG, para comparar variables y productos; **desde 1981, cuando exista**, para tendencias de largo plazo (regla 6). **Sujeto: San Gil**; las subcuencas solo si aportan.
 - **Punto decimal y espacio para los miles** (2 098.85).
 
 ## 5. Notación y decisiones vigentes

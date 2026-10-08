@@ -26,10 +26,19 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
    el mes se calcula. (El umbral empezó en un día y se amplió a cuatro el 2026-09-24, porque con el
    umbral estricto se perdía el 28 % de los meses de caudal de San Gil por faltantes dispersos.) Esta regla vale para toda serie diaria del proyecto (precipitación, caudal, lo que
    sea) y se aplica con la función `a_mensual` de los scripts, no reescribiéndola cada vez.
-6. **El período de estudio es 1998–2022**, unos 25 años. Es el período en que existe IMERG, que es la
-   fuente de precipitación principal. Toda serie se recorta a esa ventana antes de analizarla, y los
-   datos que existan fuera de ella (CAMELS-COL y los pluviómetros llegan hasta 1981) solo se usan si el
-   usuario lo pide explícitamente.
+6. **Dos períodos, según la pregunta** (1998–2022 decidido al comienzo; el registro largo, el 2026-10-07).
+   - **Para comparar variables y productos, 1998–2022**, unos 25 años: el período común, en que existe
+     IMERG. Toda comparación entre PI, PL, Q y temperatura, y todo lo que ya está en el informe, se hace en
+     esa ventana.
+   - **Para cambios de largo plazo (tendencias), el registro completo de cada variable desde 1981, cuando
+     exista.** Q de CAMELS-COL y los pluviómetros llegan hasta 1981; IMERG empieza en 1998 y no se extiende;
+     ERA5-Land hoy solo está descargado para 1998–2022. La menor duración de IMERG no recorta los otros
+     registros.
+   - En el registro largo se reportan las fechas, los meses válidos, los vacíos y los cambios de fuente de
+     cada serie; «serie completa» no significa rellenar faltantes. Los datos anteriores a 1998 no han pasado
+     por el control de calidad del proyecto (las exclusiones de la regla 11 cubren 1998–2022): antes de usarlos
+     se revisan, y lo que se decida se declara en el código.
+   - Las dos preguntas se distinguen en el informe: no se mezclan resultados de una ventana con los de la otra.
 7. **El sujeto de estudio es San Gil (24027010).** Salvo que el usuario pida lo contrario, todo el
    procesamiento y toda figura se hacen **solo para San Gil**. Las cinco subcuencas anidadas (Mérida,
    Nemizaque, Puente Llano, Puente Cabra, Puente Arco) son herramientas para entender a San Gil y se

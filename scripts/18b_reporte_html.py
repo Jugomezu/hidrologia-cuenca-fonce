@@ -81,6 +81,8 @@ CITA_NEWEY = '<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>'
 CITA_MANN = '<a class="cita" href="#ref-mann1945">Mann, 1945</a>'
 CITA_SEN = '<a class="cita" href="#ref-sen1968">Sen, 1968</a>'
 CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
+CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
+CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -528,6 +530,89 @@ tend_botones = "\n".join(
     f'{"Registro completo de cada variable" if per == "completo" else "Período común " + per}</button>'
     for i, per in enumerate(TEND_PERIODOS))
 
+# tendencias: tablas y datos de la comparación de métodos
+def _ic_txt(pend, ic, dec):
+    return f"{pend:+.{dec}f} ± {ic:.{dec}f}"
+
+
+def _p_neg(texto, p):
+    return f"<b>{texto}</b>" if p < TEND_ALFA else texto
+
+
+def _per_txt(f):
+    return f"{f['inicio'].year}–{f['fin'].year}"
+
+
+def _forma_txt(tramos):
+    if not tramos:
+        return "plana"
+    return ", ".join(f"{'sube' if s > 0 else 'baja'} {a:.0f}–{b:.0f}" for s, a, b in tramos)
+
+
+_met_ols, _met_np = [], []
+for (v, per), f in met_global.items():
+    d = ANZ_DEC[v] + 1
+    et = f"<b>{v}</b> <small>({LARGO_UNIDADES[v]})</small>"
+    cel = f"<td>{et}</td><td>{_per_txt(f)}</td><td class='num'>{f['n']}</td>"
+    o = {k: f[f"ols_{k}"] for k in ("X", "Xmes", "a", "z")}
+    _met_ols.append(
+        "<tr>" + cel
+        + f"<td class='num'>{_p_neg(_ic_txt(o['X']['pend'], o['X']['ic_hac'], d), o['X']['p_hac'])}</td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['Xmes']['pend'], o['Xmes']['ic_hac'], d), o['Xmes']['p_hac'])} <small>(p {_p_txt(o['Xmes']['p_hac'])})</small></td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['a']['pend'], o['a']['ic_hac'], d), o['a']['p_hac'])} <small>(clásico ± {o['a']['ic_cl']:.{d}f})</small></td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['z']['pend'], o['z']['ic_hac'], 3), o['z']['p_hac'])}</td>"
+        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td>"
+        + f"<td class='num'>{_p_txt(o['a']['p_sw'])}</td></tr>")
+    mx, ma = f["mk_X"], f["mk_a"]
+    sen_x = f"{mx['pend']:+.{d}f} [{mx['lo']:+.{d}f}, {mx['hi']:+.{d}f}]"
+    sen_a = f"{ma['pend']:+.{d}f} [{ma['lo']:+.{d}f}, {ma['hi']:+.{d}f}]"
+    _met_np.append(
+        "<tr>" + cel
+        + f"<td class='num'>{_p_neg(sen_x, mx['p'])} <small>(p {_p_txt(mx['p'])})</small></td>"
+        + f"<td class='num'>{_p_neg(sen_a, ma['p'])} <small>(p {_p_txt(ma['p'])}; sin corregir {_p_txt(ma['p_sin'])})</small></td>"
+        + f"<td>{f['loess_a']['cambio']:+.{d}f}: {_forma_txt(f['loess_a']['forma'])}</td>"
+        + f"<td class='num'>{f['seg']['dbic']:+.1f} <small>(mejor quiebre {f['seg']['tau']:.0f})</small></td></tr>")
+met_ols_filas, met_np_filas = "\n".join(_met_ols), "\n".join(_met_np)
+met_sens_filas = "\n".join(
+    f"<tr><td><b>{v}</b> <small>({LARGO_UNIDADES[v]})</small></td>"
+    + "".join(f"<td class='num'>{s[f'frac {fr}']['cambio']:+.{ANZ_DEC[v] + 1}f} <small>({s[f'frac {fr}']['tramos']} tramo{'s' if s[f'frac {fr}']['tramos'] != 1 else ''})</small></td>" for fr in MET_FRACS)
+    + f"<td class='num'>{s['extremos']:.{ANZ_DEC[v] + 1}f}</td><td class='num'>{s['borde_vs_centro']:.1f} veces</td></tr>"
+    for v, s in met_sens.items())
+met_mes_detalles = "\n".join(
+    f"<details class='plegable-mini'><summary><b>{v}</b> <small>({LARGO_UNIDADES[v]} por década)</small></summary>"
+    "<div class='tabla-caja'><table class='sin-destacar'><thead><tr><th>Mes</th><th class='num'>Años</th>"
+    "<th class='num'>OLS ± IC 95 %</th><th class='num'>p</th><th class='num'>Sen [IC 95 %]</th><th class='num'>p (MK)</th>"
+    "<th class='num'>r₁</th><th>LOESS</th></tr></thead><tbody>"
+    + "".join(
+        f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td><td class='num'>{r['n']} <small>({r['desde']}–{r['hasta']})</small></td>"
+        f"<td class='num'>{_p_neg(_ic_txt(r['ols'], r['ic'], ANZ_DEC[v] + 1), r['p'])}</td><td class='num'>{_p_txt(r['p'])}</td>"
+        f"<td class='num'>{r['sen']:+.{ANZ_DEC[v] + 1}f} [{r['sen_lo']:+.{ANZ_DEC[v] + 1}f}, {r['sen_hi']:+.{ANZ_DEC[v] + 1}f}]</td>"
+        f"<td class='num'>{_p_txt(r['p_mk'])}</td><td class='num'>{r['r1']:+.2f}{' *' if r['r1_signif'] else ''}</td>"
+        f"<td>{_forma_txt(r['forma'])}</td></tr>"
+        for m in range(1, 13) for r in [met_mes[(v, m)]])
+    + "</tbody></table></div></details>"
+    for v in LARGO_VARS)
+met_json = json.dumps({
+    v: {k: {"fechas": [f"{p.year}-{p.month:02d}-15" for p in met_curvas[(v, k)]["t"]],
+            "y": _serie_json({"X": largo[v], "a": anz_a[v], "z": anz_z[v]}[k].dropna(), 3),
+            "curva": [round(float(x), 4) for x in met_curvas[(v, k)]["curva"]],
+            "lo": [round(float(x), 4) for x in met_curvas[(v, k)]["lo"]],
+            "hi": [round(float(x), 4) for x in met_curvas[(v, k)]["hi"]],
+            "ols": [round(float(x), 4) for x in (lambda tt, yy: np.polyval(np.polyfit(tt, yy, 1), tt))(
+                _t_decimal(met_curvas[(v, k)]["t"]),
+                {"X": largo[v], "a": anz_a[v], "z": anz_z[v]}[k].dropna().to_numpy())]}
+        for k in ("X", "a", "z")}
+    for v in LARGO_VARS}, ensure_ascii=False)
+met_botones_var = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-met-v{i}" aria-controls="panel-met" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{v}</button>'
+    for i, v in enumerate(LARGO_VARS))
+met_botones_rep = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-met-r{i}" aria-controls="panel-met" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{nombre}</button>'
+    for i, nombre in enumerate(("anomalía a", "original X", "estandarizada z")))
+
+
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
     return "sin año completo" if v is None else f"{v:+.2f}"
@@ -606,6 +691,8 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .plegable > summary h2 {{ display: inline; margin: 0 0 12px; }}
 .plegable > summary h2::before {{ content: "▸"; display: inline-block; width: 1.1em; color: var(--acento); transition: transform .15s; }}
 .plegable[open] > summary h2::before {{ transform: rotate(90deg); }}
+.plegable-mini {{ margin: 8px 0; }}
+.plegable-mini > summary {{ cursor: pointer; font: 500 14px/1.4 var(--f-dato); padding: 4px 0; }}
 .plegable > summary:focus-visible {{ outline: 2px solid var(--acento); outline-offset: 4px; border-radius: 4px; }}
 .plegable-pista {{ font: 400 12px/1 var(--f-dato); color: var(--tenue); letter-spacing: .04em; }}
 .sin-destacar tbody tr:first-child td {{ background: none; font-weight: 400; }}
@@ -1738,39 +1825,113 @@ a {{ color: var(--acento); }}
   {largo_qc["mswx_salto"]:+.2f} °C después de {largo_qc["mswx_corte"]} (Pettitt p {_p_txt(largo_qc["mswx_p"])}). Sin un termómetro en la
   cuenca no se puede saber cuál de los dos productos tiene el salto; queda como incertidumbre de la tendencia de la temperatura.</p>
 
+  <h3>Tres maneras de medir una tendencia</h3>
+  <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>
+  <ul>
+    <li><b>Mínimos cuadrados (OLS)</b>, un ajuste <i>paramétrico</i>: X<sub>t</sub> = β₀ + β₁t + ε<sub>t</sub> (y lo mismo con a y z).
+    Da una recta y su pendiente β₁. Para la serie original se compara además con un ajuste con una constante por mes del
+    calendario (efectos estacionales), para que el ciclo anual no se confunda con tendencia.</li>
+    <li><b>Mann-Kendall con la pendiente de Sen</b> ({CITA_MANN}; {CITA_SEN}), una prueba <i>no paramétrica</i>: pregunta si
+    los valores tienden a crecer (o decrecer) con el tiempo, sin suponer una recta ni una distribución. «No paramétrico» no
+    quiere decir «no lineal»: también da una sola pendiente y no reconstruye una curva. Para la serie original, en su
+    variante estacional ({CITA_HIRSCH}), que compara cada mes solo con el mismo mes de otros años.</li>
+    <li><b>LOESS</b> ({CITA_LOESS}), una curva <i>no lineal</i>: una recta local que se va moviendo por el registro, con una
+    ventana del {MET_FRAC * 100:.0f} % de los datos. Muestra la forma (si sube, baja o se invierte), pero es una
+    <b>curva exploratoria</b>: su banda sale de un remuestreo, no de un modelo con una prueba formal. Como contraste, una
+    <b>regresión segmentada</b> prueba si hay evidencia de un cambio de pendiente.</li>
+  </ul>
+  <p>Todas las pendientes van <b>por década</b>, en las unidades de la variable (°C/década, m³/s por década, desviaciones
+  estándar por década en z). En la lluvia son el cambio del <b>acumulado mensual</b> (mm/mes por década), no del total
+  anual.</p>
+
   <h3>Todos los datos: la secuencia de meses</h3>
-  <p>La pendiente se ajusta a la secuencia de meses con su fecha real (aun con vacíos), por mínimos cuadrados (OLS).
-  En la serie original se controla la estacionalidad con una constante por mes del calendario, para que el ciclo anual
-  no se confunda con tendencia; a y z ya no lo tienen. Como los meses vecinos se parecen, el error de la pendiente se
-  corrige por autocorrelación ({CITA_NEWEY}, {TEND_REZAGOS} meses). Como contraste se usa la prueba de Mann-Kendall
-  ({CITA_MANN}) con la pendiente de Sen ({CITA_SEN}), en la serie original en su versión estacional ({CITA_HIRSCH}).</p>
+  <p><b>Diagnóstico de los residuos.</b> En las {len([1 for (v, per) in met_global if per == "completo"])} variables, los residuos del
+  ajuste están autocorrelacionados (prueba de Ljung-Box con {MET_LB_REZAGOS} rezagos, p &lt; {TEND_ALFA}): un mes húmedo suele
+  seguir a otro. {"No hay cambios de dispersión con el tiempo en el registro completo" if not met_hetero else "La dispersión cambia con el tiempo en " + ", ".join(met_hetero)}
+  (Breusch-Pagan), y varios residuos no son normales (Shapiro-Wilk). Con dependencia, el error estándar usual
+  subestima la incertidumbre, así que la inferencia se apoya en el de <b>Newey-West</b> ({CITA_NEWEY}), robusto a
+  autocorrelación y heterocedasticidad: su intervalo es, en la mediana, {met_hac_mas_ancho:.1f} veces el usual. En
+  Mann-Kendall, la p de la serie original sale de <b>permutar años completos</b> ({MET_REMUESTREOS} veces: los doce meses de
+  un año viajan juntos, lo que conserva la dependencia dentro del año) y en a y z se corrige la varianza por
+  autocorrelación ({CITA_HAMED}).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: OLS con meses</th>
-    <th class="num">X: Sen estacional</th><th class="num">a: OLS</th><th class="num">z: OLS (s/década)</th></tr></thead>
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: OLS</th>
+    <th class="num">X: OLS con meses</th><th class="num">a: OLS</th><th class="num">z: OLS</th>
+    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th><th class="num">Shapiro-Wilk p</th></tr></thead>
     <tbody>
-{tend_filas}
+{met_ols_filas}
     </tbody>
   </table>
   </div>
-  <p class="nota">Pendientes por década, en las unidades de cada variable salvo z. En negrita, p &lt; {TEND_ALFA}.</p>
+  <p class="nota">OLS: pendiente por década ± intervalo de 95 % con el error de Newey-West ({TEND_REZAGOS} meses); en a, también el
+  intervalo usual, para compararlo. Diagnóstico sobre los residuos del ajuste de a. En negrita, p &lt; {TEND_ALFA}.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: Sen estacional [IC 95 %]</th>
+    <th class="num">a: Sen [IC 95 %]</th><th>LOESS de a: cambio y forma</th><th class="num">Segmentada: ΔBIC</th></tr></thead>
+    <tbody>
+{met_np_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sen estacional: IC remuestreando años completos y p permutándolos. Sen de a: IC de Kendall y p con la corrección de
+  Hamed y Rao (entre paréntesis, la p sin corregir). LOESS: cambio entre el comienzo y el final de la curva y sus tramos
+  (se ignoran ondulaciones menores que {MET_UMBRAL_FORMA:.2f} s<sub>j</sub>). ΔBIC positivo favorece un quiebre de pendiente; se
+  exige más de {MET_DELTA_BIC}.</p>
+  <div class="pestanas" role="tablist" aria-label="Qué variable">
+{met_botones_var}
+  </div>
+  <div class="pestanas" role="tablist" aria-label="Qué representación">
+{met_botones_rep}
+  </div>
+  <div role="tabpanel" id="panel-met" aria-labelledby="pestana-met-v0">
+    <div id="g-met" class="grafico" style="min-height:0; height:380px"></div>
+  </div>
+  <p class="nota">Registro completo de cada variable. Gris: los meses. Línea discontinua: la recta OLS. Línea y banda de color:
+  la curva LOESS y su banda de 95 % (remuestreo de residuos por bloques de {MET_BLOQUE} meses).</p>
   <ul>
-    <li><b>{"La temperatura sube" if tend_t_sube else "La temperatura no muestra una subida clara"}</b>
-    {f"en las tres series desde {LARGO_DESDE[:4]}: {tend_todos[('T mín', 'completo')]['a']['ols']:+.2f}, {tend_todos[('T media', 'completo')]['a']['ols']:+.2f} y {tend_todos[('T máx', 'completo')]['a']['ols']:+.2f} °C por década en la mínima, la media y la máxima, con las dos pruebas" if tend_t_sube else ""}.
-    En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} solo, con la mitad de los años, la señal es más débil y las dos pruebas no
-    siempre coinciden: Mann-Kendall supone meses independientes y por eso tiende a dar significativo antes que la
-    OLS corregida.</li>
-    <li><b>PL baja {abs(tend_todos[('PL', 'completo')]['X']['ols']):.0f} mm/mes por década</b>, significativo con Mann-Kendall
-    (p {_p_txt(tend_todos[('PL', 'completo')]['X']['p_mk'])}) pero no con la OLS corregida (p {_p_txt(tend_todos[('PL', 'completo')]['X']['p'])}).
-    Y buena parte la explica Pueblo Viejo, que baja un {abs(an_seg.loc["PL · Pueblo Viejo", "cambio_pct"]):.0f} % su nivel desde {fmt_mes(pd.Period(an_seg.loc["PL · Pueblo Viejo", "primer_mes_despues"], "M"))} (anotado como incierto en el registro de anomalías): sin él, la pendiente queda en
-    {tend_pl_sin_pv["ols"]:+.1f} mm/mes por década y ninguna prueba la da significativa (p {_p_txt(tend_pl_sin_pv["p"])} y
-    {_p_txt(tend_pl_sin_pv["p_mk"])}). <b>No hay evidencia firme de que la lluvia cambie</b>; PI tampoco muestra tendencia.</li>
-    <li><b>Q no tiene tendencia</b>, ni en el registro completo ni en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}.</li>
+    <li><b>La temperatura sube</b> en las tres series desde {LARGO_DESDE[:4]}, y los tres métodos coinciden: OLS
+    {met_global[("T media", "completo")]["ols_a"]["pend"]:+.2f} ± {met_global[("T media", "completo")]["ols_a"]["ic_hac"]:.2f} °C/década en la media
+    (Newey-West), Sen {met_global[("T media", "completo")]["mk_a"]["pend"]:+.2f}, y una curva LOESS que sube sin
+    invertirse en todo el registro. Ninguna variable muestra evidencia de un cambio de pendiente (ΔBIC menor que
+    {MET_DELTA_BIC} en todas): una subida gradual describe los datos tan bien como una con quiebre. En
+    {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} solo, la señal es más débil y depende del método: con la mitad de los años, el
+    intervalo se abre y la curva LOESS ondula.</li>
+    <li><b>PL baja {abs(met_global[("PL", "completo")]["ols_a"]["pend"]):.0f} mm/mes por década, pero ningún método que tenga en
+    cuenta la dependencia entre meses lo da significativo</b>: OLS con Newey-West (p {_p_txt(met_global[("PL", "completo")]["ols_Xmes"]["p_hac"])}),
+    Sen estacional permutando años (p {_p_txt(met_global[("PL", "completo")]["mk_X"]["p"])}) y Mann-Kendall corregido en a
+    (p {_p_txt(met_global[("PL", "completo")]["mk_a"]["p"])}). Solo las versiones sin corregir lo dan significativo
+    (p {_p_txt(met_global[("PL", "completo")]["mk_a"]["p_sin"])} en a): es el error que se comete al suponer meses independientes.
+    Además, buena parte de la caída la explica Pueblo Viejo, que baja un {abs(an_seg.loc["PL · Pueblo Viejo", "cambio_pct"]):.0f} %
+    su nivel desde {fmt_mes(pd.Period(an_seg.loc["PL · Pueblo Viejo", "primer_mes_despues"], "M"))} (anotado como incierto en el registro de anomalías): sin él, la pendiente queda en
+    {tend_pl_sin_pv["ols"]:+.1f} mm/mes por década (p {_p_txt(tend_pl_sin_pv["p"])}). Y su curva LOESS cambia de forma según la ventana
+    (ver la sensibilidad abajo). <b>No hay evidencia firme de que la lluvia cambie</b>; PI tampoco muestra tendencia.</li>
+    <li><b>Q no tiene tendencia</b> con ningún método, ni en el registro completo ni en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Sus
+    curvas LOESS ondulan (baja, sube y vuelve a bajar), pero esas ondas cambian con la ventana y caben dentro de la banda:
+    no se deben leer como cambios físicos.</li>
   </ul>
-  <p>En la secuencia de meses, la pendiente de X (con una constante por mes) y la de a difieren a lo sumo un
-  {tend_dif_x_a:.1f} %: no son idénticas porque µ<sub>j</sub> sale de {ANZ_REFERENCIA[0].year}–{ANZ_REFERENCIA[1].year} y los
-  vacíos no caen parejo en todos los meses. La de z cambia de escala y de peso entre meses, pero lleva a la misma
-  conclusión: <b>las tres representaciones no son tres pruebas independientes</b>, sino la misma información.</p>
+  <p>Entre la serie original sin y con constantes por mes, y frente a a, la pendiente casi no cambia (en a y X con meses
+  difieren a lo sumo un {tend_dif_x_a:.1f} %). Lo que sí cambia es la incertidumbre: sin controlar el mes, el ciclo anual queda en
+  el residuo y ensancha el intervalo. a y z no son evidencias aparte: son la misma información en otra escala.</p>
+
+  <h3>Sensibilidad de la curva LOESS</h3>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th>{"".join(f"<th class='num'>Ventana {fr * 100:.0f} %</th>" for fr in MET_FRACS)}
+    <th class="num">Efecto de los extremos</th><th class="num">Banda en los bordes</th></tr></thead>
+    <tbody>
+{met_sens_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sobre a, registro completo. Ventanas: cambio entre el comienzo y el final de la curva, y número de tramos de subida o
+  bajada. Extremos: la mayor diferencia entre la curva con y sin las iteraciones robustas, que bajan el peso de los meses
+  extremos. Bordes: ancho medio de la banda en el primer y último 10 % del registro, frente al del centro.</p>
+  <p>En la temperatura, la subida sale con las tres ventanas y casi no la mueven los meses extremos. En la lluvia y en Q, el
+  número de tramos y hasta el signo del cambio dependen de la ventana: esas ondulaciones son de la suavización, no de los
+  datos. En los bordes la banda es más ancha, porque allí la curva se apoya en datos de un solo lado: los extremos de una
+  curva LOESS son su parte menos confiable, y nada de ella se extrapola fuera del período observado.</p>
 
   <h3>Mes a mes: las doce subseries</h3>
   <p>Cada mes del calendario se toma por separado (todos los eneros, todos los febreros…) y se ajusta su pendiente a
@@ -1792,6 +1953,13 @@ a {{ color: var(--acento); }}
   unos {tend_esperados_azar:.1f} meses significativos solo por azar. <b>{", ".join(v for v in ("T mín", "T media", "T máx") if tend_conteo[(v, "completo")]["p_azar"] < TEND_ALFA)}</b>
   superan con creces ese número: el calentamiento se reparte en muchos meses del año. En la lluvia y en Q, los
   meses significativos {"no superan" if all(tend_conteo[(v, "completo")]["p_azar"] >= TEND_ALFA for v in ("PL", "PI", "Q")) else "apenas superan"} lo que daría el azar.</p>
+  <p><b>Cada subserie, con los tres métodos.</b> Todas tienen al menos {min(r["n"] for r in met_mes.values())} años, suficientes para una
+  recta y para Mann-Kendall; la curva LOESS (ventana del {MET_FRAC_MES * 100:.0f} %) se muestra solo como descripción de la forma,
+  porque con 20 a 42 puntos cualquier ondulación es frágil. Dependencia: de un año al siguiente casi no hay (autocorrelación
+  de lag 1 significativa en {met_mes_r1} de {len(met_mes)} subseries, marcadas con *), así que en cada mes se usan la OLS y el
+  Mann-Kendall usuales, con el intervalo de Sen de Kendall. Varias subseries de la lluvia y de Q suben y después bajan (o al
+  revés): una sola pendiente puede ocultar esas inversiones, pero con tan pocos años no hay base para darlas por cambios reales.</p>
+{met_mes_detalles}
   </div>
 </section>
 
@@ -1969,9 +2137,15 @@ a {{ color: var(--acento); }}
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
+    <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
+    <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
+    <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
+    autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
+    <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>
     <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
     temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
     <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
@@ -2584,6 +2758,45 @@ a {{ color: var(--acento); }}
     }}));
   }});
 
+  const MET = {met_json};
+  let metVar = 0, metRep = 0;
+  const MET_REPS = ["a", "X", "z"];
+
+  function dibujarMetodos() {{
+    if (!window.Plotly) return;
+    const v = Object.keys(MET)[metVar], k = MET_REPS[metRep];
+    const D = MET[v][k];
+    const color = ANZ_COLOR[v];
+    const trazas = [
+      {{ type: "scatter", mode: "lines", name: "meses", x: D.fechas, y: D.y, line: {{ color: css("--tenue"), width: 0.8 }},
+         opacity: 0.6, hovertemplate: "%{{y}}<extra>" + v + " · " + k + "</extra>" }},
+      {{ type: "scatter", mode: "lines", x: D.fechas, y: D.hi, line: {{ width: 0 }}, showlegend: false, hoverinfo: "skip" }},
+      {{ type: "scatter", mode: "lines", name: "banda LOESS 95 %", x: D.fechas, y: D.lo, fill: "tonexty",
+         fillcolor: color + "33", line: {{ width: 0 }}, hoverinfo: "skip" }},
+      {{ type: "scatter", mode: "lines", name: "LOESS", x: D.fechas, y: D.curva, line: {{ color: color, width: 2.6 }},
+         hovertemplate: "%{{y:.2f}}<extra>LOESS</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "recta OLS", x: D.fechas, y: D.ols,
+         line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, hoverinfo: "skip" }}
+    ];
+    const d = base();
+    d.hovermode = "x";
+    d.margin = {{ t: 46, r: 10, b: 36, l: 62 }};
+    d.xaxis.type = "date";
+    d.yaxis.rangemode = "normal";
+    d.yaxis.title.text = k === "z" ? "z" : k + " (" + ANZ.unidades[v] + ")";
+    Plotly.react("g-met", trazas, d, CONF);
+  }}
+
+  [["pestana-met-v", Object.keys(MET).length, i => {{ metVar = i; dibujarMetodos(); }}],
+   ["pestana-met-r", 3, i => {{ metRep = i; dibujarMetodos(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+    const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      accion(i);
+    }}));
+  }});
+
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
 
@@ -2803,6 +3016,7 @@ a {{ color: var(--acento); }}
     dibujarAnomalias();
     dibujarAnz();
     dibujarTendMes();
+    dibujarMetodos();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

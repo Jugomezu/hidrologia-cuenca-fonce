@@ -836,7 +836,7 @@ a {{ color: var(--acento); }}
 
   <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
   <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
-  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
+  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido; ver «Comparando PI con PL»), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
   con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
   {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
   que la altitud sola no explica.</p>

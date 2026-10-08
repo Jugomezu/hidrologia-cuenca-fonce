@@ -2104,3 +2104,106 @@ assert all(r["p_residuos"] >= TEND_ALFA for r in salto.values())
 assert all(salto[v]["empate"] for v in salto_con_corte)
 assert all(r["p"] >= TEND_ALFA and r["p_perm"] >= TEND_ALFA for v, r in salto.items() if v not in salto_con_corte)
 assert all(not (1993 <= salto[v]["anio_corte"] <= 1996) for v in ("T mín", "T media", "T máx"))
+
+
+# ---------------------------------------------------------------- tendencias: incertidumbre y relevancia
+# (1) Comparaciones múltiples. La familia de pruebas es la de las 12 subseries mensuales de cada variable, en su
+# registro completo (decidido con el usuario): con 12 pruebas por variable, algún mes saldría significativo solo
+# por azar. Se controla la tasa de falsos descubrimientos (FDR) con Benjamini y Hochberg (1995), con
+# INC_Q_FDR = 0.05, por separado para la OLS y para Mann-Kendall.
+INC_Q_FDR = 0.05
+
+
+def _benjamini_hochberg(p):
+    """q-valores de Benjamini-Hochberg: un mes es significativo si su q es menor que INC_Q_FDR."""
+    p = np.asarray(p, dtype=float)
+    n = len(p)
+    orden = np.argsort(p)
+    ajustado = p[orden] * n / np.arange(1, n + 1)
+    ajustado = np.minimum.accumulate(ajustado[::-1])[::-1]
+    q = np.empty(n)
+    q[orden] = np.minimum(ajustado, 1)
+    return q
+
+
+inc_fdr = {}
+for _v in LARGO_VARS:
+    _q = _benjamini_hochberg([met_mes[(_v, m)]["p"] for m in range(1, 13)])
+    _q_mk = _benjamini_hochberg([met_mes[(_v, m)]["p_mk"] for m in range(1, 13)])
+    for _m in range(1, 13):
+        met_mes[(_v, _m)]["q"], met_mes[(_v, _m)]["q_mk"] = float(_q[_m - 1]), float(_q_mk[_m - 1])
+    inc_fdr[_v] = {"sin": [m for m in range(1, 13) if met_mes[(_v, m)]["p"] < TEND_ALFA],
+                   "ols": [m for m in range(1, 13) if met_mes[(_v, m)]["q"] < INC_Q_FDR],
+                   "mk": [m for m in range(1, 13) if met_mes[(_v, m)]["q_mk"] < INC_Q_FDR]}
+inc_fdr_sobreviven = [v for v in LARGO_VARS if inc_fdr[v]["ols"]]
+
+
+# (2) Banda de 95 % de la recta OLS (error de Newey-West) para la gráfica de series: var(ŷ) = x'Vx en cada punto.
+def _ols_hac_cov(y, X, rezagos):
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    e = y - X @ beta
+    xtx_inv = np.linalg.inv(X.T @ X)
+    u = X * e[:, None]
+    s = u.T @ u
+    for l in range(1, rezagos + 1):
+        g = u[l:].T @ u[:-l]
+        s += (1 - l / (rezagos + 1)) * (g + g.T)
+    return beta, xtx_inv @ s @ xtx_inv
+
+
+for (_v, _k), _c in met_curvas.items():
+    _y = {"X": largo[_v], "a": anz_a[_v], "z": anz_z[_v]}[_k].dropna()
+    _X = np.column_stack([np.ones(len(_y)), _t_decimal(_y.index)])
+    _b, _V = _ols_hac_cov(_y.to_numpy(), _X, TEND_REZAGOS)
+    _ajuste = _X @ _b
+    _ancho = 1.96 * np.sqrt(np.einsum("ij,jk,ik->i", _X, _V, _X))
+    _c.update(ols_recta=_ajuste, ols_lo=_ajuste - _ancho, ols_hi=_ajuste + _ancho)
+
+
+# (3) Significancia contra relevancia.
+# a) «No significativo» no es «sin cambio»: el intervalo de 95 % dice cuánto cambio no se puede descartar. Se da en
+#    las unidades de la variable por década y como porcentaje de su media.
+inc_no_descartable = {}
+for _v in ("PL*", "PI", "Q"):
+    _f = met_global[(_v, "completo")]["ols_Xmes"]
+    _media = float(largo[_v].mean())
+    inc_no_descartable[_v] = {"lo": _f["pend"] - _f["ic_hac"], "hi": _f["pend"] + _f["ic_hac"], "media": _media,
+                              "lo_pct": (_f["pend"] - _f["ic_hac"]) / _media * 100,
+                              "hi_pct": (_f["pend"] + _f["ic_hac"]) / _media * 100}
+# b) «Significativo» no es «importante»: cuánto cambia la ETP de Hargreaves con el calentamiento observado. La fórmula
+#    es la de scripts/06b: ETP = 0.0023 · Ra · (T + 17.8) · √(Tmáx − Tmín), con T = (Tmáx + Tmín) / 2. Con Ra fija, su
+#    cambio relativo es ΔT / (T + 17.8) + Δ(Tmáx − Tmín) / (2 · (Tmáx − Tmín)) (primer orden), con las pendientes por
+#    década del registro completo. Se compara con la ETP anual media y con lo que la lluvia (PL*) no permite descartar.
+_etp = pd.read_csv("out/etp_hargreaves_fonce.csv", parse_dates=["fecha"]).set_index("fecha")["etp_era5land"]
+inc_etp_anual = float(_etp.groupby(_etp.index.year).sum().mean())
+_tm = float(((_era_largo["t_max"] + _era_largo["t_min"]) / 2).mean())
+_td = float((_era_largo["t_max"] - _era_largo["t_min"]).mean())
+_d_tm = (met_global[("T máx", "completo")]["ols_Xmes"]["pend"] + met_global[("T mín", "completo")]["ols_Xmes"]["pend"]) / 2
+_d_td = met_global[("T máx", "completo")]["ols_Xmes"]["pend"] - met_global[("T mín", "completo")]["ols_Xmes"]["pend"]
+inc_etp_rel = _d_tm / (_tm + 17.8) + _d_td / (2 * _td)
+inc_etp_decada = inc_etp_anual * inc_etp_rel                  # mm/año por década
+inc_etp_registro = inc_etp_decada * (largo_registro["T media"]["meses"] / 120)
+inc_pl_anual_ic = met_global[("PL*", "completo")]["ols_Xmes"]["ic_hac"] * 12      # mm/año por década
+inc_etp = {"anual": inc_etp_anual, "rel_pct": inc_etp_rel * 100, "decada": inc_etp_decada,
+           "registro": inc_etp_registro, "d_tm": _d_tm, "d_td": _d_td, "pl_ic_anual": inc_pl_anual_ic}
+# lo que el texto afirma
+assert inc_etp["decada"] > 0 and inc_etp["decada"] < inc_etp["pl_ic_anual"]
+assert all(r["lo"] < 0 < r["hi"] for r in inc_no_descartable.values())
+# Los meses de la lluvia que sobreviven al FDR: qué tan robustos son. Para cada uno, cuántas estaciones de la red fija
+# suben ese mes, la p más alta al quitar un año a la vez (¿lo explica un solo año?), el promedio por década, y qué
+# hacen PI y Q en el mismo mes.
+inc_lluvia_fdr = {}
+for _m in inc_fdr["PL*"]["ols"]:
+    _x = largo["PL*"][largo.index.month == _m].dropna()
+    _t, _y = _x.index.year.to_numpy().astype(float), _x.to_numpy()
+    _jk = max(stats.linregress(np.delete(_t, i), np.delete(_y, i)).pvalue for i in range(len(_y)))
+    _est = pl_estrella_matriz[pl_estrella_matriz.index.month == _m]
+    _suben = sum(stats.linregress(_est[c].dropna().index.year.astype(float), _est[c].dropna().to_numpy()).slope > 0
+                 for c in _est.columns)
+    _dec = {d: float(_y[(_t >= d) & (_t < d + 10)].mean()) for d in range(1981, 2021, 10) if ((_t >= d) & (_t < d + 10)).any()}
+    inc_lluvia_fdr[_m] = {"pend": met_mes[("PL*", _m)]["ols"], "q": met_mes[("PL*", _m)]["q"], "p_jk": _jk,
+                          "suben": int(_suben), "estaciones": len(_est.columns), "decadas": _dec,
+                          "pi": met_mes[("PI", _m)], "q_mes": met_mes[("Q", _m)]}
+assert set(inc_fdr["PL*"]["ols"]) == {3} and not inc_fdr["PI"]["ols"] and not inc_fdr["Q"]["ols"]
+assert all(r["p_jk"] < TEND_ALFA and r["suben"] == r["estaciones"] and r["pi"]["ols"] > 0 and r["q_mes"]["p"] >= TEND_ALFA
+           for r in inc_lluvia_fdr.values())

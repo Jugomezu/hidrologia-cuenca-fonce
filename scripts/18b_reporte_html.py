@@ -83,6 +83,7 @@ CITA_SEN = '<a class="cita" href="#ref-sen1968">Sen, 1968</a>'
 CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
+CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -599,9 +600,9 @@ met_json = json.dumps({
             "curva": [round(float(x), 4) for x in met_curvas[(v, k)]["curva"]],
             "lo": [round(float(x), 4) for x in met_curvas[(v, k)]["lo"]],
             "hi": [round(float(x), 4) for x in met_curvas[(v, k)]["hi"]],
-            "ols": [round(float(x), 4) for x in (lambda tt, yy: np.polyval(np.polyfit(tt, yy, 1), tt))(
-                _t_decimal(met_curvas[(v, k)]["t"]),
-                {"X": largo[v], "a": anz_a[v], "z": anz_z[v]}[k].dropna().to_numpy())]}
+            "ols": [round(float(x), 4) for x in met_curvas[(v, k)]["ols_recta"]],
+            "ols_lo": [round(float(x), 4) for x in met_curvas[(v, k)]["ols_lo"]],
+            "ols_hi": [round(float(x), 4) for x in met_curvas[(v, k)]["ols_hi"]]}
         for k in ("X", "a", "z")}
     for v in LARGO_VARS}, ensure_ascii=False)
 met_botones_var = "\n".join(
@@ -647,6 +648,36 @@ salto_filas = "\n".join(
     f"<td class='num'>{r['antes']:+.{ANZ_DEC[v] + 1}f} → {r['despues']:+.{ANZ_DEC[v] + 1}f}</td>"
     f"<td class='num'>{_p_txt(r['p_residuos'])}</td>"
     f"<td>{(r['mejor'] + (' (empate)' if r['empate'] else '')) if v in salto_con_corte else '—'}</td></tr>" for v, r in salto.items())
+
+# tendencias: pendientes de los 12 meses con sus intervalos (gráfico), FDR
+pend_json = json.dumps({
+    v: {"unidad": RES_UNIDAD_DECADA[v],
+        "ols": [round(met_mes[(v, m)]["ols"], 4) for m in range(1, 13)],
+        "ic": [round(met_mes[(v, m)]["ic"], 4) for m in range(1, 13)],
+        "sen": [round(met_mes[(v, m)]["sen"], 4) for m in range(1, 13)],
+        "sen_lo": [round(met_mes[(v, m)]["sen_lo"], 4) for m in range(1, 13)],
+        "sen_hi": [round(met_mes[(v, m)]["sen_hi"], 4) for m in range(1, 13)],
+        "q": [round(met_mes[(v, m)]["q"], 4) for m in range(1, 13)],
+        "q_mk": [round(met_mes[(v, m)]["q_mk"], 4) for m in range(1, 13)]}
+    for v in LARGO_VARS}, ensure_ascii=False)
+pend_botones = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-pend-v{i}" aria-controls="panel-pend" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{v}</button>'
+    for i, v in enumerate(LARGO_VARS))
+_mes_lista = lambda ms: ", ".join(MESES_LARGOS_ES[m - 1] for m in ms) if ms else "ninguno"
+fdr_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td><td>{len(inc_fdr[v]['sin'])}</td><td><b>{len(inc_fdr[v]['ols'])}</b> "
+    f"<small>({_mes_lista(inc_fdr[v]['ols'])})</small></td><td>{len(inc_fdr[v]['mk'])}</td></tr>" for v in LARGO_VARS)
+
+marzo_html = "".join(
+    f"  <p><b>{MESES_LARGOS_ES[m - 1].capitalize()} es el único mes de la lluvia que resiste la corrección</b>: con PL*, "
+    f"{r['pend']:+.0f} mm/mes por década (q = {r['q']:.3f}). Sube en las {r['suben']} estaciones de la red fija, ningún año "
+    f"suelto lo explica (quitando cualquiera, p ≤ {r['p_jk']:.4f}) y su promedio crece década tras década ("
+    + ", ".join(f"{d}–{d + 9}: {n(v)} mm" for d, v in r['decadas'].items())
+    + f"). PI apunta en el mismo sentido ({r['pi']['ols']:+.0f} mm/mes por década, p {_p_txt(r['pi']['p'])}), pero con "
+    f"{r['pi']['n']} años no resiste la corrección; el caudal de {MESES_LARGOS_ES[m - 1]} no lo acompaña "
+    f"({r['q_mes']['ols']:+.1f} m³/s por década, p {_p_txt(r['q_mes']['p'])}).</p>"
+    for m, r in inc_lluvia_fdr.items())
 
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
@@ -2162,15 +2193,33 @@ a {{ color: var(--acento); }}
     <div id="g-tend-mes" class="grafico" style="min-height:0; height:380px"></div>
   </div>
   <p class="nota">Color: pendiente de z por década (en desviaciones estándar, para comparar variables). Con asterisco,
-  p &lt; {TEND_ALFA} (OLS). Al pasar el cursor, la pendiente en las unidades de la variable.</p>
+  p &lt; {TEND_ALFA} (OLS), sin corregir por comparaciones múltiples (la corrección va abajo). Al pasar el cursor, la pendiente en las unidades de la variable.</p>
   <p><b>Dentro de un mismo mes y con la misma muestra, restar µ<sub>j</sub> no cambia la pendiente y dividir por
   s<sub>j</sub> solo la cambia de escala; la p es la misma en las tres representaciones.</b> El script lo comprueba en las
   {len(LARGO_VARS) * 12 * len(TEND_PERIODOS)} subseries y se detiene si no se cumple. Por eso el mapa muestra solo z: X y a
   dirían lo mismo en otra escala.</p>
-  <p>Meses con tendencia significativa en el registro completo: {tend_conteo_txt}. Con doce pruebas por variable, se esperan
-  unos {tend_esperados_azar:.1f} meses significativos solo por azar. <b>{", ".join(v for v in ("T mín", "T media", "T máx") if tend_conteo[(v, "completo")]["p_azar"] < TEND_ALFA)}</b>
-  superan con creces ese número: el calentamiento se reparte en muchos meses del año. En la lluvia y en Q, los
-  meses significativos {"no superan" if all(tend_conteo[(v, "completo")]["p_azar"] >= TEND_ALFA for v in ("PL*", "PI", "Q")) else "apenas superan"} lo que daría el azar.</p>
+  <p><b>Corrigiendo por comparaciones múltiples, la temperatura sigue subiendo en muchos meses del año y la lluvia solo
+  en marzo.</b> Con doce pruebas por variable, algún mes saldría significativo solo por azar; por eso se controla la tasa de
+  falsos descubrimientos con Benjamini y Hochberg ({CITA_BH}), tomando como familia las 12 subseries de cada variable
+  (q &lt; {INC_Q_FDR}).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Meses con p &lt; {TEND_ALFA} (sin corregir)</th><th>Con FDR (OLS)</th>
+    <th>Con FDR (Mann-Kendall)</th></tr></thead>
+    <tbody>
+{fdr_filas}
+    </tbody>
+  </table>
+  </div>
+{marzo_html}
+  <div class="pestanas" role="tablist" aria-label="Qué variable">
+{pend_botones}
+  </div>
+  <div role="tabpanel" id="panel-pend" aria-labelledby="pestana-pend-v0">
+    <div id="g-pend-mes" class="grafico" style="min-height:0; height:380px"></div>
+  </div>
+  <p class="nota">Pendiente por década de cada mes, en las unidades de la variable, con su intervalo de 95 %: círculo, OLS;
+  rombo, Sen. Relleno: significativa después de la corrección FDR (q &lt; {INC_Q_FDR}); hueco: no.</p>
   <p><b>Cada subserie, con los tres métodos.</b> Todas tienen al menos {min(r["n"] for r in met_mes.values())} años, suficientes para una
   recta y para Mann-Kendall; la curva LOESS (ventana del {MET_FRAC_MES * 100:.0f} %) se muestra solo como descripción de la forma,
   porque con 20 a 42 puntos cualquier ondulación es frágil. Dependencia: de un año al siguiente casi no hay (autocorrelación
@@ -2178,6 +2227,23 @@ a {{ color: var(--acento); }}
   Mann-Kendall usuales, con el intervalo de Sen de Kendall. Varias subseries de la lluvia y de Q suben y después bajan (o al
   revés): una sola pendiente puede ocultar esas inversiones, pero con tan pocos años no hay base para darlas por cambios reales.</p>
 {met_mes_detalles}
+
+  <h3>Significativo no es lo mismo que importante</h3>
+  <p><b>«No significativo» no quiere decir «sin cambio».</b> El intervalo dice cuánto cambio no se puede descartar: en la
+  lluvia de PL*, entre {inc_no_descartable["PL*"]["lo"]:+.1f} y {inc_no_descartable["PL*"]["hi"]:+.1f} mm/mes por década
+  ({inc_no_descartable["PL*"]["lo_pct"]:+.1f} % a {inc_no_descartable["PL*"]["hi_pct"]:+.1f} % de su media); en PI, entre
+  {inc_no_descartable["PI"]["lo"]:+.1f} y {inc_no_descartable["PI"]["hi"]:+.1f}; en Q, entre {inc_no_descartable["Q"]["lo"]:+.2f} y
+  {inc_no_descartable["Q"]["hi"]:+.2f} m³/s por década ({inc_no_descartable["Q"]["lo_pct"]:+.1f} % a {inc_no_descartable["Q"]["hi_pct"]:+.1f} %).
+  Lo que se puede afirmar es que, si la lluvia o el caudal cambian, cambian menos que eso.</p>
+  <p><b>«Significativo» no quiere decir «hidrológicamente importante».</b> El calentamiento sí es significativo, pero en la
+  fórmula de Hargreaves de la ETP ({CITA_FAO}) significa un {inc_etp["rel_pct"]:.2f} % más por década: unos
+  {inc_etp["decada"]:.1f} mm/año sobre {n(inc_etp["anual"])} mm/año, o {inc_etp["registro"]:.0f} mm/año en todo el registro. Es
+  menos que lo que la lluvia puede estar cambiando sin que se note (±{inc_etp["pl_ic_anual"]:.0f} mm/año por década con PL*):
+  hoy, el efecto del calentamiento en el balance de agua de la cuenca es pequeño frente a la incertidumbre de la lluvia.</p>
+  <p class="nota">ETP de Hargreaves como en <code>scripts/06b</code>, con la radiación fija; su cambio relativo se calcula a primer
+  orden con las pendientes por década del punto medio de la temperatura ({inc_etp["d_tm"]:+.2f} °C) y de la amplitud diaria
+  ({inc_etp["d_td"]:+.2f} °C). La ETP anual es la media de {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Los mm/mes de la lluvia se pasan a
+  mm/año multiplicando por 12.</p>
 </section>
 
 <section>
@@ -2239,6 +2305,9 @@ a {{ color: var(--acento); }}
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
+    <li id="ref-benjamini1995">Benjamini, Y., y Hochberg, Y. (1995). Controlling the false discovery rate: a practical and
+    powerful approach to multiple testing. <i>Journal of the Royal Statistical Society Series B</i>, 57(1), 289–300.
+    <a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x">https://doi.org/10.1111/j.2517-6161.1995.tb02031.x</a></li>
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
@@ -2934,6 +3003,9 @@ a {{ color: var(--acento); }}
          fillcolor: color + "33", line: {{ width: 0 }}, hoverinfo: "skip" }},
       {{ type: "scatter", mode: "lines", name: "LOESS", x: D.fechas, y: D.curva, line: {{ color: color, width: 2.6 }},
          hovertemplate: "%{{y:.2f}}<extra>LOESS</extra>" }},
+      {{ type: "scatter", mode: "lines", x: D.fechas, y: D.ols_hi, line: {{ width: 0 }}, showlegend: false, hoverinfo: "skip" }},
+      {{ type: "scatter", mode: "lines", name: "banda OLS 95 %", x: D.fechas, y: D.ols_lo, fill: "tonexty",
+         fillcolor: "rgba(120,120,120,0.22)", line: {{ width: 0 }}, hoverinfo: "skip" }},
       {{ type: "scatter", mode: "lines", name: "recta OLS", x: D.fechas, y: D.ols,
          line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, hoverinfo: "skip" }}
     ];
@@ -2957,6 +3029,49 @@ a {{ color: var(--acento); }}
       accion(i);
     }}));
   }});
+
+  const PEND = {pend_json};
+  let pendVar = 0;
+
+  function dibujarPendMes() {{
+    if (!window.Plotly) return;
+    const v = Object.keys(PEND)[pendVar], D = PEND[v];
+    const color = ANZ_COLOR[v];
+    const xs = d => MES.map((_, i) => i + d);
+    const trazas = [
+      {{ type: "scatter", mode: "markers", name: "OLS ± IC 95 %", x: xs(-0.15), y: D.ols,
+         error_y: {{ type: "data", array: D.ic, color: color, thickness: 1.4, width: 3 }},
+         marker: {{ size: 9, symbol: D.q.map(q => q < {INC_Q_FDR} ? "circle" : "circle-open"), color: color,
+                    line: {{ width: 2, color: color }} }},
+         customdata: D.q, hovertemplate: "%{{y:+.2f}} " + D.unidad + "<br>q (FDR) = %{{customdata}}<extra>OLS</extra>" }},
+      {{ type: "scatter", mode: "markers", name: "Sen [IC 95 %]", x: xs(0.15), y: D.sen,
+         error_y: {{ type: "data", symmetric: false, array: D.sen_hi.map((h, i) => h - D.sen[i]),
+                    arrayminus: D.sen.map((x, i) => x - D.sen_lo[i]), color: css("--tinta"), thickness: 1.2, width: 3 }},
+         marker: {{ size: 8, symbol: D.q_mk.map(q => q < {INC_Q_FDR} ? "diamond" : "diamond-open"), color: css("--tinta"),
+                    line: {{ width: 1.5, color: css("--tinta") }} }},
+         customdata: D.q_mk, hovertemplate: "%{{y:+.2f}} " + D.unidad + "<br>q (FDR) = %{{customdata}}<extra>Sen</extra>" }}
+    ];
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 46, r: 10, b: 36, l: 70 }};
+    d.xaxis.tickvals = MES.map((_, i) => i);
+    d.xaxis.ticktext = MES;
+    d.yaxis.rangemode = "normal";
+    d.yaxis.zeroline = true;
+    d.yaxis.zerolinecolor = css("--tenue");
+    d.yaxis.title.text = D.unidad;
+    Plotly.react("g-pend-mes", trazas, d, CONF);
+  }}
+
+  (function () {{
+    const botones = Object.keys(PEND).map((_, i) => document.getElementById("pestana-pend-v" + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      pendVar = i;
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      dibujarPendMes();
+    }}));
+  }})();
 
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
@@ -3178,6 +3293,7 @@ a {{ color: var(--acento); }}
     dibujarAnz();
     dibujarTendMes();
     dibujarMetodos();
+    dibujarPendMes();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

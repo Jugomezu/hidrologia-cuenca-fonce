@@ -1946,6 +1946,13 @@ a {{ color: var(--acento); }}
   el residuo y ensancha el intervalo. a y z no son evidencias aparte: son la misma información en otra escala.</p>
 
   <h3>Sensibilidad de la curva LOESS</h3>
+  <p><b>La subida de la temperatura no depende de cómo se suavice:</b> con las tres ventanas la curva sube entre
+  {min(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} y
+  {max(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} °C en el registro, y los meses
+  extremos casi no la mueven. <b>Las ondulaciones de la lluvia y de Q sí dependen de la ventana</b> (cambia el número de tramos
+  y, en {", ".join(v for v in ("PL*", "PI", "Q") if len({np.sign(met_sens[v][f"frac {fr}"]["cambio"]) for fr in MET_FRACS}) > 1)}, hasta el signo):
+  no se pueden leer como cambios físicos. <b>Los bordes son lo menos confiable</b> de cada curva (banda
+  {np.mean([s["borde_vs_centro"] for s in met_sens.values()]):.1f} veces más ancha), y nada se extrapola fuera del registro.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Variable</th>{"".join(f"<th class='num'>Ventana {fr * 100:.0f} %</th>" for fr in MET_FRACS)}
@@ -1955,13 +1962,8 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p class="nota">Sobre a, registro completo. Ventanas: cambio entre el comienzo y el final de la curva, y número de tramos de subida o
-  bajada. Extremos: la mayor diferencia entre la curva con y sin las iteraciones robustas, que bajan el peso de los meses
-  extremos. Bordes: ancho medio de la banda en el primer y último 10 % del registro, frente al del centro.</p>
-  <p>En la temperatura, la subida sale con las tres ventanas y casi no la mueven los meses extremos. En la lluvia y en Q, el
-  número de tramos y hasta el signo del cambio dependen de la ventana: esas ondulaciones son de la suavización, no de los
-  datos. En los bordes la banda es más ancha, porque allí la curva se apoya en datos de un solo lado: los extremos de una
-  curva LOESS son su parte menos confiable, y nada de ella se extrapola fuera del período observado.</p>
+  <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
+  Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
 
   <h3>Mes a mes: las doce subseries</h3>
   <p>Cada mes del calendario se toma por separado (todos los eneros, todos los febreros…) y se ajusta su pendiente a

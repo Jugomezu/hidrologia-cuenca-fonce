@@ -639,6 +639,15 @@ def _res_fila(v):
 
 res_filas = "\n".join(_res_fila(v) for v in LARGO_VARS)
 
+# tendencias: tabla de Pettitt (¿tendencia gradual o salto?)
+salto_filas = "\n".join(
+    f"<tr><td><b>{v}</b> <small>({LARGO_UNIDADES[v]})</small></td><td class='num'>{r['anios']}</td>"
+    f"<td class='num'>{r['anio_corte']}</td><td class='num'>{_p_neg(_p_txt(r['p']), r['p'])}</td>"
+    f"<td class='num'>{_p_neg(_p_txt(r['p_perm']), r['p_perm'])}</td>"
+    f"<td class='num'>{r['antes']:+.{ANZ_DEC[v] + 1}f} → {r['despues']:+.{ANZ_DEC[v] + 1}f}</td>"
+    f"<td class='num'>{_p_txt(r['p_residuos'])}</td>"
+    f"<td>{(r['mejor'] + (' (empate)' if r['empate'] else '')) if v in salto_con_corte else '—'}</td></tr>" for v, r in salto.items())
+
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
     return "sin año completo" if v is None else f"{v:+.2f}"
@@ -2118,6 +2127,29 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
   Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
+
+  <h3>¿Tendencia gradual o salto?</h3>
+  <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt ({CITA_PETTITT}) sí marca uno</b>
+  ({", ".join(f"{v} después de {salto[v]['anio_corte']}" for v in salto_con_corte)}), pero <b>es la misma subida gradual vista de
+  otra forma</b>: una serie que sube parejo siempre tiene un «antes bajo» y un «después alto». Al quitar la recta no queda
+  ningún salto, y una recta y un escalón describen los datos casi igual de bien. Con estos datos no se puede distinguir una
+  tendencia gradual de un salto; lo que sí se puede decir es que no hay un salto además de la tendencia. Tampoco aparece un
+  salto en 1993–1996, donde cambia la diferencia con MSWX, lo que apunta (sin probarlo) a que ese salto es de MSWX.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th class="num">Años</th><th class="num">Salto después de</th><th class="num">p (anual)</th>
+    <th class="num">p (mensual, permutando años)</th><th class="num">Antes → después</th>
+    <th class="num">p sin la recta</th><th>Mejor modelo (BIC)</th></tr></thead>
+    <tbody>
+{salto_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sobre la media anual de la anomalía a (años con al menos {SALTO_MIN_MESES} meses), registro completo. «p sin la
+  recta»: Pettitt sobre los residuos de la tendencia lineal. Modelos: recta, escalón en el año de Pettitt, y recta más escalón;
+  «empate» si el mejor le gana al segundo por menos de {SALTO_DBIC_EMPATE:.0f} de BIC. Los modelos solo se comparan
+  donde Pettitt marca un salto: como el año del escalón lo elige la propia prueba, en las demás el BIC favorecería al
+  escalón sin que haya salto. En negrita, p &lt; {TEND_ALFA}.</p>
 
   <h3>Mes a mes: las doce subseries</h3>
   <p>Cada mes del calendario se toma por separado (todos los eneros, todos los febreros…) y se ajusta su pendiente a

@@ -1793,6 +1793,34 @@ section, section h3 { scroll-margin-top: 20px; }
   <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
   Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
 
+  <h3>¿Tendencia gradual o salto?</h3>
+  <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt (<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>) sí marca uno</b>
+  (T mín después de 2009, T media después de 2001, T máx después de 2000), pero <b>es la misma subida gradual vista de
+  otra forma</b>: una serie que sube parejo siempre tiene un «antes bajo» y un «después alto». Al quitar la recta no queda
+  ningún salto, y una recta y un escalón describen los datos casi igual de bien. Con estos datos no se puede distinguir una
+  tendencia gradual de un salto; lo que sí se puede decir es que no hay un salto además de la tendencia. Tampoco aparece un
+  salto en 1993–1996, donde cambia la diferencia con MSWX, lo que apunta (sin probarlo) a que ese salto es de MSWX.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th class="num">Años</th><th class="num">Salto después de</th><th class="num">p (anual)</th>
+    <th class="num">p (mensual, permutando años)</th><th class="num">Antes → después</th>
+    <th class="num">p sin la recta</th><th>Mejor modelo (BIC)</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b> <small>(mm/mes)</small></td><td class='num'>42</td><td class='num'>1993</td><td class='num'>1.000</td><td class='num'>0.247</td><td class='num'>-11.9 → +0.1</td><td class='num'>0.728</td><td>—</td></tr>
+<tr><td><b>PI</b> <small>(mm/mes)</small></td><td class='num'>25</td><td class='num'>2011</td><td class='num'>0.628</td><td class='num'>0.633</td><td class='num'>+4.4 → -5.6</td><td class='num'>0.854</td><td>—</td></tr>
+<tr><td><b>Q</b> <small>(m³/s)</small></td><td class='num'>34</td><td class='num'>2011</td><td class='num'>0.651</td><td class='num'>0.397</td><td class='num'>+2.12 → -8.24</td><td class='num'>1.000</td><td>—</td></tr>
+<tr><td><b>T mín</b> <small>(°C)</small></td><td class='num'>42</td><td class='num'>2009</td><td class='num'><b>0.004</b></td><td class='num'><b>0.002</b></td><td class='num'>-0.218 → +0.161</td><td class='num'>0.570</td><td>escalón (empate)</td></tr>
+<tr><td><b>T media</b> <small>(°C)</small></td><td class='num'>42</td><td class='num'>2001</td><td class='num'><b>0.034</b></td><td class='num'><b>0.002</b></td><td class='num'>-0.268 → +0.040</td><td class='num'>1.000</td><td>recta (empate)</td></tr>
+<tr><td><b>T máx</b> <small>(°C)</small></td><td class='num'>42</td><td class='num'>2000</td><td class='num'><b>0.033</b></td><td class='num'><b>0.012</b></td><td class='num'>-0.337 → +0.043</td><td class='num'>1.000</td><td>escalón (empate)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sobre la media anual de la anomalía a (años con al menos 10 meses), registro completo. «p sin la
+  recta»: Pettitt sobre los residuos de la tendencia lineal. Modelos: recta, escalón en el año de Pettitt, y recta más escalón;
+  «empate» si el mejor le gana al segundo por menos de 2 de BIC. Los modelos solo se comparan
+  donde Pettitt marca un salto: como el año del escalón lo elige la propia prueba, en las demás el BIC favorecería al
+  escalón sin que haya salto. En negrita, p &lt; 0.05.</p>
+
   <h3>Mes a mes: las doce subseries</h3>
   <p>Cada mes del calendario se toma por separado (todos los eneros, todos los febreros…) y se ajusta su pendiente a
   través de los años. No se ajusta una tendencia a las doce medias climatológicas: eso describiría el ciclo anual, no su

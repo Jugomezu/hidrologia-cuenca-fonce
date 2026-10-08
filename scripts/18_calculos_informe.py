@@ -2041,3 +2041,66 @@ for _a in anom_anios:
 anom_pl_pi_habitual = _habitual
 anom_pl_pi_raro = max(anom_pl_pi, key=lambda a: anom_pl_pi[a]["razon"])
 assert anom_pl_pi[anom_pl_pi_raro]["razon"] > anom_pl_pi_habitual
+
+
+# ---------------------------------------------------------------- ¿tendencia gradual o salto? (Pettitt)
+# Pettitt (1979) busca el punto donde la serie cambia de nivel. Se aplica a la media anual de la anomalía a de cada
+# variable (años con al menos SALTO_MIN_MESES meses), sobre su registro completo, y además a la serie mensual con la p
+# obtenida permutando años completos (los meses vecinos se parecen y eso infla la significancia de la p usual).
+# Trampa: una serie que sube de forma pareja también tiene un «antes bajo» y un «después alto», así que Pettitt puede
+# encontrar un salto donde solo hay tendencia. Para distinguirlos: (1) Pettitt sobre los residuos de la recta (si
+# después de quitar la tendencia no queda salto, no hay un salto ADEMÁS de ella) y (2) BIC de tres modelos: recta,
+# escalón en el año de Pettitt, y recta más escalón. Diferencias de BIC menores que SALTO_DBIC_EMPATE se leen como
+# «no se pueden distinguir» (umbral decidido por el usuario el 2026-10-08).
+SALTO_MIN_MESES = 10
+SALTO_PERMUTACIONES = 400
+SALTO_DBIC_EMPATE = 2.0
+_rng_salto = np.random.default_rng(31)
+
+
+def _pettitt_K(x):
+    signo = np.sign(x[:, None] - x[None, :])
+    return np.abs(np.array([signo[: t + 1, t + 1:].sum() for t in range(len(x) - 1)])).max()
+
+
+def _bic(y, X):
+    b = np.linalg.lstsq(X, y, rcond=None)[0]
+    n = len(y)
+    return n * np.log(np.sum((y - X @ b) ** 2) / n) + X.shape[1] * np.log(n)
+
+
+salto = {}
+for _v in LARGO_VARS:
+    _s = anz_a[_v]
+    _cuantos = _s.notna().groupby(_s.index.year).sum()
+    _an = _s.groupby(_s.index.year).mean()[_cuantos >= SALTO_MIN_MESES]
+    _y, _t = _an.to_numpy(), _an.index.to_numpy().astype(float)
+    _n = len(_y)
+    _k, _p = _pettitt(_y)
+    # mensual, con p por permutación de años completos
+    _sm = _s.dropna()
+    _km, _ = _pettitt(_sm.to_numpy())
+    _anios = np.asarray(_sm.index.year)
+    _pos = {a: np.where(_anios == a)[0] for a in np.unique(_anios)}
+    _K = _pettitt_K(_sm.to_numpy())
+    _Ks = np.array([_pettitt_K(_sm.to_numpy()[np.concatenate([_pos[a] for a in _rng_salto.permutation(list(_pos))])])
+                    for _ in range(SALTO_PERMUTACIONES)])
+    _X1 = np.column_stack([np.ones(_n), _t])
+    _res = _y - _X1 @ np.linalg.lstsq(_X1, _y, rcond=None)[0]
+    _escalon = (_t > _t[_k]).astype(float)
+    _bics = {"recta": _bic(_y, _X1), "escalón": _bic(_y, np.column_stack([np.ones(_n), _escalon])),
+             "recta y escalón": _bic(_y, np.column_stack([_X1, _escalon]))}
+    _mejor = min(_bics, key=_bics.get)
+    _segundo = sorted(_bics.values())[1]
+    salto[_v] = {"anios": _n, "anio_corte": int(_t[_k]), "p": _p, "antes": float(_y[: _k + 1].mean()),
+                 "despues": float(_y[_k + 1:].mean()), "corte_mensual": _sm.index[_km],
+                 "p_perm": float((np.sum(_Ks >= _K) + 1) / (SALTO_PERMUTACIONES + 1)),
+                 "p_residuos": _pettitt(_res)[1], "bic": _bics, "mejor": _mejor,
+                 "empate": (_segundo - _bics[_mejor]) < SALTO_DBIC_EMPATE}
+salto_con_corte = [v for v, r in salto.items() if r["p"] < TEND_ALFA and r["p_perm"] < TEND_ALFA]
+# lo que el texto afirma; si los datos dejan de respaldarlo, el script se detiene
+assert set(salto_con_corte) == {"T mín", "T media", "T máx"}
+assert all(r["p_residuos"] >= TEND_ALFA for r in salto.values())
+assert all(salto[v]["empate"] for v in salto_con_corte)
+assert all(r["p"] >= TEND_ALFA and r["p_perm"] >= TEND_ALFA for v, r in salto.items() if v not in salto_con_corte)
+assert all(not (1993 <= salto[v]["anio_corte"] <= 1996) for v in ("T mín", "T media", "T máx"))

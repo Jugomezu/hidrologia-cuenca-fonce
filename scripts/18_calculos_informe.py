@@ -76,10 +76,11 @@ cam = cam.set_index("fecha").sort_index().reindex(
     pd.date_range(f"{min(ANIOS_ESTUDIO)}-01-01", f"{max(ANIOS_ESTUDIO)}-12-31", freq="D"))
 
 
-def a_mensual(serie_diaria, agregacion):
+def a_mensual(serie_diaria, agregacion, periodos=None):
     """Serie diaria -> mensual; el mes queda vacío si le faltan más de MAX_DIAS_FALTANTES días.
 
     `agregacion` es "sum" para acumulados (lluvia, caudal en mm, ETP) o "mean" para promedios.
+    `periodos` es la ventana de salida; por defecto, el período de estudio 1998-2022 (regla 6).
     """
     g = serie_diaria.resample("MS")
     faltantes = g.apply(lambda x: x.index.days_in_month[0] - x.notna().sum())
@@ -91,7 +92,7 @@ def a_mensual(serie_diaria, agregacion):
     valores = {"sum": promedio * promedio.index.days_in_month, "mean": promedio}[agregacion]
     valores = valores.where(faltantes <= MAX_DIAS_FALTANTES)
     valores.index = valores.index.to_period("M")
-    return valores.reindex(PERIODOS)
+    return valores.reindex(PERIODOS if periodos is None else periodos)
 
 
 p_camels = a_mensual(cam["p_chirps"], "sum")
@@ -1402,3 +1403,641 @@ assert (anom_rho["PL–Q"]["tal cual"] - anom_rho["PL–Q"]["anomalías"]) < (an
 assert anom_anios[anom_humedos[0]]["meses_sobre"] > 6 and anom_anios[anom_secos[0]]["meses_sobre"] < 6
 assert anom_anios[anom_humedos[0]]["nina"] >= 6 and anom_anios[anom_secos[0]]["nino"] >= 6
 
+
+# ---------------------------------------------------------------- registro largo (1981-2022) para tendencias
+# Regla 6: las tendencias usan el registro completo de cada variable desde 1981, cuando exista; las
+# comparaciones entre variables, 1998-2022. Q (CAMELS-COL) y la temperatura (ERA5-Land, descargada desde
+# 1981 por scripts/06) tienen registro largo; PI empieza en 1998 (IMERG) y PL, por ahora, solo está
+# descargada para 1998-2022, así que para ellas el registro completo es 1998-2022.
+LARGO_DESDE = "1981-01"
+PERIODOS_LARGO = pd.period_range(LARGO_DESDE, f"{max(ANIOS_ESTUDIO)}-12", freq="M")
+_cam_largo = pd.read_csv("data/camels_col/hydromet/3_Hydrometeorological_data/Hydromet_data_24027010.txt",
+                         sep="\t", encoding="latin-1")
+_cam_largo.columns = ["fecha", "p_chirps", "etp", "t_min", "t_max", "caudal"]
+_cam_largo["fecha"] = pd.to_datetime(_cam_largo["fecha"], format="%d/%m/%Y")
+_cam_largo = _cam_largo.set_index("fecha").sort_index().reindex(
+    pd.date_range(f"{LARGO_DESDE}-01", f"{max(ANIOS_ESTUDIO)}-12-31", freq="D"))
+_era_largo = (pd.read_csv("out/era5land_temperatura_diaria_fonce_1981_2022.csv", parse_dates=["fecha"])
+              .set_index("fecha").reindex(_cam_largo.index))
+# PL* (decidido por el usuario el 2026-10-08): para tendencias y para las anomalías de esa sección, PL se arma con
+# una RED FIJA, la que construye scripts/07 (estaciones con registro desde 1981, sin Pueblo Viejo, sin las
+# exclusiones vigentes ni los picos extremos que los vecinos no acompañan). Así la composición de la red no cambia
+# en el tiempo y no puede fabricar una tendencia. La PL del resto del informe no cambia.
+_plf = pd.read_csv("out/pluviometros_pl_larga_1981_2022.csv", parse_dates=["fecha"])
+_plf["periodo"] = _plf.fecha.dt.to_period("M")
+pl_estrella_matriz = _plf.pivot(index="periodo", columns="codigo", values="precipitacion_mm").reindex(PERIODOS_LARGO)
+pl_estrella_red = list(pl_estrella_matriz.columns)
+pl_estrella_excluidos = pd.read_csv("out/pluviometros_pl_larga_excluidos.csv")
+pl_estrella_rachas = pd.read_csv("out/pluviometros_pl_larga_rachas.csv")
+# los umbrales del criterio de picos viven en scripts/07; aquí se repiten solo para citarlos en el texto, y se
+# comprueba que coincidan con los de ese script
+PICO_VECES_MEDIANA_INF, PICO_MINIMO_INF, PICO_VECES_VECINOS_INF = 3.0, 300.0, 3.0
+_s07 = open("scripts/07_pluviometros_dhime.py", encoding="utf-8").read()
+assert all(f"{n} = {v}" in _s07 for n, v in (("PICO_VECES_MEDIANA", PICO_VECES_MEDIANA_INF), ("PICO_MINIMO_MM", PICO_MINIMO_INF),
+                                              ("PICO_VECES_VECINOS", PICO_VECES_VECINOS_INF)))
+largo = pd.DataFrame({
+    "PL*": pl_estrella_matriz.mean(axis=1, skipna=True),
+    "PI": variables_resumen["PI"].reindex(PERIODOS_LARGO),
+    "Q": a_mensual(_cam_largo["caudal"], "mean", PERIODOS_LARGO),
+    **{nombre: a_mensual(_era_largo[col], "mean", PERIODOS_LARGO)
+       for nombre, col in (("T mín", "t_min"), ("T media", "t_media"), ("T máx", "t_max"))},
+})
+# el tramo 1998-2022 del registro largo es idéntico a la serie que usa todo el informe
+_comunes = [c for c in largo.columns if c in variables_resumen.columns]
+assert np.allclose(largo.loc[PERIODOS, _comunes].to_numpy(), variables_resumen[_comunes].to_numpy(), equal_nan=True)
+LARGO_VARS = list(largo.columns)
+# fase del ENSO de cada mes desde 1981 (scripts/17), para colorear el fondo de las series de tiempo; se agrupan los
+# meses seguidos con la misma fase en tramos
+_enso = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_enso = _enso.set_index(pd.PeriodIndex(_enso.periodo, freq="M"))["fase"].reindex(PERIODOS_LARGO)
+enso_tramos = []
+for _fase, _g in _enso.groupby((_enso != _enso.shift()).cumsum()):
+    if _g.iloc[0] in ("El Niño", "La Niña"):
+        enso_tramos.append((_g.index[0], _g.index[-1], _g.iloc[0]))
+LARGO_UNIDADES = {"PL*": "mm/mes", "PI": "mm/mes", "Q": "m³/s", "T mín": "°C", "T media": "°C", "T máx": "°C"}
+LARGO_FUENTE = {"PL*": "red fija de pluviómetros del IDEAM (DHIME)", "PI": "IMERG V07", "Q": "CAMELS-COL (IDEAM)",
+                "T mín": "ERA5-Land", "T media": "ERA5-Land", "T máx": "ERA5-Land"}
+# cambios de fuente o de procesamiento dentro de cada serie, conocidos y documentados en DATOS_FUENTES.md
+LARGO_CAMBIOS = {"PL*": "ninguno en la composición (red fija); dos estaciones con salto de nivel marcado como incierto",
+                 "PI": "calibración con TRMM hasta 2014-05 y con GPM desde 2014-06",
+                 "Q": "ninguno conocido", "T mín": "ninguno conocido", "T media": "ninguno conocido",
+                 "T máx": "ninguno conocido"}
+largo_registro = {}
+for _v in LARGO_VARS:
+    _s = largo[_v].dropna()
+    _tramo = largo[_v].loc[_s.index[0]:_s.index[-1]]
+    largo_registro[_v] = {"inicio": _s.index[0], "fin": _s.index[-1], "meses": len(_tramo),
+                          "validos": int(_tramo.notna().sum()), "vacios": int(_tramo.isna().sum())}
+
+
+def _pettitt(x):
+    """Prueba de Pettitt (1979), la misma de scripts/07c: índice del último elemento del primer tramo y p."""
+    x = np.asarray(x, dtype=float)
+    n = len(x)
+    signo = np.sign(x[:, None] - x[None, :])
+    u = np.array([signo[: t + 1, t + 1:].sum() for t in range(n - 1)])
+    k = int(np.argmax(np.abs(u)))
+    return k, min(1.0, 2 * np.exp(-6 * float(abs(u[k])) ** 2 / (n ** 3 + n ** 2)))
+
+
+# Control de calidad de lo anterior a 1998 (regla 6: antes de usarlo se revisa). Q: las pruebas de scripts/07c
+# (rachas de valores iguales y picos aislados en el caudal diario) y un salto en el coeficiente de escorrentía
+# anual Q / P, con la P de CHIRPS que trae CAMELS-COL desde 1981: si la curva de gasto de la estación hubiera
+# cambiado, ese coeficiente saltaría. Temperatura: rachas, la desigualdad mín <= media <= máx y el contraste
+# con la temperatura MSWX de CAMELS-COL, el único otro producto que llega a 1981.
+LARGO_RACHA_DIAS = 5        # los mismos umbrales de scripts/07c
+LARGO_FACTOR_PICO = 3.0
+LARGO_MESES_ANIO = 10       # un año entra al coeficiente de escorrentía si tiene al menos 10 meses con Q y P
+_qv = _cam_largo["caudal"].dropna()
+_vecino = np.maximum(_cam_largo["caudal"].shift(1), _cam_largo["caudal"].shift(-1))
+_q_mm = largo["Q"] * largo.index.days_in_month * 86400 / (AREA_SG_KM2 * 1e6) * 1000
+_p_ch = a_mensual(_cam_largo["p_chirps"], "sum", PERIODOS_LARGO)
+_ok = _q_mm.notna() & _p_ch.notna()
+_coef = pd.DataFrame({"q": _q_mm[_ok], "p": _p_ch[_ok]}).groupby(lambda p: p.year).sum()
+_coef = (_coef.q / _coef.p)[_ok.groupby(lambda p: p.year).sum() >= LARGO_MESES_ANIO]
+_k_coef, _p_coef = _pettitt(_coef.to_numpy())
+_ev = _era_largo.dropna()
+_mswx = ((_cam_largo["t_min"] + _cam_largo["t_max"]) / 2).groupby(lambda d: d.year).mean()
+_dif_t = (_era_largo["t_media"].groupby(lambda d: d.year).mean() - _mswx).dropna()
+_k_dif, _p_dif = _pettitt(_dif_t.to_numpy())
+largo_qc = {
+    "q_dias_sin_dato": int(_cam_largo["caudal"].isna().sum()), "q_dias": len(_cam_largo),
+    "q_rachas": int((_qv.groupby((_qv != _qv.shift()).cumsum()).size() >= LARGO_RACHA_DIAS).sum()),
+    "q_picos": int((_cam_largo["caudal"] >= LARGO_FACTOR_PICO * _vecino).sum()),
+    "q_min": float(_qv.min()),
+    "coef_anios": len(_coef), "coef_p": _p_coef,
+    "q_media_antes": float(largo["Q"].loc[:"1997-12"].mean()), "q_media_despues": float(largo["Q"].loc["1998-01":].mean()),
+    "t_faltantes": int(_era_largo["t_media"].isna().sum()),
+    "t_desigualdad": int((~((_ev.t_min <= _ev.t_media) & (_ev.t_media <= _ev.t_max))).sum()),
+    "t_rachas": int(sum((_ev[c].groupby((_ev[c] != _ev[c].shift()).cumsum()).size() >= LARGO_RACHA_DIAS).sum()
+                        for c in ("t_min", "t_media", "t_max"))),
+    "mswx_dif_media": float(_dif_t.mean()), "mswx_corte": int(_dif_t.index[_k_dif]), "mswx_p": _p_dif,
+    "mswx_salto": float(_dif_t.iloc[_k_dif + 1:].mean() - _dif_t.iloc[: _k_dif + 1].mean()),
+}
+assert largo_qc["q_rachas"] == 0 and largo_qc["q_picos"] == 0 and largo_qc["q_min"] > 0
+assert largo_qc["t_faltantes"] == 0 and largo_qc["t_desigualdad"] == 0 and largo_qc["t_rachas"] == 0
+
+
+# ---------------------------------------------------------------- anomalías y anomalías estandarizadas
+# a_t = X_t − µ_j y z_t = a_t / s_j, con µ_j y s_j la media y la desviación estándar del mes j del calendario en
+# un período de referencia FIJO: 1998-2022 (decidido por el usuario), el único en que existen las seis variables,
+# así que todas se miden contra la misma referencia. No se usa una media única para todos los meses ni una
+# climatología móvil (que se llevaría parte de la tendencia). Con registro largo (Q y temperatura), la misma
+# µ_j y s_j de 1998-2022 se aplica a todos sus meses. Las anomalías robustas (mediana y RIC) de «Revisión de
+# outliers» y «Años que se salen de lo normal» se usan tal como están (decidido por el usuario).
+ANZ_REFERENCIA = (PERIODOS[0], PERIODOS[-1])
+ANZ_SEMILLA, ANZ_REMUESTREOS = 11, 2000
+ANZ_UMBRAL_Z = 2.0          # para contar meses extremos: en una normal, |z| > 2 en el 4.55 % de los casos
+ANZ_ALFA = 0.05
+_mes_largo = largo.index.month
+_ref = largo.loc[ANZ_REFERENCIA[0]:ANZ_REFERENCIA[1]]
+anz_mu = _ref.groupby(_ref.index.month).mean()
+anz_s = _ref.groupby(_ref.index.month).std(ddof=1)
+anz_n = _ref.groupby(_ref.index.month).count()
+assert (anz_s > 0).all().all(), "s_j = 0: la estandarización no está definida en ese mes"
+anz_a = largo - anz_mu.reindex(_mes_largo).to_numpy()
+anz_z = anz_a / anz_s.where(anz_s > 0).reindex(_mes_largo).to_numpy()
+# inestabilidad de s_j: intervalo de confianza 95 % por remuestreo de años, relativo al propio s_j
+_rng_anz = np.random.default_rng(ANZ_SEMILLA)
+anz_s_ic = {}
+for _v in LARGO_VARS:
+    for _m in range(1, 13):
+        _x = _ref[_v][_ref.index.month == _m].dropna().to_numpy()
+        _bs = np.array([np.std(_rng_anz.choice(_x, len(_x)), ddof=1) for _ in range(ANZ_REMUESTREOS)])
+        anz_s_ic[(_v, _m)] = (np.percentile(_bs, 2.5), np.percentile(_bs, 97.5))
+anz_ancho_rel = pd.DataFrame({_v: [(anz_s_ic[(_v, m)][1] - anz_s_ic[(_v, m)][0]) / anz_s.loc[m, _v] * 100
+                                   for m in range(1, 13)] for _v in LARGO_VARS}, index=range(1, 13))
+# estandarizar no normaliza: forma de z en el período de referencia
+_z_ref = anz_z.loc[ANZ_REFERENCIA[0]:ANZ_REFERENCIA[1]]
+_a_ref = anz_a.loc[ANZ_REFERENCIA[0]:ANZ_REFERENCIA[1]]
+anz_forma = {}
+for _v in LARGO_VARS:
+    _zz = _z_ref[_v].dropna()
+    anz_forma[_v] = {"n": len(_zz), "asim": float(stats.skew(_zz, bias=False)),
+                     "extremos": float((_zz.abs() > ANZ_UMBRAL_Z).mean() * 100),
+                     "shapiro_p": float(stats.shapiro(_zz)[1]),
+                     "r_x_a": float(_ref[_v].corr(_a_ref[_v])), "r_a_z": float(_a_ref[_v].corr(_z_ref[_v]))}
+anz_normal_extremos = float(2 * stats.norm.sf(ANZ_UMBRAL_Z) * 100)
+anz_no_normales = [v for v in LARGO_VARS if anz_forma[v]["shapiro_p"] < ANZ_ALFA]
+# lo que el texto afirma
+assert anz_forma["Q"]["asim"] == max(f["asim"] for f in anz_forma.values())
+assert anz_forma["T media"]["r_x_a"] > max(anz_forma[v]["r_x_a"] for v in ("PL*", "PI", "Q"))
+assert min(f["r_a_z"] for f in anz_forma.values()) > 0.9
+assert anz_ancho_rel["Q"].max() == anz_ancho_rel.max().max()
+
+
+# ---------------------------------------------------------------- tendencias
+# Dos preguntas (enunciado del taller): (1) todos los datos, la secuencia cronológica de meses, y (2) mes a mes,
+# las doce subseries (todos los eneros, todos los febreros…). Cada una en las tres representaciones: X, a y z.
+# El tiempo es la fecha real del mes en años decimales (año + (mes − 0.5) / 12), aun con vacíos. Las pendientes
+# se dan por década. No se ajusta una tendencia a las 12 medias climatológicas: eso describe el ciclo anual.
+#
+# Métodos (escogidos por el agente; ver PR):
+# - Pendiente por mínimos cuadrados (OLS). En la secuencia de meses, los errores están autocorrelacionados
+#   (un mes húmedo suele seguir a otro), así que su error estándar se corrige con Newey-West (1987), con
+#   TEND_REZAGOS meses de rezago. En la serie original X se controla la estacionalidad con una constante
+#   por mes del calendario (12 variables indicadoras), de modo que la pendiente no la arrastre el ciclo anual.
+# - Como contraste no paramétrico: Mann-Kendall con la pendiente de Sen (Sen, 1968); para X, la versión
+#   estacional de Hirsch, Slack y Smith (1982), que compara cada mes solo con el mismo mes de otros años.
+# - Mes a mes: OLS y Mann-Kendall en cada subserie anual (12 a 42 años), sin corrección de autocorrelación.
+# Período de cada prueba: el registro completo de cada variable (la pregunta de largo plazo) y, aparte,
+# 1998-2022 (el período común, para comparar fuentes). Para PI los dos coinciden.
+TEND_ALFA = 0.05
+TEND_REZAGOS = 12
+
+
+def _t_decimal(periodos):
+    return np.asarray(periodos.year + (periodos.month - 0.5) / 12, dtype=float)
+
+
+def _ols_hac(y, X, rezagos):
+    """OLS con error estándar de Newey-West (núcleo de Bartlett). Devuelve coeficientes, errores y p (normal)."""
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    e = y - X @ beta
+    xtx_inv = np.linalg.inv(X.T @ X)
+    u = X * e[:, None]
+    s = u.T @ u
+    for l in range(1, rezagos + 1):
+        g = u[l:].T @ u[:-l]
+        s += (1 - l / (rezagos + 1)) * (g + g.T)
+    se = np.sqrt(np.diag(xtx_inv @ s @ xtx_inv))
+    return beta, se, 2 * stats.norm.sf(np.abs(beta / se))
+
+
+def _mk_estacional(t, y, meses):
+    """Mann-Kendall estacional (Hirsch et al., 1982) y pendiente estacional de Sen: suma de las S de cada mes."""
+    S, var, pendientes = 0.0, 0.0, []
+    for m in np.unique(meses):
+        tm, ym = t[meses == m], y[meses == m]
+        n = len(ym)
+        if n < 3:
+            continue
+        S += np.sign(ym[None, :] - ym[:, None])[np.triu_indices(n, 1)].sum()
+        var += n * (n - 1) * (2 * n + 5) / 18
+        i, j = np.triu_indices(n, 1)
+        dt = tm[j] - tm[i]
+        validos = dt != 0          # al remuestrear años un mismo año puede repetirse: esos pares no dan pendiente
+        pendientes.extend((ym[j] - ym[i])[validos] / dt[validos])
+    zc = (S - np.sign(S)) / np.sqrt(var)
+    return float(np.median(pendientes)), float(2 * stats.norm.sf(abs(zc)))
+
+
+def _mk(t, y):
+    """Mann-Kendall (con la tau de Kendall) y pendiente de Sen."""
+    return float(stats.theilslopes(y, t)[0]), float(stats.kendalltau(t, y).pvalue)
+
+
+TEND_PERIODOS = {"completo": None, "1998–2022": (PERIODOS[0], PERIODOS[-1])}
+tend_todos, tend_mes = {}, {}
+for _v in LARGO_VARS:
+    for _per, _lim in TEND_PERIODOS.items():
+        _rep = {"X": largo[_v], "a": anz_a[_v], "z": anz_z[_v]}
+        if _lim is not None:
+            _rep = {k: s.loc[_lim[0]:_lim[1]] for k, s in _rep.items()}
+        _rep = {k: s.dropna() for k, s in _rep.items()}
+        _idx = _rep["X"].index
+        _t = _t_decimal(_idx)
+        _meses = np.asarray(_idx.month)
+        # (1) todos los datos
+        _ind = (_meses[:, None] == np.arange(1, 13)[None, :]).astype(float)
+        _bx, _sx, _px = _ols_hac(_rep["X"].to_numpy(), np.column_stack([_t, _ind]), TEND_REZAGOS)
+        _fila = {"inicio": _idx[0], "fin": _idx[-1], "n": len(_idx),
+                 "X": {"ols": _bx[0] * 10, "p": _px[0], "mk": None, "p_mk": None}}
+        _sen, _pmk = _mk_estacional(_t, _rep["X"].to_numpy(), _meses)
+        _fila["X"].update(mk=_sen * 10, p_mk=_pmk)
+        for _k in ("a", "z"):
+            _b, _se, _p = _ols_hac(_rep[_k].to_numpy(), np.column_stack([np.ones_like(_t), _t]), TEND_REZAGOS)
+            _sen, _pmk = _mk(_t, _rep[_k].to_numpy())
+            _fila[_k] = {"ols": _b[1] * 10, "p": _p[1], "mk": _sen * 10, "p_mk": _pmk, "corte": _b[0]}
+        tend_todos[(_v, _per)] = _fila
+        # (2) mes a mes
+        for _m in range(1, 13):
+            _sel = _meses == _m
+            _tm = _t[_sel]
+            _r = {k: stats.linregress(_tm, _rep[k].to_numpy()[_sel]) for k in ("X", "a", "z")}
+            # dentro de un mes y con la misma muestra: restar µ_j no cambia la pendiente; dividir por s_j > 0
+            # solo cambia su escala; y la p es la misma en las tres. No son evidencias independientes.
+            assert np.isclose(_r["a"].slope, _r["X"].slope) and np.isclose(_r["a"].pvalue, _r["X"].pvalue)
+            assert np.isclose(_r["z"].slope, _r["a"].slope / anz_s.loc[_m, _v]) and np.isclose(_r["z"].pvalue, _r["X"].pvalue)
+            _sen, _pmk = _mk(_tm, _rep["X"].to_numpy()[_sel])
+            tend_mes[(_v, _per, _m)] = {"n": int(_sel.sum()), "X": _r["X"].slope * 10, "z": _r["z"].slope * 10,
+                                        "p": _r["X"].pvalue, "sen": _sen * 10, "p_mk": _pmk}
+# en la secuencia de meses, X (con constantes por mes) y a (sin ellas) dan casi la misma pendiente; no es
+# exactamente igual porque µ_j sale de 1998-2022 y los vacíos no caen parejo en todos los meses
+tend_dif_x_a = max(abs(f["X"]["ols"] - f["a"]["ols"]) / abs(f["a"]["ols"]) * 100
+                   for f in tend_todos.values() if abs(f["a"]["ols"]) > 0)
+# mes a mes: cuántos meses tienen tendencia significativa, contra los que saldrían solo por azar
+tend_conteo = {}
+for _v in LARGO_VARS:
+    for _per in TEND_PERIODOS:
+        _sig = [m for m in range(1, 13) if tend_mes[(_v, _per, m)]["p"] < TEND_ALFA]
+        _sig_mk = [m for m in range(1, 13) if tend_mes[(_v, _per, m)]["p_mk"] < TEND_ALFA]
+        tend_conteo[(_v, _per)] = {"meses": _sig, "meses_mk": _sig_mk,
+                                   "p_azar": float(stats.binom.sf(len(_sig) - 1, 12, TEND_ALFA)) if _sig else 1.0}
+tend_esperados_azar = 12 * TEND_ALFA
+
+
+def tend_signif(fila, clave="p"):
+    return fila[clave] < TEND_ALFA
+
+
+# lo que el texto afirma sobre la temperatura de largo plazo: sube en las tres, con las dos pruebas
+tend_t_sube = all(tend_todos[(v, "completo")]["a"]["ols"] > 0 and tend_todos[(v, "completo")]["a"]["p"] < TEND_ALFA
+                  and tend_todos[(v, "completo")]["X"]["p_mk"] < TEND_ALFA for v in ("T mín", "T media", "T máx"))
+
+# Sensibilidad de la tendencia de PL*. Dos estaciones de la red fija tienen un salto de nivel marcado como
+# incierto (Coromoro desde 2003-03 y Valle de San José desde 1998-04, este visto al extender el registro); un salto
+# dentro de un promedio puede aparecer como tendencia. Se repite la prueba (1) sin esas dos estaciones y (2) con la
+# PL de siempre (la red completa) en 1998-2022, para ver si la conclusión depende de la red.
+TEND_ESTACIONES_CON_SALTO = [24020120, 24020080]
+
+
+def _tend_x(serie):
+    serie = serie.dropna()
+    _t, _m = _t_decimal(serie.index), np.asarray(serie.index.month)
+    _b, _se, _p = _ols_hac(serie.to_numpy(), np.column_stack([_t, (_m[:, None] == np.arange(1, 13)[None, :]).astype(float)]),
+                           TEND_REZAGOS)
+    _sen, _pmk = _mk_estacional(_t, serie.to_numpy(), _m)
+    return {"ols": _b[0] * 10, "p": _p[0], "mk": _sen * 10, "p_mk": _pmk, "n": len(serie)}
+
+
+tend_pl_sens = {
+    "sin_saltos": _tend_x(pl_estrella_matriz.drop(columns=TEND_ESTACIONES_CON_SALTO).mean(axis=1, skipna=True)),
+    "red_9822": _tend_x(variables_resumen["PL"]),
+    "estrella_9822": _tend_x(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]]),
+    "r_9822": float(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]].corr(variables_resumen["PL"])),
+    "media_9822": float(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]].mean()), "media_red": float(variables_resumen["PL"].mean()),
+}
+
+# lo que el texto de tendencias afirma; si los datos dejan de respaldarlo, el script se detiene
+assert tend_t_sube
+assert all(tend_todos[(v, per)][k]["p"] >= TEND_ALFA for v in ("PI", "Q") for per in TEND_PERIODOS for k in ("X", "a", "z"))
+assert all(tend_todos[(v, per)]["X"]["p_mk"] >= TEND_ALFA for v in ("PI", "Q") for per in TEND_PERIODOS)
+
+
+# ---------------------------------------------------------------- tendencias: tres métodos y diagnóstico
+# Tres aproximaciones (enunciado del taller), sobre las tres representaciones:
+# 1. OLS (paramétrico): X = b0 + b1·t + e (y lo mismo para a y z). Para X además el ajuste con una constante por
+#    mes (efectos estacionales). Se reportan pendiente, IC 95 %, período, n y el diagnóstico de los residuos:
+#    autocorrelación (lag 1 y Ljung-Box con MET_LB_REZAGOS rezagos), cambio de la dispersión con el tiempo
+#    (Breusch-Pagan: e² contra t) y normalidad (Shapiro-Wilk). Si hay dependencia o heterocedasticidad, la
+#    inferencia se apoya en el error de Newey-West (HAC), que corrige las dos.
+# 2. Monotónica no paramétrica: Mann-Kendall con pendiente de Sen. Para X, la variante estacional (cada mes solo
+#    contra el mismo mes de otros años). Dependencia: en la secuencia de meses la p se obtiene PERMUTANDO AÑOS
+#    COMPLETOS (los 12 meses de un año viajan juntos), lo que conserva el ciclo y la dependencia dentro del año y
+#    supone despreciable la de un año al siguiente; el IC de Sen sale de remuestrear años completos. Para a y z se
+#    usa además la corrección de varianza de Hamed y Rao (1998) por autocorrelación. Mes a mes (subseries
+#    anuales), Mann-Kendall por mes con el IC de Sen de Kendall, y se reporta la autocorrelación de lag 1.
+# 3. No lineal: LOESS (Cleveland, 1979), regresión local lineal con pesos tricúbicos e iteraciones robustas. Es
+#    una CURVA EXPLORATORIA: su banda de 95 % sale de un remuestreo de residuos por bloques de MET_BLOQUE meses,
+#    no de un modelo con inferencia formal. El ciclo anual: en a y z ya no está; en X la ventana (MET_FRAC del
+#    registro, varios años) lo promedia. Se prueba la sensibilidad a la ventana, a los extremos (sin iteraciones
+#    robustas), a los bordes y a la longitud del registro, y se compara con una regresión segmentada (un quiebre
+#    de pendiente) para ver si hay evidencia de un cambio de pendiente (BIC).
+MET_LB_REZAGOS = 12
+MET_BLOQUE = 12
+MET_FRAC = 0.5               # ventana de LOESS: la mitad del registro (decisión del agente, ver sensibilidad)
+MET_FRACS = (0.3, 0.5, 0.75)
+MET_FRAC_MES = 0.75          # en las subseries anuales (25 a 42 puntos) se usa una ventana más ancha
+MET_ITER_ROBUSTAS = 2
+MET_REMUESTREOS = 400
+MET_SEMILLA = 23
+MET_UMBRAL_FORMA = 0.10      # un tramo de subida o bajada cuenta si mueve la curva más de 0.10 s_j (o 0.10 de z)
+MET_DELTA_BIC = 10           # diferencia de BIC que se considera evidencia fuerte a favor del modelo con quiebre
+MET_MIN_ANIOS_TRAMO = 5      # el quiebre se busca dejando al menos 5 años a cada lado
+_rng_met = np.random.default_rng(MET_SEMILLA)
+
+
+def _ljung_box(e, rezagos):
+    n = len(e)
+    e = e - e.mean()
+    r = np.array([np.sum(e[k:] * e[:-k]) for k in range(1, rezagos + 1)]) / np.sum(e ** 2)
+    q = n * (n + 2) * np.sum(r ** 2 / (n - np.arange(1, rezagos + 1)))
+    return float(r[0]), float(stats.chi2.sf(q, rezagos))
+
+
+def _breusch_pagan(e, t):
+    """e² contra t: n·R² ~ chi² con 1 grado de libertad. p pequeña = la dispersión cambia con el tiempo."""
+    r = np.corrcoef(e ** 2, t)[0, 1]
+    return float(stats.chi2.sf(len(e) * r ** 2, 1))
+
+
+def _ols_completo(y, X):
+    """Pendiente (columna 0 del tiempo, que se pasa en la posición indicada), IC clásico y HAC, y diagnóstico."""
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    e = y - X @ beta
+    n, k = X.shape
+    se_cl = np.sqrt(np.diag(np.linalg.inv(X.T @ X)) * np.sum(e ** 2) / (n - k))
+    _, se_hac, p_hac = _ols_hac(y, X, TEND_REZAGOS)
+    return beta, se_cl, se_hac, p_hac, e
+
+
+def _loess(t, y, frac, iteraciones=MET_ITER_ROBUSTAS):
+    """LOESS local lineal (Cleveland, 1979), vectorizado. t ordenado, sin vacíos."""
+    n = len(t)
+    k = max(int(np.ceil(frac * n)), 3)
+    d = np.abs(t[:, None] - t[None, :])
+    h = np.sort(d, axis=1)[:, k - 1][:, None]
+    w0 = np.clip(1 - (d / np.where(h > 0, h, 1)) ** 3, 0, None) ** 3
+    robusto = np.ones(n)
+    for _ in range(iteraciones + 1):
+        w = w0 * robusto[None, :]
+        s0, s1, s2 = w.sum(1), w @ t, w @ t ** 2
+        sy, sty = w @ y, w @ (t * y)
+        den = s0 * s2 - s1 ** 2
+        b1 = (s0 * sty - s1 * sy) / den
+        b0 = (sy - b1 * s1) / s0
+        ajuste = b0 + b1 * t
+        res = y - ajuste
+        mad = np.median(np.abs(res))
+        robusto = np.clip(1 - (res / (6 * mad)) ** 2, 0, None) ** 2 if mad > 0 else np.ones(n)
+    return ajuste
+
+
+def _banda_loess(t, y, frac):
+    """Banda 95 % de la curva LOESS por remuestreo de residuos en bloques móviles de MET_BLOQUE meses."""
+    ajuste = _loess(t, y, frac)
+    res = y - ajuste
+    n = len(y)
+    inicios = np.arange(n - MET_BLOQUE + 1)
+    curvas = np.empty((MET_REMUESTREOS, n))
+    for b in range(MET_REMUESTREOS):
+        idx = np.concatenate([np.arange(i, i + MET_BLOQUE)
+                              for i in _rng_met.choice(inicios, int(np.ceil(n / MET_BLOQUE)))])[:n]
+        curvas[b] = _loess(t, ajuste + res[idx], frac)
+    return ajuste, np.percentile(curvas, 2.5, axis=0), np.percentile(curvas, 97.5, axis=0)
+
+
+def _mk_hamed_rao(t, y):
+    """Mann-Kendall con la corrección de varianza de Hamed y Rao (1998) por autocorrelación."""
+    n = len(y)
+    S = np.sign(y[None, :] - y[:, None])[np.triu_indices(n, 1)].sum()
+    var = n * (n - 1) * (2 * n + 5) / 18
+    pend = stats.theilslopes(y, t)[0]
+    rangos = stats.rankdata(y - pend * t)
+    rangos = rangos - rangos.mean()
+    lim = 1.96 / np.sqrt(n)
+    suma = 0.0
+    for k in range(1, n - 1):
+        rk = np.sum(rangos[k:] * rangos[:-k]) / np.sum(rangos ** 2)
+        if abs(rk) > lim:
+            suma += (n - k) * (n - k - 1) * (n - k - 2) * rk
+    factor = max(1 + 2 / (n * (n - 1) * (n - 2)) * suma, 1e-6)
+    z = (S - np.sign(S)) / np.sqrt(var * factor)
+    return float(2 * stats.norm.sf(abs(z))), float(factor)
+
+
+def _anios_bloques(periodos):
+    anios = np.asarray(periodos.year)
+    return anios, np.unique(anios)
+
+
+def _mk_estacional_perm(t, y, meses, anios):
+    """p del Mann-Kendall estacional permutando años completos, e IC de Sen remuestreando años completos."""
+    pend, _ = _mk_estacional(t, y, meses)
+    S_obs = sum(np.sign(y[meses == m][None, :] - y[meses == m][:, None])[np.triu_indices((meses == m).sum(), 1)].sum()
+                for m in np.unique(meses))
+    unicos = np.unique(anios)
+    S_perm = np.empty(MET_REMUESTREOS)
+    pend_bs = np.empty(MET_REMUESTREOS)
+    pos = {a: np.where(anios == a)[0] for a in unicos}
+    for b in range(MET_REMUESTREOS):
+        # permutación: cada año recibe el tiempo de otro año (el mes se conserva)
+        orden = dict(zip(unicos, _rng_met.permutation(unicos)))
+        t_perm = np.array([orden[a] for a in anios]) + (t - anios)
+        S = 0.0
+        for m in np.unique(meses):
+            sel = meses == m
+            o = np.argsort(t_perm[sel])
+            ym = y[sel][o]
+            S += np.sign(ym[None, :] - ym[:, None])[np.triu_indices(len(ym), 1)].sum()
+        S_perm[b] = S
+        # remuestreo de años con reemplazo para el IC de la pendiente
+        elegidos = _rng_met.choice(unicos, len(unicos))
+        idx = np.concatenate([pos[a] for a in elegidos])
+        pend_bs[b] = _mk_estacional(t[idx], y[idx], meses[idx])[0] if len(np.unique(t[idx])) > 2 else np.nan
+    p = (np.sum(np.abs(S_perm) >= abs(S_obs)) + 1) / (MET_REMUESTREOS + 1)
+    return pend, float(p), float(np.nanpercentile(pend_bs, 2.5)), float(np.nanpercentile(pend_bs, 97.5))
+
+
+def _segmentada(t, y):
+    """Mejor quiebre de pendiente (modelo continuo con bisagra) y su ΔBIC frente a la recta (positivo = gana el quiebre)."""
+    n = len(t)
+    X1 = np.column_stack([np.ones(n), t])
+    sse1 = np.sum((y - X1 @ np.linalg.lstsq(X1, y, rcond=None)[0]) ** 2)
+    mejor = (np.inf, None, None)
+    for tau in np.arange(t.min() + MET_MIN_ANIOS_TRAMO, t.max() - MET_MIN_ANIOS_TRAMO, 0.25):
+        X2 = np.column_stack([X1, np.clip(t - tau, 0, None)])
+        b = np.linalg.lstsq(X2, y, rcond=None)[0]
+        sse = np.sum((y - X2 @ b) ** 2)
+        if sse < mejor[0]:
+            mejor = (sse, tau, b)
+    bic1 = n * np.log(sse1 / n) + 2 * np.log(n)
+    bic2 = n * np.log(mejor[0] / n) + 4 * np.log(n)        # pendiente extra y quiebre
+    return float(mejor[1]), float(bic1 - bic2), float(mejor[2][1] * 10), float((mejor[2][1] + mejor[2][2]) * 10)
+
+
+def _forma(t, curva, escala):
+    """Tramos de subida y bajada de una curva: se ignoran las ondulaciones menores que MET_UMBRAL_FORMA·escala."""
+    umbral = MET_UMBRAL_FORMA * escala
+    tramos = []                      # (sentido, desde, hasta)
+    ancla_i, sentido = 0, 0
+    extremo_i = 0
+    for i in range(1, len(curva)):
+        if sentido >= 0 and curva[i] > curva[extremo_i]:
+            extremo_i = i
+        if sentido <= 0 and curva[i] < curva[extremo_i]:
+            extremo_i = i
+        cambio = curva[extremo_i] - curva[ancla_i]
+        if sentido == 0 and abs(cambio) > umbral:
+            sentido = 1 if cambio > 0 else -1
+        elif sentido != 0 and (curva[i] - curva[extremo_i]) * -sentido > umbral:
+            tramos.append((sentido, t[ancla_i], t[extremo_i]))
+            ancla_i, sentido = extremo_i, -sentido
+            extremo_i = i
+    if sentido != 0:
+        tramos.append((sentido, t[ancla_i], t[extremo_i]))
+    return tramos
+
+
+met_global, met_curvas, met_mes, met_sens = {}, {}, {}, {}
+for _v in LARGO_VARS:
+    for _per, _lim in TEND_PERIODOS.items():
+        if _v == "PI" and _per != "completo":
+            continue
+        _rep = {"X": largo[_v], "a": anz_a[_v], "z": anz_z[_v]}
+        if _lim is not None:
+            _rep = {k: s.loc[_lim[0]:_lim[1]] for k, s in _rep.items()}
+        _rep = {k: s.dropna() for k, s in _rep.items()}
+        _idx = _rep["X"].index
+        _t = _t_decimal(_idx)
+        _meses = np.asarray(_idx.month)
+        _anios, _ = _anios_bloques(_idx)
+        _uno = np.column_stack([np.ones_like(_t), _t])
+        _ind = (_meses[:, None] == np.arange(1, 13)[None, :]).astype(float)
+        fila = {"n": len(_t), "inicio": _idx[0], "fin": _idx[-1], "anios": len(np.unique(_anios))}
+        for _k in ("X", "a", "z"):
+            _y = _rep[_k].to_numpy()
+            b, se_cl, se_hac, p_hac, e = _ols_completo(_y, _uno)
+            r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
+            fila[f"ols_{_k}"] = {"pend": b[1] * 10, "ic_cl": 1.96 * se_cl[1] * 10, "ic_hac": 1.96 * se_hac[1] * 10,
+                                 "p_cl": float(2 * stats.t.sf(abs(b[1] / se_cl[1]), len(_y) - 2)), "p_hac": p_hac[1],
+                                 "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t),
+                                 "p_sw": float(stats.shapiro(e)[1])}
+        # X con efectos estacionales (una constante por mes)
+        b, se_cl, se_hac, p_hac, e = _ols_completo(_rep["X"].to_numpy(), np.column_stack([_t, _ind]))
+        r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
+        fila["ols_Xmes"] = {"pend": b[0] * 10, "ic_cl": 1.96 * se_cl[0] * 10, "ic_hac": 1.96 * se_hac[0] * 10,
+                            "p_cl": float(2 * stats.t.sf(abs(b[0] / se_cl[0]), len(_t) - 13)), "p_hac": p_hac[0],
+                            "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t), "p_sw": float(stats.shapiro(e)[1])}
+        # Mann-Kendall: estacional en X (p por permutación de años), con Hamed-Rao en a y z
+        pend, p, lo, hi = _mk_estacional_perm(_t, _rep["X"].to_numpy(), _meses, _anios)
+        fila["mk_X"] = {"pend": pend * 10, "p": p, "lo": lo * 10, "hi": hi * 10}
+        for _k in ("a", "z"):
+            _y = _rep[_k].to_numpy()
+            ts = stats.theilslopes(_y, _t)
+            p_hr, factor = _mk_hamed_rao(_t, _y)
+            fila[f"mk_{_k}"] = {"pend": ts[0] * 10, "lo": ts[2] * 10, "hi": ts[3] * 10, "p": p_hr, "factor": factor,
+                                "p_sin": float(stats.kendalltau(_t, _y).pvalue)}
+        # LOESS en las tres representaciones; banda solo en el registro completo (es la que se dibuja)
+        for _k in ("X", "a", "z"):
+            _y = _rep[_k].to_numpy()
+            if _per == "completo":
+                curva, lo_b, hi_b = _banda_loess(_t, _y, MET_FRAC)
+                met_curvas[(_v, _k)] = {"t": _idx, "curva": curva, "lo": lo_b, "hi": hi_b,
+                                        "ols": fila[f"ols_{_k}"]}
+            else:
+                curva = _loess(_t, _y, MET_FRAC)
+            escala = 1.0 if _k == "z" else float(anz_s[_v].mean())
+            if _k == "X":
+                escala = float(anz_s[_v].mean())
+            fila[f"loess_{_k}"] = {"cambio": float(curva[-1] - curva[0]), "forma": _forma(_t, curva, escala),
+                                   "escala": escala}
+        # regresión segmentada sobre a: ¿hay evidencia de un cambio de pendiente?
+        tau, dbic, p1, p2 = _segmentada(_t, _rep["a"].to_numpy())
+        fila["seg"] = {"tau": tau, "dbic": dbic, "pend_antes": p1, "pend_despues": p2}
+        met_global[(_v, _per)] = fila
+    # sensibilidad de LOESS (sobre a, registro completo): ventana, extremos, bordes
+    _a = anz_a[_v].dropna()
+    _t = _t_decimal(_a.index)
+    _y = _a.to_numpy()
+    _s = {}
+    for _f in MET_FRACS:
+        c = _loess(_t, _y, _f)
+        _s[f"frac {_f}"] = {"cambio": float(c[-1] - c[0]), "tramos": len(_forma(_t, c, float(anz_s[_v].mean())))}
+    c_nr = _loess(_t, _y, MET_FRAC, iteraciones=0)
+    c_r = met_curvas[(_v, "a")]["curva"]
+    _s["extremos"] = float(np.max(np.abs(c_nr - c_r)))
+    _anchos = met_curvas[(_v, "a")]["hi"] - met_curvas[(_v, "a")]["lo"]
+    _borde = max(int(len(_anchos) * 0.1), 1)
+    _s["borde_vs_centro"] = float(np.mean(np.r_[_anchos[:_borde], _anchos[-_borde:]]) / np.mean(_anchos[_borde:-_borde]))
+    met_sens[_v] = _s
+    # mes a mes: OLS con IC, Mann-Kendall con IC de Sen, autocorrelación de lag 1, LOESS y su forma
+    for _m in range(1, 13):
+        _xm = largo[_v][largo.index.month == _m].dropna()
+        _tm = _t_decimal(_xm.index)
+        _ym = _xm.to_numpy()
+        r = stats.linregress(_tm, _ym)
+        ts = stats.theilslopes(_ym, _tm)
+        e = _ym - (r.intercept + r.slope * _tm)
+        r1 = float(np.corrcoef(e[1:], e[:-1])[0, 1])
+        curva = _loess(_tm, _ym, MET_FRAC_MES)
+        met_mes[(_v, _m)] = {"n": len(_ym), "desde": int(_xm.index[0].year), "hasta": int(_xm.index[-1].year),
+                             "ols": r.slope * 10, "ic": 1.96 * r.stderr * 10 * stats.t.ppf(0.975, len(_ym) - 2) / 1.96,
+                             "p": r.pvalue, "sen": ts[0] * 10, "sen_lo": ts[2] * 10, "sen_hi": ts[3] * 10,
+                             "p_mk": float(stats.kendalltau(_tm, _ym).pvalue), "r1": r1,
+                             "r1_signif": abs(r1) > 1.96 / np.sqrt(len(_ym)),
+                             "forma": _forma(_tm, curva, float(anz_s.loc[_m, _v])),
+                             "curva": curva, "t": _tm, "y": _ym}
+
+# resúmenes para el texto
+met_dependencia = [f"{v}" for (v, per), f in met_global.items() if per == "completo" and f["ols_a"]["p_lb"] < TEND_ALFA]
+met_hetero = [f"{v}" for (v, per), f in met_global.items() if per == "completo" and f["ols_a"]["p_bp"] < TEND_ALFA]
+met_hac_mas_ancho = np.median([f["ols_a"]["ic_hac"] / f["ols_a"]["ic_cl"] for f in met_global.values()])
+met_quiebres = {v: f["seg"] for (v, per), f in met_global.items() if per == "completo" and f["seg"]["dbic"] > MET_DELTA_BIC}
+met_mes_r1 = sum(m["r1_signif"] for m in met_mes.values())
+met_mes_reversos = {k: m["forma"] for k, m in met_mes.items() if len(m["forma"]) > 1}
+# lo que el texto afirma
+assert all(f["ols_Xmes"]["pend"] * f["ols_a"]["pend"] > 0 or abs(f["ols_a"]["pend"]) < 1e-9 for f in met_global.values())
+
+# lo que el texto de los tres métodos afirma; si los datos dejan de respaldarlo, el script se detiene
+_mc = {v: f for (v, per), f in met_global.items() if per == "completo"}
+assert all(f["ols_a"]["p_lb"] < TEND_ALFA for f in _mc.values())
+assert sum(f["ols_a"]["p_sw"] < TEND_ALFA for f in _mc.values()) >= 2
+assert not met_quiebres
+for _v in ("T mín", "T media", "T máx"):
+    _f = _mc[_v]
+    assert _f["ols_a"]["p_hac"] < TEND_ALFA and _f["mk_a"]["p"] < TEND_ALFA and _f["mk_X"]["p"] < TEND_ALFA
+    assert len(_f["loess_a"]["forma"]) == 1 and _f["loess_a"]["forma"][0][0] > 0
+    assert all(met_sens[_v][f"frac {fr}"]["cambio"] > 0 for fr in MET_FRACS)
+assert any((met_global[(v, "1998–2022")]["ols_a"]["p_hac"] < TEND_ALFA) != (met_global[(v, "1998–2022")]["mk_a"]["p"] < TEND_ALFA)
+           for v in ("T mín", "T media", "T máx"))
+assert all(len({met_sens[v][f"frac {fr}"]["tramos"] for fr in MET_FRACS}) > 1 for v in ("PL*", "PI", "Q"))
+assert any(len({np.sign(met_sens[v][f"frac {fr}"]["cambio"]) for fr in MET_FRACS}) > 1 for v in ("PL*", "PI", "Q"))
+assert all(f[k]["p_hac"] >= TEND_ALFA for (v, per), f in met_global.items() if v in ("PI", "Q") for k in ("ols_X", "ols_Xmes", "ols_a", "ols_z"))
+assert all(f[k]["p"] >= TEND_ALFA for (v, per), f in met_global.items() if v in ("PI", "Q") for k in ("mk_X", "mk_a"))
+assert all(s["borde_vs_centro"] > 1 for s in met_sens.values())
+assert len(_mc["Q"]["loess_a"]["forma"]) > 1
+
+# lo que el texto afirma sobre PL* (la red fija); si los datos dejan de respaldarlo, el script se detiene
+for _per in TEND_PERIODOS:
+    _f = met_global[("PL*", _per)]
+    assert _f["ols_Xmes"]["p_hac"] >= TEND_ALFA and _f["mk_X"]["p"] >= TEND_ALFA and _f["mk_a"]["p"] >= TEND_ALFA
+assert tend_pl_sens["sin_saltos"]["p"] >= TEND_ALFA and tend_pl_sens["sin_saltos"]["p_mk"] >= TEND_ALFA
+assert tend_pl_sens["red_9822"]["ols"] < tend_pl_sens["estrella_9822"]["ols"] and tend_pl_sens["red_9822"]["p_mk"] < TEND_ALFA
+assert tend_pl_sens["r_9822"] > 0.95
+
+# años contrastantes: PL contra PI, año por año (pedido por el usuario el 2026-10-08). Cuánto supera PL a PI en el
+# año, contra lo habitual en 1998-2022, y los meses en que más se separan.
+ANOM_MESES_DIF = 3
+anom_pl_pi = {}
+_habitual = float(variables_resumen.PL.sum() / variables_resumen.PI.sum())
+for _a in anom_anios:
+    _x = variables_resumen[variables_resumen.index.year == _a]
+    _dif = (_x.PL - _x.PI).sort_values(ascending=False)
+    anom_pl_pi[_a] = {"pi": [round(float(v), 1) for v in _x.PI], "pl_total": float(_x.PL.sum()), "pi_total": float(_x.PI.sum()),
+                      "razon": float(_x.PL.sum() / _x.PI.sum()),
+                      "meses_dif": [MESES_LARGOS_ES[p.month - 1] for p in _dif.index[:ANOM_MESES_DIF]]}
+anom_pl_pi_habitual = _habitual
+anom_pl_pi_raro = max(anom_pl_pi, key=lambda a: anom_pl_pi[a]["razon"])
+assert anom_pl_pi[anom_pl_pi_raro]["razon"] > anom_pl_pi_habitual

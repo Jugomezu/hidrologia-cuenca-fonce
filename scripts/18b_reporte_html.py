@@ -76,6 +76,13 @@ CITA_HYNDMAN = '<a class="cita" href="#ref-hyndman1996">Hyndman y Fan, 1996</a>'
 CITA_ONI = '<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>'
 CITA_KRUSKAL = '<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>'
 CITA_HORN = '<a class="cita" href="#ref-horn1960">Horn y Bryson, 1960</a>'
+CITA_SHAPIRO = '<a class="cita" href="#ref-shapiro1965">Shapiro y Wilk, 1965</a>'
+CITA_NEWEY = '<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>'
+CITA_MANN = '<a class="cita" href="#ref-mann1945">Mann, 1945</a>'
+CITA_SEN = '<a class="cita" href="#ref-sen1968">Sen, 1968</a>'
+CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
+CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
+CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -435,6 +442,178 @@ est_filas_mitades = "\n".join(
     f"<td class='num'>{' y '.join(f'{d:.1f}' for d in r['corrimiento']) if r['corrimiento'] else '—'}</td>"
     f"<td>{'sí' if r['estable'] else '<b>no</b>'}</td></tr>" for v, r in est_mitades.items())
 
+# anomalías estandarizadas y tendencias: tablas y datos de las gráficas
+ANZ_GRUPOS = {"Lluvia (PL* y PI)": ["PL*", "PI"], "Caudal (Q)": ["Q"], "Temperatura (mín, media y máx)": ["T mín", "T media", "T máx"]}
+ANZ_DEC = {"PL*": 0, "PI": 0, "Q": 1, "T mín": 2, "T media": 2, "T máx": 2}
+
+
+def _p_txt(p):
+    return "&lt; 0.001" if p < 0.001 else f"{p:.3f}"
+
+
+def _pend_txt(valor, p, dec):
+    """Pendiente por década con su p; en negrita si es significativa."""
+    texto = f"{valor:+.{dec}f} <small>(p {_p_txt(p)})</small>"
+    return f"<b>{texto}</b>" if p < TEND_ALFA else texto
+
+
+anz_filas = "\n".join(
+    f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td>"
+    + "".join(f"<td class='num'>{anz_mu.loc[m, v]:.{ANZ_DEC[v]}f} / {anz_s.loc[m, v]:.{ANZ_DEC[v]}f} ({anz_n.loc[m, v]})</td>"
+              for v in LARGO_VARS) + "</tr>" for m in range(1, 13))
+anz_forma_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td><td class='num'>{anz_n[v].min()}–{anz_n[v].max()}</td>"
+    f"<td class='num'>{anz_ancho_rel[v].min():.0f}–{anz_ancho_rel[v].max():.0f} %</td>"
+    f"<td class='num'>{f['asim']:+.2f}</td><td class='num'>{f['extremos']:.1f} %</td>"
+    f"<td class='num'>{_p_txt(f['shapiro_p'])}</td><td class='num'>{f['r_x_a']:.2f}</td><td class='num'>{f['r_a_z']:.2f}</td></tr>"
+    for v, f in anz_forma.items())
+largo_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td><td>{LARGO_FUENTE[v]}</td><td>{fmt_mes(r['inicio'])}</td><td>{fmt_mes(r['fin'])}</td>"
+    f"<td class='num'>{r['meses']}</td><td class='num'>{r['validos']}</td><td class='num'>{r['vacios']}</td>"
+    f"<td>{LARGO_CAMBIOS[v]}</td></tr>" for v, r in largo_registro.items())
+_tend_filas = []
+for v in LARGO_VARS:
+    for per in TEND_PERIODOS:
+        if v == "PI" and per != "completo":
+            continue                     # para PI el registro completo es 1998-2022: sería la misma fila
+        f = tend_todos[(v, per)]
+        d = ANZ_DEC[v] + 1
+        etiqueta = (f"{fmt_mes(f['inicio'])} a {fmt_mes(f['fin'])}" + (" (registro completo)" if per == "completo" else " (período común)"))
+        _tend_filas.append(
+            f"<tr><td><b>{v}</b> <small>({LARGO_UNIDADES[v]})</small></td><td>{etiqueta}</td><td class='num'>{f['n']}</td>"
+            f"<td class='num'>{_pend_txt(f['X']['ols'], f['X']['p'], d)}</td><td class='num'>{_pend_txt(f['X']['mk'], f['X']['p_mk'], d)}</td>"
+            f"<td class='num'>{_pend_txt(f['a']['ols'], f['a']['p'], d)}</td><td class='num'>{_pend_txt(f['z']['ols'], f['z']['p'], 3)}</td></tr>")
+tend_filas = "\n".join(_tend_filas)
+
+
+def _serie_json(s, dec):
+    return [None if pd.isna(x) else round(float(x), dec) for x in s]
+
+
+_anz_t = largo.index
+anz_json = json.dumps({
+    "fechas": [f"{p.year}-{p.month:02d}-15" for p in _anz_t],
+    "ref": [f"{ANZ_REFERENCIA[0].year}-{ANZ_REFERENCIA[0].month:02d}-01", f"{ANZ_REFERENCIA[1].year}-{ANZ_REFERENCIA[1].month:02d}-28"],
+    "grupos": ANZ_GRUPOS,
+    "enso": [[f"{a.year}-{a.month:02d}-01", f"{b.year}-{b.month:02d}-28", f] for a, b, f in enso_tramos],
+    "unidades": LARGO_UNIDADES,
+    "series": {v: {"X": _serie_json(largo[v], ANZ_DEC[v] + 1), "a": _serie_json(anz_a[v], ANZ_DEC[v] + 1),
+                   "z": _serie_json(anz_z[v], 2),
+                   # recta de tendencia de a y de z sobre el registro completo (OLS), en sus dos extremos
+                   "recta": {k: {"x": [f"{tend_todos[(v, 'completo')]['inicio'].year}-{tend_todos[(v, 'completo')]['inicio'].month:02d}-15",
+                                       f"{tend_todos[(v, 'completo')]['fin'].year}-{tend_todos[(v, 'completo')]['fin'].month:02d}-15"],
+                                 "y": [round(tend_todos[(v, 'completo')][k]["corte"] + tend_todos[(v, 'completo')][k]["ols"] / 10 * t, 4)
+                                       for t in (_t_decimal(pd.PeriodIndex([tend_todos[(v, 'completo')]['inicio']]))[0],
+                                                 _t_decimal(pd.PeriodIndex([tend_todos[(v, 'completo')]['fin']]))[0])]}
+                             for k in ("a", "z")}}
+               for v in LARGO_VARS},
+}, ensure_ascii=False)
+tend_json = json.dumps({
+    per: {"vars": LARGO_VARS,
+          "z": [[round(tend_mes[(v, per, m)]["z"], 3) for m in range(1, 13)] for v in LARGO_VARS],
+          "x": [[round(tend_mes[(v, per, m)]["X"], ANZ_DEC[v] + 2) for m in range(1, 13)] for v in LARGO_VARS],
+          "p": [[round(tend_mes[(v, per, m)]["p"], 4) for m in range(1, 13)] for v in LARGO_VARS],
+          "n": [[tend_mes[(v, per, m)]["n"] for m in range(1, 13)] for v in LARGO_VARS],
+          "unidades": [LARGO_UNIDADES[v] for v in LARGO_VARS]}
+    for per in TEND_PERIODOS}, ensure_ascii=False)
+_meses_txt = lambda ms: ", ".join(MESES_LARGOS_ES[m - 1] for m in ms) if ms else "ninguno"
+tend_conteo_txt = "; ".join(
+    f"{v}: {len(tend_conteo[(v, 'completo')]['meses'])} ({_meses_txt(tend_conteo[(v, 'completo')]['meses'])})"
+    for v in LARGO_VARS)
+
+anz_botones = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-anz-{i}" aria-controls="panel-anz" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{g}</button>'
+    for i, g in enumerate(ANZ_GRUPOS))
+tend_botones = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-tend-{i}" aria-controls="panel-tend" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>'
+    f'{"Registro completo de cada variable" if per == "completo" else "Período común " + per}</button>'
+    for i, per in enumerate(TEND_PERIODOS))
+
+# tendencias: tablas y datos de la comparación de métodos
+def _ic_txt(pend, ic, dec):
+    return f"{pend:+.{dec}f} ± {ic:.{dec}f}"
+
+
+def _p_neg(texto, p):
+    return f"<b>{texto}</b>" if p < TEND_ALFA else texto
+
+
+def _per_txt(f):
+    return f"{f['inicio'].year}–{f['fin'].year}"
+
+
+def _forma_txt(tramos):
+    if not tramos:
+        return "plana"
+    return ", ".join(f"{'sube' if s > 0 else 'baja'} {a:.0f}–{b:.0f}" for s, a, b in tramos)
+
+
+_met_ols, _met_np = [], []
+for (v, per), f in met_global.items():
+    d = ANZ_DEC[v] + 1
+    et = f"<b>{v}</b> <small>({LARGO_UNIDADES[v]})</small>"
+    cel = f"<td>{et}</td><td>{_per_txt(f)}</td><td class='num'>{f['n']}</td>"
+    o = {k: f[f"ols_{k}"] for k in ("X", "Xmes", "a", "z")}
+    _met_ols.append(
+        "<tr>" + cel
+        + f"<td class='num'>{_p_neg(_ic_txt(o['X']['pend'], o['X']['ic_hac'], d), o['X']['p_hac'])}</td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['Xmes']['pend'], o['Xmes']['ic_hac'], d), o['Xmes']['p_hac'])} <small>(p {_p_txt(o['Xmes']['p_hac'])})</small></td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['a']['pend'], o['a']['ic_hac'], d), o['a']['p_hac'])} <small>(clásico ± {o['a']['ic_cl']:.{d}f})</small></td>"
+        + f"<td class='num'>{_p_neg(_ic_txt(o['z']['pend'], o['z']['ic_hac'], 3), o['z']['p_hac'])}</td>"
+        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td>"
+        + f"<td class='num'>{_p_txt(o['a']['p_sw'])}</td></tr>")
+    mx, ma = f["mk_X"], f["mk_a"]
+    sen_x = f"{mx['pend']:+.{d}f} [{mx['lo']:+.{d}f}, {mx['hi']:+.{d}f}]"
+    sen_a = f"{ma['pend']:+.{d}f} [{ma['lo']:+.{d}f}, {ma['hi']:+.{d}f}]"
+    _met_np.append(
+        "<tr>" + cel
+        + f"<td class='num'>{_p_neg(sen_x, mx['p'])} <small>(p {_p_txt(mx['p'])})</small></td>"
+        + f"<td class='num'>{_p_neg(sen_a, ma['p'])} <small>(p {_p_txt(ma['p'])}; sin corregir {_p_txt(ma['p_sin'])})</small></td>"
+        + f"<td>{f['loess_a']['cambio']:+.{d}f}: {_forma_txt(f['loess_a']['forma'])}</td>"
+        + f"<td class='num'>{f['seg']['dbic']:+.1f} <small>(mejor quiebre {f['seg']['tau']:.0f})</small></td></tr>")
+met_ols_filas, met_np_filas = "\n".join(_met_ols), "\n".join(_met_np)
+met_sens_filas = "\n".join(
+    f"<tr><td><b>{v}</b> <small>({LARGO_UNIDADES[v]})</small></td>"
+    + "".join(f"<td class='num'>{s[f'frac {fr}']['cambio']:+.{ANZ_DEC[v] + 1}f} <small>({s[f'frac {fr}']['tramos']} tramo{'s' if s[f'frac {fr}']['tramos'] != 1 else ''})</small></td>" for fr in MET_FRACS)
+    + f"<td class='num'>{s['extremos']:.{ANZ_DEC[v] + 1}f}</td><td class='num'>{s['borde_vs_centro']:.1f} veces</td></tr>"
+    for v, s in met_sens.items())
+met_mes_detalles = "\n".join(
+    f"<details class='plegable-mini'><summary><b>{v}</b> <small>({LARGO_UNIDADES[v]} por década)</small></summary>"
+    "<div class='tabla-caja'><table class='sin-destacar'><thead><tr><th>Mes</th><th class='num'>Años</th>"
+    "<th class='num'>OLS ± IC 95 %</th><th class='num'>p</th><th class='num'>Sen [IC 95 %]</th><th class='num'>p (MK)</th>"
+    "<th class='num'>r₁</th><th>LOESS</th></tr></thead><tbody>"
+    + "".join(
+        f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td><td class='num'>{r['n']} <small>({r['desde']}–{r['hasta']})</small></td>"
+        f"<td class='num'>{_p_neg(_ic_txt(r['ols'], r['ic'], ANZ_DEC[v] + 1), r['p'])}</td><td class='num'>{_p_txt(r['p'])}</td>"
+        f"<td class='num'>{r['sen']:+.{ANZ_DEC[v] + 1}f} [{r['sen_lo']:+.{ANZ_DEC[v] + 1}f}, {r['sen_hi']:+.{ANZ_DEC[v] + 1}f}]</td>"
+        f"<td class='num'>{_p_txt(r['p_mk'])}</td><td class='num'>{r['r1']:+.2f}{' *' if r['r1_signif'] else ''}</td>"
+        f"<td>{_forma_txt(r['forma'])}</td></tr>"
+        for m in range(1, 13) for r in [met_mes[(v, m)]])
+    + "</tbody></table></div></details>"
+    for v in LARGO_VARS)
+met_json = json.dumps({
+    v: {k: {"fechas": [f"{p.year}-{p.month:02d}-15" for p in met_curvas[(v, k)]["t"]],
+            "y": _serie_json({"X": largo[v], "a": anz_a[v], "z": anz_z[v]}[k].dropna(), 3),
+            "curva": [round(float(x), 4) for x in met_curvas[(v, k)]["curva"]],
+            "lo": [round(float(x), 4) for x in met_curvas[(v, k)]["lo"]],
+            "hi": [round(float(x), 4) for x in met_curvas[(v, k)]["hi"]],
+            "ols": [round(float(x), 4) for x in (lambda tt, yy: np.polyval(np.polyfit(tt, yy, 1), tt))(
+                _t_decimal(met_curvas[(v, k)]["t"]),
+                {"X": largo[v], "a": anz_a[v], "z": anz_z[v]}[k].dropna().to_numpy())]}
+        for k in ("X", "a", "z")}
+    for v in LARGO_VARS}, ensure_ascii=False)
+met_botones_var = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-met-v{i}" aria-controls="panel-met" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{v}</button>'
+    for i, v in enumerate(LARGO_VARS))
+met_botones_rep = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-met-r{i}" aria-controls="panel-met" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{nombre}</button>'
+    for i, nombre in enumerate(("anomalía a", "original X", "estandarizada z")))
+
+
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
     return "sin año completo" if v is None else f"{v:+.2f}"
@@ -449,7 +628,7 @@ _anom_nube = atip_z[["PL", "Q"]].dropna()
 anom_json = json.dumps({
     "nube": {"pl": _anom_nube.PL.round(2).tolist(), "q": _anom_nube.Q.round(2).tolist(),
              "anio": [p.year for p in _anom_nube.index], "mes": [f"{MESES_LARGOS_ES[p.month - 1]} de {p.year}" for p in _anom_nube.index]},
-    "anios": {str(a): {"tipo": r["tipo"], "serie": r["serie"]} for a, r in anom_anios.items()},
+    "anios": {str(a): {"tipo": r["tipo"], "serie": r["serie"], "pi": anom_pl_pi[a]["pi"]} for a, r in anom_anios.items()},
     "mediana": [round(float(v), 1) for v in anom_mediana_pl],
     "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
 }, ensure_ascii=False)
@@ -513,6 +692,8 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .plegable > summary h2 {{ display: inline; margin: 0 0 12px; }}
 .plegable > summary h2::before {{ content: "▸"; display: inline-block; width: 1.1em; color: var(--acento); transition: transform .15s; }}
 .plegable[open] > summary h2::before {{ transform: rotate(90deg); }}
+.plegable-mini {{ margin: 8px 0; }}
+.plegable-mini > summary {{ cursor: pointer; font: 500 14px/1.4 var(--f-dato); padding: 4px 0; }}
 .plegable > summary:focus-visible {{ outline: 2px solid var(--acento); outline-offset: 4px; border-radius: 4px; }}
 .plegable-pista {{ font: 400 12px/1 var(--f-dato); color: var(--tenue); letter-spacing: .04em; }}
 .sin-destacar tbody tr:first-child td {{ background: none; font-weight: 400; }}
@@ -1497,6 +1678,88 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>Anomalías y anomalías estandarizadas</h2>
+  <div class="revision" data-etiqueta="Revisión · anomalías y anomalías estandarizadas">
+  <p>Cada variable se puede mirar de tres maneras. La <b>serie original</b> X<sub>t</sub>. La <b>anomalía</b>
+  a<sub>t</sub> = X<sub>t</sub> − µ<sub>j</sub>, donde µ<sub>j</sub> es la media del mes j del calendario: cuánto se
+  aleja un mes de lo normal para ese mes, en las unidades de la variable. Y la <b>anomalía estandarizada</b>
+  z<sub>t</sub> = a<sub>t</sub> / s<sub>j</sub>, donde s<sub>j</sub> es la desviación estándar de ese mes: la misma
+  anomalía medida en desviaciones estándar, sin unidades.</p>
+  <p>µ<sub>j</sub> y s<sub>j</sub> salen de un <b>período de referencia fijo, {ANZ_REFERENCIA[0].year}–{ANZ_REFERENCIA[1].year}</b>,
+  el mismo para las seis variables: es el único en que existen todas, así que todas se miden contra lo mismo. No se
+  resta una única media para todos los meses (dejaría el ciclo anual dentro) ni una climatología móvil (se llevaría
+  parte de la tendencia). En Q y la temperatura, que llegan hasta {LARGO_DESDE[:4]}, los meses anteriores a
+  {ANZ_REFERENCIA[0].year} se comparan con esa misma referencia.</p>
+  <p><b>PL*</b>: en esta sección y en «Tendencias de largo plazo», la lluvia de los pluviómetros no es la PL de siempre sino
+  una <b>red fija</b> de {len(pl_estrella_red)} estaciones con registro desde 1981
+  ({", ".join(COD_PLUVIO[c].split(" (")[0] for c in pl_estrella_red)}), sin Pueblo Viejo en ningún año, sin los tramos excluidos
+  de siempre, sin rachas de valores repetidos y sin {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los
+  vecinos no acompañan. Si la red cambiara de composición con los años (como la PL de siempre, a la que Pueblo Viejo entra en
+  2004), ese cambio aparecería como una tendencia. El resto del informe sigue usando PL.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th>{"".join(f"<th class='num'>{v} <small>({LARGO_UNIDADES[v]})</small></th>" for v in LARGO_VARS)}</tr></thead>
+    <tbody>
+{anz_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">µ<sub>j</sub> / s<sub>j</sub> (n), con n el número de años válidos de cada mes en {ANZ_REFERENCIA[0].year}–{ANZ_REFERENCIA[1].year}.</p>
+
+  <div class="pestanas" role="tablist" aria-label="Qué variables mostrar">
+{anz_botones}
+  </div>
+  <div role="tabpanel" id="panel-anz" aria-labelledby="pestana-anz-0">
+    <div id="g-anz" class="grafico" style="min-height:0; height:720px"></div>
+  </div>
+  <p class="nota">Arriba la serie original, en el medio la anomalía y abajo la anomalía estandarizada. Fondo: naranja en los
+  meses de El Niño y azul en los de La Niña, según el ONI de la NOAA ({CITA_ONI}); sin color, neutro. Las líneas punteadas
+  marcan el período de referencia. En a y z, la línea discontinua es la tendencia lineal del registro completo (ver «Tendencias de
+  largo plazo»).</p>
+
+  <h3>Qué conserva y qué cambia cada una</h3>
+  <ul>
+    <li><b>X<sub>t</sub></b> lo conserva todo: las unidades, el nivel, el ciclo anual y la variación de un año a otro.</li>
+    <li><b>a<sub>t</sub></b> quita el ciclo anual medio y conserva las unidades y la diferencia de variabilidad entre meses:
+    un febrero lluvioso puede alejarse más de su media que un agosto. En la lluvia y el caudal, quitar el ciclo cambia mucho
+    la serie (correlación de X con a: {anz_forma["PL*"]["r_x_a"]:.2f} con PL*, {anz_forma["PI"]["r_x_a"]:.2f} con PI y
+    {anz_forma["Q"]["r_x_a"]:.2f} con Q); en la temperatura casi nada ({anz_forma["T media"]["r_x_a"]:.2f} con la media),
+    porque su ciclo anual es pequeño frente a lo que cambia de un año a otro.</li>
+    <li><b>z<sub>t</sub></b> quita además esa diferencia de variabilidad: pone todos los meses, y todas las variables, en la
+    misma escala. Cambia poco la forma de la serie (correlación de a con z entre {min(f["r_a_z"] for f in anz_forma.values()):.2f}
+    y {max(f["r_a_z"] for f in anz_forma.values()):.2f}), pero un +50 mm en el mes más variable pesa menos que en el más estable.</li>
+  </ul>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th class="num">Años por mes (n)</th><th class="num">Ancho del IC 95 % de s<sub>j</sub></th>
+    <th class="num">Asimetría de z</th><th class="num">Meses con |z| &gt; {ANZ_UMBRAL_Z:.0f}</th><th class="num">Shapiro-Wilk p</th>
+    <th class="num">r(X, a)</th><th class="num">r(a, z)</th></tr></thead>
+    <tbody>
+{anz_forma_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">En el período de referencia. El ancho del intervalo de s<sub>j</sub> (remuestreando años) se da
+  relativo al propio s<sub>j</sub>, del mes más preciso al menos preciso. En una normal, |z| &gt; {ANZ_UMBRAL_Z:.0f}
+  en el {anz_normal_extremos:.1f} % de los meses.</p>
+  <p><b>Ningún s<sub>j</sub> es cero</b>, así que la estandarización está definida en todos los meses. Los de la
+  temperatura son pequeños en grados, pero eso no los hace inestables: con {anz_n["T media"].min()} años se estiman con
+  una imprecisión relativa parecida a la de la lluvia. <b>La inestabilidad que pesa está en Q</b>: tiene entre
+  {anz_n["Q"].min()} y {anz_n["Q"].max()} años por mes y, en sus meses menos precisos, el intervalo de s<sub>j</sub> mide
+  hasta el {anz_ancho_rel["Q"].max():.0f} % del propio s<sub>j</sub>, porque uno o dos años extremos lo dominan. Allí un
+  z grande puede deberse en parte a un s<sub>j</sub> mal estimado.</p>
+  <p><b>Estandarizar no es normalizar.</b> z tiene media 0 y desviación 1 en cada mes, pero conserva la forma de la
+  distribución: Q sigue cargada hacia los meses muy húmedos (asimetría {anz_forma["Q"]["asim"]:+.2f}) y la prueba de
+  Shapiro-Wilk ({CITA_SHAPIRO}) rechaza la normalidad en {(", ".join(anz_no_normales[:-1]) + " y " + anz_no_normales[-1]) if len(anz_no_normales) > 1 else (anz_no_normales[0] if anz_no_normales else "ninguna")}.
+  Por lo mismo, z <b>no es el SPI</b>: el índice estandarizado de precipitación ajusta primero una distribución a la
+  lluvia y la transforma después en una normal, cosa que aquí no se hace.</p>
+  <p class="nota">Las anomalías de «Revisión de outliers» y «Años que se salen de lo normal» son otras: se miden respecto a la
+  mediana y en rangos intercuartiles, para buscar extremos sin que los propios extremos muevan la referencia. Se usan
+  tal como estaban.</p>
+  </div>
+</section>
+
+<section>
   <h2>Años que se salen de lo normal</h2>
   <div class="revision" data-etiqueta="Revisión · anomalías y años contrastantes">
   <p>La <b>anomalía</b> de un mes es cuánto se aleja del valor normal de su mes del calendario, en rangos
@@ -1525,9 +1788,24 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:400px"></div>
-  <p class="nota">PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes, {n(anom_tipico_pl)} mm
-  en el año).</p>
+  <div class="pestanas" role="tablist" aria-label="Contra qué comparar">
+    <button type="button" role="tab" id="pestana-anomc-0" aria-controls="panel-anomc" aria-selected="true">Contra el año típico</button>
+    <button type="button" role="tab" id="pestana-anomc-1" aria-controls="panel-anomc" aria-selected="false" tabindex="-1">PL contra PI</button>
+  </div>
+  <div role="tabpanel" id="panel-anomc" aria-labelledby="pestana-anomc-0">
+    <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:440px"></div>
+  </div>
+  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes,
+  {n(anom_tipico_pl)} mm en el año). Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
+  <div class="revision" data-etiqueta="Revisión · PL contra PI en los años contrastantes">
+  <p><b>PL y PI no se separan igual todos los años.</b> En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, PL suma en promedio
+  {anom_pl_pi_habitual:.2f} veces lo de PI. En los años contrastantes:
+  {"; ".join(f"{a}, {r['razon']:.2f} ({n(r['pl_total'])} contra {n(r['pi_total'])} mm)" for a, r in anom_pl_pi.items())}.
+  <b>{anom_pl_pi_raro} es el que más se aparta</b>, y la diferencia se concentra en
+  {", ".join(anom_pl_pi[anom_pl_pi_raro]["meses_dif"][:-1])} y {anom_pl_pi[anom_pl_pi_raro]["meses_dif"][-1]}: los pluviómetros
+  registraron mucha más lluvia que el satélite en esos meses. Con los datos disponibles no se puede saber cuál de los dos
+  se acerca más a la lluvia real; por eso el año se clasifica con PL y PI juntas.</p>
+  </div>
   <p><b>{"Hasta en los años extremos el régimen sigue siendo bimodal" if anom_todos_bimodales else "En algún año extremo el régimen deja de ser bimodal"}</b>:
   lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma.{"".join(f" En {a} el armónico de 12 meses pesa más (A₂/A₁ {anom_anios[a]['razon']:.2f}): sus meses muy húmedos ({', '.join(m)}) rellenan en parte el valle entre los dos picos." for a, m in anom_a1_domina.items())} Un año húmedo tiene la mayoría de sus meses
   sobre lo normal ({anom_anios[anom_humedos[0]]["meses_sobre"]} de 12 en {anom_humedos[0]}) y uno seco, pocos
@@ -1538,6 +1816,182 @@ a {{ color: var(--acento); }}
   {n(variables_resumen.loc[anom_mes_extremo, "PL"])} mm, {variables_resumen.loc[anom_mes_extremo, "PL"] / anom_mediana_pl[anom_mes_extremo.month]:.1f}
   veces su mediana, y caudal atípico también ({atip_z.loc[anom_mes_extremo, "PL"]:+.1f}, {atip_z.loc[anom_mes_extremo, "PI"]:+.1f} y
   {atip_z.loc[anom_mes_extremo, "Q"]:+.1f} rangos intercuartiles con PL, PI y Q).</p>
+  </div>
+</section>
+
+<section>
+  <h2>Tendencias de largo plazo</h2>
+  <div class="revision" data-etiqueta="Revisión · tendencias">
+  <p>Aquí la pregunta cambia: no se comparan variables, sino cómo cambia cada una con los años. Por eso cada variable
+  se usa con <b>todo su registro</b>, desde {LARGO_DESDE[:4]} cuando existe, y no solo en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}:
+  la menor duración de IMERG no recorta a las demás. Aparte, todo se repite en el período común
+  {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, para comparar fuentes con la misma ventana.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Fuente</th><th>Desde</th><th>Hasta</th><th class="num">Meses</th>
+    <th class="num">Válidos</th><th class="num">Vacíos</th><th>Cambios de fuente o de procesamiento</th></tr></thead>
+    <tbody>
+{largo_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL* (la red fija, ver
+  «Anomalías y anomalías estandarizadas») no tiene ningún mes vacío porque cada mes se promedia con las estaciones que tienen dato.</p>
+  <p><b>El registro largo se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. <b>Q</b>:
+  {n(largo_qc["q_dias_sin_dato"])} de {n(largo_qc["q_dias"])} días sin dato, sin rachas de valores repetidos, sin picos aislados y sin
+  salto en el coeficiente de escorrentía anual ({largo_qc["coef_anios"]} años, Pettitt p = {largo_qc["coef_p"]:.2f}), así que la
+  estación no muestra un cambio de curva de gasto; su media casi no cambia ({largo_qc["q_media_antes"]:.1f} m³/s en
+  {LARGO_DESDE[:4]}–{ANIOS_ESTUDIO[0] - 1} y {largo_qc["q_media_despues"]:.1f} en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}).
+  <b>Temperatura de ERA5-Land</b>: sin días faltantes, sin rachas y sin días en que la media se salga de la mínima y la máxima;
+  pero frente a MSWX la diferencia cambia {largo_qc["mswx_salto"]:+.2f} °C después de {largo_qc["mswx_corte"]} (Pettitt p
+  {_p_txt(largo_qc["mswx_p"])}) y, sin un termómetro en la cuenca, no se sabe cuál de los dos productos salta: queda como
+  incertidumbre de su tendencia. <b>PL*</b>: se quitaron
+  {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos que los vecinos no acompañan
+  ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan"].itertuples())};
+  criterio de <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes, más de {PICO_MINIMO_INF:.0f} mm y
+  más de {PICO_VECES_VECINOS_INF:.0f} veces el promedio de los vecinos) y los meses de
+  {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos
+  ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
+  porque no se sabe cuál valor es el rellenado. Coromoro (desde 2003) y Valle de San José (desde 1998) tienen un salto de
+  nivel marcado como incierto; su efecto se prueba abajo.</p>
+
+  <h3>Tres maneras de medir una tendencia</h3>
+  <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>
+  <ul>
+    <li><b>Mínimos cuadrados (OLS)</b>, un ajuste <i>paramétrico</i>: X<sub>t</sub> = β₀ + β₁t + ε<sub>t</sub> (y lo mismo con a y z).
+    Da una recta y su pendiente β₁. Para la serie original se compara además con un ajuste con una constante por mes del
+    calendario (efectos estacionales), para que el ciclo anual no se confunda con tendencia.</li>
+    <li><b>Mann-Kendall con la pendiente de Sen</b> ({CITA_MANN}; {CITA_SEN}), una prueba <i>no paramétrica</i>: pregunta si
+    los valores tienden a crecer (o decrecer) con el tiempo, sin suponer una recta ni una distribución. «No paramétrico» no
+    quiere decir «no lineal»: también da una sola pendiente y no reconstruye una curva. Para la serie original, en su
+    variante estacional ({CITA_HIRSCH}), que compara cada mes solo con el mismo mes de otros años.</li>
+    <li><b>LOESS</b> ({CITA_LOESS}), una curva <i>no lineal</i>: una recta local que se va moviendo por el registro, con una
+    ventana del {MET_FRAC * 100:.0f} % de los datos. Muestra la forma (si sube, baja o se invierte), pero es una
+    <b>curva exploratoria</b>: su banda sale de un remuestreo, no de un modelo con una prueba formal. Como contraste, una
+    <b>regresión segmentada</b> prueba si hay evidencia de un cambio de pendiente.</li>
+  </ul>
+  <p>Todas las pendientes van <b>por década</b>, en las unidades de la variable (°C/década, m³/s por década, desviaciones
+  estándar por década en z). En la lluvia son el cambio del <b>acumulado mensual</b> (mm/mes por década), no del total
+  anual.</p>
+
+  <h3>Todos los datos: la secuencia de meses</h3>
+  <p><b>Diagnóstico de los residuos.</b> En las {len([1 for (v, per) in met_global if per == "completo"])} variables, los residuos del
+  ajuste están autocorrelacionados (prueba de Ljung-Box con {MET_LB_REZAGOS} rezagos, p &lt; {TEND_ALFA}): un mes húmedo suele
+  seguir a otro. {"No hay cambios de dispersión con el tiempo en el registro completo" if not met_hetero else "La dispersión cambia con el tiempo en " + ", ".join(met_hetero)}
+  (Breusch-Pagan), y varios residuos no son normales (Shapiro-Wilk). Con dependencia, el error estándar usual
+  subestima la incertidumbre, así que la inferencia se apoya en el de <b>Newey-West</b> ({CITA_NEWEY}), robusto a
+  autocorrelación y heterocedasticidad: su intervalo es, en la mediana, {met_hac_mas_ancho:.1f} veces el usual. En
+  Mann-Kendall, la p de la serie original sale de <b>permutar años completos</b> ({MET_REMUESTREOS} veces: los doce meses de
+  un año viajan juntos, lo que conserva la dependencia dentro del año) y en a y z se corrige la varianza por
+  autocorrelación ({CITA_HAMED}).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: OLS</th>
+    <th class="num">X: OLS con meses</th><th class="num">a: OLS</th><th class="num">z: OLS</th>
+    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th><th class="num">Shapiro-Wilk p</th></tr></thead>
+    <tbody>
+{met_ols_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">OLS: pendiente por década ± intervalo de 95 % con el error de Newey-West ({TEND_REZAGOS} meses); en a, también el
+  intervalo usual, para compararlo. Diagnóstico sobre los residuos del ajuste de a. En negrita, p &lt; {TEND_ALFA}.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: Sen estacional [IC 95 %]</th>
+    <th class="num">a: Sen [IC 95 %]</th><th>LOESS de a: cambio y forma</th><th class="num">Segmentada: ΔBIC</th></tr></thead>
+    <tbody>
+{met_np_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sen estacional: IC remuestreando años completos y p permutándolos. Sen de a: IC de Kendall y p con la corrección de
+  Hamed y Rao (entre paréntesis, la p sin corregir). LOESS: cambio entre el comienzo y el final de la curva y sus tramos
+  (se ignoran ondulaciones menores que {MET_UMBRAL_FORMA:.2f} s<sub>j</sub>). ΔBIC positivo favorece un quiebre de pendiente; se
+  exige más de {MET_DELTA_BIC}.</p>
+  <div class="pestanas" role="tablist" aria-label="Qué variable">
+{met_botones_var}
+  </div>
+  <div class="pestanas" role="tablist" aria-label="Qué representación">
+{met_botones_rep}
+  </div>
+  <div role="tabpanel" id="panel-met" aria-labelledby="pestana-met-v0">
+    <div id="g-met" class="grafico" style="min-height:0; height:380px"></div>
+  </div>
+  <p class="nota">Registro completo de cada variable. Fondo: naranja El Niño, azul La Niña. Gris: los meses. Línea discontinua: la recta OLS. Línea y banda de color:
+  la curva LOESS y su banda de 95 % (remuestreo de residuos por bloques de {MET_BLOQUE} meses).</p>
+  <ul>
+    <li><b>La temperatura sube</b> en las tres series desde {LARGO_DESDE[:4]}, y los tres métodos coinciden: OLS
+    {met_global[("T media", "completo")]["ols_a"]["pend"]:+.2f} ± {met_global[("T media", "completo")]["ols_a"]["ic_hac"]:.2f} °C/década en la media
+    (Newey-West), Sen {met_global[("T media", "completo")]["mk_a"]["pend"]:+.2f}, y una curva LOESS que sube sin
+    invertirse en todo el registro. Ninguna variable muestra evidencia de un cambio de pendiente (ΔBIC menor que
+    {MET_DELTA_BIC} en todas): una subida gradual describe los datos tan bien como una con quiebre. En
+    {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} solo, la señal es más débil y depende del método: con la mitad de los años, el
+    intervalo se abre y la curva LOESS ondula.</li>
+    <li><b>La lluvia no muestra tendencia.</b> Con PL*, {met_global[("PL*", "completo")]["ols_Xmes"]["pend"]:+.1f} mm/mes por década en
+    {LARGO_DESDE[:4]}–{ANIOS_ESTUDIO[-1]} (OLS con Newey-West, p {_p_txt(met_global[("PL*", "completo")]["ols_Xmes"]["p_hac"])}; Sen estacional,
+    p {_p_txt(met_global[("PL*", "completo")]["mk_X"]["p"])}) y {met_global[("PL*", "1998–2022")]["ols_Xmes"]["pend"]:+.1f} en
+    {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} (p {_p_txt(met_global[("PL*", "1998–2022")]["ols_Xmes"]["p_hac"])}). Sin las dos estaciones con
+    salto, {tend_pl_sens["sin_saltos"]["ols"]:+.1f} (p {_p_txt(tend_pl_sens["sin_saltos"]["p"])}). La PL de siempre, cuya red cambia
+    de composición, daba {tend_pl_sens["red_9822"]["ols"]:+.1f} mm/mes por década en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, y Mann-Kendall
+    sin corregir la daba significativa (p {_p_txt(tend_pl_sens["red_9822"]["p_mk"])}). Como PL* y PL se parecen mes a mes
+    (r = {tend_pl_sens["r_9822"]:.2f}), esa caída venía sobre todo de los cambios de la red (Pueblo Viejo, que mide menos que sus
+    vecinos, entra en 2004 y baja su nivel en 2014), no de la lluvia. <b>PI tampoco muestra tendencia.</b></li>
+    <li><b>Q no tiene tendencia</b> con ningún método, ni en el registro completo ni en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Sus
+    curvas LOESS ondulan (baja, sube y vuelve a bajar), pero esas ondas cambian con la ventana y caben dentro de la banda:
+    no se deben leer como cambios físicos.</li>
+  </ul>
+  <p>Entre la serie original sin y con constantes por mes, y frente a a, la pendiente casi no cambia (en a y X con meses
+  difieren a lo sumo un {tend_dif_x_a:.1f} %). Lo que sí cambia es la incertidumbre: sin controlar el mes, el ciclo anual queda en
+  el residuo y ensancha el intervalo. a y z no son evidencias aparte: son la misma información en otra escala.</p>
+
+  <h3>Sensibilidad de la curva LOESS</h3>
+  <p><b>La subida de la temperatura no depende de cómo se suavice:</b> con las tres ventanas la curva sube entre
+  {min(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} y
+  {max(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} °C en el registro, y los meses
+  extremos casi no la mueven. <b>Las ondulaciones de la lluvia y de Q sí dependen de la ventana</b> (cambia el número de tramos
+  y, en {", ".join(v for v in ("PL*", "PI", "Q") if len({np.sign(met_sens[v][f"frac {fr}"]["cambio"]) for fr in MET_FRACS}) > 1)}, hasta el signo):
+  no se pueden leer como cambios físicos. <b>Los bordes son lo menos confiable</b> de cada curva (banda
+  {np.mean([s["borde_vs_centro"] for s in met_sens.values()]):.1f} veces más ancha), y nada se extrapola fuera del registro.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th>{"".join(f"<th class='num'>Ventana {fr * 100:.0f} %</th>" for fr in MET_FRACS)}
+    <th class="num">Efecto de los extremos</th><th class="num">Banda en los bordes</th></tr></thead>
+    <tbody>
+{met_sens_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
+  Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
+
+  <h3>Mes a mes: las doce subseries</h3>
+  <p>Cada mes del calendario se toma por separado (todos los eneros, todos los febreros…) y se ajusta su pendiente a
+  través de los años. No se ajusta una tendencia a las doce medias climatológicas: eso describiría el ciclo anual, no su
+  cambio en el tiempo.</p>
+  <div class="pestanas" role="tablist" aria-label="Qué período">
+{tend_botones}
+  </div>
+  <div role="tabpanel" id="panel-tend" aria-labelledby="pestana-tend-0">
+    <div id="g-tend-mes" class="grafico" style="min-height:0; height:380px"></div>
+  </div>
+  <p class="nota">Color: pendiente de z por década (en desviaciones estándar, para comparar variables). Con asterisco,
+  p &lt; {TEND_ALFA} (OLS). Al pasar el cursor, la pendiente en las unidades de la variable.</p>
+  <p><b>Dentro de un mismo mes y con la misma muestra, restar µ<sub>j</sub> no cambia la pendiente y dividir por
+  s<sub>j</sub> solo la cambia de escala; la p es la misma en las tres representaciones.</b> El script lo comprueba en las
+  {len(LARGO_VARS) * 12 * len(TEND_PERIODOS)} subseries y se detiene si no se cumple. Por eso el mapa muestra solo z: X y a
+  dirían lo mismo en otra escala.</p>
+  <p>Meses con tendencia significativa en el registro completo: {tend_conteo_txt}. Con doce pruebas por variable, se esperan
+  unos {tend_esperados_azar:.1f} meses significativos solo por azar. <b>{", ".join(v for v in ("T mín", "T media", "T máx") if tend_conteo[(v, "completo")]["p_azar"] < TEND_ALFA)}</b>
+  superan con creces ese número: el calentamiento se reparte en muchos meses del año. En la lluvia y en Q, los
+  meses significativos {"no superan" if all(tend_conteo[(v, "completo")]["p_azar"] >= TEND_ALFA for v in ("PL*", "PI", "Q")) else "apenas superan"} lo que daría el azar.</p>
+  <p><b>Cada subserie, con los tres métodos.</b> Todas tienen al menos {min(r["n"] for r in met_mes.values())} años, suficientes para una
+  recta y para Mann-Kendall; la curva LOESS (ventana del {MET_FRAC_MES * 100:.0f} %) se muestra solo como descripción de la forma,
+  porque con 20 a 42 puntos cualquier ondulación es frágil. Dependencia: de un año al siguiente casi no hay (autocorrelación
+  de lag 1 significativa en {met_mes_r1} de {len(met_mes)} subseries, marcadas con *), así que en cada mes se usan la OLS y el
+  Mann-Kendall usuales, con el intervalo de Sen de Kendall. Varias subseries de la lluvia y de Q suben y después bajan (o al
+  revés): una sola pendiente puede ocultar esas inversiones, pero con tan pocos años no hay base para darlas por cambios reales.</p>
+{met_mes_detalles}
   </div>
 </section>
 
@@ -1715,12 +2169,21 @@ a {{ color: var(--acento); }}
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
+    <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
+    <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
+    <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
+    autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
+    <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>
     <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
     temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
     <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
+    <li id="ref-hirsch1982">Hirsch, R. M., Slack, J. R., y Smith, R. A. (1982). Techniques of trend analysis for monthly
+    water quality data. <i>Water Resources Research</i>, 18(1), 107–121.
+    <a href="https://doi.org/10.1029/WR018i001p00107">https://doi.org/10.1029/WR018i001p00107</a></li>
     <li id="ref-horn1960">Horn, L. H., y Bryson, R. A. (1960). Harmonic analysis of the annual march of
     precipitation over the United States. <i>Annals of the Association of American Geographers</i>, 50, 157–171.
     <a href="https://doi.org/10.1111/j.1467-8306.1960.tb00342.x">https://doi.org/10.1111/j.1467-8306.1960.tb00342.x</a></li>
@@ -1738,6 +2201,11 @@ a {{ color: var(--acento); }}
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
+    <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
+    <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
+    <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
+    autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
+    <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
@@ -1747,6 +2215,12 @@ a {{ color: var(--acento); }}
     inter-decadal hasta la escala diurna. <i>Revista de la Academia Colombiana de Ciencias Exactas, Físicas y
     Naturales</i>, 28(107), 201–221.
     <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
+    <li id="ref-sen1968">Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
+    <i>Journal of the American Statistical Association</i>, 63(324), 1379–1389.
+    <a href="https://doi.org/10.1080/01621459.1968.10480934">https://doi.org/10.1080/01621459.1968.10480934</a></li>
+    <li id="ref-shapiro1965">Shapiro, S. S., y Wilk, M. B. (1965). An analysis of variance test for normality (complete
+    samples). <i>Biometrika</i>, 52(3–4), 591–611.
+    <a href="https://doi.org/10.1093/biomet/52.3-4.591">https://doi.org/10.1093/biomet/52.3-4.591</a></li>
   </ol>
   <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
 </section>
@@ -2193,6 +2667,17 @@ a {{ color: var(--acento); }}
 
   const ANOM = {anom_json};
 
+  let anomModo = 0;
+  (function () {{
+    const botones = [0, 1].map(i => document.getElementById("pestana-anomc-" + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      anomModo = i;
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      dibujarAnomalias();
+    }}));
+  }})();
+
   function dibujarAnomalias() {{
     if (!window.Plotly) return;
     const GRIS = css("--tenue");
@@ -2228,11 +2713,180 @@ a {{ color: var(--acento); }}
       line: {{ color: css("--tinta"), width: 3, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>típico</extra>" }}];
     anios.forEach(a => ciclo.push({{ type: "scatter", mode: "lines+markers", name: a, x: ANOM.meses, y: ANOM.anios[a].serie,
       line: {{ color: color[a], width: 2 }}, marker: {{ size: 5 }}, hovertemplate: "%{{y:.0f}} mm<extra>" + a + "</extra>" }}));
-    const d2 = base();
-    d2.margin.t = 46;
-    d2.yaxis.title.text = "PL (mm/mes)";
-    Plotly.react("g-anom-ciclo", ciclo, d2, CONF);
+    if (anomModo === 0) {{
+      const d2 = base();
+      d2.margin.t = 46;
+      d2.yaxis.title.text = "PL (mm/mes)";
+      Plotly.react("g-anom-ciclo", ciclo, d2, CONF);
+      return;
+    }}
+    // PL contra PI, un panel por año (2 × 2)
+    const pares = [], d3 = base();
+    d3.margin = {{ t: 40, r: 10, b: 30, l: 54 }};
+    d3.hovermode = "x";
+    d3.annotations = [];
+    const dominiosX = [[0, 0.47], [0.53, 1]], dominiosY = [[0.56, 0.92], [0, 0.36]];
+    // el mismo eje y en los cuatro paneles, para poder comparar los años entre sí
+    const ymax = 1.05 * Math.max(...anios.flatMap(a => ANOM.anios[a].serie.concat(ANOM.anios[a].pi)));
+    anios.forEach((a, i) => {{
+      const sx = i === 0 ? "" : String(i + 1);
+      const fila = Math.floor(i / 2), col = i % 2;
+      d3["xaxis" + sx] = {{ domain: dominiosX[col], anchor: "y" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }} }};
+      d3["yaxis" + sx] = {{ domain: dominiosY[fila], anchor: "x" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }},
+        range: [0, ymax], title: {{ text: col === 0 ? "mm/mes" : "", font: {{ size: 11, color: GRIS }} }} }};
+      d3.annotations.push({{ xref: "x" + sx + " domain", yref: "y" + sx + " domain", x: 0, y: 1.02, xanchor: "left",
+        yanchor: "bottom", showarrow: false, text: "<b>" + a + "</b> (" + ANOM.anios[a].tipo + ")",
+        font: {{ size: 11, color: color[a] }} }});
+      pares.push({{ type: "scatter", mode: "lines+markers", name: "PL", legendgroup: "PL", showlegend: i === 0,
+        x: ANOM.meses, y: ANOM.anios[a].serie, xaxis: "x" + sx, yaxis: "y" + sx,
+        line: {{ color: color[a], width: 2.2 }}, marker: {{ size: 4 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL " + a + "</extra>" }});
+      pares.push({{ type: "scatter", mode: "lines+markers", name: "PI", legendgroup: "PI", showlegend: i === 0,
+        x: ANOM.meses, y: ANOM.anios[a].pi, xaxis: "x" + sx, yaxis: "y" + sx,
+        line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, marker: {{ size: 4, symbol: "diamond" }},
+        hovertemplate: "%{{y:.0f}} mm<extra>PI " + a + "</extra>" }});
+    }});
+    d3.legend.y = 1.0;
+    Plotly.react("g-anom-ciclo", pares, d3, CONF);
   }}
+
+  const ANZ = {anz_json};
+  const TEND = {tend_json};
+  const ANZ_COLOR = {{ "PL*": "#0072B2", "PI": "#E69F00", "Q": "#009E73",
+                       "T mín": "#56B4E9", "T media": "#7C5BC7", "T máx": "#D55E00" }};
+  let anzGrupo = 0, tendPeriodo = 0;
+
+  // fondo según la fase del ENSO (ONI de la NOAA, scripts/17): rojo El Niño, azul La Niña, sin color neutro
+  const ENSO_COLOR = {{ "El Niño": "rgba(213,94,0,0.13)", "La Niña": "rgba(0,114,178,0.13)" }};
+  function fondoEnso(yref) {{
+    return ANZ.enso.map(([x0, x1, f]) => ({{ type: "rect", xref: "x", yref: yref, x0: x0, x1: x1, y0: 0, y1: 1,
+      fillcolor: ENSO_COLOR[f], line: {{ width: 0 }}, layer: "below" }}));
+  }}
+  function leyendaEnso() {{
+    return Object.entries(ENSO_COLOR).map(([f, c]) => ({{ type: "scatter", mode: "markers", x: [null], y: [null], name: f,
+      marker: {{ symbol: "square", size: 12, color: c.replace("0.13", "0.45") }}, hoverinfo: "skip" }}));
+  }}
+
+  function dibujarAnz() {{
+    if (!window.Plotly) return;
+    const GRIS = css("--tenue");
+    const grupo = Object.keys(ANZ.grupos)[anzGrupo];
+    const vars = ANZ.grupos[grupo];
+    const unidad = ANZ.unidades[vars[0]];
+    const trazas = [];
+    const ejes = [["X", "y", unidad], ["a", "y2", unidad], ["z", "y3", "z"]];
+    ejes.forEach(([rep, eje], k) => {{
+      vars.forEach(v => {{
+        trazas.push({{ type: "scatter", mode: "lines", name: v, legendgroup: v, showlegend: k === 0,
+          x: ANZ.fechas, y: ANZ.series[v][rep], yaxis: eje, connectgaps: false,
+          line: {{ color: ANZ_COLOR[v], width: 1.2 }},
+          hovertemplate: "%{{y}}<extra>" + v + " · " + rep + "</extra>" }});
+        if (rep !== "X") {{
+          const r = ANZ.series[v].recta[rep];
+          trazas.push({{ type: "scatter", mode: "lines", x: r.x, y: r.y, yaxis: eje, showlegend: false,
+            legendgroup: v, hoverinfo: "skip", line: {{ color: ANZ_COLOR[v], width: 2.2, dash: "dash" }} }});
+        }}
+      }});
+    }});
+    const d = base();
+    d.hovermode = "x";
+    d.margin = {{ t: 46, r: 10, b: 36, l: 62 }};
+    d.xaxis.type = "date";
+    d.xaxis.anchor = "y3";
+    // el eje arranca donde empieza el registro más largo del grupo (PL y PI desde 1998; Q y T desde 1981)
+    const primero = Math.min(...vars.map(v => ANZ.series[v].X.findIndex(x => x !== null)));
+    d.xaxis.range = [ANZ.fechas[primero], ANZ.fechas[ANZ.fechas.length - 1]];
+    const ejeY = (titulo, dominio) => ({{ gridcolor: css("--linea"), zeroline: true, zerolinecolor: GRIS,
+      linecolor: css("--linea"), tickfont: {{ color: GRIS }}, domain: dominio,
+      title: {{ text: titulo, font: {{ size: 11, color: GRIS }} }} }});
+    d.yaxis = ejeY("X (" + unidad + ")", [0.70, 1]);
+    d.yaxis.zeroline = false;
+    d.yaxis2 = ejeY("a (" + unidad + ")", [0.36, 0.64]);
+    d.yaxis3 = ejeY("z", [0, 0.30]);
+    d.shapes = ["y", "y2", "y3"].flatMap(e => fondoEnso(e + " domain"));
+    // el período de referencia, con dos líneas verticales (el fondo lo ocupa el ENSO)
+    ANZ.ref.forEach(x => d.shapes.push({{ type: "line", xref: "x", yref: "paper", x0: x, x1: x, y0: 0, y1: 1,
+      line: {{ color: css("--tinta"), width: 1, dash: "dot" }} }}));
+    d.annotations = [{{ xref: "x", yref: "paper", x: ANZ.ref[0], y: 1, xanchor: "left", yanchor: "bottom", showarrow: false,
+      text: "período de referencia →", font: {{ size: 10, color: GRIS }} }}];
+    trazas.push(...leyendaEnso());
+    Plotly.react("g-anz", trazas, d, CONF);
+  }}
+
+  function dibujarTendMes() {{
+    if (!window.Plotly) return;
+    const per = Object.keys(TEND)[tendPeriodo];
+    const T = TEND[per];
+    const texto = T.p.map(fila => fila.map(p => p < {TEND_ALFA} ? "*" : ""));
+    const info = T.x.map((fila, i) => fila.map((x, j) =>
+      T.vars[i] + " · " + MES[j] + "<br>" + (x > 0 ? "+" : "") + x + " " + T.unidades[i] + " por década" +
+      "<br>z: " + (T.z[i][j] > 0 ? "+" : "") + T.z[i][j] + " s por década<br>p = " + T.p[i][j] + " · " + T.n[i][j] + " años"));
+    const lim = Math.max(...T.z.flat().map(Math.abs));
+    const traza = {{ type: "heatmap", x: MES, y: T.vars, z: T.z, text: texto, texttemplate: "%{{text}}",
+      textfont: {{ size: 16, color: css("--tinta") }}, customdata: info, hovertemplate: "%{{customdata}}<extra></extra>",
+      zmin: -lim, zmax: lim, colorscale: "RdBu", reversescale: false, xgap: 2, ygap: 2,   // en plotly.js RdBu va de azul (negativo) a rojo (positivo)
+      colorbar: {{ title: {{ text: "z / década", side: "right" }}, thickness: 12, tickfont: {{ color: css("--tenue") }} }} }};
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 16, r: 10, b: 36, l: 70 }};
+    d.yaxis.rangemode = "normal";
+    d.yaxis.autorange = "reversed";
+    d.yaxis.title.text = "";
+    d.xaxis.gridcolor = "rgba(0,0,0,0)";
+    d.yaxis.gridcolor = "rgba(0,0,0,0)";
+    Plotly.react("g-tend-mes", [traza], d, CONF);
+  }}
+
+  // pestañas: cambian lo que se dibuja, no el panel que se muestra
+  [["pestana-anz-", Object.keys(ANZ.grupos).length, i => {{ anzGrupo = i; dibujarAnz(); }}],
+   ["pestana-tend-", Object.keys(TEND).length, i => {{ tendPeriodo = i; dibujarTendMes(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+    const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      accion(i);
+    }}));
+  }});
+
+  const MET = {met_json};
+  let metVar = 0, metRep = 0;
+  const MET_REPS = ["a", "X", "z"];
+
+  function dibujarMetodos() {{
+    if (!window.Plotly) return;
+    const v = Object.keys(MET)[metVar], k = MET_REPS[metRep];
+    const D = MET[v][k];
+    const color = ANZ_COLOR[v];
+    const trazas = [
+      {{ type: "scatter", mode: "lines", name: "meses", x: D.fechas, y: D.y, line: {{ color: css("--tenue"), width: 0.8 }},
+         opacity: 0.6, hovertemplate: "%{{y}}<extra>" + v + " · " + k + "</extra>" }},
+      {{ type: "scatter", mode: "lines", x: D.fechas, y: D.hi, line: {{ width: 0 }}, showlegend: false, hoverinfo: "skip" }},
+      {{ type: "scatter", mode: "lines", name: "banda LOESS 95 %", x: D.fechas, y: D.lo, fill: "tonexty",
+         fillcolor: color + "33", line: {{ width: 0 }}, hoverinfo: "skip" }},
+      {{ type: "scatter", mode: "lines", name: "LOESS", x: D.fechas, y: D.curva, line: {{ color: color, width: 2.6 }},
+         hovertemplate: "%{{y:.2f}}<extra>LOESS</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "recta OLS", x: D.fechas, y: D.ols,
+         line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, hoverinfo: "skip" }}
+    ];
+    const d = base();
+    d.hovermode = "x";
+    d.margin = {{ t: 46, r: 10, b: 36, l: 62 }};
+    d.xaxis.type = "date";
+    d.yaxis.rangemode = "normal";
+    d.yaxis.title.text = k === "z" ? "z" : k + " (" + ANZ.unidades[v] + ")";
+    d.shapes = fondoEnso("paper");
+    trazas.push(...leyendaEnso());
+    Plotly.react("g-met", trazas, d, CONF);
+  }}
+
+  [["pestana-met-v", Object.keys(MET).length, i => {{ metVar = i; dibujarMetodos(); }}],
+   ["pestana-met-r", 3, i => {{ metRep = i; dibujarMetodos(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+    const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      accion(i);
+    }}));
+  }});
 
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
@@ -2451,6 +3105,9 @@ a {{ color: var(--acento); }}
     dibujarBalance();
     dibujarPuntoDos();
     dibujarAnomalias();
+    dibujarAnz();
+    dibujarTendMes();
+    dibujarMetodos();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

@@ -68,10 +68,14 @@ RAIZ = Path(__file__).resolve().parents[1]
 SHP_CUENCAS = RAIZ / "out/shp_fonce/cuencas_fonce.shp"
 DIR_CRUDO = RAIZ / "data/era5land_gee"
 SALIDA = RAIZ / "out/era5land_temperatura_diaria_fonce.csv"
+SALIDA_LARGA = RAIZ / "out/era5land_temperatura_diaria_fonce_1981_2022.csv"
 SALIDA_PIXELES = RAIZ / "out/era5land_pixeles_fonce.csv"
 
 ID_CUENCA = 24027010                  # San Gil, el sujeto de estudio
 ANIOS = range(1998, 2023)             # periodo del proyecto: 1998-2022
+# Registro largo, solo para tendencias de largo plazo (regla 6): desde 1981, como Q y los pluviometros.
+# Va en un archivo aparte (SALIDA_LARGA) para que SALIDA, que lee todo el informe, siga siendo 1998-2022.
+ANIOS_LARGO = range(1981, 2023)
 COLECCION = "ECMWF/ERA5_LAND/DAILY_AGGR"
 BANDAS = {"temperature_2m": "t_media", "temperature_2m_min": "t_min", "temperature_2m_max": "t_max"}
 ESCALA_M = 11132                      # 0.1 grados en metros: la resolucion nativa de ERA5-Land
@@ -208,23 +212,24 @@ def barra(hechos, total, mensaje):
 def descargar(geometria):
     """Baja anio por anio, saltando lo que ya este en disco (el script es reanudable)."""
     DIR_CRUDO.mkdir(parents=True, exist_ok=True)
-    pendientes = [a for a in ANIOS if not (DIR_CRUDO / f"t2m_{a}.csv").exists()]
-    print(f"ERA5-Land por Earth Engine: {len(ANIOS)} anios, {len(ANIOS) - len(pendientes)} ya bajados")
-    hechos = len(ANIOS) - len(pendientes)
-    barra(hechos, len(ANIOS), "arrancando")
+    pendientes = [a for a in ANIOS_LARGO if not (DIR_CRUDO / f"t2m_{a}.csv").exists()]
+    print(f"ERA5-Land por Earth Engine: {len(ANIOS_LARGO)} anios, "
+          f"{len(ANIOS_LARGO) - len(pendientes)} ya bajados")
+    hechos = len(ANIOS_LARGO) - len(pendientes)
+    barra(hechos, len(ANIOS_LARGO), "arrancando")
     for anio in pendientes:
         for intento in (1, 2, 3):
             try:
                 tabla = serie_del_anio(anio, geometria)
                 tabla.to_csv(DIR_CRUDO / f"t2m_{anio}.csv", index=False)
                 hechos += 1
-                barra(hechos, len(ANIOS), f"{anio}: {len(tabla)} dias")
+                barra(hechos, len(ANIOS_LARGO), f"{anio}: {len(tabla)} dias")
                 break
             except Exception as e:
                 if intento == 3:
                     print(f"\n{anio} fallo tras 3 intentos: {str(e)[:160]}")
                 else:
-                    barra(hechos, len(ANIOS), f"{anio}: reintento {intento}")
+                    barra(hechos, len(ANIOS_LARGO), f"{anio}: reintento {intento}")
                     time.sleep(5 * intento)
     print()
 
@@ -239,14 +244,17 @@ def armar_csv():
     serie = serie.drop_duplicates("fecha").sort_values("fecha").reset_index(drop=True)
     serie[list(BANDAS.values())] = serie[list(BANDAS.values())].round(3)
     SALIDA.parent.mkdir(parents=True, exist_ok=True)
-    serie.to_csv(SALIDA, index=False)
 
-    esperados = pd.date_range(f"{min(ANIOS)}-01-01", f"{max(ANIOS)}-12-31", freq="D")
-    faltan = len(esperados) - serie.fecha.isin(esperados).sum()
-    print(f"\n{SALIDA.relative_to(RAIZ)}: {len(serie)} dias, "
-          f"{serie.fecha.min():%Y-%m-%d} a {serie.fecha.max():%Y-%m-%d}, faltan {faltan} dias")
-    print(f"media del periodo: {serie.t_media.mean():.2f} C | "
-          f"min: {serie.t_min.min():.2f} C | max: {serie.t_max.max():.2f} C")
+    # dos archivos: el del periodo de estudio (lo lee el informe) y el registro largo (tendencias)
+    for salida, anios in ((SALIDA, ANIOS), (SALIDA_LARGA, ANIOS_LARGO)):
+        tramo = serie[serie.fecha.dt.year.isin(anios)].reset_index(drop=True)
+        tramo.to_csv(salida, index=False)
+        esperados = pd.date_range(f"{min(anios)}-01-01", f"{max(anios)}-12-31", freq="D")
+        faltan = len(esperados) - tramo.fecha.isin(esperados).sum()
+        print(f"\n{salida.relative_to(RAIZ)}: {len(tramo)} dias, "
+              f"{tramo.fecha.min():%Y-%m-%d} a {tramo.fecha.max():%Y-%m-%d}, faltan {faltan} dias")
+        print(f"media del periodo: {tramo.t_media.mean():.2f} C | "
+              f"min: {tramo.t_min.min():.2f} C | max: {tramo.t_max.max():.2f} C")
 
 
 if __name__ == "__main__":

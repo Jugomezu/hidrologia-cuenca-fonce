@@ -16,6 +16,7 @@ Fuente: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt (datos público
 Salidas:
   data/noaa/oni.ascii.txt      el archivo tal como se descargó
   out/oni_mensual.csv          periodo, oni, fase ("El Niño", "La Niña" o "neutro"), 1998-2022
+  out/oni_mensual_1981_2022.csv  lo mismo, desde 1981 (registro largo de las tendencias)
 """
 import hashlib
 from pathlib import Path
@@ -61,6 +62,9 @@ fase[episodios(oni_tabla <= -UMBRAL)] = "La Niña"
 periodo = pd.period_range("1998-01", "2022-12", freq="M")
 salida = pd.DataFrame({"oni": oni, "oni_tabla": oni_tabla, "fase": fase}).reindex(periodo).rename_axis("periodo")
 salida.to_csv(RAIZ / "out/oni_mensual.csv")
+# el mismo cálculo desde 1981, para el registro largo de las tendencias (regla 6)
+pd.DataFrame({"oni": oni, "oni_tabla": oni_tabla, "fase": fase}).reindex(
+    pd.period_range("1981-01", "2022-12", freq="M")).rename_axis("periodo").to_csv(RAIZ / "out/oni_mensual_1981_2022.csv")
 
 sha = hashlib.sha256(CRUDO.read_bytes()).hexdigest()
 print(f"{CRUDO.relative_to(RAIZ)}: {len(oni)} trimestres, {oni.index.min()} a {oni.index.max()}, SHA-256 {sha}")

@@ -288,16 +288,23 @@ meses que CAMELS-COL pierde y para repetir cualquier calculo con la otra fuente.
 - **Cobertura:** global terrestre, malla de 0.1 grados (resolucion nativa ~9 km, ~11 132 m)
 - **Bandas usadas:** `temperature_2m` (media diaria), `temperature_2m_min` (minima diaria),
   `temperature_2m_max` (maxima diaria)
-- **Periodo descargado:** 1998-01-01 a 2022-12-31, el periodo de estudio del proyecto
+- **Periodo descargado:** 1998-01-01 a 2022-12-31, el periodo de estudio del proyecto (acceso
+  2026-09-24); **ampliado a 1981-01-01 el 2026-10-07** para las tendencias de largo plazo (regla 6),
+  con el mismo script, coleccion, bandas y poligono
 - **Region:** el poligono de la cuenca de San Gil (24027010), no un recorte rectangular
 - **Unidades:** la coleccion entrega kelvin; el script convierte a grados Celsius
-- **Fecha de acceso:** 2026-09-24
-- **Destino local:** `data/era5land_gee/t2m_<anio>.csv` (crudo, 25 archivos) y
-  `out/era5land_temperatura_diaria_fonce.csv` (serie de la cuenca)
+- **Fecha de acceso:** 2026-09-24 (1998-2022) y 2026-10-07 (1981-1997)
+- **Destino local:** `data/era5land_gee/t2m_<anio>.csv` (crudo, 42 archivos),
+  `out/era5land_temperatura_diaria_fonce.csv` (serie de la cuenca, 1998-2022; la que lee el informe) y
+  `out/era5land_temperatura_diaria_fonce_1981_2022.csv` (registro largo, solo para tendencias)
 - **SHA-256 de `out/era5land_temperatura_diaria_fonce.csv`:**
-  `99e9dd241a3cf14d089012f50d23f8971240c146b2a9b4dea642c8524238cb50`
+  `99e9dd241a3cf14d089012f50d23f8971240c146b2a9b4dea642c8524238cb50` (sin cambios tras la ampliacion)
+- **SHA-256 de `out/era5land_temperatura_diaria_fonce_1981_2022.csv`:**
+  `538d364ecb832fd9e7030b1a4ac2511d0df8892a4a081ac383a0d3efbf6360f8`
 - **Contenido verificado:** 9 131 dias, 1998-01-01 a 2022-12-31, **cero dias faltantes**, cero nulos;
-  se cumple `t_min <= t_media <= t_max` en los 9 131 dias.
+  se cumple `t_min <= t_media <= t_max` en los 9 131 dias. El registro largo: 15 340 dias, 1981-01-01 a
+  2022-12-31, cero faltantes, cero nulos, la misma desigualdad en todos los dias y ninguna racha de 5 o mas
+  dias con el mismo valor.
 
 **Por que ERA5-Land y no ERA5**
 
@@ -545,6 +552,46 @@ Procesado por `scripts/07_pluviometros_dhime.py` a
 
 **Nota sobre la codificacion:** el portal no es consistente. La descarga de 2026-09-23 vino en latin-1 y
 la de 2026-09-24 en UTF-8; el script prueba las dos en vez de fijar una.
+
+### Tercera descarga (2026-10-07): mensual 1981-1997
+
+Para las tendencias de largo plazo (regla 6 de `CLAUDE.md`), se pidio el tramo anterior al periodo de
+estudio para las mismas 8 estaciones de la segunda descarga, de modo que las dos descargas se puedan unir.
+Estos datos aun no pasan por el control de calidad del proyecto ni los lee ningun script.
+
+**Metodo de descarga:** interfaz del portal, conducida con automatizacion de navegador (Playwright sobre
+Chrome visible). Variable = Precipitacion; parametro = "Precipitacion total mensual"; Departamento =
+Santander, Municipio = Todo; se marcaron las 8 estaciones en la lista, periodo 01/01/1981 a 31/12/1997,
+formato CSV. Los terminos de uso se aceptaron de nuevo el 2026-10-07. El portal entrega un .zip con un
+unico `descargaDhime.csv` (UTF-8, mismas 8 columnas que la segunda descarga); se guarda sin modificar.
+Detalle del portal: con Municipio = Todo la lista "Nombre o codigo" queda vacia y el boton Filtrar no
+devuelve estaciones; se fijo ese filtro en "todas" (valor `-1`, el que el propio portal usa para "Todo").
+
+**Estaciones pedidas:** 24020120 COROMORO, 24025040 ESCUELA AGRICOLA MOGOTES, 24020080 VALLE DE SAN JOSE,
+24020040 ENCINO, 24025050 CHARALA, 24020220 PAVAS LAS, 24020230 PUEBLO VIEJO y 24020150 MAMONAL EL
+HACIENDA (fuera de la cuenca; se pidio para que la descarga sea comparable con la segunda).
+
+| Archivo | Tamano | SHA-256 |
+|---|---|---|
+| `data/ideam/pluviometros/dhime/dhime_mensual_1981_1997_8est.zip` | 8.9 KB | `42c0cb47748f000991e72f53ff80a7235f02b545f26e75b4156a1f587c65bc12` |
+
+**Cobertura por estacion** (de 204 meses, 1981-01 a 1997-12; calculada leyendo el CSV del zip con Python):
+
+| Codigo | Nombre | Meses con dato (de 204) | Primer mes | Ultimo mes | Nivel de aprobacion |
+|---|---|---|---|---|---|
+| 24020120 | COROMORO | 200 | 1981-01 | 1997-12 | Definitivo (200) |
+| 24025040 | ESCUELA AGRICOLA MOGOTES | 203 | 1981-01 | 1997-12 | Preliminar (203) |
+| 24020080 | VALLE DE SAN JOSE | 202 | 1981-01 | 1997-12 | Preliminar (202) |
+| 24020040 | ENCINO | 196 | 1981-01 | 1997-12 | Preliminar (196) |
+| 24025050 | CHARALA | 197 | 1981-01 | 1997-12 | Preliminar (197) |
+| 24020220 | PAVAS LAS | 175 | 1983-05 | 1997-12 | Preliminar (175) |
+| 24020230 | PUEBLO VIEJO | 167 | 1983-05 | 1997-12 | Preliminar (167) |
+| 24020150 | MAMONAL EL HACIENDA | 130 | 1987-01 | 1997-12 | Preliminar (130) |
+
+**Verificaciones hechas al recibir el archivo:** las columnas son las mismas del zip 1998-2022; todas las
+fechas caen entre 1981-01 y 1997-12; no hay registros duplicados fecha-estacion ni valores vacios (1 470
+filas). En los meses que comparte con la primera descarga (`dhime_mensual_1981_2022.zip`), ENCINO coincide
+en sus 196 meses y PAVAS LAS en sus 175, sin ninguna diferencia.
 
 
 ---

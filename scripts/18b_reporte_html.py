@@ -1433,6 +1433,223 @@ corr_json = json.dumps({
     "meses": [str(p) for p in corr_vars.index],
 }, ensure_ascii=False)
 
+# Panel 2.1: tres pares mensuales, comparados sobre sus meses válidos propios.
+# Las anomalías restan la climatología mensual de cada variable.
+PARES_DISPERSION_21 = [("PI", "PL"), ("PL", "Q"), ("PI", "Q")]
+dispersion_21 = {}
+filas_dispersion_21 = []
+for _x21, _y21 in PARES_DISPERSION_21:
+    _par21 = corr_vars[[_x21, _y21]].dropna()
+    _anom21 = corr_anom[[_x21, _y21]].dropna()
+    _r21 = float(_par21[_x21].corr(_par21[_y21], method="pearson"))
+    _rho21 = float(_par21[_x21].corr(_par21[_y21], method="spearman"))
+    _ra21 = float(_anom21[_x21].corr(_anom21[_y21], method="pearson"))
+    _rho_a21 = float(_anom21[_x21].corr(_anom21[_y21], method="spearman"))
+    dispersion_21[f"{_x21}_{_y21}"] = {
+        "x": _par21[_x21].astype(float).tolist(), "y": _par21[_y21].astype(float).tolist(),
+        "mes": _par21.index.month.tolist(), "periodos": [str(p) for p in _par21.index],
+        "unidadX": UNIDAD_VAR[_x21], "unidadY": UNIDAD_VAR[_y21],
+        "pearson": _r21, "spearman": _rho21, "pearsonAnom": _ra21,
+        "spearmanAnom": _rho_a21, "n": len(_par21),
+    }
+    filas_dispersion_21.append(
+        f"<tr><td>{_x21}–{_y21}</td><td class='num'>{_r21:+.2f}</td>"
+        f"<td class='num'>{_rho21:+.2f}</td><td class='num'>{_ra21:+.2f}</td>"
+        f"<td class='num'>{_rho_a21:+.2f}</td><td class='num'>{len(_par21)}</td></tr>"
+    )
+dispersion_21_json = json.dumps(dispersion_21, ensure_ascii=False)
+filas_dispersion_21_html = "\n".join(filas_dispersion_21)
+rezagos_21 = {
+    lluvia: {
+        tipo: [{"k": int(f.rezago_meses), "rho": float(f.rho), "n": int(f.n)}
+               for f in cruzada[(cruzada.lluvia == lluvia) & (cruzada.series == tipo)]
+               .sort_values("rezago_meses").itertuples()]
+        for tipo in ("tal cual", "anomalías")
+    }
+    for lluvia in ("PL", "PI")
+}
+rezagos_21_json = json.dumps(rezagos_21, ensure_ascii=False)
+
+# Modelos del subpunto 2.2, con parámetros estimados únicamente en el bloque de ajuste.
+_periodos_22 = pd.period_range("1998-01", "2022-12", freq="M")
+_serie_22 = corr_vars[["PI", "PL", "Q"]].reindex(_periodos_22).copy()
+_serie_22["Q"] = (_serie_22.Q * float(_areas.loc[24027010]) * 1000 /
+                  (_serie_22.index.days_in_month * 86400))
+_ajuste_22 = _serie_22.loc["1998-01":"2014-12"]
+_validacion_22 = _serie_22.loc["2015-01":"2022-12"]
+
+
+def _ajustar_modelo_22(nombre, objetivo, predictores):
+    _x = pd.DataFrame({_etiqueta: _serie_22[_variable].shift(_rezago)
+                       for _etiqueta, _variable, _rezago in predictores})
+    _muestra = pd.concat([_ajuste_22[objetivo].rename("y"), _x.loc[_ajuste_22.index]], axis=1).dropna()
+    _matriz = np.column_stack([np.ones(len(_muestra)), _muestra.iloc[:, 1:].to_numpy(float)])
+    _y = _muestra.y.to_numpy(float)
+    _coef = np.linalg.lstsq(_matriz, _y, rcond=None)[0]
+    _pred = _matriz @ _coef
+    _sst = np.sum((_y - _y.mean()) ** 2)
+    _r2 = float(1 - np.sum((_y - _pred) ** 2) / _sst) if _sst else np.nan
+    _n, _p = len(_y), _matriz.shape[1] - 1
+    _r2adj = float(1 - (1 - _r2) * (_n - 1) / (_n - _p - 1)) if _n > _p + 1 else np.nan
+    _valores = _x.loc[_validacion_22.index]
+    _val_pred = pd.Series(_coef[0] + _valores.to_numpy(float) @ _coef[1:], index=_valores.index)
+    _pares_val = pd.concat([_validacion_22[objetivo].rename("observado"), _val_pred.rename("estimado")], axis=1).dropna()
+    _error_val = _pares_val.estimado - _pares_val.observado
+    _residuo_val = _pares_val.observado - _pares_val.estimado
+    _rmse = float(np.sqrt(np.mean(_error_val ** 2))) if len(_pares_val) else np.nan
+    _serie_residuo_val = _residuo_val.reindex(_validacion_22.index)
+    _rho1_val = float(_serie_residuo_val.corr(_serie_residuo_val.shift(1)))
+    _por_mes_val = _residuo_val.groupby(_residuo_val.index.month).apply(lambda s: float(np.sqrt(np.mean(s ** 2))))
+    return {"nombre": nombre, "objetivo": objetivo, "predictores": predictores, "coef": _coef,
+            "n": _n, "r2": _r2, "r2_ajustado": _r2adj, "rmse_validacion": _rmse,
+            "sesgo_validacion": float(_error_val.mean()), "mae_validacion": float(_error_val.abs().mean()),
+            "n_validacion": len(_pares_val), "periodos_val": [str(p) for p in _pares_val.index],
+            "observado_val": _pares_val.observado.astype(float).tolist(),
+            "estimado_val": _pares_val.estimado.astype(float).tolist(),
+            "residuo_val": _residuo_val.astype(float).tolist(),
+            "mes_val": _pares_val.index.month.tolist(), "rho1_residuo": _rho1_val,
+            "rmse_mes": {str(int(m)): float(v) for m, v in _por_mes_val.items()},
+            "predicciones_negativas": int((_pares_val.estimado < 0).sum()),
+            "pred_val": _pares_val.estimado}
+
+
+modelos_22 = [
+    _ajustar_modelo_22("PL ~ PI", "PL", [("PI_t", "PI", 0)]),
+    _ajustar_modelo_22("Q ~ PL_t", "Q", [("PL_t", "PL", 0)]),
+    _ajustar_modelo_22("Q ~ PL_t + PL_t-1", "Q", [("PL_t", "PL", 0), ("PL_t-1", "PL", 1)]),
+    _ajustar_modelo_22("Q ~ PI_t", "Q", [("PI_t", "PI", 0)]),
+    _ajustar_modelo_22("Q ~ PI_t + PI_t-1", "Q", [("PI_t", "PI", 0), ("PI_t-1", "PI", 1)]),
+]
+_clima_q_22 = _ajuste_22.groupby(_ajuste_22.index.month).Q.mean()
+_pred_clima_q_train_22 = pd.Series([_clima_q_22.get(p.month, np.nan) for p in _ajuste_22.index], index=_ajuste_22.index)
+_pred_clima_q_22 = pd.Series([_clima_q_22.get(p.month, np.nan) for p in _validacion_22.index], index=_validacion_22.index)
+_rmse_clima_q_22 = float(np.sqrt(np.nanmean((_validacion_22.Q - _pred_clima_q_22) ** 2)))
+_clima_train22 = pd.concat([_ajuste_22.Q.rename("observado"), _pred_clima_q_train_22.rename("estimado")], axis=1).dropna()
+_clima_val22 = pd.concat([_validacion_22.Q.rename("observado"), _pred_clima_q_22.rename("estimado")], axis=1).dropna()
+_r2_clima_train22 = float(1 - np.sum((_clima_train22.observado - _clima_train22.estimado) ** 2) /
+                          np.sum((_clima_train22.observado - _clima_train22.observado.mean()) ** 2))
+_r2_clima_val22 = float(1 - np.sum((_clima_val22.observado - _clima_val22.estimado) ** 2) /
+                         np.sum((_clima_val22.observado - _clima_val22.observado.mean()) ** 2))
+
+
+def _resumen_validacion_22(nombre, observado, estimado, indice_completo):
+    _pares = pd.concat([observado.rename("observado"), estimado.rename("estimado")], axis=1).dropna()
+    _error = _pares.estimado - _pares.observado
+    _res = _pares.observado - _pares.estimado
+    _res_serie = _res.reindex(indice_completo)
+    _mes = _res.groupby(_res.index.month).apply(lambda s: float(np.sqrt(np.mean(s ** 2))))
+    return {"nombre": nombre, "n": len(_pares), "sesgo": float(_error.mean()),
+            "mae": float(_error.abs().mean()), "rmse": float(np.sqrt(np.mean(_error ** 2))),
+            "periodos": [str(p) for p in _pares.index], "observado": _pares.observado.astype(float).tolist(),
+            "estimado": _pares.estimado.astype(float).tolist(), "residuo": _res.astype(float).tolist(),
+            "mes": _pares.index.month.tolist(), "rho1": float(_res_serie.corr(_res_serie.shift(1))),
+            "rmse_mes": {str(int(m)): float(v) for m, v in _mes.items()},
+            "predicciones_negativas": int((_pares.estimado < 0).sum())}
+
+
+_evaluacion_23 = {
+    "PL · OLS con PI": _resumen_validacion_22("PL · OLS con PI", _validacion_22.PL,
+        modelos_22[0]["pred_val"], _validacion_22.index),
+    "PL · PI crudo": _resumen_validacion_22("PL · PI crudo", _validacion_22.PL, _validacion_22.PI, _validacion_22.index),
+    "Q · Climatología mensual": _resumen_validacion_22("Q · Climatología mensual", _validacion_22.Q,
+        _pred_clima_q_22, _validacion_22.index),
+}
+for _m23 in modelos_22[1:]:
+    if _m23["objetivo"] == "Q":
+        _evaluacion_23[_m23["nombre"]] = {
+            "nombre": _m23["nombre"], "n": _m23["n_validacion"], "sesgo": _m23["sesgo_validacion"],
+            "mae": _m23["mae_validacion"], "rmse": _m23["rmse_validacion"],
+            "periodos": _m23["periodos_val"], "observado": _m23["observado_val"],
+            "estimado": _m23["estimado_val"], "residuo": _m23["residuo_val"],
+            "mes": _m23["mes_val"], "rho1": _m23["rho1_residuo"],
+            "rmse_mes": _m23["rmse_mes"], "predicciones_negativas": _m23["predicciones_negativas"],
+        }
+
+# Las anomalías de evaluación usan la climatología de cada variable estimada solo en 1998–2014.
+_climas_anom_23 = _ajuste_22.groupby(_ajuste_22.index.month)[["PI", "PL", "Q"]].mean()
+_serie_anom_23 = _serie_22.copy()
+for _v23 in ("PI", "PL", "Q"):
+    _serie_anom_23[_v23] -= [_climas_anom_23.loc[p.month, _v23] for p in _serie_anom_23.index]
+_ajuste_anom_23 = _serie_anom_23.loc[_ajuste_22.index]
+_validacion_anom_23 = _serie_anom_23.loc[_validacion_22.index]
+_x_anom_23 = pd.DataFrame({"PL_t": _serie_anom_23.PL, "PL_t-1": _serie_anom_23.PL.shift(1)})
+_muestra_anom_23 = pd.concat([_ajuste_anom_23.Q.rename("y"), _x_anom_23.loc[_ajuste_anom_23.index]], axis=1).dropna()
+_X_anom_23 = np.column_stack([np.ones(len(_muestra_anom_23)), _muestra_anom_23.iloc[:, 1:].to_numpy(float)])
+_coef_anom_23 = np.linalg.lstsq(_X_anom_23, _muestra_anom_23.y.to_numpy(float), rcond=None)[0]
+_pred_anom_23 = pd.Series(_coef_anom_23[0] + _x_anom_23.loc[_validacion_anom_23.index].to_numpy(float) @ _coef_anom_23[1:], index=_validacion_anom_23.index)
+_evaluacion_23["Q anomalías · PL_t + PL_t-1"] = _resumen_validacion_22(
+    "Q anomalías · PL_t + PL_t-1", _validacion_anom_23.Q, _pred_anom_23, _validacion_anom_23.index)
+_evaluacion_23["Q anomalías · referencia cero"] = _resumen_validacion_22(
+    "Q anomalías · referencia cero", _validacion_anom_23.Q,
+    pd.Series(0.0, index=_validacion_anom_23.index), _validacion_anom_23.index)
+
+_filas_eval23 = "\n".join(
+    f"<tr><td>{html.escape(k)}</td><td class='num'>{v['n']}</td><td class='num'>{v['sesgo']:+.3f}</td>"
+    f"<td class='num'>{v['mae']:.3f}</td><td class='num'>{v['rmse']:.3f}</td><td class='num'>{v['rho1']:+.3f}</td></tr>"
+    for k, v in _evaluacion_23.items()
+)
+evaluacion_23_json = json.dumps(_evaluacion_23, ensure_ascii=False)
+_modelos_q_23 = {k: v for k, v in _evaluacion_23.items()
+                 if k.startswith("Q ·") and "anomalías" not in k and "Climatología" not in k}
+_mejor_q_23 = min(_modelos_q_23, key=lambda k: _modelos_q_23[k]["rmse"])
+_mejor_pl_23 = "PL · OLS con PI" if _evaluacion_23["PL · OLS con PI"]["rmse"] < _evaluacion_23["PL · PI crudo"]["rmse"] else "PL · PI crudo"
+_compara_pl_23 = "supera" if _evaluacion_23["PL · OLS con PI"]["rmse"] < _evaluacion_23["PL · PI crudo"]["rmse"] else "no supera"
+_compara_q_23 = "supera" if _evaluacion_23[_mejor_q_23]["rmse"] < _evaluacion_23["Q · Climatología mensual"]["rmse"] else "no supera"
+_pl_rmse_mes_23 = _evaluacion_23["PL · OLS con PI"]["rmse_mes"]
+_mes_menor_pl_23 = min(_pl_rmse_mes_23, key=_pl_rmse_mes_23.get) if _pl_rmse_mes_23 else None
+_mes_mayor_pl_23 = max(_pl_rmse_mes_23, key=_pl_rmse_mes_23.get) if _pl_rmse_mes_23 else None
+_rho1_q_23 = _evaluacion_23[_mejor_q_23]["rho1"]
+_mes_rmse_q_23 = _evaluacion_23[_mejor_q_23]["rmse_mes"]
+_mes_menor_q_23 = min(_mes_rmse_q_23, key=_mes_rmse_q_23.get) if _mes_rmse_q_23 else None
+_mes_mayor_q_23 = max(_mes_rmse_q_23, key=_mes_rmse_q_23.get) if _mes_rmse_q_23 else None
+_nombres_mes_23 = {1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio",
+                   7: "julio", 8: "agosto", 9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"}
+
+
+def _formato_coef_22(x):
+    return f"{x:+.4g}"
+
+
+_tarjetas_modelos_22 = []
+for _modelo22 in modelos_22:
+    _coef22 = _modelo22["coef"]
+    if _modelo22["objetivo"] == "PL":
+        _unidad_intercepto22 = "mm/mes"
+        _unidad_pendiente22 = "(mm/mes)/(mm/mes)"
+        _formula22 = "PL̂ = α + β · PIₜ"
+        _parametros22 = (f"α̂ = {_formato_coef_22(_coef22[0])} mm/mes; "
+                         f"β̂ = {_formato_coef_22(_coef22[1])} (mm/mes)/(mm/mes)")
+    elif len(_coef22) == 2:
+        _predictor22 = _modelo22["predictores"][0][1]
+        _unidad_intercepto22 = "m³/s"
+        _unidad_pendiente22 = "(m³/s)/(mm/mes)"
+        _formula22 = f"Q̂ = α + β · {_predictor22}ₜ"
+        _parametros22 = (f"α̂ = {_formato_coef_22(_coef22[0])} m³/s; "
+                         f"β̂ = {_formato_coef_22(_coef22[1])} (m³/s)/(mm/mes)")
+    else:
+        _predictor22 = _modelo22["predictores"][0][1]
+        _unidad_intercepto22 = "m³/s"
+        _unidad_pendiente22 = "(m³/s)/(mm/mes)"
+        _formula22 = f"Q̂ = α + β · {_predictor22}ₜ + γ · {_predictor22}ₜ₋₁"
+        _parametros22 = (f"α̂ = {_formato_coef_22(_coef22[0])} m³/s; "
+                         f"β̂ = {_formato_coef_22(_coef22[1])} (m³/s)/(mm/mes); "
+                         f"γ̂ = {_formato_coef_22(_coef22[2])} (m³/s)/(mm/mes)")
+    _tarjetas_modelos_22.append(
+        f"<article class='corr-card'><h4>{html.escape(_modelo22['nombre'])}</h4>"
+        f"<p><code>{html.escape(_formula22)}</code></p><p>{_parametros22}</p>"
+        f"<p>Entrenamiento: n={_modelo22['n']}; R²={_modelo22['r2']:.3f}; "
+        f"R² ajustado={_modelo22['r2_ajustado']:.3f}.</p>"
+        f"<p>Validación temporal: n={_modelo22['n_validacion']}; RMSE={_modelo22['rmse_validacion']:.3f} "
+        f"{'mm/mes' if _modelo22['objetivo'] == 'PL' else 'm³/s'}.</p></article>"
+    )
+tarjetas_modelos_22_html = "\n".join(_tarjetas_modelos_22)
+tarjetas_modelos_22_html += (
+    f"<article class='corr-card'><h4>Benchmark: climatología mensual de Q</h4>"
+    f"<p>Predicción igual a la media de Q del mes calendario, calculada en entrenamiento; no es una regresión OLS.</p>"
+    f"<p>Entrenamiento: n={len(_clima_train22)}; R² descriptivo={_r2_clima_train22:.3f}; R² ajustado: no aplica.</p>"
+    f"<p>Validación: n={len(_clima_val22)}; R²={_r2_clima_val22:.3f}; RMSE={_rmse_clima_q_22:.3f} m³/s.</p></article>"
+)
+
 corr_n = len(corr_vars)
 # la mayor distancia entre Pearson y Spearman en toda la matriz, para justificar quedarse con una sola
 _dif = (corr_pearson - corr_spearman).abs().values
@@ -2789,6 +3006,44 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>Punto 2. Relaciones entre series y modelos estadísticos</h2>
+  <h3>2.1. Diagramas de dispersión e interpretación</h3>
+  <p>Los tres pares usan meses con observaciones válidas simultáneas y colorean cada punto por mes calendario. En PI–PL se muestra la igualdad <i>y = x</i>; la comparación se acompaña de sesgo medio, MAE y RMSE con PL como referencia.</p>
+  <div class="corr-grid dispersion-punto2">
+    <article class="corr-card"><h3>(a) PI frente a PL</h3><div id="g-disp-pi-pl" class="grafico" style="height:330px"></div><p>PI y PL en mm/mes. La diagonal representa igualdad entre fuentes.</p></article>
+    <article class="corr-card"><h3>(b) PL frente a Q</h3><div id="g-disp-pl-q" class="grafico" style="height:330px"></div><p>PL en mm/mes; Q en {UNIDAD_VAR['Q']}.</p></article>
+    <article class="corr-card"><h3>(c) PI frente a Q</h3><div id="g-disp-pi-q" class="grafico" style="height:330px"></div><p>PI en mm/mes; Q en {UNIDAD_VAR['Q']}.</p></article>
+  </div>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Par</th><th class="num">Pearson, series crudas</th><th class="num">Spearman, series crudas</th><th class="num">Pearson, anomalías</th><th class="num">Spearman, anomalías</th><th class="num">N</th></tr></thead><tbody>
+{filas_dispersion_21_html}
+  </tbody></table></div>
+  <p class="nota">Pearson resume asociación lineal y puede cambiar ante valores influyentes; Spearman usa rangos y detecta asociación monotónica, incluso si no es lineal. Una diferencia entre ambos aconseja revisar curvatura y observaciones influyentes, no elegir automáticamente uno como prueba causal. Las anomalías se calculan restando, para cada variable, su climatología mensual estimada con los datos disponibles; su comparación indica si la asociación persiste al remover el ciclo anual compartido.</p>
+  <div class="corr-grid"><article class="corr-card"><h3>PI − PL</h3><div class="corr-values"><div class="corr-value"><span>Sesgo medio (PI − PL)</span><strong>{_error_pi_metricas['sesgo']:+.2f} mm/mes</strong></div><div class="corr-value"><span>MAE</span><strong>{_error_pi_metricas['mae']:.2f} mm/mes</strong></div><div class="corr-value"><span>RMSE</span><strong>{_error_pi_metricas['rmse']:.2f} mm/mes</strong></div></div></article></div>
+  <h3>Rezagos hidrológicos de −3 a +3 meses</h3>
+  <p>Se compara lluvia en el mes t−k con Q en el mes t para PL y PI, tanto en las series originales como en anomalías. Un rezago positivo representa lluvia antecedente y permite examinar persistencia compatible con almacenamiento y regulación de la cuenca; los rezagos negativos son controles retrospectivos. <b>La lluvia futura (k negativo) no se utilizará como predictor operativo</b>. Al retirar la climatología mensual se reduce la asociación debida solo a compartir el ciclo anual.</p>
+  <div id="g-rezagos-punto2" class="grafico" style="height:390px"></div>
+  <p class="aviso"><b>Una correlación alta no implica causalidad ni garantiza capacidad predictiva.</b> Los coeficientes contemporáneos o cruzados describen asociación; la predicción requiere validación temporal independiente y no se demuestra con correlación por sí sola.</p>
+
+  <h3>2.2. ¿Se pueden construir modelos útiles?</h3>
+  <p>Los siguientes modelos se ajustan con los meses de entrenamiento 1998–2014 y se contrastan en 2015–2022. El caudal está expresado como promedio mensual en m³/s; PI y PL, en mm/mes. Para cada coeficiente se indica la unidad del término al que multiplica.</p>
+  <div class="corr-grid modelos-punto2">{tarjetas_modelos_22_html}</div>
+  <p class="nota">Para Q, la regresión simple contemporánea sirve de referencia frente al término de lluvia antecedente t−1. La climatología mensual de Q, estimada solo en entrenamiento, obtiene RMSE de validación de <b>{_rmse_clima_q_22:.3f} m³/s</b>; el modelo con rezago se debe juzgar frente a esa referencia y no solo por R² de ajuste. No se ajustan transformaciones logarítmicas o raíz: se conservan los ceros y se priorizan coeficientes con interpretación directa en unidades físicas.</p>
+  <p class="nota"><b>Supuestos OLS:</b> linealidad de la media condicional, homocedasticidad, ausencia de autocorrelación residual e innovación normal para la inferencia clásica. Son supuestos, no propiedades garantizadas por el ajuste, y deben revisarse con los gráficos de residuos y la validación temporal. Los ceros se conservan como valores ordinarios; los faltantes se excluyen por pares completos, sin imputarlos.</p>
+  <p class="aviso"><b>Límite físico:</b> las predicciones negativas de Q se conservan sin truncar en las métricas y representan inconsistencias físicas. Una regresión estadística no sustituye el balance hídrico ni garantiza la conservación de la masa. Ajuste y correlación tampoco prueban causalidad ni bastan para afirmar capacidad predictiva fuera de la ventana evaluada.</p>
+
+  <h3>2.3. Evaluar fuera del periodo de ajuste</h3>
+  <p>Se separan bloques temporales continuos: <b>entrenamiento 1998–2014</b> y <b>prueba 2015–2022</b>. Se rechaza el K-fold aleatorio porque mezclaría meses vecinos entre ajuste y prueba, filtrando dependencia y autocorrelación temporal. Los parámetros OLS y las medias mensuales de referencia se estiman solo en entrenamiento. Las anomalías de esta evaluación restan la climatología mensual de PI, PL y Q calculada también solo con 1998–2014; no se usa información de prueba para esa transformación.</p>
+  <div class="tabla-caja"><table class="sin-destacar"><thead><tr><th>Modelo / referencia</th><th class="num">n prueba</th><th class="num">Sesgo (mm/mes o m³/s)</th><th class="num">MAE (mm/mes o m³/s)</th><th class="num">RMSE (mm/mes o m³/s)</th><th class="num">ρ residuo lag 1</th></tr></thead><tbody>
+{_filas_eval23}
+  </tbody></table></div>
+  <p class="nota">El sesgo se define como estimado menos observado. Para el modelo en anomalías, las métricas corresponden a desviaciones respecto de la climatología de entrenamiento; su referencia es anomalía cero. Una autocorrelación de residuo positiva indica persistencia mensual que el modelo no capturó; estos coeficientes son un diagnóstico descriptivo, no una prueba de significancia.</p>
+  <div class="eval-panel">
+    <div class="eval-heading"><div><h4>Diagnóstico de residuos fuera de muestra</h4><p>Seleccione modelo o benchmark; residuo = observado − estimado.</p></div><select id="selector-residuos-23" aria-label="Modelo para diagnóstico de residuos"></select></div>
+    <div class="corr-grid"><div id="residuo-tiempo-23" class="grafico" style="height:310px"></div><div id="residuo-ajustado-23" class="grafico" style="height:310px"></div><div id="residuo-mes-23" class="grafico" style="height:310px"></div></div>
+  </div>
+  <p><b>Síntesis del Punto 2.</b> Para PL, el OLS { _compara_pl_23 } a PI sin corregir: RMSE { _evaluacion_23['PL · OLS con PI']['rmse']:.2f} mm/mes frente a {_evaluacion_23['PL · PI crudo']['rmse']:.2f} mm/mes. La relación lineal y sus rezagos describen una asociación mensual aprovechable, aunque el modelo de Q con menor RMSE entre los evaluados es <b>{html.escape(_mejor_q_23)}</b> y { _compara_q_23 } la climatología mensual ({_evaluacion_23[_mejor_q_23]['rmse']:.2f} frente a {_evaluacion_23['Q · Climatología mensual']['rmse']:.2f} m³/s). El error de Q fue menor en {_nombres_mes_23.get(int(_mes_menor_q_23), '—')} y mayor en {_nombres_mes_23.get(int(_mes_mayor_q_23), '—')}; para PL, menor en {_nombres_mes_23.get(int(_mes_menor_pl_23), '—')} y mayor en {_nombres_mes_23.get(int(_mes_mayor_pl_23), '—')}. La autocorrelación lag 1 de los residuos del mejor modelo Q es {_rho1_q_23:+.2f}, señal descriptiva de persistencia residual. La comparación del modelo con la prueba es descriptiva entre las alternativas consideradas y no una selección independiente.</p>
+  <p class="aviso"><b>Interpretación y fuentes.</b> La mejora predictiva debe juzgarse frente a PI crudo o la climatología y solo con los errores de prueba, no por R² de entrenamiento. IMERG Final incorpora información de pluviómetros y puede compartir estaciones o fuentes con PL, así que la comparación no es completamente independiente. El ajuste estadístico no prueba causalidad ni sustituye el balance hídrico.</p>
+
   <h2>Cómo se relacionan las variables entre sí</h2>
   <p>Las {len(VARIABLES_CORR)} variables mensuales de la cuenca, cruzadas todas contra todas sobre los
   <b>{corr_n} meses en que todas tienen dato</b>. Además de PI, PL y Q entran <b>ETP</b>, la
@@ -3457,8 +3712,92 @@ a {{ color: var(--acento); }}
   }}
 
 
+  const EVALUACION23 = {evaluacion_23_json};
+  const DISPERSION21 = {dispersion_21_json};
+  const REZAGOS21 = {rezagos_21_json};
   const CORR = {corr_json};
   let corrModo = "crudas";          // pestaña activa: "crudas", "anomalias" o "rezago"
+
+  function dibujarEvaluacion23() {{
+    if (!window.Plotly) return;
+    const selector = document.getElementById("selector-residuos-23");
+    if (!selector) return;
+    const nombres = Object.keys(EVALUACION23);
+    selector.innerHTML = nombres.map(n => `<option value="${{n}}">${{n}}</option>`).join("");
+    const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+    const dibujar = () => {{
+      const d = EVALUACION23[selector.value];
+      if (!d) return;
+      const unidad = d.nombre.startsWith("PL") ? "mm/mes" : "m³/s";
+      const cero = {{ type: "scatter", mode: "lines", x: d.periodos, y: d.periodos.map(() => 0),
+        name: "Residuo cero", line: {{ color: "#879390", dash: "dash" }}, hoverinfo: "skip" }};
+      Plotly.react("residuo-tiempo-23", [{{ type: "scatter", mode: "lines+markers", x: d.periodos,
+        y: d.residuo, name: "Residuo", line: {{ color: "#0072B2" }},
+        hovertemplate: "%{{x}}<br>Residuo: %{{y:.3f}} " + unidad + "<extra></extra>" }}, cero],
+        {{ ...base(), title: "Residuos frente al tiempo", xaxis: {{ title: "Mes" }}, yaxis: {{ title: "Observado − estimado · " + unidad }} }}, CONF);
+      Plotly.react("residuo-ajustado-23", [{{ type: "scattergl", mode: "markers", x: d.estimado,
+        y: d.residuo, customdata: d.periodos, marker: {{ color: d.mes, colorscale: "Turbo", cmin: 1, cmax: 12,
+          showscale: true, colorbar: {{ title: "Mes" }} }}, hovertemplate: "%{{customdata}}<br>Estimado: %{{x:.3f}} " + unidad +
+          "<br>Residuo: %{{y:.3f}} " + unidad + "<extra></extra>" }}],
+        {{ ...base(), title: "Residuos frente al valor estimado", xaxis: {{ title: "Estimado · " + unidad }},
+          yaxis: {{ title: "Residuo · " + unidad }}, shapes: [{{ type: "line", xref: "paper", x0: 0, x1: 1,
+            y0: 0, y1: 0, line: {{ color: "#879390", dash: "dash" }} }}] }}, CONF);
+      const porMes = {{ type: "box", x: d.mes.map(m => meses[m - 1]), y: d.residuo,
+        name: "Residuos", boxpoints: "outliers", marker: {{ color: "#D55E00", size: 3 }},
+        hovertemplate: "Mes: %{{x}}<br>Residuo: %{{y:.3f}} " + unidad + "<extra></extra>" }};
+      Plotly.react("residuo-mes-23", [porMes, {{ ...cero, x: meses, y: meses.map(() => 0), showlegend: false }}],
+        {{ ...base(), title: "Residuos por mes calendario", xaxis: {{ title: "Mes" }},
+          yaxis: {{ title: "Residuo · " + unidad }} }}, CONF);
+    }};
+    selector.addEventListener("change", dibujar);
+    dibujar();
+  }}
+
+  function dibujarSubpunto21() {{
+    if (!window.Plotly) return;
+    const configuracion = {{ responsive: true, displaylogo: false, scrollZoom: true }};
+    const pares = [
+      {{ clave: "PI_PL", id: "g-disp-pi-pl", x: "PI", y: "PL" }},
+      {{ clave: "PL_Q", id: "g-disp-pl-q", x: "PL", y: "Q" }},
+      {{ clave: "PI_Q", id: "g-disp-pi-q", x: "PI", y: "Q" }}
+    ];
+    pares.forEach(p => {{
+      const d = DISPERSION21[p.clave];
+      if (!d) return;
+      const puntos = {{ type: "scattergl", mode: "markers", name: "Meses", x: d.x, y: d.y,
+        text: d.periodos, customdata: d.mes,
+        marker: {{ color: d.mes, colorscale: "Turbo", cmin: 1, cmax: 12, size: 6, opacity: .78,
+          colorbar: {{ title: "Mes", thickness: 10 }} }},
+        hovertemplate: "%{{text}}<br>Mes calendario: %{{customdata}}<br>" + p.x + ": %{{x:.2f}} " + d.unidadX +
+          "<br>" + p.y + ": %{{y:.2f}} " + d.unidadY + "<extra></extra>" }};
+      const trazas = [puntos];
+      if (p.clave === "PI_PL") {{
+        const lim = Math.max(...d.x, ...d.y);
+        trazas.push({{ type: "scatter", mode: "lines", name: "Igualdad y = x", x: [0, lim], y: [0, lim],
+          line: {{ color: "#687875", dash: "dash" }}, hoverinfo: "skip" }});
+      }}
+      Plotly.react(p.id, trazas, {{ ...base(), margin: {{ t: 12, r: 52, b: 54, l: 62 }},
+        xaxis: {{ title: p.x + " · " + d.unidadX, gridcolor: "#edf1ef",
+          range: p.clave === "PI_PL" ? [0, Math.max(...d.x, ...d.y)] : undefined }},
+        yaxis: {{ title: p.y + " · " + d.unidadY, gridcolor: "#edf1ef",
+          range: p.clave === "PI_PL" ? [0, Math.max(...d.x, ...d.y)] : undefined,
+          scaleanchor: p.clave === "PI_PL" ? "x" : undefined, scaleratio: 1 }},
+        showlegend: p.clave === "PI_PL" }}, configuracion);
+    }});
+    const trazasRezago = [];
+    [["PL", "#0072B2"], ["PI", "#D55E00"]].forEach(([lluvia, color]) => {{
+      [["tal cual", "línea continua", "solid"], ["anomalías", "anomalías", "dash"]].forEach(([tipo, nombre, dash]) => {{
+        const d = REZAGOS21[lluvia][tipo];
+        trazasRezago.push({{ type: "scatter", mode: "lines+markers", name: lluvia + " · " + nombre,
+          x: d.map(v => v.k), y: d.map(v => v.rho), customdata: d.map(v => v.n),
+          line: {{ color, dash }}, hovertemplate: "Rezago k=%{{x}} meses<br>Spearman ρ=%{{y:.2f}}<br>N=%{{customdata}}<extra>%{{fullData.name}}</extra>" }});
+      }});
+    }});
+    Plotly.react("g-rezagos-punto2", trazasRezago, {{ ...base(), margin: {{ t: 20, r: 20, b: 56, l: 62 }},
+      xaxis: {{ title: "k (meses); k > 0: lluvia antecedente", dtick: 1, gridcolor: "#edf1ef" }},
+      yaxis: {{ title: "Spearman ρ", range: [-1, 1], zeroline: true, gridcolor: "#edf1ef" }},
+      legend: {{ orientation: "h", y: -0.25 }} }}, configuracion);
+  }}
 
   function dibujarCorrelaciones() {{
     if (!window.Plotly) return;
@@ -4083,6 +4422,8 @@ a {{ color: var(--acento); }}
     dibujarEtp();
     dibujarDobleMasa();
     dibujarCorrelaciones();
+    dibujarSubpunto21();
+    dibujarEvaluacion23();
     dibujarCicloRezago();
     dibujarCajas();
     dibujarBalance();

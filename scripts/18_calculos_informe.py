@@ -1419,21 +1419,46 @@ _cam_largo = _cam_largo.set_index("fecha").sort_index().reindex(
     pd.date_range(f"{LARGO_DESDE}-01", f"{max(ANIOS_ESTUDIO)}-12-31", freq="D"))
 _era_largo = (pd.read_csv("out/era5land_temperatura_diaria_fonce_1981_2022.csv", parse_dates=["fecha"])
               .set_index("fecha").reindex(_cam_largo.index))
+# PL* (decidido por el usuario el 2026-10-08): para tendencias y para las anomalías de esa sección, PL se arma con
+# una RED FIJA, la que construye scripts/07 (estaciones con registro desde 1981, sin Pueblo Viejo, sin las
+# exclusiones vigentes ni los picos extremos que los vecinos no acompañan). Así la composición de la red no cambia
+# en el tiempo y no puede fabricar una tendencia. La PL del resto del informe no cambia.
+_plf = pd.read_csv("out/pluviometros_pl_larga_1981_2022.csv", parse_dates=["fecha"])
+_plf["periodo"] = _plf.fecha.dt.to_period("M")
+pl_estrella_matriz = _plf.pivot(index="periodo", columns="codigo", values="precipitacion_mm").reindex(PERIODOS_LARGO)
+pl_estrella_red = list(pl_estrella_matriz.columns)
+pl_estrella_excluidos = pd.read_csv("out/pluviometros_pl_larga_excluidos.csv")
+pl_estrella_rachas = pd.read_csv("out/pluviometros_pl_larga_rachas.csv")
+# los umbrales del criterio de picos viven en scripts/07; aquí se repiten solo para citarlos en el texto, y se
+# comprueba que coincidan con los de ese script
+PICO_VECES_MEDIANA_INF, PICO_MINIMO_INF, PICO_VECES_VECINOS_INF = 3.0, 300.0, 3.0
+_s07 = open("scripts/07_pluviometros_dhime.py", encoding="utf-8").read()
+assert all(f"{n} = {v}" in _s07 for n, v in (("PICO_VECES_MEDIANA", PICO_VECES_MEDIANA_INF), ("PICO_MINIMO_MM", PICO_MINIMO_INF),
+                                              ("PICO_VECES_VECINOS", PICO_VECES_VECINOS_INF)))
 largo = pd.DataFrame({
-    "PL": variables_resumen["PL"].reindex(PERIODOS_LARGO),
+    "PL*": pl_estrella_matriz.mean(axis=1, skipna=True),
     "PI": variables_resumen["PI"].reindex(PERIODOS_LARGO),
     "Q": a_mensual(_cam_largo["caudal"], "mean", PERIODOS_LARGO),
     **{nombre: a_mensual(_era_largo[col], "mean", PERIODOS_LARGO)
        for nombre, col in (("T mín", "t_min"), ("T media", "t_media"), ("T máx", "t_max"))},
 })
 # el tramo 1998-2022 del registro largo es idéntico a la serie que usa todo el informe
-assert np.allclose(largo.loc[PERIODOS].to_numpy(), variables_resumen[largo.columns].to_numpy(), equal_nan=True)
+_comunes = [c for c in largo.columns if c in variables_resumen.columns]
+assert np.allclose(largo.loc[PERIODOS, _comunes].to_numpy(), variables_resumen[_comunes].to_numpy(), equal_nan=True)
 LARGO_VARS = list(largo.columns)
-LARGO_UNIDADES = {"PL": "mm/mes", "PI": "mm/mes", "Q": "m³/s", "T mín": "°C", "T media": "°C", "T máx": "°C"}
-LARGO_FUENTE = {"PL": "pluviómetros del IDEAM (DHIME)", "PI": "IMERG V07", "Q": "CAMELS-COL (IDEAM)",
+# fase del ENSO de cada mes desde 1981 (scripts/17), para colorear el fondo de las series de tiempo; se agrupan los
+# meses seguidos con la misma fase en tramos
+_enso = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_enso = _enso.set_index(pd.PeriodIndex(_enso.periodo, freq="M"))["fase"].reindex(PERIODOS_LARGO)
+enso_tramos = []
+for _fase, _g in _enso.groupby((_enso != _enso.shift()).cumsum()):
+    if _g.iloc[0] in ("El Niño", "La Niña"):
+        enso_tramos.append((_g.index[0], _g.index[-1], _g.iloc[0]))
+LARGO_UNIDADES = {"PL*": "mm/mes", "PI": "mm/mes", "Q": "m³/s", "T mín": "°C", "T media": "°C", "T máx": "°C"}
+LARGO_FUENTE = {"PL*": "red fija de pluviómetros del IDEAM (DHIME)", "PI": "IMERG V07", "Q": "CAMELS-COL (IDEAM)",
                 "T mín": "ERA5-Land", "T media": "ERA5-Land", "T máx": "ERA5-Land"}
 # cambios de fuente o de procesamiento dentro de cada serie, conocidos y documentados en DATOS_FUENTES.md
-LARGO_CAMBIOS = {"PL": "el número de pluviómetros que aportan cambia de un mes a otro (regla 11)",
+LARGO_CAMBIOS = {"PL*": "ninguno en la composición (red fija); dos estaciones con salto de nivel marcado como incierto",
                  "PI": "calibración con TRMM hasta 2014-05 y con GPM desde 2014-06",
                  "Q": "ninguno conocido", "T mín": "ninguno conocido", "T media": "ninguno conocido",
                  "T máx": "ninguno conocido"}
@@ -1536,7 +1561,7 @@ anz_normal_extremos = float(2 * stats.norm.sf(ANZ_UMBRAL_Z) * 100)
 anz_no_normales = [v for v in LARGO_VARS if anz_forma[v]["shapiro_p"] < ANZ_ALFA]
 # lo que el texto afirma
 assert anz_forma["Q"]["asim"] == max(f["asim"] for f in anz_forma.values())
-assert anz_forma["T media"]["r_x_a"] > max(anz_forma[v]["r_x_a"] for v in ("PL", "PI", "Q"))
+assert anz_forma["T media"]["r_x_a"] > max(anz_forma[v]["r_x_a"] for v in ("PL*", "PI", "Q"))
 assert min(f["r_a_z"] for f in anz_forma.values()) > 0.9
 assert anz_ancho_rel["Q"].max() == anz_ancho_rel.max().max()
 
@@ -1556,7 +1581,7 @@ assert anz_ancho_rel["Q"].max() == anz_ancho_rel.max().max()
 #   estacional de Hirsch, Slack y Smith (1982), que compara cada mes solo con el mismo mes de otros años.
 # - Mes a mes: OLS y Mann-Kendall en cada subserie anual (12 a 42 años), sin corrección de autocorrelación.
 # Período de cada prueba: el registro completo de cada variable (la pregunta de largo plazo) y, aparte,
-# 1998-2022 (el período común, para comparar fuentes). Para PL y PI los dos coinciden.
+# 1998-2022 (el período común, para comparar fuentes). Para PI los dos coinciden.
 TEND_ALFA = 0.05
 TEND_REZAGOS = 12
 
@@ -1660,26 +1685,32 @@ def tend_signif(fila, clave="p"):
 tend_t_sube = all(tend_todos[(v, "completo")]["a"]["ols"] > 0 and tend_todos[(v, "completo")]["a"]["p"] < TEND_ALFA
                   and tend_todos[(v, "completo")]["X"]["p_mk"] < TEND_ALFA for v in ("T mín", "T media", "T máx"))
 
-# Sensibilidad de la tendencia de PL a Pueblo Viejo, que tiene un segundo salto de nivel en 2014-04 (−25 %,
-# marcado como incierto en el registro de anomalías): una caída de nivel de una estación dentro del promedio
-# puede aparecer como tendencia de la red. Se repite la prueba de todos los datos con PL sin Pueblo Viejo.
-TEND_PUEBLO_VIEJO = 24020230
-_pl_sin_pv = plu[[c for c in DENTRO if c != TEND_PUEBLO_VIEJO]].mean(axis=1, skipna=True)
-_pl_sin_pv.index = pd.PeriodIndex(_pl_sin_pv.index, freq="M")
-_pl_sin_pv = _pl_sin_pv.reindex(PERIODOS).dropna()
-_t_spv, _m_spv = _t_decimal(_pl_sin_pv.index), np.asarray(_pl_sin_pv.index.month)
-_b, _se, _p = _ols_hac(_pl_sin_pv.to_numpy(),
-                       np.column_stack([_t_spv, (_m_spv[:, None] == np.arange(1, 13)[None, :]).astype(float)]),
-                       TEND_REZAGOS)
-_sen, _pmk = _mk_estacional(_t_spv, _pl_sin_pv.to_numpy(), _m_spv)
-tend_pl_sin_pv = {"ols": _b[0] * 10, "p": _p[0], "mk": _sen * 10, "p_mk": _pmk}
+# Sensibilidad de la tendencia de PL*. Dos estaciones de la red fija tienen un salto de nivel marcado como
+# incierto (Coromoro desde 2003-03 y Valle de San José desde 1998-04, este visto al extender el registro); un salto
+# dentro de un promedio puede aparecer como tendencia. Se repite la prueba (1) sin esas dos estaciones y (2) con la
+# PL de siempre (la red completa) en 1998-2022, para ver si la conclusión depende de la red.
+TEND_ESTACIONES_CON_SALTO = [24020120, 24020080]
+
+
+def _tend_x(serie):
+    serie = serie.dropna()
+    _t, _m = _t_decimal(serie.index), np.asarray(serie.index.month)
+    _b, _se, _p = _ols_hac(serie.to_numpy(), np.column_stack([_t, (_m[:, None] == np.arange(1, 13)[None, :]).astype(float)]),
+                           TEND_REZAGOS)
+    _sen, _pmk = _mk_estacional(_t, serie.to_numpy(), _m)
+    return {"ols": _b[0] * 10, "p": _p[0], "mk": _sen * 10, "p_mk": _pmk, "n": len(serie)}
+
+
+tend_pl_sens = {
+    "sin_saltos": _tend_x(pl_estrella_matriz.drop(columns=TEND_ESTACIONES_CON_SALTO).mean(axis=1, skipna=True)),
+    "red_9822": _tend_x(variables_resumen["PL"]),
+    "estrella_9822": _tend_x(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]]),
+    "r_9822": float(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]].corr(variables_resumen["PL"])),
+    "media_9822": float(largo["PL*"].loc[PERIODOS[0]:PERIODOS[-1]].mean()), "media_red": float(variables_resumen["PL"].mean()),
+}
 
 # lo que el texto de tendencias afirma; si los datos dejan de respaldarlo, el script se detiene
 assert tend_t_sube
-assert tend_todos[("PL", "completo")]["X"]["ols"] < 0 and tend_todos[("PL", "completo")]["X"]["p_mk"] < TEND_ALFA
-assert tend_todos[("PL", "completo")]["X"]["p"] >= TEND_ALFA
-assert tend_pl_sin_pv["p"] >= TEND_ALFA and tend_pl_sin_pv["p_mk"] >= TEND_ALFA
-assert abs(tend_pl_sin_pv["ols"]) < abs(tend_todos[("PL", "completo")]["X"]["ols"])
 assert all(tend_todos[(v, per)][k]["p"] >= TEND_ALFA for v in ("PI", "Q") for per in TEND_PERIODOS for k in ("X", "a", "z"))
 assert all(tend_todos[(v, per)]["X"]["p_mk"] >= TEND_ALFA for v in ("PI", "Q") for per in TEND_PERIODOS)
 
@@ -1872,7 +1903,7 @@ def _forma(t, curva, escala):
 met_global, met_curvas, met_mes, met_sens = {}, {}, {}, {}
 for _v in LARGO_VARS:
     for _per, _lim in TEND_PERIODOS.items():
-        if _v in ("PL", "PI") and _per != "completo":
+        if _v == "PI" and _per != "completo":
             continue
         _rep = {"X": largo[_v], "a": anz_a[_v], "z": anz_z[_v]}
         if _lim is not None:
@@ -1981,12 +2012,32 @@ for _v in ("T mín", "T media", "T máx"):
     assert all(met_sens[_v][f"frac {fr}"]["cambio"] > 0 for fr in MET_FRACS)
 assert any((met_global[(v, "1998–2022")]["ols_a"]["p_hac"] < TEND_ALFA) != (met_global[(v, "1998–2022")]["mk_a"]["p"] < TEND_ALFA)
            for v in ("T mín", "T media", "T máx"))
-_pl = _mc["PL"]
-assert _pl["ols_a"]["pend"] < 0 and _pl["ols_Xmes"]["p_hac"] >= TEND_ALFA and _pl["mk_X"]["p"] >= TEND_ALFA
-assert _pl["mk_a"]["p"] >= TEND_ALFA and _pl["mk_a"]["p_sin"] < TEND_ALFA
-assert all(len({met_sens[v][f"frac {fr}"]["tramos"] for fr in MET_FRACS}) > 1 for v in ("PL", "PI", "Q"))
-assert any(len({np.sign(met_sens[v][f"frac {fr}"]["cambio"]) for fr in MET_FRACS}) > 1 for v in ("PL", "PI", "Q"))
+assert all(len({met_sens[v][f"frac {fr}"]["tramos"] for fr in MET_FRACS}) > 1 for v in ("PL*", "PI", "Q"))
+assert any(len({np.sign(met_sens[v][f"frac {fr}"]["cambio"]) for fr in MET_FRACS}) > 1 for v in ("PL*", "PI", "Q"))
 assert all(f[k]["p_hac"] >= TEND_ALFA for (v, per), f in met_global.items() if v in ("PI", "Q") for k in ("ols_X", "ols_Xmes", "ols_a", "ols_z"))
 assert all(f[k]["p"] >= TEND_ALFA for (v, per), f in met_global.items() if v in ("PI", "Q") for k in ("mk_X", "mk_a"))
 assert all(s["borde_vs_centro"] > 1 for s in met_sens.values())
 assert len(_mc["Q"]["loess_a"]["forma"]) > 1
+
+# lo que el texto afirma sobre PL* (la red fija); si los datos dejan de respaldarlo, el script se detiene
+for _per in TEND_PERIODOS:
+    _f = met_global[("PL*", _per)]
+    assert _f["ols_Xmes"]["p_hac"] >= TEND_ALFA and _f["mk_X"]["p"] >= TEND_ALFA and _f["mk_a"]["p"] >= TEND_ALFA
+assert tend_pl_sens["sin_saltos"]["p"] >= TEND_ALFA and tend_pl_sens["sin_saltos"]["p_mk"] >= TEND_ALFA
+assert tend_pl_sens["red_9822"]["ols"] < tend_pl_sens["estrella_9822"]["ols"] and tend_pl_sens["red_9822"]["p_mk"] < TEND_ALFA
+assert tend_pl_sens["r_9822"] > 0.95
+
+# años contrastantes: PL contra PI, año por año (pedido por el usuario el 2026-10-08). Cuánto supera PL a PI en el
+# año, contra lo habitual en 1998-2022, y los meses en que más se separan.
+ANOM_MESES_DIF = 3
+anom_pl_pi = {}
+_habitual = float(variables_resumen.PL.sum() / variables_resumen.PI.sum())
+for _a in anom_anios:
+    _x = variables_resumen[variables_resumen.index.year == _a]
+    _dif = (_x.PL - _x.PI).sort_values(ascending=False)
+    anom_pl_pi[_a] = {"pi": [round(float(v), 1) for v in _x.PI], "pl_total": float(_x.PL.sum()), "pi_total": float(_x.PI.sum()),
+                      "razon": float(_x.PL.sum() / _x.PI.sum()),
+                      "meses_dif": [MESES_LARGOS_ES[p.month - 1] for p in _dif.index[:ANOM_MESES_DIF]]}
+anom_pl_pi_habitual = _habitual
+anom_pl_pi_raro = max(anom_pl_pi, key=lambda a: anom_pl_pi[a]["razon"])
+assert anom_pl_pi[anom_pl_pi_raro]["razon"] > anom_pl_pi_habitual

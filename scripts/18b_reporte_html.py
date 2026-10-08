@@ -443,8 +443,8 @@ est_filas_mitades = "\n".join(
     f"<td>{'sí' if r['estable'] else '<b>no</b>'}</td></tr>" for v, r in est_mitades.items())
 
 # anomalías estandarizadas y tendencias: tablas y datos de las gráficas
-ANZ_GRUPOS = {"Lluvia (PL y PI)": ["PL", "PI"], "Caudal (Q)": ["Q"], "Temperatura (mín, media y máx)": ["T mín", "T media", "T máx"]}
-ANZ_DEC = {"PL": 0, "PI": 0, "Q": 1, "T mín": 2, "T media": 2, "T máx": 2}
+ANZ_GRUPOS = {"Lluvia (PL* y PI)": ["PL*", "PI"], "Caudal (Q)": ["Q"], "Temperatura (mín, media y máx)": ["T mín", "T media", "T máx"]}
+ANZ_DEC = {"PL*": 0, "PI": 0, "Q": 1, "T mín": 2, "T media": 2, "T máx": 2}
 
 
 def _p_txt(p):
@@ -474,8 +474,8 @@ largo_filas = "\n".join(
 _tend_filas = []
 for v in LARGO_VARS:
     for per in TEND_PERIODOS:
-        if v in ("PL", "PI") and per != "completo":
-            continue                     # para PL y PI el registro completo es 1998-2022: sería la misma fila
+        if v == "PI" and per != "completo":
+            continue                     # para PI el registro completo es 1998-2022: sería la misma fila
         f = tend_todos[(v, per)]
         d = ANZ_DEC[v] + 1
         etiqueta = (f"{fmt_mes(f['inicio'])} a {fmt_mes(f['fin'])}" + (" (registro completo)" if per == "completo" else " (período común)"))
@@ -495,6 +495,7 @@ anz_json = json.dumps({
     "fechas": [f"{p.year}-{p.month:02d}-15" for p in _anz_t],
     "ref": [f"{ANZ_REFERENCIA[0].year}-{ANZ_REFERENCIA[0].month:02d}-01", f"{ANZ_REFERENCIA[1].year}-{ANZ_REFERENCIA[1].month:02d}-28"],
     "grupos": ANZ_GRUPOS,
+    "enso": [[f"{a.year}-{a.month:02d}-01", f"{b.year}-{b.month:02d}-28", f] for a, b, f in enso_tramos],
     "unidades": LARGO_UNIDADES,
     "series": {v: {"X": _serie_json(largo[v], ANZ_DEC[v] + 1), "a": _serie_json(anz_a[v], ANZ_DEC[v] + 1),
                    "z": _serie_json(anz_z[v], 2),
@@ -627,7 +628,7 @@ _anom_nube = atip_z[["PL", "Q"]].dropna()
 anom_json = json.dumps({
     "nube": {"pl": _anom_nube.PL.round(2).tolist(), "q": _anom_nube.Q.round(2).tolist(),
              "anio": [p.year for p in _anom_nube.index], "mes": [f"{MESES_LARGOS_ES[p.month - 1]} de {p.year}" for p in _anom_nube.index]},
-    "anios": {str(a): {"tipo": r["tipo"], "serie": r["serie"]} for a, r in anom_anios.items()},
+    "anios": {str(a): {"tipo": r["tipo"], "serie": r["serie"], "pi": anom_pl_pi[a]["pi"]} for a, r in anom_anios.items()},
     "mediana": [round(float(v), 1) for v in anom_mediana_pl],
     "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
 }, ensure_ascii=False)
@@ -1689,6 +1690,12 @@ a {{ color: var(--acento); }}
   resta una única media para todos los meses (dejaría el ciclo anual dentro) ni una climatología móvil (se llevaría
   parte de la tendencia). En Q y la temperatura, que llegan hasta {LARGO_DESDE[:4]}, los meses anteriores a
   {ANZ_REFERENCIA[0].year} se comparan con esa misma referencia.</p>
+  <p><b>PL*</b>: en esta sección y en «Tendencias de largo plazo», la lluvia de los pluviómetros no es la PL de siempre sino
+  una <b>red fija</b> de {len(pl_estrella_red)} estaciones con registro desde 1981
+  ({", ".join(COD_PLUVIO[c].split(" (")[0] for c in pl_estrella_red)}), sin Pueblo Viejo en ningún año, sin los tramos excluidos
+  de siempre y sin {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los
+  vecinos no acompañan. Si la red cambiara de composición con los años (como la PL de siempre, a la que Pueblo Viejo entra en
+  2004), ese cambio aparecería como una tendencia. El resto del informe sigue usando PL.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Mes</th>{"".join(f"<th class='num'>{v} <small>({LARGO_UNIDADES[v]})</small></th>" for v in LARGO_VARS)}</tr></thead>
@@ -1705,8 +1712,9 @@ a {{ color: var(--acento); }}
   <div role="tabpanel" id="panel-anz" aria-labelledby="pestana-anz-0">
     <div id="g-anz" class="grafico" style="min-height:0; height:720px"></div>
   </div>
-  <p class="nota">Arriba la serie original, en el medio la anomalía y abajo la anomalía estandarizada. La franja marca el
-  período de referencia. En a y z, la línea discontinua es la tendencia lineal del registro completo (ver «Tendencias de
+  <p class="nota">Arriba la serie original, en el medio la anomalía y abajo la anomalía estandarizada. Fondo: naranja en los
+  meses de El Niño y azul en los de La Niña, según el ONI de la NOAA ({CITA_ONI}); sin color, neutro. Las líneas punteadas
+  marcan el período de referencia. En a y z, la línea discontinua es la tendencia lineal del registro completo (ver «Tendencias de
   largo plazo»).</p>
 
   <h3>Qué conserva y qué cambia cada una</h3>
@@ -1714,7 +1722,7 @@ a {{ color: var(--acento); }}
     <li><b>X<sub>t</sub></b> lo conserva todo: las unidades, el nivel, el ciclo anual y la variación de un año a otro.</li>
     <li><b>a<sub>t</sub></b> quita el ciclo anual medio y conserva las unidades y la diferencia de variabilidad entre meses:
     un febrero lluvioso puede alejarse más de su media que un agosto. En la lluvia y el caudal, quitar el ciclo cambia mucho
-    la serie (correlación de X con a: {anz_forma["PL"]["r_x_a"]:.2f} con PL, {anz_forma["PI"]["r_x_a"]:.2f} con PI y
+    la serie (correlación de X con a: {anz_forma["PL*"]["r_x_a"]:.2f} con PL*, {anz_forma["PI"]["r_x_a"]:.2f} con PI y
     {anz_forma["Q"]["r_x_a"]:.2f} con Q); en la temperatura casi nada ({anz_forma["T media"]["r_x_a"]:.2f} con la media),
     porque su ciclo anual es pequeño frente a lo que cambia de un año a otro.</li>
     <li><b>z<sub>t</sub></b> quita además esa diferencia de variabilidad: pone todos los meses, y todas las variables, en la
@@ -1780,9 +1788,24 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:400px"></div>
-  <p class="nota">PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes, {n(anom_tipico_pl)} mm
-  en el año).</p>
+  <div class="pestanas" role="tablist" aria-label="Contra qué comparar">
+    <button type="button" role="tab" id="pestana-anomc-0" aria-controls="panel-anomc" aria-selected="true">Contra el año típico</button>
+    <button type="button" role="tab" id="pestana-anomc-1" aria-controls="panel-anomc" aria-selected="false" tabindex="-1">PL contra PI</button>
+  </div>
+  <div role="tabpanel" id="panel-anomc" aria-labelledby="pestana-anomc-0">
+    <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:440px"></div>
+  </div>
+  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes,
+  {n(anom_tipico_pl)} mm en el año). Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
+  <div class="revision" data-etiqueta="Revisión · PL contra PI en los años contrastantes">
+  <p><b>PL y PI no se separan igual todos los años.</b> En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, PL suma en promedio
+  {anom_pl_pi_habitual:.2f} veces lo de PI. En los años contrastantes:
+  {"; ".join(f"{a}, {r['razon']:.2f} ({n(r['pl_total'])} contra {n(r['pi_total'])} mm)" for a, r in anom_pl_pi.items())}.
+  <b>{anom_pl_pi_raro} es el que más se aparta</b>, y la diferencia se concentra en
+  {", ".join(anom_pl_pi[anom_pl_pi_raro]["meses_dif"][:-1])} y {anom_pl_pi[anom_pl_pi_raro]["meses_dif"][-1]}: los pluviómetros
+  registraron mucha más lluvia que el satélite en esos meses. Con los datos disponibles no se puede saber cuál de los dos
+  se acerca más a la lluvia real; por eso el año se clasifica con PL y PI juntas.</p>
+  </div>
   <p><b>{"Hasta en los años extremos el régimen sigue siendo bimodal" if anom_todos_bimodales else "En algún año extremo el régimen deja de ser bimodal"}</b>:
   lo que cambia de un año a otro es sobre todo cuánto llueve, no la forma.{"".join(f" En {a} el armónico de 12 meses pesa más (A₂/A₁ {anom_anios[a]['razon']:.2f}): sus meses muy húmedos ({', '.join(m)}) rellenan en parte el valle entre los dos picos." for a, m in anom_a1_domina.items())} Un año húmedo tiene la mayoría de sus meses
   sobre lo normal ({anom_anios[anom_humedos[0]]["meses_sobre"]} de 12 en {anom_humedos[0]}) y uno seco, pocos
@@ -1812,9 +1835,16 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL solo está descargada,
-  por ahora, para {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}; con más estaciones antes de {ANIOS_ESTUDIO[0]}, su registro largo
-  sería otra serie.</p>
+  <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL* (la red fija, ver
+  «Anomalías y anomalías estandarizadas») no tiene ningún mes vacío porque cada mes se promedia con las estaciones que tienen dato.</p>
+  <p><b>PL* antes de 1998 también se revisó</b>, con las pruebas del control de calidad. Se quitaron
+  {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los vecinos no
+  acompañan ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan"].itertuples())}),
+  con un criterio declarado en <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes, más de
+  {PICO_MINIMO_INF:.0f} mm y más de {PICO_VECES_VECINOS_INF:.0f} veces el promedio de los vecinos. Las rachas de valores repetidos
+  ({len(pl_estrella_rachas)}, de dos meses) se revisaron y se conservan, como en el resto del registro. Dos estaciones de la red tienen
+  un salto de nivel marcado como incierto: Coromoro desde 2003 y Valle de San José desde 1998 (este visto al extender el
+  registro); su efecto se prueba abajo.</p>
   <p><b>Lo anterior a {ANIOS_ESTUDIO[0]} se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. En Q:
   {n(largo_qc["q_dias_sin_dato"])} de {n(largo_qc["q_dias"])} días sin dato, ninguna racha de valores repetidos, ningún pico aislado
   y ningún salto en el coeficiente de escorrentía anual ({largo_qc["coef_anios"]} años, Pettitt p = {largo_qc["coef_p"]:.2f}):
@@ -1888,7 +1918,7 @@ a {{ color: var(--acento); }}
   <div role="tabpanel" id="panel-met" aria-labelledby="pestana-met-v0">
     <div id="g-met" class="grafico" style="min-height:0; height:380px"></div>
   </div>
-  <p class="nota">Registro completo de cada variable. Gris: los meses. Línea discontinua: la recta OLS. Línea y banda de color:
+  <p class="nota">Registro completo de cada variable. Fondo: naranja El Niño, azul La Niña. Gris: los meses. Línea discontinua: la recta OLS. Línea y banda de color:
   la curva LOESS y su banda de 95 % (remuestreo de residuos por bloques de {MET_BLOQUE} meses).</p>
   <ul>
     <li><b>La temperatura sube</b> en las tres series desde {LARGO_DESDE[:4]}, y los tres métodos coinciden: OLS
@@ -1898,15 +1928,15 @@ a {{ color: var(--acento); }}
     {MET_DELTA_BIC} en todas): una subida gradual describe los datos tan bien como una con quiebre. En
     {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} solo, la señal es más débil y depende del método: con la mitad de los años, el
     intervalo se abre y la curva LOESS ondula.</li>
-    <li><b>PL baja {abs(met_global[("PL", "completo")]["ols_a"]["pend"]):.0f} mm/mes por década, pero ningún método que tenga en
-    cuenta la dependencia entre meses lo da significativo</b>: OLS con Newey-West (p {_p_txt(met_global[("PL", "completo")]["ols_Xmes"]["p_hac"])}),
-    Sen estacional permutando años (p {_p_txt(met_global[("PL", "completo")]["mk_X"]["p"])}) y Mann-Kendall corregido en a
-    (p {_p_txt(met_global[("PL", "completo")]["mk_a"]["p"])}). Solo las versiones sin corregir lo dan significativo
-    (p {_p_txt(met_global[("PL", "completo")]["mk_a"]["p_sin"])} en a): es el error que se comete al suponer meses independientes.
-    Además, buena parte de la caída la explica Pueblo Viejo, que baja un {abs(an_seg.loc["PL · Pueblo Viejo", "cambio_pct"]):.0f} %
-    su nivel desde {fmt_mes(pd.Period(an_seg.loc["PL · Pueblo Viejo", "primer_mes_despues"], "M"))} (anotado como incierto en el registro de anomalías): sin él, la pendiente queda en
-    {tend_pl_sin_pv["ols"]:+.1f} mm/mes por década (p {_p_txt(tend_pl_sin_pv["p"])}). Y su curva LOESS cambia de forma según la ventana
-    (ver la sensibilidad abajo). <b>No hay evidencia firme de que la lluvia cambie</b>; PI tampoco muestra tendencia.</li>
+    <li><b>La lluvia no muestra tendencia.</b> Con PL*, {met_global[("PL*", "completo")]["ols_Xmes"]["pend"]:+.1f} mm/mes por década en
+    {LARGO_DESDE[:4]}–{ANIOS_ESTUDIO[-1]} (OLS con Newey-West, p {_p_txt(met_global[("PL*", "completo")]["ols_Xmes"]["p_hac"])}; Sen estacional,
+    p {_p_txt(met_global[("PL*", "completo")]["mk_X"]["p"])}) y {met_global[("PL*", "1998–2022")]["ols_Xmes"]["pend"]:+.1f} en
+    {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} (p {_p_txt(met_global[("PL*", "1998–2022")]["ols_Xmes"]["p_hac"])}). Sin las dos estaciones con
+    salto, {tend_pl_sens["sin_saltos"]["ols"]:+.1f} (p {_p_txt(tend_pl_sens["sin_saltos"]["p"])}). La PL de siempre, cuya red cambia
+    de composición, daba {tend_pl_sens["red_9822"]["ols"]:+.1f} mm/mes por década en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, y Mann-Kendall
+    sin corregir la daba significativa (p {_p_txt(tend_pl_sens["red_9822"]["p_mk"])}). Como PL* y PL se parecen mes a mes
+    (r = {tend_pl_sens["r_9822"]:.2f}), esa caída venía sobre todo de los cambios de la red (Pueblo Viejo, que mide menos que sus
+    vecinos, entra en 2004 y baja su nivel en 2014), no de la lluvia. <b>PI tampoco muestra tendencia.</b></li>
     <li><b>Q no tiene tendencia</b> con ningún método, ni en el registro completo ni en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Sus
     curvas LOESS ondulan (baja, sube y vuelve a bajar), pero esas ondas cambian con la ventana y caben dentro de la banda:
     no se deben leer como cambios físicos.</li>
@@ -1952,7 +1982,7 @@ a {{ color: var(--acento); }}
   <p>Meses con tendencia significativa en el registro completo: {tend_conteo_txt}. Con doce pruebas por variable, se esperan
   unos {tend_esperados_azar:.1f} meses significativos solo por azar. <b>{", ".join(v for v in ("T mín", "T media", "T máx") if tend_conteo[(v, "completo")]["p_azar"] < TEND_ALFA)}</b>
   superan con creces ese número: el calentamiento se reparte en muchos meses del año. En la lluvia y en Q, los
-  meses significativos {"no superan" if all(tend_conteo[(v, "completo")]["p_azar"] >= TEND_ALFA for v in ("PL", "PI", "Q")) else "apenas superan"} lo que daría el azar.</p>
+  meses significativos {"no superan" if all(tend_conteo[(v, "completo")]["p_azar"] >= TEND_ALFA for v in ("PL*", "PI", "Q")) else "apenas superan"} lo que daría el azar.</p>
   <p><b>Cada subserie, con los tres métodos.</b> Todas tienen al menos {min(r["n"] for r in met_mes.values())} años, suficientes para una
   recta y para Mann-Kendall; la curva LOESS (ventana del {MET_FRAC_MES * 100:.0f} %) se muestra solo como descripción de la forma,
   porque con 20 a 42 puntos cualquier ondulación es frágil. Dependencia: de un año al siguiente casi no hay (autocorrelación
@@ -2635,6 +2665,17 @@ a {{ color: var(--acento); }}
 
   const ANOM = {anom_json};
 
+  let anomModo = 0;
+  (function () {{
+    const botones = [0, 1].map(i => document.getElementById("pestana-anomc-" + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      anomModo = i;
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      dibujarAnomalias();
+    }}));
+  }})();
+
   function dibujarAnomalias() {{
     if (!window.Plotly) return;
     const GRIS = css("--tenue");
@@ -2670,17 +2711,56 @@ a {{ color: var(--acento); }}
       line: {{ color: css("--tinta"), width: 3, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>típico</extra>" }}];
     anios.forEach(a => ciclo.push({{ type: "scatter", mode: "lines+markers", name: a, x: ANOM.meses, y: ANOM.anios[a].serie,
       line: {{ color: color[a], width: 2 }}, marker: {{ size: 5 }}, hovertemplate: "%{{y:.0f}} mm<extra>" + a + "</extra>" }}));
-    const d2 = base();
-    d2.margin.t = 46;
-    d2.yaxis.title.text = "PL (mm/mes)";
-    Plotly.react("g-anom-ciclo", ciclo, d2, CONF);
+    if (anomModo === 0) {{
+      const d2 = base();
+      d2.margin.t = 46;
+      d2.yaxis.title.text = "PL (mm/mes)";
+      Plotly.react("g-anom-ciclo", ciclo, d2, CONF);
+      return;
+    }}
+    // PL contra PI, un panel por año (2 × 2)
+    const pares = [], d3 = base();
+    d3.margin = {{ t: 40, r: 10, b: 30, l: 54 }};
+    d3.hovermode = "x";
+    d3.annotations = [];
+    const dominiosX = [[0, 0.47], [0.53, 1]], dominiosY = [[0.56, 0.92], [0, 0.36]];
+    anios.forEach((a, i) => {{
+      const sx = i === 0 ? "" : String(i + 1);
+      const fila = Math.floor(i / 2), col = i % 2;
+      d3["xaxis" + sx] = {{ domain: dominiosX[col], anchor: "y" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }} }};
+      d3["yaxis" + sx] = {{ domain: dominiosY[fila], anchor: "x" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }},
+        rangemode: "tozero", title: {{ text: col === 0 ? "mm/mes" : "", font: {{ size: 11, color: GRIS }} }} }};
+      d3.annotations.push({{ xref: "x" + sx + " domain", yref: "y" + sx + " domain", x: 0, y: 1.02, xanchor: "left",
+        yanchor: "bottom", showarrow: false, text: "<b>" + a + "</b> (" + ANOM.anios[a].tipo + ")",
+        font: {{ size: 11, color: color[a] }} }});
+      pares.push({{ type: "scatter", mode: "lines+markers", name: "PL", legendgroup: "PL", showlegend: i === 0,
+        x: ANOM.meses, y: ANOM.anios[a].serie, xaxis: "x" + sx, yaxis: "y" + sx,
+        line: {{ color: color[a], width: 2.2 }}, marker: {{ size: 4 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL " + a + "</extra>" }});
+      pares.push({{ type: "scatter", mode: "lines+markers", name: "PI", legendgroup: "PI", showlegend: i === 0,
+        x: ANOM.meses, y: ANOM.anios[a].pi, xaxis: "x" + sx, yaxis: "y" + sx,
+        line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, marker: {{ size: 4, symbol: "diamond" }},
+        hovertemplate: "%{{y:.0f}} mm<extra>PI " + a + "</extra>" }});
+    }});
+    d3.legend.y = 1.0;
+    Plotly.react("g-anom-ciclo", pares, d3, CONF);
   }}
 
   const ANZ = {anz_json};
   const TEND = {tend_json};
-  const ANZ_COLOR = {{ "PL": "#0072B2", "PI": "#E69F00", "Q": "#009E73",
+  const ANZ_COLOR = {{ "PL*": "#0072B2", "PI": "#E69F00", "Q": "#009E73",
                        "T mín": "#56B4E9", "T media": "#7C5BC7", "T máx": "#D55E00" }};
   let anzGrupo = 0, tendPeriodo = 0;
+
+  // fondo según la fase del ENSO (ONI de la NOAA, scripts/17): rojo El Niño, azul La Niña, sin color neutro
+  const ENSO_COLOR = {{ "El Niño": "rgba(213,94,0,0.13)", "La Niña": "rgba(0,114,178,0.13)" }};
+  function fondoEnso(yref) {{
+    return ANZ.enso.map(([x0, x1, f]) => ({{ type: "rect", xref: "x", yref: yref, x0: x0, x1: x1, y0: 0, y1: 1,
+      fillcolor: ENSO_COLOR[f], line: {{ width: 0 }}, layer: "below" }}));
+  }}
+  function leyendaEnso() {{
+    return Object.entries(ENSO_COLOR).map(([f, c]) => ({{ type: "scatter", mode: "markers", x: [null], y: [null], name: f,
+      marker: {{ symbol: "square", size: 12, color: c.replace("0.13", "0.45") }}, hoverinfo: "skip" }}));
+  }}
 
   function dibujarAnz() {{
     if (!window.Plotly) return;
@@ -2718,8 +2798,13 @@ a {{ color: var(--acento); }}
     d.yaxis.zeroline = false;
     d.yaxis2 = ejeY("a (" + unidad + ")", [0.36, 0.64]);
     d.yaxis3 = ejeY("z", [0, 0.30]);
-    d.shapes = ["y", "y2", "y3"].map(e => ({{ type: "rect", xref: "x", yref: e + " domain", x0: ANZ.ref[0], x1: ANZ.ref[1],
-      y0: 0, y1: 1, fillcolor: GRIS, opacity: 0.08, line: {{ width: 0 }}, layer: "below" }}));
+    d.shapes = ["y", "y2", "y3"].flatMap(e => fondoEnso(e + " domain"));
+    // el período de referencia, con dos líneas verticales (el fondo lo ocupa el ENSO)
+    ANZ.ref.forEach(x => d.shapes.push({{ type: "line", xref: "x", yref: "paper", x0: x, x1: x, y0: 0, y1: 1,
+      line: {{ color: css("--tinta"), width: 1, dash: "dot" }} }}));
+    d.annotations = [{{ xref: "x", yref: "paper", x: ANZ.ref[0], y: 1, xanchor: "left", yanchor: "bottom", showarrow: false,
+      text: "período de referencia →", font: {{ size: 10, color: GRIS }} }}];
+    trazas.push(...leyendaEnso());
     Plotly.react("g-anz", trazas, d, CONF);
   }}
 
@@ -2784,6 +2869,8 @@ a {{ color: var(--acento); }}
     d.xaxis.type = "date";
     d.yaxis.rangemode = "normal";
     d.yaxis.title.text = k === "z" ? "z" : k + " (" + ANZ.unidades[v] + ")";
+    d.shapes = fondoEnso("paper");
+    trazas.push(...leyendaEnso());
     Plotly.react("g-met", trazas, d, CONF);
   }}
 

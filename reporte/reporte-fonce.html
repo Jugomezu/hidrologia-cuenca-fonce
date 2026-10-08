@@ -1492,24 +1492,23 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
   <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL* (la red fija, ver
   «Anomalías y anomalías estandarizadas») no tiene ningún mes vacío porque cada mes se promedia con las estaciones que tienen dato.</p>
-  <p><b>PL* se revisó en todo su registro</b>, con las pruebas del control de calidad. Se quitaron
-  2 picos extremos que los vecinos no
-  acompañan (Valle de San Jose nov 1982: 634 mm; Coromoro dic 1987: 707 mm),
-  con un criterio declarado en <code>scripts/07</code>: más de 3 veces la mediana del mes, más de
-  300 mm y más de 3 veces el promedio de los vecinos. También se quitaron los meses de
-  1 racha de valores repetidos (Encino, 2 meses desde jul 1990 con 105 mm),
-  porque no se sabe cuál de los valores repetidos es el bueno. Dos estaciones de la red tienen
-  un salto de nivel marcado como incierto: Coromoro desde 2003 y Valle de San José desde 1998 (este visto al extender el
-  registro); su efecto se prueba abajo.</p>
-  <p><b>Lo anterior a 1998 se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. En Q:
-  930 de 15 340 días sin dato, ninguna racha de valores repetidos, ningún pico aislado
-  y ningún salto en el coeficiente de escorrentía anual (34 años, Pettitt p = 0.60):
-  la estación no muestra un cambio de curva de gasto, y la media de 1981–1997 y la de
-  1998–2022 son casi iguales (88.7 y 88.5 m³/s).
-  En la temperatura de ERA5-Land: ningún día faltante, ningún día en que la media se salga entre la mínima y la máxima,
-  ninguna racha. Pero contra MSWX, el otro producto que llega a 1981, la diferencia entre los dos cambia
-  -0.31 °C después de 1994 (Pettitt p &lt; 0.001). Sin un termómetro en la
-  cuenca no se puede saber cuál de los dos productos tiene el salto; queda como incertidumbre de la tendencia de la temperatura.</p>
+  <p><b>El registro largo se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. <b>Q</b>:
+  930 de 15 340 días sin dato, sin rachas de valores repetidos, sin picos aislados y sin
+  salto en el coeficiente de escorrentía anual (34 años, Pettitt p = 0.60), así que la
+  estación no muestra un cambio de curva de gasto; su media casi no cambia (88.7 m³/s en
+  1981–1997 y 88.5 en 1998–2022).
+  <b>Temperatura de ERA5-Land</b>: sin días faltantes, sin rachas y sin días en que la media se salga de la mínima y la máxima;
+  pero frente a MSWX la diferencia cambia -0.31 °C después de 1994 (Pettitt p
+  &lt; 0.001) y, sin un termómetro en la cuenca, no se sabe cuál de los dos productos salta: queda como
+  incertidumbre de su tendencia. <b>PL*</b>: se quitaron
+  2 picos que los vecinos no acompañan
+  (Valle de San Jose nov 1982: 634 mm; Coromoro dic 1987: 707 mm;
+  criterio de <code>scripts/07</code>: más de 3 veces la mediana del mes, más de 300 mm y
+  más de 3 veces el promedio de los vecinos) y los meses de
+  1 racha de valores repetidos
+  (Encino, 2 meses desde jul 1990 con 105 mm),
+  porque no se sabe cuál valor es el rellenado. Coromoro (desde 2003) y Valle de San José (desde 1998) tienen un salto de
+  nivel marcado como incierto; su efecto se prueba abajo.</p>
 
   <h3>Tres maneras de medir una tendencia</h3>
   <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>

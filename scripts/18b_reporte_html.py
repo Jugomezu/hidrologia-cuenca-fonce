@@ -1837,24 +1837,23 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL* (la red fija, ver
   «Anomalías y anomalías estandarizadas») no tiene ningún mes vacío porque cada mes se promedia con las estaciones que tienen dato.</p>
-  <p><b>PL* se revisó en todo su registro</b>, con las pruebas del control de calidad. Se quitaron
-  {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los vecinos no
-  acompañan ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan"].itertuples())}),
-  con un criterio declarado en <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes, más de
-  {PICO_MINIMO_INF:.0f} mm y más de {PICO_VECES_VECINOS_INF:.0f} veces el promedio de los vecinos. También se quitaron los meses de
-  {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
-  porque no se sabe cuál de los valores repetidos es el bueno. Dos estaciones de la red tienen
-  un salto de nivel marcado como incierto: Coromoro desde 2003 y Valle de San José desde 1998 (este visto al extender el
-  registro); su efecto se prueba abajo.</p>
-  <p><b>Lo anterior a {ANIOS_ESTUDIO[0]} se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. En Q:
-  {n(largo_qc["q_dias_sin_dato"])} de {n(largo_qc["q_dias"])} días sin dato, ninguna racha de valores repetidos, ningún pico aislado
-  y ningún salto en el coeficiente de escorrentía anual ({largo_qc["coef_anios"]} años, Pettitt p = {largo_qc["coef_p"]:.2f}):
-  la estación no muestra un cambio de curva de gasto, y la media de {LARGO_DESDE[:4]}–{ANIOS_ESTUDIO[0] - 1} y la de
-  {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]} son casi iguales ({largo_qc["q_media_antes"]:.1f} y {largo_qc["q_media_despues"]:.1f} m³/s).
-  En la temperatura de ERA5-Land: ningún día faltante, ningún día en que la media se salga entre la mínima y la máxima,
-  ninguna racha. Pero contra MSWX, el otro producto que llega a {LARGO_DESDE[:4]}, la diferencia entre los dos cambia
-  {largo_qc["mswx_salto"]:+.2f} °C después de {largo_qc["mswx_corte"]} (Pettitt p {_p_txt(largo_qc["mswx_p"])}). Sin un termómetro en la
-  cuenca no se puede saber cuál de los dos productos tiene el salto; queda como incertidumbre de la tendencia de la temperatura.</p>
+  <p><b>El registro largo se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. <b>Q</b>:
+  {n(largo_qc["q_dias_sin_dato"])} de {n(largo_qc["q_dias"])} días sin dato, sin rachas de valores repetidos, sin picos aislados y sin
+  salto en el coeficiente de escorrentía anual ({largo_qc["coef_anios"]} años, Pettitt p = {largo_qc["coef_p"]:.2f}), así que la
+  estación no muestra un cambio de curva de gasto; su media casi no cambia ({largo_qc["q_media_antes"]:.1f} m³/s en
+  {LARGO_DESDE[:4]}–{ANIOS_ESTUDIO[0] - 1} y {largo_qc["q_media_despues"]:.1f} en {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}).
+  <b>Temperatura de ERA5-Land</b>: sin días faltantes, sin rachas y sin días en que la media se salga de la mínima y la máxima;
+  pero frente a MSWX la diferencia cambia {largo_qc["mswx_salto"]:+.2f} °C después de {largo_qc["mswx_corte"]} (Pettitt p
+  {_p_txt(largo_qc["mswx_p"])}) y, sin un termómetro en la cuenca, no se sabe cuál de los dos productos salta: queda como
+  incertidumbre de su tendencia. <b>PL*</b>: se quitaron
+  {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos que los vecinos no acompañan
+  ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan"].itertuples())};
+  criterio de <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes, más de {PICO_MINIMO_INF:.0f} mm y
+  más de {PICO_VECES_VECINOS_INF:.0f} veces el promedio de los vecinos) y los meses de
+  {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos
+  ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
+  porque no se sabe cuál valor es el rellenado. Coromoro (desde 2003) y Valle de San José (desde 1998) tienen un salto de
+  nivel marcado como incierto; su efecto se prueba abajo.</p>
 
   <h3>Tres maneras de medir una tendencia</h3>
   <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>

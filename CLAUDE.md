@@ -170,5 +170,6 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
 - `data/` — datos crudos tal como se descargaron; no se editan.
 - `out/` — productos intermedios (CSV, shapefiles).
 - `reporte/` — informe HTML y sus figuras.
+- `DECISIONES.md` — registro de las decisiones del usuario, en orden, con lo que recomendó el agente y marcando cuando lo contradice.
 - `DATOS_FUENTES.md` — procedencia de cada fuente: título, DOI, licencia, cómo se descargó y SHA-256.
   Toda fuente nueva se registra ahí.

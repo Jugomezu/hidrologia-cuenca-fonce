@@ -1,6 +1,11 @@
 fecha,codigo,nombre,precipitacion_mm,nivel_aprobacion,motivo
-1982-11-01,24020080,VALLE DE SAN JOSE,634.0,Preliminar,pico extremo que los vecinos no acompañan
-1987-12-01,24020120,COROMORO,707.2,Definitivo,pico extremo que los vecinos no acompañan
+1988-08-01,24020040,ENCINO,386.0,Preliminar,pico extremo
+1990-07-01,24020040,ENCINO,105.0,Preliminar,racha de valores repetidos
+1990-08-01,24020040,ENCINO,105.0,Preliminar,racha de valores repetidos
+1982-11-01,24020080,VALLE DE SAN JOSE,634.0,Preliminar,pico extremo
+1987-12-01,24020120,COROMORO,707.2,Definitivo,pico extremo
+1989-01-01,24020120,COROMORO,383.0,Definitivo,pico extremo
+1996-06-01,24020120,COROMORO,440.0,Definitivo,pico extremo
 2016-01-01,24020040,ENCINO,131.2,Preliminar,exclusión vigente (tabla EXCLUSIONES)
 2016-02-01,24020040,ENCINO,206.2,Preliminar,exclusión vigente (tabla EXCLUSIONES)
 2016-03-01,24020040,ENCINO,345.9,Preliminar,exclusión vigente (tabla EXCLUSIONES)
@@ -37,5 +42,8 @@ fecha,codigo,nombre,precipitacion_mm,nivel_aprobacion,motivo
 2018-10-01,24020040,ENCINO,904.1,Preliminar,exclusión vigente (tabla EXCLUSIONES)
 2018-11-01,24020040,ENCINO,812.5,Preliminar,exclusión vigente (tabla EXCLUSIONES)
 2018-12-01,24020040,ENCINO,127.2,Preliminar,exclusión vigente (tabla EXCLUSIONES)
+2011-03-01,24020080,VALLE DE SAN JOSE,376.5,Preliminar,pico extremo
+2017-03-01,24020080,VALLE DE SAN JOSE,352.4,Preliminar,pico extremo
 2017-12-01,24020080,VALLE DE SAN JOSE,0.0,Preliminar,exclusión vigente (tabla EXCLUSIONES)
 2021-12-01,24020080,VALLE DE SAN JOSE,0.0,Preliminar,exclusión vigente (tabla EXCLUSIONES)
+2010-06-01,24020120,COROMORO,435.0,Definitivo,pico extremo

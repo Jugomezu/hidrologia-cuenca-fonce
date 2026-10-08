@@ -212,18 +212,19 @@ print(f"Depurado: {int((~fuera).sum())} registros ({int(fuera.sum())} excluidos)
 #   - solo las estaciones dentro de la cuenca con registro desde 1981 (primer dato en 1981);
 #   - sin Pueblo Viejo en ningún año (su registro de 1983-2004 es errático: de 0.15 a 2.1 veces sus vecinos);
 #   - con las exclusiones de la tabla EXCLUSIONES (Encino 2016-2018 y los meses en 0 mm difíciles de creer);
-#   - sin los picos extremos que los vecinos no acompañan (criterio de abajo);
-#   - las rachas de valores repetidos se revisan y se reportan, pero no se quita nada por ellas (como siempre).
+#   - sin los picos extremos (criterio de abajo);
+#   - sin las rachas de valores repetidos (RACHA_MESES meses o más con el mismo total, distinto de 0): se quitan todos
+#     los meses de la racha, porque no se sabe cuál de los valores repetidos es el bueno (decidido por el usuario el
+#     2026-10-08).
 # La PL del resto de los análisis (1998-2022, out/pluviometros_fonce_mensual_depurado.csv) NO cambia.
 ZIP_8197 = RAIZ / "data/ideam/pluviometros/dhime/dhime_mensual_1981_1997_8est.zip"
 PERIODO_LARGO = pd.period_range("1981-01", "2022-12", freq="M")
 PUEBLO_VIEJO = 24020230
-# Pico extremo sin sentido: el mes supera PICO_VECES_MEDIANA veces la mediana de su mes del calendario en esa
-# estación, pasa de PICO_MINIMO_MM y además es PICO_VECES_VECINOS veces el promedio de las demás estaciones de la
-# red fija ese mes (los vecinos no lo acompañan). Los tres umbrales los fijó el agente; se revisan con el usuario.
+# Pico extremo: el mes supera PICO_VECES_MEDIANA veces la mediana de su mes del calendario en esa estación y pasa
+# de PICO_MINIMO_MM (umbrales decididos por el usuario el 2026-10-08). El promedio de las demás estaciones ese mes
+# se guarda solo como referencia.
 PICO_VECES_MEDIANA = 3.0
 PICO_MINIMO_MM = 300.0
-PICO_VECES_VECINOS = 3.0
 RACHA_MESES = 2           # el mismo umbral de scripts/07c
 
 larga = pd.concat([leer_descarga(ZIP_8197), leer_descarga(ZIP)], ignore_index=True)
@@ -246,7 +247,7 @@ for _, e in EXCLUSIONES.iterrows():
     fuera_larga |= esta
     motivo[esta] = "exclusión vigente (tabla EXCLUSIONES)"
 
-# picos extremos que los vecinos no acompañan
+# picos extremos
 matriz = lf[~fuera_larga].pivot(index="periodo", columns="codigo", values="precipitacion_mm")
 mediana_mes = matriz.groupby(matriz.index.month).median()
 picos = []
@@ -254,15 +255,15 @@ for c in red_fija:
     vecinos = matriz.drop(columns=c).mean(axis=1)
     x = matriz[c]
     umbral_mediana = PICO_VECES_MEDIANA * mediana_mes[c].reindex(x.index.month).to_numpy()
-    es_pico = (x > umbral_mediana) & (x > PICO_MINIMO_MM) & (x > PICO_VECES_VECINOS * vecinos)
+    es_pico = (x > umbral_mediana) & (x > PICO_MINIMO_MM)
     for p in x.index[es_pico]:
         picos.append({"codigo": c, "mes": str(p), "precipitacion_mm": float(x[p]),
                       "mediana_del_mes": float(mediana_mes.loc[p.month, c]), "promedio_vecinos": float(vecinos[p])})
         esta = (lf.codigo == c) & (lf.periodo == p)
         fuera_larga |= esta
-        motivo[esta] = "pico extremo que los vecinos no acompañan"
+        motivo[esta] = "pico extremo"
 
-# rachas de valores repetidos: se reportan, no se quita nada
+# rachas de valores repetidos: se quitan todos los meses de la racha
 rachas = []
 for c in red_fija:
     v = lf[(lf.codigo == c) & ~fuera_larga].set_index("periodo").precipitacion_mm.sort_index()
@@ -270,6 +271,9 @@ for c in red_fija:
     for _, g in v.groupby(grupo):
         if len(g) >= RACHA_MESES and g.iloc[0] != 0:
             rachas.append({"codigo": c, "desde": str(g.index[0]), "meses": len(g), "valor_mm": float(g.iloc[0])})
+            esta = (lf.codigo == c) & lf.periodo.isin(g.index)
+            fuera_larga |= esta
+            motivo[esta] = "racha de valores repetidos"
 
 lf[~fuera_larga].drop(columns="periodo").to_csv(OUT / "pluviometros_pl_larga_1981_2022.csv", index=False)
 (lf[fuera_larga].assign(motivo=motivo[fuera_larga]).drop(columns="periodo")
@@ -280,8 +284,8 @@ pd.DataFrame(rachas, columns=["codigo", "desde", "meses", "valor_mm"]).to_csv(
 print(f"\nPL larga (tendencias): red fija de {len(red_fija)} estaciones con registro desde 1981, sin Pueblo Viejo:")
 print("  " + ", ".join(cat.set_index("codigo").loc[c, "nombre"] for c in red_fija))
 print(f"  {int((~fuera_larga).sum())} registros; excluidos {int(fuera_larga.sum())} "
-      f"({len(picos)} picos extremos sin respaldo de los vecinos):")
+      f"({len(picos)} picos extremos):")
 for p in picos:
     print(f"    {p['codigo']} {p['mes']}: {p['precipitacion_mm']:.0f} mm (mediana del mes {p['mediana_del_mes']:.0f}, "
           f"vecinos {p['promedio_vecinos']:.0f})")
-print(f"  rachas de {RACHA_MESES}+ meses con el mismo valor (no se quitan): {len(rachas)}")
+print(f"  rachas de {RACHA_MESES}+ meses con el mismo valor (se quitan): {len(rachas)}")

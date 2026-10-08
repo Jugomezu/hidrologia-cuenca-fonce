@@ -1421,7 +1421,7 @@ _era_largo = (pd.read_csv("out/era5land_temperatura_diaria_fonce_1981_2022.csv",
               .set_index("fecha").reindex(_cam_largo.index))
 # PL* (decidido por el usuario el 2026-10-08): para tendencias y para las anomalías de esa sección, PL se arma con
 # una RED FIJA, la que construye scripts/07 (estaciones con registro desde 1981, sin Pueblo Viejo, sin las
-# exclusiones vigentes ni los picos extremos que los vecinos no acompañan). Así la composición de la red no cambia
+# exclusiones vigentes ni los picos extremos). Así la composición de la red no cambia
 # en el tiempo y no puede fabricar una tendencia. La PL del resto del informe no cambia.
 _plf = pd.read_csv("out/pluviometros_pl_larga_1981_2022.csv", parse_dates=["fecha"])
 _plf["periodo"] = _plf.fecha.dt.to_period("M")
@@ -1431,10 +1431,9 @@ pl_estrella_excluidos = pd.read_csv("out/pluviometros_pl_larga_excluidos.csv")
 pl_estrella_rachas = pd.read_csv("out/pluviometros_pl_larga_rachas.csv")
 # los umbrales del criterio de picos viven en scripts/07; aquí se repiten solo para citarlos en el texto, y se
 # comprueba que coincidan con los de ese script
-PICO_VECES_MEDIANA_INF, PICO_MINIMO_INF, PICO_VECES_VECINOS_INF = 3.0, 300.0, 3.0
+PICO_VECES_MEDIANA_INF, PICO_MINIMO_INF = 3.0, 300.0
 _s07 = open("scripts/07_pluviometros_dhime.py", encoding="utf-8").read()
-assert all(f"{n} = {v}" in _s07 for n, v in (("PICO_VECES_MEDIANA", PICO_VECES_MEDIANA_INF), ("PICO_MINIMO_MM", PICO_MINIMO_INF),
-                                              ("PICO_VECES_VECINOS", PICO_VECES_VECINOS_INF)))
+assert all(f"{n} = {v}" in _s07 for n, v in (("PICO_VECES_MEDIANA", PICO_VECES_MEDIANA_INF), ("PICO_MINIMO_MM", PICO_MINIMO_INF)))
 largo = pd.DataFrame({
     "PL*": pl_estrella_matriz.mean(axis=1, skipna=True),
     "PI": variables_resumen["PI"].reindex(PERIODOS_LARGO),

@@ -1693,8 +1693,8 @@ a {{ color: var(--acento); }}
   <p><b>PL*</b>: en esta sección y en «Tendencias de largo plazo», la lluvia de los pluviómetros no es la PL de siempre sino
   una <b>red fija</b> de {len(pl_estrella_red)} estaciones con registro desde 1981
   ({", ".join(COD_PLUVIO[c].split(" (")[0] for c in pl_estrella_red)}), sin Pueblo Viejo en ningún año, sin los tramos excluidos
-  de siempre y sin {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los
-  vecinos no acompañan. Si la red cambiara de composición con los años (como la PL de siempre, a la que Pueblo Viejo entra en
+  de siempre, sin rachas de valores repetidos y sin {int((pl_estrella_excluidos.motivo == "pico extremo").sum())} picos extremos (meses con más de 3 veces
+  la mediana de su mes y más de 300 mm). Si la red cambiara de composición con los años (como la PL de siempre, a la que Pueblo Viejo entra en
   2004), ese cambio aparecería como una tendencia. El resto del informe sigue usando PL.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
@@ -1837,12 +1837,12 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">«Registro completo» no quiere decir rellenado: los meses vacíos quedan vacíos. PL* (la red fija, ver
   «Anomalías y anomalías estandarizadas») no tiene ningún mes vacío porque cada mes se promedia con las estaciones que tienen dato.</p>
-  <p><b>PL* antes de 1998 también se revisó</b>, con las pruebas del control de calidad. Se quitaron
-  {int((pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan").sum())} picos extremos que los vecinos no
-  acompañan ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo que los vecinos no acompañan"].itertuples())}),
-  con un criterio declarado en <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes, más de
-  {PICO_MINIMO_INF:.0f} mm y más de {PICO_VECES_VECINOS_INF:.0f} veces el promedio de los vecinos. Las rachas de valores repetidos
-  ({len(pl_estrella_rachas)}, de dos meses) se revisaron y se conservan, como en el resto del registro. Dos estaciones de la red tienen
+  <p><b>PL* se revisó en todo su registro</b>, con las pruebas del control de calidad. Se quitaron
+  {int((pl_estrella_excluidos.motivo == "pico extremo").sum())} picos extremos ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]} {fmt_mes(pd.Period(r.fecha[:7], 'M'))}: {r.precipitacion_mm:.0f} mm" for r in pl_estrella_excluidos[pl_estrella_excluidos.motivo == "pico extremo"].itertuples())}),
+  con un criterio declarado en <code>scripts/07</code>: más de {PICO_VECES_MEDIANA_INF:.0f} veces la mediana del mes y más de
+  {PICO_MINIMO_INF:.0f} mm. También se quitaron los meses de
+  {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
+  porque no se sabe cuál de los valores repetidos es el bueno. Dos estaciones de la red tienen
   un salto de nivel marcado como incierto: Coromoro desde 2003 y Valle de San José desde 1998 (este visto al extender el
   registro); su efecto se prueba abajo.</p>
   <p><b>Lo anterior a {ANIOS_ESTUDIO[0]} se revisó antes de usarlo</b>, con las mismas pruebas del control de calidad. En Q:
@@ -2724,12 +2724,14 @@ a {{ color: var(--acento); }}
     d3.hovermode = "x";
     d3.annotations = [];
     const dominiosX = [[0, 0.47], [0.53, 1]], dominiosY = [[0.56, 0.92], [0, 0.36]];
+    // el mismo eje y en los cuatro paneles, para poder comparar los años entre sí
+    const ymax = 1.05 * Math.max(...anios.flatMap(a => ANOM.anios[a].serie.concat(ANOM.anios[a].pi)));
     anios.forEach((a, i) => {{
       const sx = i === 0 ? "" : String(i + 1);
       const fila = Math.floor(i / 2), col = i % 2;
       d3["xaxis" + sx] = {{ domain: dominiosX[col], anchor: "y" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }} }};
       d3["yaxis" + sx] = {{ domain: dominiosY[fila], anchor: "x" + sx, gridcolor: css("--linea"), tickfont: {{ color: GRIS }},
-        rangemode: "tozero", title: {{ text: col === 0 ? "mm/mes" : "", font: {{ size: 11, color: GRIS }} }} }};
+        range: [0, ymax], title: {{ text: col === 0 ? "mm/mes" : "", font: {{ size: 11, color: GRIS }} }} }};
       d3.annotations.push({{ xref: "x" + sx + " domain", yref: "y" + sx + " domain", x: 0, y: 1.02, xanchor: "left",
         yanchor: "bottom", showarrow: false, text: "<b>" + a + "</b> (" + ANOM.anios[a].tipo + ")",
         font: {{ size: 11, color: color[a] }} }});

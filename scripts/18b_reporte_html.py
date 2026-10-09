@@ -1253,6 +1253,36 @@ _no_superan_txt = " ".join(
      f"Con {f}, {_lista_y([m for m in ms])} no {'supera' if len(ms) == 1 else 'superan'} a la climatología.")
     for f, ms in mod_no_superan.items())
 
+# NSE, KGE y sesgo fuera del ajuste, para la climatología y M4
+_ESQUEMAS_KGE = (("vc", "validación cruzada"), ("partición", f"{EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}"))
+mod_kge_filas = "\n".join(
+    f"<tr><td colspan='8'><b>Con {f}</b></td></tr>\n" + "\n".join(
+        (lambda k, elegido: "<tr>" + "".join(
+            f"<td{' class=num' if i >= 2 else ''}>{f'<b>{c}</b>' if elegido else c}</td>" for i, c in enumerate([
+                f"{m} · {MOD_NOMBRE[m]}", nombre_esq, f"{k.nse:.2f}", f"{k.kge:.2f}", f"{k.kge_r:.2f}",
+                f"{k.kge_alfa:.2f}", f"{k.kge_beta:.3f}", f"{k.sesgo:+.1f}"])) + "</tr>")(mod_kge[(f, m, esq)], m == MOD_ELEGIDO)
+        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_ELEGIDO))
+    for f in MOD_FUENTES)
+_k = lambda f, m, esq="vc": mod_kge[(f, m, esq)]
+_betas_m4 = [_k(f, MOD_ELEGIDO, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_sesgos_m4 = [_k(f, MOD_ELEGIDO, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+if mod_pi_kge_bajo_m0["vc"]:
+    _pi_kge_txt = (
+        f"<b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es "
+        f"{_k('PI', MOD_ELEGIDO).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_ELEGIDO).kge:.2f} contra "
+        f"{_k('PI', MOD_REFERENCIA).kge:.2f}"
+        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_ELEGIDO, 'partición').kge:.2f} contra "
+           f"{_k('PI', MOD_REFERENCIA, 'partición').kge:.2f})" if mod_pi_kge_bajo_m0["partición"] else "")
+        + f". La correlación de M4 es mayor (r {_k('PI', MOD_ELEGIDO).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
+        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_ELEGIDO).kge_alfa:.2f}, es decir, reproduce el "
+        f"{_k('PI', MOD_ELEGIDO).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
+        f"{_k('PI', MOD_REFERENCIA).kge_alfa * 100:.0f} % de la climatología. El NSE junta todo el error en un solo "
+        f"número; el KGE castiga por separado que el modelo varíe menos que el río.")
+else:
+    _pi_kge_txt = (
+        f"<b>Con PI, M4 también supera a la climatología en KGE</b> en la validación cruzada "
+        f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+
 # la ficha de M4
 _ic = lambda f, par: (f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'valor']:.2f} "
                       f"<small>({mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_inferior']:.2f} a "
@@ -1268,6 +1298,7 @@ mod_param_filas = "\n".join([
     "<tr><td>D, factor de Duan</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'factor_duan']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{_fi.loc[f, 'coeficiente_C']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>NSE en la validación cruzada</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'nse_vc']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>KGE en la validación cruzada</td>" + "".join(f"<td class='num'>{mod_vc.loc[(f, MOD_ELEGIDO), 'kge']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
 ])
 
 
@@ -1346,6 +1377,49 @@ ev_json = json.dumps({"meses": _meses_ev, "q": _serie_ev("PL", MOD_REFERENCIA, "
 
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
+# --- La cuenca frente a los campos: qué tan firme es la relación con El Niño y qué dicen los mapas
+def _lista_meses(meses):
+    """«junio, julio y septiembre», o «ningún mes»."""
+    nombres = [MESES_LARGOS_ES[m - 1] for m in meses]
+    if not nombres:
+        return "ningún mes"
+    return nombres[0] if len(nombres) == 1 else ", ".join(nombres[:-1]) + " y " + nombres[-1]
+
+
+def _celda_n34(f):
+    """r del índice Niño 3.4: en negrita si pasa el FDR, con ✓ si además es robusto; debajo, el rango sin un año."""
+    r = f"{f.r:+.2f}" + (" ✓" if f.robusto else "")
+    r = f"<b>{r}</b>" if f.sobrevive_fdr else r
+    return (f"<td class='num' style='white-space: nowrap'>{r}<br>"
+            f"<span class='nota'>{f.r_min:+.2f}…{f.r_max:+.2f}</span></td>")
+
+
+_n34 = corr_n34_indice
+n34_filas = "\n".join(
+    f"<tr><td style='white-space: nowrap'>{v}{' (ℓ = 1)' if l else ''}</td>"
+    + "".join(_celda_n34(f) for f in _n34[(_n34.cuenca == v) & (_n34.rezago == l)].sort_values("mes").itertuples())
+    + "</tr>" for l in (0, 1) for v in ("PL", "Q", "PI"))
+_n34_0 = _n34[_n34.rezago == 0]
+n34_robustos = {v: _lista_meses(_n34_0[(_n34_0.cuenca == v) & _n34_0.robusto].mes.tolist()) for v in ("PL", "Q", "PI")}
+n34_solo_fdr = {v: _lista_meses(_n34_0[(_n34_0.cuenca == v) & _n34_0.sobrevive_fdr & ~_n34_0.robusto].mes.tolist())
+                for v in ("PL", "Q", "PI")}
+n34_n = (int(_n34.n.min()), int(_n34.n.max()))
+n34_fdr_l = {l: int(_n34[(_n34.rezago == l) & (_n34.cuenca == "Q")].sobrevive_fdr.sum()) for l in (0, 1)}
+# lo que afirma el texto
+assert (_n34[_n34.sobrevive_fdr].r < 0).all()                                    # todas las que pasan son negativas
+assert set(_n34_0[_n34_0.sobrevive_fdr].mes) <= {12, 1, 2, 3, 6, 7, 8, 9}       # mitad de año y diciembre a marzo
+assert not _n34_0[_n34_0.mes.isin([4, 5])].sobrevive_fdr.any()                  # abril y mayo: ninguna
+assert all(n34_robustos[v] != "ningún mes" for v in ("PL", "Q", "PI"))
+assert n34_fdr_l[1] >= n34_fdr_l[0]                                              # Q pasa en más meses con ℓ = 1
+_rob = corr_jackknife[corr_jackknife.cajas_fdr > 0]
+rob_mapas = {"total": len(corr_jackknife), "con_fdr": len(_rob),
+             "caen": int((_rob.cajas_que_quita == _rob.cajas_fdr).sum()),
+             "anios": ", ".join(f"{int(a)} ({c})" for a, c in _rob.anio_que_mas_quita.value_counts().head(4).items())}
+_cajas = corr_significancia[corr_significancia.mes <= 12].cajas
+rob_cajas = (int(_cajas.min()), int(_cajas.max()))
+assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
+
+
 pagina = f"""<!doctype html>
 <html lang="es">
 <head>
@@ -3344,6 +3418,39 @@ a {{ color: var(--acento); }}
     no alcanza a la recta con PL ({mod_vc.loc[("PL", "M1"), "nse"]:.2f}), y el rezago le ayuda menos. {_no_superan_txt}</li>
   </ul>
 
+  <div{revision("nuevo")}>
+  <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
+  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los {mod_n} meses, pero ninguna cifra de esta tabla
+  usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
+  coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
+  (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
+  correlación entre Q estimado y observado (¿sube y baja cuando debe?); <b>α</b>, la razón de sus desviaciones estándar
+  (¿reproduce la variabilidad?), y <b>β</b>, la razón de sus medias (¿reproduce el volumen?).</p>
+  <p class="formula">KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²)</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Modelo</th><th>Meses evaluados</th><th class="num">NSE</th><th class="num">KGE</th><th class="num" style="text-transform:none">r</th>
+    <th class="num" style="text-transform:none">α</th><th class="num" style="text-transform:none">β</th><th class="num">Sesgo (mm/mes)</th></tr></thead>
+    <tbody>
+{mod_kge_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">NSE y KGE: 1 es perfecto. Sesgo: la media de (estimado − observado). M0 no usa lluvia, así que sus
+  filas son las mismas con PL y con PI. La validación cruzada evalúa los
+  {mod_n} meses, cada uno estimado con el modelo ajustado sin su bloque de 5 años; {_ESQUEMAS_KGE[1][1]}, los meses con Q
+  de esos años, con el modelo ajustado en {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}.</p>
+  <ul>
+    <li><b>Con PL, M4 supera a la climatología en las dos medidas y en los dos esquemas</b>: KGE
+    {_k("PL", MOD_ELEGIDO).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada, y
+    {_k("PL", MOD_ELEGIDO, "partición").kge:.2f} contra {_k("PL", MOD_REFERENCIA, "partición").kge:.2f} en
+    {_ESQUEMAS_KGE[1][1]}.</li>
+    <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
+    {min(_betas_m4):.3f} y {max(_betas_m4):.3f} y el sesgo entre {min(_sesgos_m4):+.1f} y {max(_sesgos_m4):+.1f} mm/mes.</li>
+    <li>{_pi_kge_txt}</li>
+  </ul>
+  </div>
+
   <h3>El modelo elegido: M4</h3>
   <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
   &nbsp; con C = D · e<sup>a</sup></p>
@@ -3743,6 +3850,45 @@ a {{ color: var(--acento); }}
   {corr_spearman_q["dif_02_pct"]:.1f} % de las cajas de Q contra la SST, y cambia de signo con una correlación mayor que 0.3 en el
   {corr_spearman_q["signo_pct"]:.2f} %: los extremos del caudal no cambian el patrón.</p>
 
+  <h3>¿Es firme la relación con El Niño?</h3>
+  <p>El promedio de la tabla anterior junta muchas cajas y no es una correlación con un número fijo de pares, así que
+  no admite una prueba. Para probar la relación se usa una sola serie: el <b>índice Niño 3.4</b>, la anomalía de la SST
+  promediada en la misma región (ponderando por el coseno de la latitud). En cada mes del calendario se correlaciona con
+  la anomalía de la cuenca a través de los años, y se le aplican tres filtros:</p>
+  <ol>
+    <li><b>Prueba t</b> de la correlación, con los pares de ese mes (entre {n34_n[0]} y {n34_n[1]}). Para que p &lt;
+    {CORR_ALFA_LOCAL:.2f}, |r| debe llegar a {corr_r_critico[25]:.2f} con 25 pares y a {corr_r_critico[20]:.2f} con 20.</li>
+    <li><b>Corrección por pruebas múltiples.</b> Con 12 meses, alguno podría salir significativo por azar. Se controla
+    la tasa de falsos descubrimientos ({CITA_BH}) sobre los 12 meses de cada variable, con
+    q &lt; {CORR_Q_FDR:.2f}.</li>
+    <li><b>Quitar un año a la vez.</b> Todo se repite 25 veces, cada vez sin un año. Un mes es <b>robusto</b> si sigue
+    pasando la corrección, con el mismo signo, en las 25 versiones: ningún año extremo lo sostiene solo.</li>
+  </ol>
+  <div class="tabla-caja"><table>
+    <thead><tr><th></th>{"".join(f"<th class='num'>{m}</th>" for m in MESES_ES)}</tr></thead>
+    <tbody>
+    {n34_filas}
+    </tbody>
+  </table></div>
+  <p class="nota">r entre el índice Niño 3.4 y la cuenca. En negrita, los meses que pasan la corrección (q &lt;
+  {CORR_Q_FDR:.2f}); con ✓, los que además son robustos. Debajo, el menor y el mayor r al quitar un año.</p>
+  <p>Sin rezago, la relación es robusta en {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en
+  {n34_robustos["PI"]} con PI. Pasan la corrección, pero dependen de algún año, en {n34_solo_fdr["PL"]} con PL, en
+  {n34_solo_fdr["Q"]} con Q y en {n34_solo_fdr["PI"]} con PI. Todas las correlaciones que pasan son negativas, y el
+  índice cuenta la misma historia que el promedio de las cajas (las dos tablas se correlacionan en
+  {corr_n34_acuerdo:.3f}). Con el índice un mes antes (ℓ = 1), Q pasa la corrección en {n34_fdr_l[1]} meses, frente a
+  {n34_fdr_l[0]} sin rezago.</p>
+  <p><b>Lo que se puede afirmar:</b> cuando el Pacífico central está más caliente que lo normal, llueve menos en la
+  cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
+  a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
+
+  <h3>¿Y los mapas?</h3>
+  <p>Los puntos negros de los mapas marcan las cajas que pasan la misma corrección dentro de cada panel (Benjamini y
+  Hochberg sobre sus {n(rob_cajas[0])} a {n(rob_cajas[1])} cajas, q &lt; {CORR_Q_FDR:.2f}). Solo {rob_mapas["con_fdr"]} de
+  los {rob_mapas["total"]} paneles mensuales tienen alguna, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar
+  un solo año (los que más pesan, con el número de paneles: {rob_mapas["anios"]}). <b>Los mapas no dan resultados
+  concluyentes</b> más allá de la relación con El Niño: con 25 años, la forma detallada de las manchas no se distingue
+  del azar, y en la mayoría de los paneles las zonas que pasan dependen de un solo año.</p>
   <h3>Los mapas</h3>
   <div class="placa"><img src="{img('corr_PL_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la SST"></div>
   <div class="placa"><img src="{img('corr_Q_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la SST"></div>
@@ -3750,7 +3896,6 @@ a {{ color: var(--acento); }}
   <div class="placa"><img src="{img('corr_Q_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
   <div class="placa"><img src="{img('corr_PL_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la humedad específica a 850 hPa"></div>
   <div class="placa"><img src="{img('corr_Q_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la humedad específica a 850 hPa"></div>
-  <div class="placa"><img src="{img('corr_todos_los_meses.png')}" alt="Nueve mapas del mundo con la correlación de todos los meses juntos entre PL, Q y PI y la SST, el viento y la humedad a 850 hPa"></div>
   <details class="plegable-mini"><summary><b>Contraste con PI (IMERG)</b></summary>
   <div class="placa"><img src="{img('corr_PI_sst_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST"></div>
   <div class="placa"><img src="{img('corr_PI_q850_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la humedad específica a 850 hPa"></div>
@@ -3795,6 +3940,9 @@ a {{ color: var(--acento); }}
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-gupta2009">Gupta, H. V., Kling, H., Yilmaz, K. K., y Martinez, G. F. (2009). Decomposition of the mean
+    squared error and NSE performance criteria: implications for improving hydrological modelling. <i>Journal of
+    Hydrology</i>, 377(1–2), 80–91. <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">https://doi.org/10.1016/j.jhydrol.2009.08.003</a></li>
     <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
     autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
     <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>

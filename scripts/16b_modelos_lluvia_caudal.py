@@ -36,7 +36,8 @@ Cómo se comparan (decidido por el usuario el 2026-10-09):
     mide el error en ln Q y no en mm/mes;
   - error fuera del ajuste, en mm/mes para todos: (a) ajuste 1998-2014 y evaluación 2015-2022, la partición
     que ya usaba el informe; (b) validación cruzada con 5 bloques de 5 años seguidos: cada bloque se estima
-    con un modelo ajustado con los otros 20 años.
+    con un modelo ajustado con los otros 20 años. En cada esquema se reportan RMSE, sesgo, NSE y KGE
+    (Gupta et al., 2009); el KGE se agregó el 2026-10-09 porque separa correlación, variabilidad y volumen.
 Todos los modelos usan la misma muestra: los meses con Q desde 1998-02 (enero de 1998 no tiene mes anterior).
 
 El elegido es M4 (decidido por el usuario el 2026-10-09): fuera del ajuste yerra lo mismo que M2, pero cumple
@@ -256,12 +257,22 @@ def estimar_cualquiera(fuente, modelo, indice_ajuste, indice):
 
 
 def metricas(observado, estimado):
-    """Errores en mm/mes (estimado − observado) y NSE (Nash-Sutcliffe: 1 es perfecto, 0 es tan bueno
-    como usar la media de los meses evaluados)."""
+    """Errores en mm/mes (estimado − observado), NSE y KGE.
+
+    NSE (Nash-Sutcliffe): 1 es perfecto, 0 es tan bueno como usar la media de los meses evaluados.
+    KGE (Kling-Gupta, en la versión de Gupta et al., 2009, decidida por el usuario el 2026-10-09):
+    KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²), con r la correlación entre estimado y observado,
+    α = σ_estimado / σ_observado (¿reproduce la variabilidad?) y β = media_estimado / media_observado
+    (¿reproduce el volumen?). 1 es perfecto. Se guardan también r, α y β para saber qué parte falla."""
     error = estimado - observado
+    r = float(np.corrcoef(observado, estimado)[0, 1])
+    alfa = float(np.std(estimado) / np.std(observado))
+    beta = float(np.mean(estimado) / np.mean(observado))
     return {"n_meses": len(error), "rmse": float(np.sqrt(np.mean(error ** 2))), "mae": float(np.mean(np.abs(error))),
             "sesgo": float(np.mean(error)),
             "nse": float(1 - np.sum(error ** 2) / np.sum((observado - observado.mean()) ** 2)),
+            "kge": float(1 - np.sqrt((r - 1) ** 2 + (alfa - 1) ** 2 + (beta - 1) ** 2)),
+            "kge_r": r, "kge_alfa": alfa, "kge_beta": beta,
             "estimados_negativos": int((estimado < 0).sum())}
 
 
@@ -450,7 +461,7 @@ print(parametros.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
 print(ajustes.set_index(["fuente", "modelo"]).T.to_string(float_format=lambda v: f"{v:.4g}"))
 print("\nErrores fuera del ajuste (mm/mes)")
 resumen = evaluacion[~evaluacion.esquema.str.startswith("bloque")]
-print(resumen.pivot_table(index=["fuente", "modelo"], columns="esquema", values=["rmse", "nse", "sesgo"]).round(2).to_string())
+print(resumen.pivot_table(index=["fuente", "modelo"], columns="esquema", values=["rmse", "nse", "kge", "sesgo"]).round(2).to_string())
 print("\nRMSE por bloque de la validación cruzada (mm/mes)")
 print(evaluacion[evaluacion.esquema.str.startswith("bloque")].pivot_table(
     index=["fuente", "modelo"], columns="esquema", values="rmse").round(1).to_string())

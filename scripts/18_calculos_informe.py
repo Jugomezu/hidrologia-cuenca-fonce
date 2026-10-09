@@ -2830,6 +2830,25 @@ cam_caja_cuenca["lon_este"] = float(_cc.lon.values[_este])
 cam_caja_cuenca["lon_oeste"] = float(_cc.lon.values[_oeste])
 cam_caja_cuenca["vecinas_sin_850"] = int(sum(_n850[_i + di, _j + dj] == 0 for di in (-1, 0, 1) for dj in (-1, 0, 1)
                                              if (di, dj) != (0, 0)))
+# transporte de humedad a 850 hPa mes a mes en esas dos cajas (la del oriente y la del occidente de la cuenca): media
+# de los 25 años de cada mes del calendario. Dirección en 8 rumbos, hacia donde va el transporte.
+def _rumbo(u, v):
+    nombres = ["el este", "el noreste", "el norte", "el noroeste", "el oeste", "el suroeste", "el sur", "el sureste"]
+    return nombres[int(np.round(np.degrees(np.arctan2(v, u)) / 45)) % 8]
+cam_transporte = {}
+for _lado, _k in (("este", _este), ("oeste", _oeste)):
+    _caja = _cc.isel(lat=_i, lon=_k)
+    _qu = _caja.qu850.groupby("tiempo.month").mean().values
+    _qv = _caja.qv850.groupby("tiempo.month").mean().values
+    _mag = np.hypot(_qu, _qv)
+    cam_transporte[_lado] = {"qu": _qu, "qv": _qv, "mag": _mag,
+                             "mes_max": int(_mag.argmax()) + 1, "mes_min": int(_mag.argmin()) + 1,
+                             "rumbo_max": _rumbo(_qu[_mag.argmax()], _qv[_mag.argmax()]),
+                             "meses_hacia_este": [m + 1 for m in range(12) if _qu[m] > 0]}
+# al occidente, los meses en que el transporte entra hacia el continente (hacia el este) forman un solo tramo
+_me = cam_transporte["oeste"]["meses_hacia_este"]
+assert _me and _me == list(range(_me[0], _me[-1] + 1))
+assert all(_qu < 0 for _qu in cam_transporte["este"]["qu"][[m - 1 for m in (12, 1, 2)]])   # al oriente, hacia el oeste en DEF
 # control de calidad de ERSST contra el ONI (scripts/19)
 _oni = pd.read_csv("out/ersst_nino34_contra_oni.csv")
 cam_oni = {"r": float(_oni.nino34_ersst_C.corr(_oni.oni_total_C)),
@@ -3010,3 +3029,163 @@ assert anom_anios[fis_anio_humedo]["nina"] > anom_anios[fis_anio_humedo]["nino"]
 fis_pl_tmax = {"baja": _media_z(t_max_baja, "PL"), "alta": _media_z(t_max_alta, "PL")}
 assert fis_pl_tmax["baja"] > 0 > fis_pl_tmax["alta"]
 assert aj_imerg["por_1000m"] < 0
+
+
+
+
+# ---------------------------------------------------------------- correlaciones de la cuenca con los campos (Punto 5.2)
+# En cada caja de 2° y para cada mes del calendario j se correlacionan, a través de los años, la anomalía de la
+# variable de la cuenca en el mes j con la anomalía del campo ℓ meses antes:
+#     r_j(caja; ℓ) = corr_{años} [ aX(año, j), aY(caja, (año, j) − ℓ) ]
+# ℓ > 0: el campo antecede a la cuenca; con ℓ = 1, enero se empareja con diciembre del año anterior.
+# Anomalías: el valor menos la media de su mes del calendario en 1998-2022, por variable y por caja (la misma
+# referencia fija de la sección de anomalías). Pearson es la referencia; Spearman se calcula en todas las cajas para
+# examinar dónde los extremos o la asimetría cambian la lectura. «mes 13» = todos los meses juntos, con anomalías.
+# Decisiones del usuario (2026-10-09): PL, Q y PI contra la SST, la rapidez del viento a 850 hPa
+# |V| = √(u² + v²) (de las medias mensuales de u y v) y la humedad específica a 850 hPa; ℓ = 0, y ℓ = 1 para la SST.
+CORR_REZAGOS = {"sst": (0, 1), "viento850": (0, ), "q850": (0, )}
+CORR_CUENCA = ("PL", "Q", "PI")
+CORR_N_MINIMO = 20                 # pares mínimos para dibujar una caja (decisión del usuario): 80 % de 25 años
+
+
+def _anomalia_mensual(x, meses):
+    """Anomalía por mes del calendario: x (tiempo, ...) menos la media de su mes, con los valores válidos."""
+    a = np.full_like(x, np.nan, dtype=float)
+    for j in range(1, 13):
+        sel = meses == j
+        validos = np.isfinite(x[sel]).sum(axis=0)                 # la tierra en la SST no tiene ningún valor
+        suma = np.nansum(x[sel], axis=0)
+        media = np.divide(suma, validos, out=np.full_like(suma, np.nan, dtype=float), where=validos > 0)
+        a[sel] = x[sel] - media
+    return a
+
+
+def _rangos_por_columna(m):
+    """Rangos (empates promediados) de cada columna; las columnas no tienen NaN."""
+    return np.apply_along_axis(stats.rankdata, 0, m)
+
+
+def _correlacion(x, Y):
+    """Pearson y Spearman de un vector x (años) contra cada columna de Y (años, cajas), con los pares válidos de
+    cada caja. Devuelve r_pearson, r_spearman y n (pares)."""
+    ok = np.isfinite(x)[:, None] & np.isfinite(Y)
+    n = ok.sum(axis=0)
+    r_p = np.full(Y.shape[1], np.nan)
+    r_s = np.full(Y.shape[1], np.nan)
+    # se agrupan las cajas por su patrón de años válidos: dentro de un grupo, la muestra es la misma
+    patrones, grupo = np.unique(ok.T, axis=0, return_inverse=True)
+    for g, patron in enumerate(patrones):
+        if patron.sum() < 3:
+            continue
+        cols = np.flatnonzero(grupo.ravel() == g)
+        xs, Ys = x[patron], Y[np.ix_(patron, cols)]
+        xc, Yc = xs - xs.mean(), Ys - Ys.mean(axis=0)
+        den = np.sqrt((xc ** 2).sum() * (Yc ** 2).sum(axis=0))
+        with np.errstate(invalid="ignore", divide="ignore"):
+            r_p[cols] = (xc[:, None] * Yc).sum(axis=0) / den
+        xr_, Yr = stats.rankdata(xs), _rangos_por_columna(Ys)
+        xrc, Yrc = xr_ - xr_.mean(), Yr - Yr.mean(axis=0)
+        den = np.sqrt((xrc ** 2).sum() * (Yrc ** 2).sum(axis=0))
+        with np.errstate(invalid="ignore", divide="ignore"):
+            r_s[cols] = (xrc[:, None] * Yrc).sum(axis=0) / den
+    return r_p, r_s, n
+
+
+_cc = xr.open_dataset("out/campos_climaticos_2deg_1998_2022.nc")
+_t_campo = pd.PeriodIndex(pd.to_datetime(_cc.tiempo.values), freq="M")
+_meses_campo = _t_campo.month.to_numpy()
+corr_campos = {
+    "sst": _cc.sst.values.astype(float),
+    "viento850": np.hypot(_cc.u850.values, _cc.v850.values).astype(float),
+    "q850": _cc.q850.values.astype(float),
+}
+_forma = corr_campos["sst"].shape[1:]
+_anom_campo = {k: _anomalia_mensual(v.reshape(len(_t_campo), -1), _meses_campo) for k, v in corr_campos.items()}
+_cuenca = {"PL": red.reindex(PERIODOS), "Q": variables_resumen["Q"].reindex(PERIODOS),
+           "PI": comp["IMERG"].reindex(PERIODOS)}
+assert (PERIODOS == _t_campo).all()
+_anom_cuenca = {k: _anomalia_mensual(v.to_numpy(dtype=float), PERIODOS.month.to_numpy()) for k, v in _cuenca.items()}
+
+corr_resultados = {}          # (cuenca, campo, ℓ) -> {"r_p", "r_s", "n"} con forma (13, lat, lon); índice 12 = todos
+for _campo, _rezagos in CORR_REZAGOS.items():
+    for _l in _rezagos:
+        # campo desplazado: en la posición t queda el campo de t − ℓ (vacío si cae antes de 1998-01)
+        _Y = np.full_like(_anom_campo[_campo], np.nan)
+        _Y[_l:] = _anom_campo[_campo][:len(_t_campo) - _l]
+        if _l == 1:      # comprobación del cambio de año: enero de 2000 queda con diciembre de 1999
+            _k = PERIODOS.get_loc(pd.Period("2000-01", "M"))
+            assert np.array_equal(_Y[_k], _anom_campo[_campo][PERIODOS.get_loc(pd.Period("1999-12", "M"))], equal_nan=True)
+        for _v in CORR_CUENCA:
+            _x = _anom_cuenca[_v]
+            _rp, _rs, _n = (np.full((13, _forma[0] * _forma[1]), np.nan) for _ in range(3))
+            for _j in range(1, 13):
+                _sel = PERIODOS.month.to_numpy() == _j
+                _rp[_j - 1], _rs[_j - 1], _n[_j - 1] = _correlacion(_x[_sel], _Y[_sel])
+            _rp[12], _rs[12], _n[12] = _correlacion(_x, _Y)          # todos los meses juntos (anomalías)
+            corr_resultados[(_v, _campo, _l)] = {k: a.reshape(13, *_forma) for k, a in
+                                                 (("r_p", _rp), ("r_s", _rs), ("n", _n))}
+
+# (a) Centrar o estandarizar con constantes positivas no cambia Pearson (para un mes fijo y la misma muestra): se
+#     comprueba repitiendo PL contra la SST con anomalías estandarizadas (divididas por la desviación de cada mes).
+def _estandarizar(a, meses):
+    z = np.full_like(a, np.nan)
+    for j in range(1, 13):
+        sel = meses == j
+        validos = np.isfinite(a[sel]).sum(axis=0)
+        de = np.full(a.shape[1:], np.nan)
+        hay = validos >= 2
+        de[..., hay] = np.nanstd(a[sel][..., hay], axis=0, ddof=1) if a.ndim > 1 else np.nanstd(a[sel], ddof=1)
+        z[sel] = a[sel] / de
+    return z
+with np.errstate(invalid="ignore", divide="ignore"):
+    _zx = _estandarizar(_anom_cuenca["PL"], PERIODOS.month.to_numpy())
+    _zY = _estandarizar(_anom_campo["sst"], _meses_campo)
+for _j in (1, 7):
+    _sel = PERIODOS.month.to_numpy() == _j
+    _rz = _correlacion(_zx[_sel], _zY[_sel])[0]
+    assert np.allclose(_rz, corr_resultados[("PL", "sst", 0)]["r_p"][_j - 1].ravel(), equal_nan=True, atol=1e-9)
+
+# (b) Resumen sobre la región Niño 3.4 (5° S-5° N, 170° O-120° O): correlación media de las cajas, ponderada por el
+#     coseno de la latitud, para cada mes de la cuenca.
+_lat_c, _lon_c = _cc.lat.values, _cc.lon.values
+_caja34 = (np.abs(_lat_c)[:, None] <= 5) & (_lon_c[None, :] >= 190) & (_lon_c[None, :] <= 240)
+_w34 = np.cos(np.deg2rad(_lat_c))[:, None] * _caja34
+corr_nino34 = {}
+for (_v, _campo, _l), _d in corr_resultados.items():
+    if _campo == "sst":
+        corr_nino34[(_v, _l)] = [float(np.nansum(_d["r_p"][k] * _w34) / _w34.sum()) for k in range(13)]
+# (c) Pearson contra Spearman en Q contra la SST (ℓ = 0): en cuántas cajas dibujables (n mínimo, 60° S-60° N) difieren
+#     más de 0.2, y en cuántas cambian de signo con |r| > 0.3 en alguno de los dos.
+_d = corr_resultados[("Q", "sst", 0)]
+_dom = (np.abs(_lat_c) <= 60)[None, :, None] & (_d["n"][:12] >= CORR_N_MINIMO)
+_dif = np.abs(_d["r_p"][:12] - _d["r_s"][:12])
+corr_spearman_q = {"cajas": int(_dom.sum()),
+                   "dif_02_pct": float((_dif > 0.2)[_dom].mean() * 100),
+                   "signo_pct": float(((np.sign(_d["r_p"][:12]) != np.sign(_d["r_s"][:12]))
+                                       & (np.maximum(np.abs(_d["r_p"][:12]), np.abs(_d["r_s"][:12])) > 0.3))[_dom].mean() * 100),
+                   "dif_media": float(np.nanmean(_dif[_dom]))}
+# (d) Pares por combinación: el rango de n en las cajas dibujables, por mes (lo pide el enunciado en cada figura)
+corr_n_rango = {k: (int(np.nanmin(np.where(d["n"][:12] >= CORR_N_MINIMO, d["n"][:12], np.nan))),
+                    int(np.nanmax(d["n"][:12]))) for k, d in corr_resultados.items()}
+# (e) Cuánto cambia la tabla de Niño 3.4 con ℓ = 1: la mayor diferencia, en qué variable y en qué mes
+_cambios = [(abs(corr_nino34[(_v, 1)][k] - corr_nino34[(_v, 0)][k]), _v, k) for _v in CORR_CUENCA for k in range(12)]
+corr_cambio_rezago = {"max": max(_cambios)[0], "var": max(_cambios)[1], "mes": max(_cambios)[2] + 1,
+                      "mediana": float(np.median([c[0] for c in _cambios]))}
+# lo que el texto afirma
+assert corr_spearman_q["dif_02_pct"] < 10 and corr_spearman_q["signo_pct"] < 1
+_n34 = corr_nino34[("PL", 0)][:12]
+assert min(_n34) < -0.4                                   # algún mes con relación inversa clara con Niño 3.4
+assert corr_nino34[("PL", 1)][12] < 0 and corr_nino34[("PL", 0)][12] < 0
+
+# se guardan para los mapas (scripts/21_mapas_correlacion.py)
+_vars = {}
+for (_v, _campo, _l), _d in corr_resultados.items():
+    for _k, _a in _d.items():
+        _vars[f"{_k}__{_v}__{_campo}__l{_l}"] = (("mes", "lat", "lon"), _a.astype("float32"))
+_salida = xr.Dataset(_vars, coords={"mes": np.arange(1, 14), "lat": _cc.lat.values, "lon": _cc.lon.values})
+_salida.attrs = {"descripcion": "Correlación, a través de los años, de la anomalía de la cuenca en el mes j con la "
+                 "anomalía del campo ℓ meses antes; mes 13 = todos los meses juntos. r_p: Pearson; r_s: Spearman; "
+                 "n: pares válidos. Anomalías respecto a la media de cada mes en 1998-2022.",
+                 "n_minimo": CORR_N_MINIMO, "generado_por": "scripts/18_calculos_informe.py"}
+_salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
+_cc.close()

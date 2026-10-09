@@ -65,3 +65,11 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Explicación física y síntesis del ciclo anual | Completar «Explicaciones físicas» con el borrador (transformación de la lluvia, clasificación mensual e hipótesis) en lugar de crear otra sección | Lo mismo | Sí |
 | 2026-10-09 | Autores y uso de IA | Autores y profesor en el encabezado; sección de uso de IA con lo que pide la política del curso (herramientas y versión, tareas, verificación, propuestas rechazadas) y un anexo que se arma desde este archivo | — | — |
 | 2026-10-09 | «Explicaciones físicas»: detalles de redacción y criterio | El usuario delega en la recomendación del agente: aclarar que Poveda relaciona la humedad amazónica con el pie de monte, no con la cuenca; dejar la evidencia de convección diciendo que es poca; déficit en 0 años para «húmedo»; aceptar los ajustes del agente (sin «convergen los alisios», «flanco que mira al Magdalena», párrafo de introducción) | Lo mismo | Sí (delegado) |
+| 2026-10-09 | Punto 5.1: mapas | Quitar el mapa global de meses válidos a 850 hPa (decía poco) y poner el transporte de humedad mes a mes, 12 paneles regionales | 12 paneles regionales (la cifra de cajas bajo tierra queda en el texto) | Sí |
+| 2026-10-09 | Punto 5.2: combinaciones | PL y Q contra la SST, el viento y la humedad a 850 hPa; PI solo contra la SST y la humedad; sin temperatura. El viento, como su rapidez √(u² + v²) con flechas de la dirección del viento medio del mes | u y v por separado | **Contradice al agente** en el viento |
+| 2026-10-09 | Punto 5.2: rezagos | ℓ = 0, y ℓ = 1 para la SST | Lo mismo | Sí |
+| 2026-10-09 | Punto 5.2: pares mínimos | 20 de 25 años (80 %); las cajas con menos van en gris | Lo mismo | Sí |
+| 2026-10-09 | Punto 5.2: Spearman | Calcularlo en todas las cajas; mapas solo para Q contra la SST | Lo mismo | Sí |
+| 2026-10-09 | Punto 5.2: dominio | Todos los mapas de 60° S a 60° N | SST de 60° S a 60° N; viento y humedad, regionales | **Contradice al agente** |
+| 2026-10-09 | Punto 5.2: todos los meses juntos | Sí, un mapa por combinación con anomalías | Lo mismo | Sí |
+| 2026-10-09 | Punto 5.4 | Por ahora, solo un aviso en el informe de que no se ha llegado a esa parte | — | — |

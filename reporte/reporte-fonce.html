@@ -171,7 +171,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <header>
   <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca</p>
   <h1>Cuenca del río Fonce hasta San Gil</h1>
-  <div class="revision" data-etiqueta="Revisión · autores">
+  <div>
     <p class="intro"><b>Autores:</b> Juan Pablo Gómez, Andrea Gómez, Diego Cantillo</p>
     <p class="intro"><b>Profesor:</b> Carlos David Hoyos</p>
   </div>
@@ -184,8 +184,8 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
 </header>
 
-<div class="revision" data-etiqueta="Revisión · colores unificados en todas las figuras">
-  <p class="nota">Cada variable tiene un solo color en todas las figuras: <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#D55E00"></span> PL (también PL* y los pluviómetros sueltos), naranja; <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#0072B2"></span> PI, azul; <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#009E73"></span> Q, verde; la temperatura de ERA5-Land en púrpura, <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#DE98C0"></span> T mín más clara, <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#CC79A7"></span> T media y <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#9A4878"></span> T máx más oscura (la de MSWX, del mismo color con otro trazo); <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#7C5BC7"></span> ETP, violeta. Los colores que no son de una variable (fases del ENSO, años contrastantes, atípicos, calidad del registro) siguen como estaban.</p>
+<div>
+  <p class="nota">Cada variable tiene un solo color en todas las figuras: <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#D55E00"></span> PL (también PL* y los pluviómetros sueltos), naranja; <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#0072B2"></span> PI, azul; <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#009E73"></span> Q, verde; la temperatura de ERA5-Land en púrpura, <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#DE98C0"></span> T mín más clara, <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#CC79A7"></span> T media y <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#9A4878"></span> T máx más oscura (la de MSWX, del mismo color con otro trazo); <span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; vertical-align:-0.1em; background:#7C5BC7"></span> ETP, violeta.</p>
 </div>
 
 <section>
@@ -825,7 +825,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </table>
   </div>
   <h3>Cómo se reparte cada variable a lo largo del año</h3>
-  <div class="revision" data-etiqueta="Revisión · cajas sobre los 262 meses comunes">
+  <div>
   <p>Un diagrama de caja por variable, con una caja por mes del calendario. Para comparar las variables con
   los mismos pares de meses, las cajas usan solo los <b>262 de los 300 meses</b> en que PI, PL,
   Q y la temperatura tienen dato a la vez (los huecos son de Q), los mismos de la tabla
@@ -847,7 +847,7 @@ section, section h3 { scroll-margin-top: 20px; }
     una regla: un mes al que le falten 5 días o más queda vacío, y con hasta
     4 faltantes se calcula con los días que hay. PL se promedia cada mes con los
     pluviómetros que tengan dato. PI y las temperaturas no tienen huecos; Q sí.</li>
-    <li class="revision" data-etiqueta="Revisión · nuevo punto"><b>Meses comunes.</b> La tabla de arriba usa todos los meses válidos de cada variable. Los diagramas de
+    <li><b>Meses comunes.</b> La tabla de arriba usa todos los meses válidos de cada variable. Los diagramas de
     caja por mes y la tabla por mes del ciclo anual usan solo los 262 meses en que todas tienen dato, para
     comparar las fuentes con los mismos pares de meses.</li>
     <li><b>Unidades.</b> PI y PL en mm/mes (sumas mensuales). Q en m³/s (promedio mensual del caudal
@@ -863,7 +863,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <details class="plegable" open>
   <summary><h2>Revisión de outliers</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <div class="revision" data-etiqueta="Revisión · texto ajustado: las cajas usan otros meses">
+  <div>
   <p>Un mes es atípico si se sale 1.5 rangos intercuartiles por fuera de los cuartiles <b>de su
   propio mes del calendario</b>, el mismo criterio de los bigotes de los diagramas de caja, pero aquí con todos los
   meses válidos de cada variable, no solo los 262 comunes. Hay 6 en PI, 2 en PL, 6 en Q,
@@ -976,7 +976,7 @@ section, section h3 { scroll-margin-top: 20px; }
   altura, no la estación del año.</p>
 
   <div id="g-temp-ciclo" class="grafico" style="min-height:420px"></div>
-  <div class="revision" data-etiqueta="Revisión · nota ajustada a los colores unificados">
+  <div>
   <p class="nota">Las dos fuentes van en el mismo color, porque es la misma variable: ERA5-Land con línea continua
   y banda rellena; MSWX con línea a trazos, rombos y su banda marcada por bordes punteados.
   Línea gruesa: mediana de cada mes. Banda: del percentil 10 al 90 de los días de ese mes.
@@ -1064,7 +1064,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <div role="tabpanel" id="panel-corr" aria-labelledby="pestana-crudas">
     <div id="g-corr-matriz" class="grafico" style="min-height:860px"></div>
   </div>
-  <div class="revision" data-etiqueta="Revisión · nota ajustada a los colores unificados">
+  <div>
   <p class="nota">En la <b>diagonal</b>, cómo se reparte cada variable, en su color; <b>debajo</b>, la nube de puntos de
   cada par (un punto por mes); <b>encima</b>, su coeficiente, azul si suben juntas y naranja si van al revés.</p>
   </div>
@@ -1145,7 +1145,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
   <div id="g-balance" class="grafico" style="min-height:400px"></div>
   <div id="g-escorrentia" class="grafico" style="min-height:0; height:300px"></div>
-  <div class="revision" data-etiqueta="Revisión · nota ajustada a los colores unificados">
+  <div>
   <p class="nota">La franja azul es la lluvia (PI); la línea verde, el caudal (Q). Abajo, Q / PL en naranja y Q / PI
   en azul punteado. Donde el caudal se interrumpe
   es porque ese mes no cumple la regla de los cuatro días faltantes.</p>
@@ -1193,7 +1193,7 @@ section, section h3 { scroll-margin-top: 20px; }
   (-24 mm con PL), y PI no ve
   2003 como un año lluvioso. La recarga no explica ese año; apunta más a la lluvia sobrestimada.</p>
 
-  <div class="revision" data-etiqueta="Revisión · índice P/ETP">
+  <div>
   <h3>¿Húmeda o árida? La lluvia contra la ETP</h3>
   <p>El índice <b>P/ETP</b> compara la lluvia con la evapotranspiración potencial: cuánta agua cae frente a cuánta
   podría evaporar el clima. <b>No es la lluvia total</b>: la misma lluvia es abundante en un clima frío y escasa en uno
@@ -1249,7 +1249,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <h2>El ciclo anual</h2>
   <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
-  <div class="revision" data-etiqueta="Revisión · tabla sobre los 262 meses comunes">
+  <div>
   <p>El <b>ciclo anual</b> junta los eneros, los febreros…, de 1998 a 2022, y resume cada mes:
   la media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango p10–p90, cuánto cambia
   de un año a otro. Para que las fuentes se comparen con los mismos pares de meses, se usan solo los meses en que
@@ -1373,7 +1373,7 @@ section, section h3 { scroll-margin-top: 20px; }
   })();
   </script>
 
-  <div class="revision" data-etiqueta="Revisión · subsección nueva: el mapa año–mes">
+  <div>
   <h3>Cada año, mes a mes</h3>
   <p>Cada fila es un año y cada columna, un mes; el color es el valor de ese mes. Leído por columnas, el mapa repite el
   ciclo anual; leído por filas, muestra cómo fue cada año.</p>
@@ -1409,7 +1409,7 @@ section, section h3 { scroll-margin-top: 20px; }
   la <b>asimetría</b> clásica y la de Bowley, que usa solo los cuartiles y no la mueve un año extremo; y la
   <b>influencia de cada año</b>, cuánto cambia la media al quitarlo. La temperatura va en kelvin, porque en °C el
   CV no tiene sentido (su cero es convencional).</p>
-  <div class="revision" data-etiqueta="Revisión · nota nueva">
+  <div>
   <p class="nota">Esta sección usa todos los meses válidos de cada variable (25 años por mes en PL, PI y
   T media; entre 20 y 24 en Q), no los 262 meses comunes de la tabla «Cada mes del
   calendario…», así que sus medias y DE pueden diferir un poco de las de esa tabla.</p>
@@ -2042,21 +2042,21 @@ section, section h3 { scroll-margin-top: 20px; }
   alta frecuencia (menos de 6 meses). Se calcula para PL, PI, Q y T en tres versiones: la serie original, su anomalía (sin el
   ciclo anual) y la anomalía sin tendencia.</p>
   <ul>
-    <li class="cambio" data-etiqueta="Cambio de la revisión · bandas con ±Δf, remisión a «El régimen» y la ZCIT"><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
+    <li><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
     su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
     de Colombia, que trae dos temporadas de lluvias al año (<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>; <a class="cita" href="#ref-poveda2004">Poveda, 2004</a>). La banda semianual tiene el
     49 % de la varianza de PL, el 40 % de la de PI
     y el 37 % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
     allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
-    <li class="cambio" data-etiqueta="Nuevo · la temperatura"><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en 12 meses,
+    <li><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en 12 meses,
     pero la banda anual tiene solo el 13 % de su varianza y la interanual, el
     24 %: la temperatura varía más de un año a otro que dentro del año. Coincide
     con «Lo que solo se ve al quitar el ciclo anual», donde el ciclo explica solo el 22 % de la variación de T.</li>
-    <li class="cambio" data-etiqueta="Nuevo · lo que se atenúa al retirar la climatología"><b>Al retirar la climatología, las bandas anual y
+    <li><b>Al retirar la climatología, las bandas anual y
     semianual se reducen a menos de una décima parte</b>: juntas pasan, de la serie original a la anomalía, PL, del 50.6 al 1.3 %; PI, del 58.3 al 3.6 %; Q, del 37.8 al 0.5 %; T, del 16.9 al 0.4 %
     de la varianza. Lo que queda se reparte entre la alta frecuencia y la banda interanual, que pesan más en proporción porque
     el total se achica (ver la pestaña «anomalía» de la tabla).</li>
-    <li class="cambio" data-etiqueta="Nuevo · las dos fuentes de lluvia"><b>PI y PL coinciden en el pico de 6 meses, pero no en la banda de 12</b>:
+    <li><b>PI y PL coinciden en el pico de 6 meses, pero no en la banda de 12</b>:
     la semianual tiene el 48.5 % de la varianza de PL y el 39.8 % de la de
     PI, pero la anual tiene el 18.5 % en PI y apenas el 2.1 % en PL. El satélite
     ve un ciclo de 12 meses que los pluviómetros casi no tienen; coincide con «El régimen», donde el armónico de 12 meses explica el
@@ -2064,7 +2064,7 @@ section, section h3 { scroll-margin-top: 20px; }
     cambio, las dos fuentes se reparten la varianza casi igual: ninguna banda difiere más de 2.9 puntos
     porcentuales (alta frecuencia: 55.6 % en PL y 52.8 % en PI). Con el ONI, en la ventana común solo PI es coherente (0.65 contra un umbral de 0.54); PL queda por debajo (0.49 contra 0.52).
     No se puede decidir cuál fuente tiene la razón: por eso se llevan las dos.</li>
-    <li class="cambio" data-etiqueta="Cambio de la revisión · remisión al desfase y persistencia"><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el 37 % de la
+    <li><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el 37 % de la
     varianza de Q y el 54 % de la lluvia (promedio de PL y PI). Es la misma memoria de la cuenca que
     muestran «Desfase estacional» (el río va 17 días detrás de PL) y la correlación cruzada (sin el ciclo
     anual, la lluvia del mes anterior sigue aportando: correlación parcial de 0.52),
@@ -2078,7 +2078,7 @@ section, section h3 { scroll-margin-top: 20px; }
     <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)). Solo PI (común 1998–2022) supera el ruido rojo, con su pico en 150 meses (p = 0.04), pero ese período cabe apenas 2.0 veces en el registro y es una de 7 pruebas: no alcanza para hablar de un ciclo. La variabilidad
     interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.
     Si la cuenca varía junto con el ENSO lo dice la coherencia (ver «¿Cuadra con el ENSO?»).</li>
-    <li class="cambio" data-etiqueta="Corregido · antes decía que no cambiaba ningún pico"><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: PL* 6 meses, Q 6 meses, T 12 meses,
+    <li><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: PL* 6 meses, Q 6 meses, T 12 meses,
     los mismos que en la ventana común (PL* frente a PL). En las anomalías sí cambia el pico de T (anomalía), de 67 a 44 meses; PL* (anomalía sin tendencia), de 45 a 70 meses; Q (anomalía sin tendencia), de 172 a 70 meses; T (anomalía sin tendencia), de 67 a 44 meses: los picos de baja frecuencia dependen de qué años entran en el registro.</li>
   </ul>
 
@@ -2196,7 +2196,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
   </details>
 
-  <div class="cambio" data-etiqueta="Nuevo · el método (y las columnas N y «Con dato» de las tablas)">
+  <div>
   <h3>Cómo se calcula</h3>
   <p><b>Las series.</b> La secuencia mensual en orden cronológico, no las 12 medias del año típico, con Δt = 1 mes y
   N = 300 meses en la ventana común (504 en la extendida).
@@ -2223,7 +2223,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
 
   <h3>Qué tan estables son los picos</h3>
-  <div class="cambio" data-etiqueta="Corregido · la ventana en Q, los atípicos, la tendencia y los vacíos de Q">
+  <div>
   <p>El pico de la serie original con la FFT y ventana de Hann, contra el de Welch (<a class="cita" href="#ref-welch1967">Welch, 1967</a>), con segmentos de
   120 meses: PL: Hann 6.0 y Welch 6.0 meses; PI: Hann 6.0 y Welch 6.0 meses; T: Hann 37.5 y Welch 12.0 meses. Coinciden dentro de la resolución, salvo en T: con Hann el máximo queda en 37.5 meses y con Welch en 12.0, así que ese máximo depende de la ventana y no se lee como un período estable. En Q, cuyo tramo continuo más largo tiene 69 meses (menos que un segmento), Welch se reduciría al mismo periodograma de Hann; en su lugar se promedia el periodograma de Lomb-Scargle de 4 tramos de 120 meses que se traslapan la mitad, sobre toda la serie con sus vacíos (el tramo más incompleto tiene 96 meses con dato): pico en 6.0 meses, contra 6.3 de Hann en el tramo de 69 meses. Coinciden dentro de la resolución.
   Quitar los meses atípicos (los mismos de «Revisión de outliers»: más de 1.5 rangos intercuartiles por fuera
@@ -2232,7 +2232,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <p>¿Distorsionan el espectro los 38 meses vacíos de Q? Se calcula el de PL dejando vacíos esos mismos meses y se compara con el de PL completa. El pico no se mueve, ni en la serie original ni en la anomalía. Las bandas sí cambian: en la original, la semianual pasa de 48.5 a 42.2 %; en la anomalía, la alta pasa de 55.6 a 59.9 %. Así que los vacíos no mueven los picos de Q, pero sus porcentajes por banda pueden estar corridos en unos 6 puntos por los vacíos. Es una prueba indirecta: supone que los vacíos afectarían al caudal como afectan a la lluvia.</p>
   </div>
 
-  <div class="cambio" data-etiqueta="Nuevo · coherencia y fase con el ONI">
+  <div>
   <h3>¿Cuadra con el ENSO? Coherencia y fase con el ONI</h3>
   <p>El ONI de la NOAA (<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>) es la anomalía de la temperatura del mar en el Pacífico central (región Niño 3.4):
   positivo en El Niño, negativo en La Niña. En el registro largo, el pico más alto de su espectro está en
@@ -2275,7 +2275,7 @@ section, section h3 { scroll-margin-top: 20px; }
   relleno juega en contra de encontrar coherencia, no a favor.</p>
   </div>
 
-  <div class="cambio" data-etiqueta="Nuevo · el pico de 2.2 meses">
+  <div>
   <p><b>¿Y el pico corto de la lluvia?</b> PL tiene un máximo en 2.2 meses con el 4.2 % de la varianza de su anomalía. Pero en espectros de ruido blanco con los mismos 300 meses (300 simulaciones), el pico más alto tiene en promedio el 4.6 % (el 95 % de las veces, hasta el 5.9 %): no se distingue del azar. En la misma frecuencia, PI tiene el 2.6 %, Q el 0.7 % y T el 0.3 %.</p>
   </div>
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
@@ -2283,7 +2283,7 @@ section, section h3 { scroll-margin-top: 20px; }
   espectro cruzado (ver «¿Cuadra con el ENSO?»). La FFT con Hann se calcula en el tramo
   continuo más largo de cada serie (69 meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
 
-  <div class="cambio" data-etiqueta="Nuevo · conclusión">
+  <div>
   <h3>Conclusión</h3>
   <p>La variabilidad de la cuenca se concentra en dos escalas: <b>la semianual, que domina, y la interanual, que es débil pero
   real</b>.</p>
@@ -2317,7 +2317,7 @@ section, section h3 { scroll-margin-top: 20px; }
   medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
 
   <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
-  <div class="revision" data-etiqueta="Revisión · nota ajustada a los colores unificados">
+  <div>
   <p class="nota">Barras: PL media de cada mes. Línea verde continua: Q observado. Líneas discontinuas (gris
   punteada, con la lluvia del mes; verde a trazos, con la del mes y la del anterior): Q
   <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
@@ -2367,7 +2367,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>Campos climáticos globales</h2>
-  <div class="revision" data-etiqueta="Revisión · campos climáticos">
+  <div>
   <p>Para buscar qué patrones del océano y de la atmósfera acompañan a la lluvia y al caudal de la cuenca se usan tres
   <b>campos mensuales globales</b>, no índices: un índice como el ONI resume una región en un número, y un campo deja
   ver dónde está la señal. <b>La temperatura superficial del mar (SST)</b> es la fuente de la variabilidad de gran
@@ -2427,11 +2427,11 @@ section, section h3 { scroll-margin-top: 20px; }
   <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
   literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
   cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
-  <p class="revision" data-etiqueta="Revisión · lo que agrega la sección">Después de los mecanismos, la sección resume cómo la cuenca transforma la
+  <p>Después de los mecanismos, la sección resume cómo la cuenca transforma la
   lluvia que recibe, clasifica los meses del año y propone una hipótesis para contrastar con las relaciones entre variables
   y con las tendencias.</p>
 
-  <div class="revision" data-etiqueta="Revisión · la ZCIT según Poveda (2004)">
+  <div>
   <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
   <p>La lluvia y el caudal de la cuenca tienen dos picos al año (ver «El régimen» en «El ciclo anual» y el pico de 6 meses
   en «Frecuencias: análisis de Fourier»). La explicación está en la <b>Zona de Convergencia Intertropical (ZCIT)</b>, la
@@ -2473,7 +2473,7 @@ section, section h3 { scroll-margin-top: 20px; }
   y +1.7 (ver «Revisión de outliers»). El documento no nombra la cuenca del Fonce, así que no se
   puede confirmar que sean las mismas lluvias. Es un episodio de un bimestre, no un rasgo del clima de la cuenca.</p>
 
-  <div class="revision" data-etiqueta="Revisión · subsección nueva: cómo la cuenca transforma la lluvia">
+  <div>
   <h3>Cómo la cuenca transforma la lluvia</h3>
   <p><b>Las dos temporadas secas no son iguales.</b> La de diciembre a febrero es la más profunda: con PL,
   enero tiene una mediana de 101 mm, contra
@@ -2545,7 +2545,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <p>Con 25 años no se puede atribuir la variabilidad entre años solo al ENSO.</p>
   </div>
 
-  <div class="revision" data-etiqueta="Revisión · subsección nueva: clasificación hidroclimática mensual">
+  <div>
   <h3>Síntesis: clasificación hidroclimática mensual</h3>
   <p>Los meses se clasifican con tres criterios, calculados con las series del proyecto en
   1998–2022, con PL, que manda, y con PI en paralelo:</p>
@@ -2593,7 +2593,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </ul>
   </div>
 
-  <div class="revision" data-etiqueta="Revisión · subsección nueva: la hipótesis">
+  <div>
   <h3>Una hipótesis para las relaciones y las tendencias</h3>
   <p><b>H:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un almacenamiento del orden de
   un mes. La evapotranspiración, casi constante en el año, no explica ni su ciclo ni sus diferencias entre años.</p>
@@ -2679,9 +2679,9 @@ section, section h3 { scroll-margin-top: 20px; }
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
-    <li id="ref-mesa1997" class="cambio" data-etiqueta="Nuevo">Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
+    <li id="ref-mesa1997">Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
     Universidad Nacional de Colombia, Medellín.</li>
-    <li id="ref-middleton1997" class="revision" data-etiqueta="Revisión · nuevo">Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
+    <li id="ref-middleton1997">Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
     Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
@@ -2712,7 +2712,7 @@ section, section h3 { scroll-margin-top: 20px; }
 </section>
 
 <section>
-  <div class="revision" data-etiqueta="Revisión · uso de IA">
+  <div>
   <h2>Uso de inteligencia artificial</h2>
   <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA) de Anthropic. Casi todo el código
   del repositorio se escribió con esa ayuda. Las decisiones de método las tomó el equipo: la IA presentó las opciones

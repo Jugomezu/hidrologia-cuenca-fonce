@@ -122,9 +122,14 @@ color_var_json = json.dumps(COLOR_VAR, ensure_ascii=False)
 assert set(VARIABLES_CORR) | set(variables_resumen.columns) | set(LARGO_VARS) <= set(COLOR_VAR)
 
 
+# Resaltado gris de lo que se agregó o cambió, para quien revise un PR. Se apaga con False cuando el usuario lo
+# aprueba (2026-10-09: aprobado, apagado), como el verde de RESALTAR_CAMBIOS.
+RESALTAR_REVISION = False
+
+
 def revision(etiqueta):
-    """Atributos de un bloque resaltado en gris para revisión: lo que esta rama agregó o cambió."""
-    return f' class="revision" data-etiqueta="Revisión · {html.escape(etiqueta)}"'
+    """Atributos de un bloque resaltado en gris para revisión (o nada, si el resaltado está apagado)."""
+    return f' class="revision" data-etiqueta="Revisión · {html.escape(etiqueta)}"' if RESALTAR_REVISION else ""
 
 
 _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; '
@@ -134,8 +139,7 @@ nota_colores = (
     f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI, azul; "
     f"{_muestra('Q')} Q, verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
     f"{_muestra('T media')} T media y {_muestra('T máx')} T máx más oscura (la de MSWX, del mismo color con otro trazo); "
-    f"{_muestra('ETP')} ETP, violeta. Los colores que no son de una variable (fases del ENSO, años contrastantes, "
-    "atípicos, calidad del registro) siguen como estaban.")
+    f"{_muestra('ETP')} ETP, violeta.")
 
 # para los diagramas de caja: los valores de cada variable agrupados por mes del calendario
 NOMBRE_MES_COMPLETO = {1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio", 7: "julio",
@@ -172,7 +176,7 @@ CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997<
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
 # cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
-RESALTAR_CAMBIOS = True
+RESALTAR_CAMBIOS = False
 
 
 def _cambio(etiqueta):
@@ -3066,7 +3070,7 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Campos climáticos globales</h2>
-  <div class="revision" data-etiqueta="Revisión · campos climáticos">
+  <div{revision("campos climáticos")}>
   <p>Para buscar qué patrones del océano y de la atmósfera acompañan a la lluvia y al caudal de la cuenca se usan tres
   <b>campos mensuales globales</b>, no índices: un índice como el ONI resume una región en un número, y un campo deja
   ver dónde está la señal. <b>La temperatura superficial del mar (SST)</b> es la fuente de la variabilidad de gran

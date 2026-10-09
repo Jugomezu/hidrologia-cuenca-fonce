@@ -58,6 +58,34 @@ filas_cmp = "\n".join(
 
 bal_json = json.dumps(bal_datos, ensure_ascii=False)
 
+# Un color por variable (paleta Okabe-Ito), el mismo en todas las figuras: es la única definición. La página
+# la recibe como COLOR_VAR en el JavaScript, y la nota de colores del comienzo la usa para sus muestras.
+# PL* (la serie larga de PL) va como PL. La temperatura de ERA5-Land va en una familia de púrpura: T mín más
+# clara y T máx más oscura, del mismo matiz (tonos revisados para que se lean sobre el fondo claro y el oscuro).
+# La de MSWX usa el color de su equivalente de ERA5-Land y se distingue por el trazo.
+COLOR_VAR = {"PL": "#D55E00", "PL*": "#D55E00", "PI": "#0072B2", "Q": "#009E73",
+             "T mín": "#DE98C0", "T media": "#CC79A7", "T máx": "#9A4878",
+             "T ERA5": "#CC79A7", "T MSWX": "#CC79A7", "ETP": "#7C5BC7"}
+color_var_json = json.dumps(COLOR_VAR, ensure_ascii=False)
+# toda variable que se dibuja tiene su color
+assert set(VARIABLES_CORR) | set(variables_resumen.columns) | set(LARGO_VARS) <= set(COLOR_VAR)
+
+
+def revision(etiqueta):
+    """Atributos de un bloque resaltado en gris para revisión: lo que esta rama agregó o cambió."""
+    return f' class="revision" data-etiqueta="Revisión · {html.escape(etiqueta)}"'
+
+
+_muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; '
+                      f'vertical-align:-0.1em; background:{COLOR_VAR[v]}"></span>')
+nota_colores = (
+    "Cada variable tiene un solo color en todas las figuras: "
+    f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI, azul; "
+    f"{_muestra('Q')} Q, verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
+    f"{_muestra('T media')} T media y {_muestra('T máx')} T máx más oscura (la de MSWX, del mismo color con otro trazo); "
+    f"{_muestra('ETP')} ETP, violeta. Los colores que no son de una variable (fases del ENSO, años contrastantes, "
+    "atípicos, calidad del registro) siguen como estaban.")
+
 # para los diagramas de caja: los valores de cada variable agrupados por mes del calendario
 NOMBRE_MES_COMPLETO = {1: "enero", 2: "febrero", 3: "marzo", 4: "abril", 5: "mayo", 6: "junio", 7: "julio",
                        8: "agosto", 9: "septiembre", 10: "octubre", 11: "noviembre", 12: "diciembre"}
@@ -128,15 +156,16 @@ filas_atip = "\n".join(
     f"<tr><td>{fmt_mes(p)}</td>" + "".join(_celda_atip(p, v) for v in VARS_ATIP) + "</tr>"
     for p in atip_meses)
 
+# solo los meses comunes (clima_meses, los mismos de la tabla del ciclo anual), no todos los válidos de cada variable
 cajas_json = json.dumps({
-    "variables": list(variables_resumen.columns),
-    "unidades": [UNIDAD_RESUMEN[v] for v in variables_resumen.columns],
-    "valores": {v: [[round(float(x), 2) for x in variables_resumen[v][variables_resumen.index.month == m].dropna()]
-                    for m in range(1, 13)] for v in variables_resumen.columns},
+    "variables": list(clima_series.columns),
+    "unidades": [UNIDAD_RESUMEN[v] for v in clima_series.columns],
+    "valores": {v: [[round(float(x), 2) for x in clima_series[v][clima_series.index.month == m].dropna()]
+                    for m in range(1, 13)] for v in clima_series.columns},
     # el mes exacto de cada valor (año-mes), para que el cursor diga cuál es cada punto
     "fechas": {v: [[f"{NOMBRE_MES_COMPLETO[p.month]} de {p.year}"
-                    for p in variables_resumen[v][variables_resumen.index.month == m].dropna().index]
-                   for m in range(1, 13)] for v in variables_resumen.columns},
+                    for p in clima_series[v][clima_series.index.month == m].dropna().index]
+                   for m in range(1, 13)] for v in clima_series.columns},
     "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
 }, ensure_ascii=False)
 
@@ -147,7 +176,8 @@ filas_resumen = "\n".join(
     + "</tr>" for fila in tabla_resumen.index)
 
 def ciclo_tabla_html(clave, columna, decimales):
-    e = ciclo_estadisticos(variables_resumen[columna])
+    # sobre los meses comunes (clima_meses): todas las variables con los mismos pares de meses
+    e = ciclo_estadisticos(clima_series[columna])
     fmt = lambda v: f"{v:,.{decimales}f}".replace(",", " ")
     filas = "\n".join(
         f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td><td class='num'>{int(f.n)}</td>"
@@ -158,6 +188,47 @@ def ciclo_tabla_html(clave, columna, decimales):
 ciclo_tablas = {clave: ciclo_tabla_html(clave, col, dec) for clave, _, _, col, dec in CICLO_VARIABLES}
 
 ciclo_json = json.dumps(ciclo_datos, ensure_ascii=False)
+
+# mapa año–mes: una matriz por variable (años × meses), con null en los meses sin dato. PL y PI comparten el
+# rango de color, para que el mismo color sea la misma lluvia en las dos; Q y T media tienen el suyo.
+_mapa_rango_lluvia = (min(float(mapa_am[f].min().min()) for f in ("PL", "PI")),
+                      max(float(mapa_am[f].max().max()) for f in ("PL", "PI")))
+mapa_am_json = json.dumps({
+    "anios": [str(a) for a in MAPA_AM_ANIOS],
+    "variables": [{
+        "nombre": v, "unidad": u, "dec": dec,
+        "z": [[None if pd.isna(x) else round(float(x), 2) for x in fila] for fila in mapa_am[v].to_numpy()],
+        "rango": _mapa_rango_lluvia if v in ("PL", "PI") else (float(mapa_am[v].min().min()), float(mapa_am[v].max().max())),
+    } for v, u, dec in MAPA_AM_VARIABLES],
+}, ensure_ascii=False)
+mapa_botones = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-mapa-{i}" aria-controls="panel-mapa" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{v} ({u})</button>'
+    for i, (v, u, _) in enumerate(MAPA_AM_VARIABLES))
+
+def _y_lista(xs):
+    """1999 · 1999 y 2006 · 1999, 2006 y 2011"""
+    xs = [str(x) for x in xs]
+    return xs[0] if len(xs) == 1 else ", ".join(xs[:-1]) + " y " + xs[-1]
+
+def _mapa_sobre_txt(f):
+    r = mapa_am_sobre[f]
+    verbo = lambda xs: "tiene" if len(xs) == 1 else "tienen"
+    return (f"con {f}, {_y_lista(r['anios_mas'])} {verbo(r['anios_mas'])} {r['mas']} de 12 meses por encima y "
+            f"{_y_lista(r['anios_menos'])} solo {r['menos']}")
+
+def _mapa_coincide_txt(f):
+    r = mapa_am_sobre[f]
+    partes = ([f"{_y_lista(r['coinciden_humedos'])} (entre los de más meses por encima)"] if r["coinciden_humedos"] else []) + \
+             ([f"{_y_lista(r['coinciden_secos'])} (entre los de menos)"] if r["coinciden_secos"] else [])
+    if not partes:
+        return f"con {f} no coincide ninguno"
+    n_coinciden = len(r["coinciden_humedos"]) + len(r["coinciden_secos"])
+    return f"con {f} {'coincide' if n_coinciden == 1 else 'coinciden'} " + " y ".join(partes)
+
+mapa_picos_txt = "; ".join(
+    f"en {r['simple']} de {r['anios']} años con {f} (picos en {r['picos'][0]} y {r['picos'][1]}: "
+    f"{r['ventanas'][0]} y {r['ventanas'][1]})" for f, r in mapa_am_picos.items())
 
 _mes = lambda m: MESES_LARGOS_ES[m - 1]
 var_filas = "\n".join(
@@ -287,7 +358,10 @@ filas_an = "\n".join(
     f"<td class='num'>{a:.2f}</td><td class='num'>{d:.2f}</td><td class='num'>{c:+.0f} %</td></tr>"
     for s, ref, m, pm, p, sig, a, d, c in an_h[["serie", "referencia", "meses", "primer_mes_despues", "p",
                                                 "significativo", "razon_antes", "razon_despues", "cambio_pct"]].itertuples(index=False))
-an_dm_json = json.dumps({s: {"x": g.acumulado_referencia.round(0).tolist(), "y": g.acumulado_serie.round(0).tolist(),
+# "variable": la primera palabra del nombre de la serie (PL, PI o Q), para colorearla con COLOR_VAR
+assert set(an_dm.serie.str.split().str[0]) <= set(COLOR_VAR)
+an_dm_json = json.dumps({s: {"variable": s.split()[0],
+                             "x": g.acumulado_referencia.round(0).tolist(), "y": g.acumulado_serie.round(0).tolist(),
                              "meses": g.periodo.tolist(), "referencia": g.referencia.iloc[0],
                              "corte": (an_fila(s).primer_mes_despues if an_fila(s).significativo else None)}
                          for s, g in an_dm.groupby("serie", sort=False)}, ensure_ascii=False)
@@ -829,7 +903,7 @@ pagina = f"""<!doctype html>
 <style>
 :root {{
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #FFF4C2; --revision-borde: #8A6500; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -837,12 +911,12 @@ pagina = f"""<!doctype html>
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
   }}
 }}
 :root[data-theme="dark"] {{
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
 }}
 * {{ box-sizing: border-box; }}
 body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }}
@@ -882,7 +956,7 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .tratamiento li {{ margin-bottom: 6px; }}
 .fase-nino {{ color: var(--nino); font-weight: 600; }}
 .tratamiento .lectura {{ margin: 6px 0 0; }}
-/* control de calidad: lo agregado o cambiado en esta etapa va resaltado para revisión */
+/* lo agregado o cambiado en esta rama va resaltado en gris para revisión (etiqueta en data-etiqueta) */
 .revision {{ background: var(--revision); border-left: 4px solid var(--revision-borde); padding: 10px 14px;
   margin: 14px 0; border-radius: 0 4px 4px 0; }}
 .revision > p {{ margin: 0 0 8px; }}
@@ -897,7 +971,7 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
   letter-spacing: .06em; text-transform: uppercase; color: var(--cambio-borde); margin-bottom: 6px; }}
 .formula {{ font: 500 16px/1.5 var(--f-dato); margin: 4px 0 12px; overflow-wrap: anywhere; }}
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
-td.res-anotado {{ background: var(--revision); }}
+td.res-anotado {{ background: var(--anotado); }}
 td.res-nd {{ color: var(--tenue); }}
 td.reg-anomalia {{ min-width: 16em; }}
 td.detalle {{ font-size: 13px; min-width: 260px; }}
@@ -955,6 +1029,10 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(p_imerg[24027010])} mm</b><span>lluvia anual IMERG 1998–2022</span></div>
   </div>
 </header>
+
+<div{revision("colores unificados en todas las figuras")}>
+  <p class="nota">{nota_colores}</p>
+</div>
 
 <section>
   <h2>La cuenca y sus subcuencas</h2>
@@ -1466,14 +1544,19 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   <h3>Cómo se reparte cada variable a lo largo del año</h3>
-  <p>Un diagrama de caja por variable, con una caja por mes del calendario: cada caja reúne ese mes en
-  todos los años del período.</p>
+  <div{revision(f"cajas sobre los {ciclo_n} meses comunes")}>
+  <p>Un diagrama de caja por variable, con una caja por mes del calendario. Para comparar las variables con
+  los mismos pares de meses, las cajas usan solo los <b>{ciclo_n} de los {len(PERIODOS)} meses</b> en que PI, PL,
+  Q y la temperatura tienen dato a la vez (los huecos son de {" y ".join(clima_huecos_de)}), los mismos de la tabla
+  del ciclo anual: cada caja reúne ese mes en esos años, entre {clima_anios_mes.min()} y {clima_anios_mes.max()}
+  según el mes. La tabla de arriba, en cambio, usa todos los meses válidos de cada variable.</p>
   <div class="pestanas" role="tablist" aria-label="Variable" id="pestanas-cajas"></div>
   <div id="g-cajas" class="grafico" style="min-height:0; height:420px"></div>
   <p class="nota">Caja: del percentil 25 al 75. Línea dentro de la caja: la mediana. Bigotes: hasta 1.5 veces
-  el rango intercuartil. Puntos, a la izquierda de cada caja: todos los meses, uno por año; pasa el cursor
+  el rango intercuartil. Puntos, a la izquierda de cada caja: todos los meses comunes, uno por año; pasa el cursor
   por encima para ver cuál es. Los cuartiles se calculan por
-  interpolación lineal, igual que en la tabla.</p>
+  interpolación lineal, igual que en las tablas.</p>
+  </div>
 
   <h3>Cómo se tratan los datos</h3>
   <ul class="tratamiento">
@@ -1483,6 +1566,9 @@ a {{ color: var(--acento); }}
     una regla: un mes al que le falten {MAX_DIAS_FALTANTES + 1} días o más queda vacío, y con hasta
     {MAX_DIAS_FALTANTES} faltantes se calcula con los días que hay. PL se promedia cada mes con los
     pluviómetros que tengan dato. PI y las temperaturas no tienen huecos; Q sí.</li>
+    <li{revision("nuevo punto")}><b>Meses comunes.</b> La tabla de arriba usa todos los meses válidos de cada variable. Los diagramas de
+    caja por mes y la tabla por mes del ciclo anual usan solo los {ciclo_n} meses en que todas tienen dato, para
+    comparar las fuentes con los mismos pares de meses.</li>
     <li><b>Unidades.</b> PI y PL en mm/mes (sumas mensuales). Q en m³/s (promedio mensual del caudal
     diario); donde se compara con la lluvia, en el resto del informe, se pasa a lámina en mm/mes
     dividiéndolo por el área de la cuenca ({n(AREA_SG_KM2)} km²). Las temperaturas, en °C (promedios
@@ -1496,10 +1582,13 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Revisión de outliers</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
+  <div{revision("texto ajustado: las cajas usan otros meses")}>
   <p>Un mes es atípico si se sale {FACTOR_ATIPICO:.1f} rangos intercuartiles por fuera de los cuartiles <b>de su
-  propio mes del calendario</b>, como en los diagramas de caja. Hay {atip_conteo['PI']} en PI, {atip_conteo['PL']} en PL, {atip_conteo['Q']} en Q,
+  propio mes del calendario</b>, el mismo criterio de los bigotes de los diagramas de caja, pero aquí con todos los
+  meses válidos de cada variable, no solo los {ciclo_n} comunes. Hay {atip_conteo['PI']} en PI, {atip_conteo['PL']} en PL, {atip_conteo['Q']} en Q,
   {atip_conteo['T media']} en T media, {atip_conteo['T máx']} en T máx y {atip_conteo['T mín']} en T mín.
   La tabla los pone lado a lado, para ver qué pasó con las demás variables cuando una se salió de lo normal.</p>
+  </div>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Mes</th>{"".join(f"<th class='num'>{html.escape(v)}</th>" for v in VARS_ATIP)}</tr></thead>
@@ -1580,8 +1669,12 @@ a {{ color: var(--acento); }}
   altura, no la estación del año.</p>
 
   <div id="g-temp-ciclo" class="grafico" style="min-height:420px"></div>
-  <p class="nota">Línea gruesa: mediana de cada mes. Banda: del percentil 10 al 90 de los días de ese mes.
+  <div{revision("nota ajustada a los colores unificados")}>
+  <p class="nota">Las dos fuentes van en el mismo color, porque es la misma variable: ERA5-Land con línea continua
+  y banda rellena; MSWX con línea a trazos, rombos y su banda marcada por bordes punteados.
+  Línea gruesa: mediana de cada mes. Banda: del percentil 10 al 90 de los días de ese mes.
   Se comparan los {n(t_n)} días en que existen las dos.</p>
+  </div>
 
   <h3>Por qué se elige ERA5-Land</h3>
   <ul class="tratamiento">
@@ -1664,8 +1757,10 @@ a {{ color: var(--acento); }}
   <div role="tabpanel" id="panel-corr" aria-labelledby="pestana-crudas">
     <div id="g-corr-matriz" class="grafico" style="min-height:860px"></div>
   </div>
-  <p class="nota">En la <b>diagonal</b>, cómo se reparte cada variable; <b>debajo</b>, la nube de puntos de
+  <div{revision("nota ajustada a los colores unificados")}>
+  <p class="nota">En la <b>diagonal</b>, cómo se reparte cada variable, en su color; <b>debajo</b>, la nube de puntos de
   cada par (un punto por mes); <b>encima</b>, su coeficiente, azul si suben juntas y naranja si van al revés.</p>
+  </div>
   <p class="nota"><b>Los paneles están enlazados:</b> arrastra sobre uno para marcar meses y se resaltan en
   todos los demás. Doble clic para soltar la selección. <span id="corr-seleccion" style="color:var(--acento)"></span></p>
 
@@ -1737,8 +1832,11 @@ a {{ color: var(--acento); }}
   </div>
   <div id="g-balance" class="grafico" style="min-height:400px"></div>
   <div id="g-escorrentia" class="grafico" style="min-height:0; height:300px"></div>
-  <p class="nota">La franja azul es la lluvia; la línea naranja, el caudal. Donde el caudal se interrumpe
+  <div{revision("nota ajustada a los colores unificados")}>
+  <p class="nota">La franja azul es la lluvia (PI); la línea verde, el caudal (Q). Abajo, Q / PL en naranja y Q / PI
+  en azul punteado. Donde el caudal se interrumpe
   es porque ese mes no cumple la regla de los cuatro días faltantes.</p>
+  </div>
   <p><b>Sale como caudal cerca del {coef_periodo * 100:.0f} % de la lluvia</b>; el resto se evapora o queda
   almacenado.</p>
   <p class="nota"><b>CAMELS-COL lo confirma por su cuenta:</b> publica para San Gil un <code>runoff_ratio</code> de
@@ -1769,9 +1867,13 @@ a {{ color: var(--acento); }}
 <section>
   <h2>El ciclo anual</h2>
   <h3>Cada mes del calendario, y cuánto cambia de un año a otro</h3>
-  <p>El <b>ciclo anual</b> junta todos los eneros, todos los febreros…, de 1998 a 2022, y resume cada mes:
+  <div{revision(f"tabla sobre los {ciclo_n} meses comunes")}>
+  <p>El <b>ciclo anual</b> junta los eneros, los febreros…, de {PERIODOS[0].year} a {PERIODOS[-1].year}, y resume cada mes:
   la media y la mediana dicen cómo es el mes típico; la desviación estándar y el rango p10–p90, cuánto cambia
-  de un año a otro.</p>
+  de un año a otro. Para que las fuentes se comparen con los mismos pares de meses, se usan solo los meses en que
+  PI, PL, Q y T media tienen dato a la vez: los mismos <b>{ciclo_n} meses</b> del año típico. Como
+  {" y ".join(clima_huecos_de)} tiene huecos, cada mes reúne entre {clima_anios_mes.min()} y {clima_anios_mes.max()}
+  años, no los {clima_anios_periodo} del período.</p>
   <div class="pestanas" role="tablist" aria-label="Variable del ciclo anual">
     <button type="button" role="tab" id="pestana-ciclo-pl" aria-controls="panel-ciclo-pl" aria-selected="true">PL (mm/mes)</button>
     <button type="button" role="tab" id="pestana-ciclo-pi" aria-controls="panel-ciclo-pi" aria-selected="false" tabindex="-1">PI (mm/mes)</button>
@@ -1826,9 +1928,11 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   </div>
-  <p class="nota">Años válidos: años con dato ese mes (Q con la regla de los 5 días faltantes; PL con sus
-  exclusiones). Q es el promedio mensual del caudal diario, en m³/s; T media, la de ERA5-Land. Desviación
+  <p class="nota">Años válidos: años en que ese mes tienen dato las cuatro variables a la vez, así que la columna
+  es la misma en las cuatro pestañas (los huecos son de {" y ".join(clima_huecos_de)}, por la regla de los
+  {MAX_DIAS_FALTANTES + 1} días faltantes; PL va con sus exclusiones). Q es el promedio mensual del caudal diario, en m³/s; T media, la de ERA5-Land. Desviación
   estándar muestral; cuartiles y percentiles por interpolación lineal ({CITA_HYNDMAN}).</p>
+  </div>
   <script>
   (() => {{
     const botones = document.querySelectorAll('[id^="pestana-ciclo-"]');
@@ -1843,11 +1947,44 @@ a {{ color: var(--acento); }}
   }})();
   </script>
 
+  <div{revision("subsección nueva: el mapa año–mes")}>
+  <h3>Cada año, mes a mes</h3>
+  <p>Cada fila es un año y cada columna, un mes; el color es el valor de ese mes. Leído por columnas, el mapa repite el
+  ciclo anual; leído por filas, muestra cómo fue cada año.</p>
+  <div class="pestanas" role="tablist" aria-label="Variable del mapa año–mes">
+{mapa_botones}
+  </div>
+  <div role="tabpanel" id="panel-mapa" aria-labelledby="pestana-mapa-0">
+    <div id="g-mapa-am" class="grafico" style="min-height:0; height:560px"></div>
+  </div>
+  <p class="nota">El mapa usa todos los meses válidos de cada variable ({len(PERIODOS) - mapa_am_vacias["PL"]} en PL,
+  {len(PERIODOS) - mapa_am_vacias["PI"]} en PI, {len(PERIODOS) - mapa_am_vacias["Q"]} en Q y
+  {len(PERIODOS) - mapa_am_vacias["T media"]} en T media), no solo los {ciclo_n} comunes de la tabla de arriba y de los
+  diagramas de caja: aquí se quiere ver cada año, no comparar fuentes. Los {mapa_am_vacias["Q"]} meses sin dato de Q
+  quedan en gris, sin rellenar. PL y PI comparten la escala de color, para que el mismo color sea la misma lluvia en
+  las dos; Q y T media tienen la suya. Pasa el cursor por una casilla para ver su valor.</p>
+  <ul>
+    <li><b>Los dos picos aparecen en la mayoría de los años.</b> El mes más lluvioso de cada semestre cae a ±1 mes
+    del pico promedio {mapa_picos_txt}. Es el método simple de «¿Se repite cada año? ¿Es estable?», más abajo.</li>
+    <li><b>Hay años con la mayoría de los meses por encima de lo normal, y años con la mayoría por debajo.</b>
+    Contando los meses por encima de la mediana de su mes: {_mapa_sobre_txt("PL")}; {_mapa_sobre_txt("PI")}.
+    De los años contrastantes (los de «Los años contrastantes», más abajo; húmedos: {_y_lista(anom_humedos)}; secos:
+    {_y_lista(anom_secos)}), {_mapa_coincide_txt("PL")}; {_mapa_coincide_txt("PI")}. No tienen por qué
+    coincidir del todo: allí los años se ordenan por cuánto se apartan sus meses de lo normal, en promedio y con PL y
+    PI juntas; aquí solo se cuenta cuántos meses quedan por encima, con cada fuente por separado.</li>
+  </ul>
+  </div>
+
   <h3>Qué meses cambian más de un año a otro</h3>
   <p>Para cada mes: la <b>desviación estándar</b> (DE) y el <b>coeficiente de variación</b> (CV = DE / media);
   la <b>asimetría</b> clásica y la de Bowley, que usa solo los cuartiles y no la mueve un año extremo; y la
   <b>influencia de cada año</b>, cuánto cambia la media al quitarlo. La temperatura va en kelvin, porque en °C el
   CV no tiene sentido (su cero es convencional).</p>
+  <div{revision("nota nueva")}>
+  <p class="nota">Esta sección usa todos los meses válidos de cada variable ({var_n["PL"][0]} años por mes en PL, PI y
+  T media; entre {var_n["Q"][0]} y {var_n["Q"][1]} en Q), no los {ciclo_n} meses comunes de la tabla «Cada mes del
+  calendario…», así que sus medias y DE pueden diferir un poco de las de esa tabla.</p>
+  </div>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th></th><th>Mayor CV</th><th>Mayor DE</th><th>Asimetría clásica mayor que 1</th>
@@ -2494,9 +2631,12 @@ a {{ color: var(--acento); }}
   medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
 
   <div id="g-ciclo-rezago" class="grafico" style="min-height:0; height:420px"></div>
-  <p class="nota">Barras: PL media de cada mes. Línea negra: Q observado. Líneas punteadas: Q
+  <div{revision("nota ajustada a los colores unificados")}>
+  <p class="nota">Barras: PL media de cada mes. Línea verde continua: Q observado. Líneas discontinuas (gris
+  punteada, con la lluvia del mes; verde a trazos, con la del mes y la del anterior): Q
   <b>predicho a partir de PL</b>, no medido (ajuste lineal sobre las 12 medias mensuales, así que es una descripción de la forma
   del ciclo, no una prueba estadística fuerte).</p>
+  </div>
 
   <p><b>Con la lluvia del mes sola, el ciclo de Q sale adelantado</b> y se explica el
   {ajuste_lq.loc[('PL', 'mes'), 'r2'] * 100:.0f} % de su forma; <b>sumando la del mes anterior, el
@@ -2631,6 +2771,18 @@ a {{ color: var(--acento); }}
   const MES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
   const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const CONF = {{ displayModeBar: false, responsive: true }};
+  // Un color por variable, el mismo en todas las figuras (COLOR_VAR del script de Python). Ninguna figura
+  // escribe el color de una variable a mano: lo toma de aquí.
+  const COLOR_VAR = {color_var_json};
+  // el color de una variable con transparencia, para bandas y rellenos
+  const translucido = (hex, a) => "rgba(" + [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(",") + "," + a + ")";
+  // mezcla un color con blanco (t > 0) o con negro (t < 0): para las escalas secuenciales de una variable
+  const mezclar = (hex, t) => "rgb(" + [1, 3, 5].map(i => {{
+    const c = parseInt(hex.slice(i, i + 2), 16);
+    return Math.round(t >= 0 ? c + (255 - c) * t : c * (1 + t));
+  }}).join(",") + ")";
+  // escala secuencial de una variable: de un tono muy claro a su color y a uno oscuro del mismo matiz
+  const escalaVar = v => [[0, mezclar(COLOR_VAR[v], 0.88)], [0.5, COLOR_VAR[v]], [1, mezclar(COLOR_VAR[v], -0.55)]];
 
   function base() {{
     const tinta = css("--tinta"), tenue = css("--tenue"), linea = css("--linea");
@@ -2654,28 +2806,31 @@ a {{ color: var(--acento); }}
 
   function dibujarTemperatura() {{
     if (!window.Plotly) return;
-    const VERDE = "#009E73", MORADO = "#7C5BC7", GRIS = css("--tenue");
+    // la misma variable (T media) con dos fuentes: el mismo color, distinto trazo. ERA5-Land, línea continua y
+    // banda rellena; MSWX, línea a trazos con rombos y su banda marcada solo por los bordes, punteados
+    const color = COLOR_VAR["T media"];
     const FUENTES = [
-      {{ clave: "mswx", nombre: "MSWX", color: VERDE, relleno: "rgba(0,158,115,0.18)" }},
-      {{ clave: "era", nombre: "ERA5-Land", color: MORADO, relleno: "rgba(124,91,199,0.18)" }}
+      {{ clave: "mswx", nombre: "MSWX", guion: "dash", simbolo: "diamond", relleno: false }},
+      {{ clave: "era", nombre: "ERA5-Land", guion: "solid", simbolo: "circle", relleno: true }}
     ];
 
     // --- ciclo anual: banda p10-p90 y mediana encima
     const trazas = [];
     FUENTES.forEach(f => {{
+      const borde = f.relleno ? {{ width: 0 }} : {{ color: color, width: 1, dash: "dot" }};
       trazas.push({{
         type: "scatter", mode: "lines", x: TEMP.meses, y: TEMP.ciclo[f.clave + "_p90"],
-        line: {{ width: 0 }}, showlegend: false, hoverinfo: "skip", legendgroup: f.clave
+        line: borde, showlegend: false, hoverinfo: "skip", legendgroup: f.clave
       }});
       trazas.push({{
         type: "scatter", mode: "lines", x: TEMP.meses, y: TEMP.ciclo[f.clave + "_p10"],
-        line: {{ width: 0 }}, fill: "tonexty", fillcolor: f.relleno,
+        line: borde, fill: f.relleno ? "tonexty" : "none", fillcolor: translucido(color, 0.2),
         name: f.nombre + " · p10–p90", legendgroup: f.clave,
         hovertemplate: "%{{y:.1f}} °C<extra>" + f.nombre + " · p10</extra>"
       }});
       trazas.push({{
         type: "scatter", mode: "lines+markers", x: TEMP.meses, y: TEMP.ciclo[f.clave + "_p50"],
-        line: {{ color: f.color, width: 2.8 }}, marker: {{ size: 7 }},
+        line: {{ color: color, width: 2.8, dash: f.guion }}, marker: {{ size: 7, symbol: f.simbolo }},
         name: f.nombre + " · mediana", legendgroup: f.clave,
         hovertemplate: "%{{y:.1f}} °C<extra>" + f.nombre + " · mediana</extra>"
       }});
@@ -2767,7 +2922,7 @@ a {{ color: var(--acento); }}
           disposicion[ey].showticklabels = false;
           trazas.push({{
             type: "histogram", x: datos[V[j]], nbinsx: 22,
-            marker: {{ color: tenue, opacity: 0.55, line: {{ color: "rgba(0,0,0,0)", width: 0 }} }},
+            marker: {{ color: COLOR_VAR[V[j]], opacity: 0.6, line: {{ color: "rgba(0,0,0,0)", width: 0 }} }},
             xaxis: "x" + suf(k), yaxis: "y" + suf(k),
             hovertemplate: V[j] + " %{{x}}<br>%{{y}} meses<extra></extra>"
           }});
@@ -2861,9 +3016,7 @@ a {{ color: var(--acento); }}
 
   function dibujarCajas() {{
     if (!window.Plotly) return;
-    const COLORES = {{ "PI": "#0072B2", "PL": "#D55E00", "Q": css("--tenue"),
-                      "T media": "#009E73", "T máx": "#CC79A7", "T mín": "#56B4E9" }};
-    const v = CAJAS.variables[cajaActiva], color = COLORES[v];
+    const v = CAJAS.variables[cajaActiva], color = COLOR_VAR[v];
     const x = [], y = [], fecha = [];
     CAJAS.valores[v].forEach((vals, m) => vals.forEach((val, k) => {{
       x.push(CAJAS.meses[m]); y.push(val); fecha.push(CAJAS.fechas[v][m][k]);
@@ -2906,18 +3059,17 @@ a {{ color: var(--acento); }}
   function dibujarCicloRezago() {{
     if (!window.Plotly) return;
     const tinta = css("--tinta"), tenue = css("--tenue");
-    const NARANJA = "#D55E00", AZUL = "#0072B2";
     const trazas = [
       {{ type: "bar", name: "PL (lluvia)", x: CLQ.meses, y: CLQ.PL,
-         marker: {{ color: NARANJA, opacity: 0.22 }}, hovertemplate: "PL %{{y:.0f}} mm/mes<extra></extra>" }},
+         marker: {{ color: COLOR_VAR.PL, opacity: 0.22 }}, hovertemplate: "PL %{{y:.0f}} mm/mes<extra></extra>" }},
       {{ type: "scatter", mode: "lines+markers", name: "Q observado", x: CLQ.meses, y: CLQ.Q,
-         line: {{ color: tinta, width: 2.6 }}, marker: {{ size: 6, color: tinta }},
+         line: {{ color: COLOR_VAR.Q, width: 2.6 }}, marker: {{ size: 6, color: COLOR_VAR.Q }},
          hovertemplate: "Q %{{y:.0f}} mm/mes<extra></extra>" }},
       {{ type: "scatter", mode: "lines", name: "Q predicho con PL del mes", x: CLQ.meses, y: CLQ.ajusteMes,
          line: {{ color: tenue, width: 1.8, dash: "dot" }},
          hovertemplate: "Q predicho con PL del mes: %{{y:.0f}}<extra></extra>" }},
       {{ type: "scatter", mode: "lines", name: "Q predicho con PL del mes y del anterior", x: CLQ.meses,
-         y: CLQ.ajusteMesAnterior, line: {{ color: AZUL, width: 2.2, dash: "dash" }},
+         y: CLQ.ajusteMesAnterior, line: {{ color: COLOR_VAR.Q, width: 2.2, dash: "dash" }},
          hovertemplate: "Q predicho con PL del mes y del anterior: %{{y:.0f}}<extra></extra>" }}
     ];
     const disposicion = base();
@@ -2970,14 +3122,15 @@ a {{ color: var(--acento); }}
 
   function dibujarEtp() {{
     if (!window.Plotly) return;
+    // las tres son la misma variable (ETP): el mismo color, distinguidas por el trazo y el marcador
     const SERIES = [
-      {{ clave: "camels", nombre: "CAMELS-COL, publicada", color: "#CC79A7", guion: "solid", simbolo: "circle" }},
-      {{ clave: "mswx", nombre: "Hargreaves con MSWX", color: "#009E73", guion: "dash", simbolo: "square" }},
-      {{ clave: "era", nombre: "Hargreaves con ERA5-Land", color: "#0072B2", guion: "solid", simbolo: "diamond" }}
+      {{ clave: "camels", nombre: "CAMELS-COL, publicada", guion: "dot", simbolo: "circle" }},
+      {{ clave: "mswx", nombre: "Hargreaves con MSWX", guion: "dash", simbolo: "square" }},
+      {{ clave: "era", nombre: "Hargreaves con ERA5-Land", guion: "solid", simbolo: "diamond" }}
     ];
     const trazas = SERIES.map(s => ({{
       type: "scatter", mode: "lines+markers", name: s.nombre, x: ETP.meses, y: ETP[s.clave],
-      line: {{ color: s.color, width: 2, dash: s.guion }}, marker: {{ symbol: s.simbolo, size: 6 }},
+      line: {{ color: COLOR_VAR.ETP, width: 2, dash: s.guion }}, marker: {{ symbol: s.simbolo, size: 7 }},
       hovertemplate: "%{{y:.0f}} mm<extra>" + s.nombre + "</extra>" }}));
     trazas.push({{ type: "scatter", mode: "lines", name: "PL − Q", x: ETP.meses, y: ETP.pl_q,
       line: {{ color: css("--tenue"), width: 1.4, dash: "dot" }},
@@ -2989,17 +3142,18 @@ a {{ color: var(--acento); }}
 
   function dibujarDobleMasa() {{
     if (!window.Plotly) return;
-    const series = Object.keys(DM), AZUL = "#0072B2", NARANJA = "#D55E00", GRIS = css("--tenue");
+    const series = Object.keys(DM), GRIS = css("--tenue");
     const trazas = [], botones = [];
     series.forEach((s, i) => {{
-      const d = DM[s], color = d.corte ? NARANJA : AZUL, n = d.x.length;
+      // la línea lleva el color de su variable (PL, PI o Q); el salto lo marca el rombo
+      const d = DM[s], color = COLOR_VAR[d.variable], n = d.x.length;
       trazas.push({{ type: "scatter", mode: "lines", name: s, x: d.x, y: d.y, customdata: d.meses, visible: i === 0,
         line: {{ color: color, width: 2 }}, hovertemplate: "%{{customdata}}<br>serie %{{y:,.0f}} mm<br>referencia %{{x:,.0f}} mm<extra></extra>" }});
       trazas.push({{ type: "scatter", mode: "lines", name: "proporción constante", x: [0, d.x[n - 1]], y: [0, d.y[n - 1]],
         visible: i === 0, line: {{ color: GRIS, width: 1, dash: "dot" }}, hoverinfo: "skip" }});
       const k = d.corte ? d.meses.indexOf(d.corte) : -1;
       trazas.push({{ type: "scatter", mode: "markers", name: "comienzo del 2.º tramo", visible: i === 0,
-        x: k >= 0 ? [d.x[k]] : [], y: k >= 0 ? [d.y[k]] : [], marker: {{ symbol: "diamond", size: 11, color: NARANJA }},
+        x: k >= 0 ? [d.x[k]] : [], y: k >= 0 ? [d.y[k]] : [], marker: {{ symbol: "diamond", size: 12, color: css("--tinta") }},
         hovertemplate: (d.corte || "") + "<extra>comienzo del 2.º tramo</extra>" }});
       botones.push({{ label: s, method: "update",
         args: [{{ visible: series.flatMap((_, j) => [j === i, j === i, j === i]) }},
@@ -3024,18 +3178,18 @@ a {{ color: var(--acento); }}
 
   function dibujarPQ() {{
     if (!window.Plotly) return;
-    const NARANJA = "#D55E00", AZUL = "#0072B2", VERDE = "#009E73", GRIS = css("--tenue");
+    const GRIS = css("--tenue");
     const mensual = base();
     mensual.margin = {{ t: 46, r: 10, b: 30, l: 54 }};
     mensual.yaxis.rangemode = "normal";
     mensual.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: {{ color: GRIS, width: 1 }} }}];
     Plotly.react("g-pq-mensual", [
       {{ type: "scatter", mode: "lines", name: "PL − Q", x: PQ.meses, y: PQ.pl_q, connectgaps: false,
-         line: {{ color: NARANJA, width: 1.6 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL − Q</extra>" }},
+         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL − Q</extra>" }},
       {{ type: "scatter", mode: "lines", name: "PI − Q", x: PQ.meses, y: PQ.pi_q, connectgaps: false,
-         line: {{ color: AZUL, width: 1.2, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>PI − Q</extra>" }},
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, hovertemplate: "%{{y:.0f}} mm<extra>PI − Q</extra>" }},
       {{ type: "scatter", mode: "lines", name: "ETP (Hargreaves, ERA5-Land)", x: PQ.meses, y: PQ.etp,
-         line: {{ color: VERDE, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
+         line: {{ color: COLOR_VAR.ETP, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
     ], mensual, CONF);
     const anual = base();
     anual.margin = {{ t: 46, r: 10, b: 40, l: 54 }};
@@ -3043,12 +3197,12 @@ a {{ color: var(--acento); }}
     anual.xaxis.type = "category";
     anual.barmode = "group";
     Plotly.react("g-pq-anual", [
-      {{ type: "bar", name: "PL − Q", x: PQ.anios, y: PQ.pl_q_anual, marker: {{ color: NARANJA }},
+      {{ type: "bar", name: "PL − Q", x: PQ.anios, y: PQ.pl_q_anual, marker: {{ color: COLOR_VAR.PL }},
          hovertemplate: "%{{y:.0f}} mm<extra>PL − Q</extra>" }},
-      {{ type: "bar", name: "PI − Q", x: PQ.anios, y: PQ.pi_q_anual, marker: {{ color: AZUL, opacity: 0.75 }},
+      {{ type: "bar", name: "PI − Q", x: PQ.anios, y: PQ.pi_q_anual, marker: {{ color: COLOR_VAR.PI, opacity: 0.75 }},
          hovertemplate: "%{{y:.0f}} mm<extra>PI − Q</extra>" }},
       {{ type: "scatter", mode: "lines+markers", name: "ETP", x: PQ.anios, y: PQ.etp_anual,
-         line: {{ color: VERDE, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
+         line: {{ color: COLOR_VAR.ETP, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
     ], anual, CONF);
   }}
 
@@ -3127,10 +3281,11 @@ a {{ color: var(--acento); }}
         font: {{ size: 11, color: color[a] }} }});
       pares.push({{ type: "scatter", mode: "lines+markers", name: "PL", legendgroup: "PL", showlegend: i === 0,
         x: ANOM.meses, y: ANOM.anios[a].serie, xaxis: "x" + sx, yaxis: "y" + sx,
-        line: {{ color: color[a], width: 2.2 }}, marker: {{ size: 4 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL " + a + "</extra>" }});
+        // en este panel las líneas son variables (PL y PI) y llevan su color; el año lo dice el título del panel
+        line: {{ color: COLOR_VAR.PL, width: 2.2 }}, marker: {{ size: 4 }}, hovertemplate: "%{{y:.0f}} mm<extra>PL " + a + "</extra>" }});
       pares.push({{ type: "scatter", mode: "lines+markers", name: "PI", legendgroup: "PI", showlegend: i === 0,
         x: ANOM.meses, y: ANOM.anios[a].pi, xaxis: "x" + sx, yaxis: "y" + sx,
-        line: {{ color: css("--tinta"), width: 1.6, dash: "dash" }}, marker: {{ size: 4, symbol: "diamond" }},
+        line: {{ color: COLOR_VAR.PI, width: 1.6, dash: "dash" }}, marker: {{ size: 4, symbol: "diamond" }},
         hovertemplate: "%{{y:.0f}} mm<extra>PI " + a + "</extra>" }});
     }});
     d3.legend.y = 1.0;
@@ -3139,8 +3294,6 @@ a {{ color: var(--acento); }}
 
   const ANZ = {anz_json};
   const TEND = {tend_json};
-  const ANZ_COLOR = {{ "PL*": "#0072B2", "PI": "#E69F00", "Q": "#009E73",
-                       "T mín": "#56B4E9", "T media": "#7C5BC7", "T máx": "#D55E00" }};
   let anzGrupo = 0, tendPeriodo = 0;
 
   // fondo según la fase del ENSO (ONI de la NOAA, scripts/17): rojo El Niño, azul La Niña, sin color neutro
@@ -3166,12 +3319,12 @@ a {{ color: var(--acento); }}
       vars.forEach(v => {{
         trazas.push({{ type: "scatter", mode: "lines", name: v, legendgroup: v, showlegend: k === 0,
           x: ANZ.fechas, y: ANZ.series[v][rep], yaxis: eje, connectgaps: false,
-          line: {{ color: ANZ_COLOR[v], width: 1.2 }},
+          line: {{ color: COLOR_VAR[v], width: 1.2 }},
           hovertemplate: "%{{y}}<extra>" + v + " · " + rep + "</extra>" }});
         if (rep !== "X") {{
           const r = ANZ.series[v].recta[rep];
           trazas.push({{ type: "scatter", mode: "lines", x: r.x, y: r.y, yaxis: eje, showlegend: false,
-            legendgroup: v, hoverinfo: "skip", line: {{ color: ANZ_COLOR[v], width: 2.2, dash: "dash" }} }});
+            legendgroup: v, hoverinfo: "skip", line: {{ color: COLOR_VAR[v], width: 2.2, dash: "dash" }} }});
         }}
       }});
     }});
@@ -3224,9 +3377,47 @@ a {{ color: var(--acento); }}
     Plotly.react("g-tend-mes", [traza], d, CONF);
   }}
 
+  // mapa año–mes: una matriz por variable (años × meses); los meses sin dato van en una segunda capa, gris
+  const MAPA = {mapa_am_json};
+  let mapaVar = 0;
+
+  function dibujarMapaAnioMes() {{
+    if (!window.Plotly) return;
+    const V = MAPA.variables[mapaVar];
+    const info = V.z.map((fila, i) => fila.map((x, j) =>
+      "<b>" + MES[j] + " " + MAPA.anios[i] + "</b><br>" + V.nombre + ": " +
+      (x === null ? "sin dato" : x.toFixed(V.dec) + " " + V.unidad)));
+    const vacios = V.z.map(fila => fila.map(x => x === null ? 1 : null));
+    const tenue = css("--tenue");
+    const trazas = [{{
+      type: "heatmap", x: MES, y: MAPA.anios, z: V.z, customdata: info, hoverongaps: false,
+      hovertemplate: "%{{customdata}}<extra></extra>", zmin: V.rango[0], zmax: V.rango[1],
+      colorscale: escalaVar(V.nombre), xgap: 1, ygap: 1,      // escala secuencial del color de la variable
+      colorbar: {{ title: {{ text: V.unidad, side: "right", font: {{ size: 10, color: tenue }} }},
+                  thickness: 12, outlinewidth: 0, tickfont: {{ size: 9, color: tenue }} }}
+    }}];
+    if (vacios.flat().some(x => x !== null)) trazas.push({{
+      type: "heatmap", x: MES, y: MAPA.anios, z: vacios, customdata: info, hoverongaps: false,
+      hovertemplate: "%{{customdata}}<extra></extra>", zmin: 0, zmax: 1,
+      // gris del tema a media opacidad: se distingue del tono más claro de las escalas en los dos temas
+      colorscale: [[0, tenue], [1, tenue]], opacity: 0.45, showscale: false, xgap: 1, ygap: 1
+    }});
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 10, r: 10, b: 36, l: 48 }};
+    d.yaxis.type = "category";
+    d.yaxis.rangemode = "normal";
+    d.yaxis.autorange = "reversed";          // el primer año arriba
+    d.yaxis.title.text = "";
+    d.xaxis.gridcolor = "rgba(0,0,0,0)";
+    d.yaxis.gridcolor = "rgba(0,0,0,0)";
+    Plotly.react("g-mapa-am", trazas, d, CONF);
+  }}
+
   // pestañas: cambian lo que se dibuja, no el panel que se muestra
   [["pestana-anz-", Object.keys(ANZ.grupos).length, i => {{ anzGrupo = i; dibujarAnz(); }}],
-   ["pestana-tend-", Object.keys(TEND).length, i => {{ tendPeriodo = i; dibujarTendMes(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+   ["pestana-tend-", Object.keys(TEND).length, i => {{ tendPeriodo = i; dibujarTendMes(); }}],
+   ["pestana-mapa-", MAPA.variables.length, i => {{ mapaVar = i; dibujarMapaAnioMes(); }}]].forEach(([prefijo, cuantos, accion]) => {{
     const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
     if (botones.some(b => !b)) return;
     botones.forEach((boton, i) => boton.addEventListener("click", () => {{
@@ -3243,7 +3434,7 @@ a {{ color: var(--acento); }}
     if (!window.Plotly) return;
     const v = Object.keys(MET)[metVar], k = MET_REPS[metRep];
     const D = MET[v][k];
-    const color = ANZ_COLOR[v];
+    const color = COLOR_VAR[v];
     const trazas = [
       {{ type: "scatter", mode: "lines", name: "meses", x: D.fechas, y: D.y, line: {{ color: css("--tenue"), width: 0.8 }},
          opacity: 0.6, hovertemplate: "%{{y}}<extra>" + v + " · " + k + "</extra>" }},
@@ -3285,7 +3476,7 @@ a {{ color: var(--acento); }}
   function dibujarPendMes() {{
     if (!window.Plotly) return;
     const v = Object.keys(PEND)[pendVar], D = PEND[v];
-    const color = ANZ_COLOR[v];
+    const color = COLOR_VAR[v];
     const xs = d => MES.map((_, i) => i + d);
     const trazas = [
       {{ type: "scatter", mode: "markers", name: "OLS ± IC 95 %", x: xs(-0.15), y: D.ols,
@@ -3325,7 +3516,7 @@ a {{ color: var(--acento); }}
   const FOU = {fou_json};
   let fouTipo = 0, fouVen = 0;
   const FOU_TIPOS = ["original", "anomalía", "anomalía sin tendencia"];
-  const FOU_COLOR = {{ "PL": "#D55E00", "PL*": "#D55E00", "PI": "#0072B2", "Q": "#009E73", "T": "#7C5BC7" }};
+  const FOU_COLOR = {{ ...COLOR_VAR, "T": COLOR_VAR["T media"] }};   // Fourier llama T a la T media
 
   function dibujarFourier() {{
     if (!window.Plotly) return;
@@ -3369,7 +3560,7 @@ a {{ color: var(--acento); }}
 
   function dibujarPuntoDos() {{
     if (!window.Plotly) return;
-    const AZUL = "#0072B2", NARANJA = "#D55E00", GRIS = css("--tenue");
+    const GRIS = css("--tenue");
     const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
     const tope = Math.ceil(Math.max(...P2.pi, ...P2.pl) / 50) * 50;
     const d1 = base();
@@ -3397,28 +3588,28 @@ a {{ color: var(--acento); }}
     d2.yaxis.title.text = "Q (m³/s)";
     Plotly.react("g-evaluacion", [
       {{ type: "scatter", mode: "lines", name: "Q observado", x: EV.meses, y: EV.q,
-         line: {{ color: css("--tinta"), width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>Q observado</extra>" }},
+         line: {{ color: COLOR_VAR.Q, width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>Q observado</extra>" }},
       {{ type: "scatter", mode: "lines", name: "climatología", x: EV.meses, y: EV.clima,
          line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} m³/s<extra>climatología</extra>" }},
       {{ type: "scatter", mode: "lines", name: "estimado con PL", x: EV.meses, y: EV.pl,
-         line: {{ color: NARANJA, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PL</extra>" }},
+         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PL</extra>" }},
       {{ type: "scatter", mode: "lines", name: "estimado con PI", x: EV.meses, y: EV.pi,
-         line: {{ color: AZUL, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PI</extra>" }}
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PI</extra>" }}
     ], d2, CONF);
   }}
   const BAL = {bal_json};
 
   function dibujarBalance() {{
     if (!window.Plotly) return;
-    const AZUL = "#0072B2", NARANJA = "#D55E00", GRIS = css("--tenue");
+    const GRIS = css("--tenue");
 
     Plotly.react("g-balance", [
       {{ type: "scatter", mode: "lines", name: "PI · precipitación IMERG", x: BAL.meses, y: BAL.p,
-         line: {{ color: AZUL, width: 1.6 }}, fill: "tozeroy",
-         fillcolor: "rgba(0,114,178,0.16)",
+         line: {{ color: COLOR_VAR.PI, width: 1.6 }}, fill: "tozeroy",
+         fillcolor: translucido(COLOR_VAR.PI, 0.16),
          hovertemplate: "%{{y:.0f}} mm<extra>PI</extra>" }},
       {{ type: "scatter", mode: "lines", name: "Q · caudal observado", x: BAL.meses, y: BAL.q,
-         line: {{ color: NARANJA, width: 1.6 }}, connectgaps: false,
+         line: {{ color: COLOR_VAR.Q, width: 1.6 }}, connectgaps: false,
          hovertemplate: "%{{y:.0f}} mm<extra>Q</extra>" }}
     ], Object.assign(base(), {{ margin: {{ t: 46, r: 10, b: 30, l: 54 }} }}), CONF);
 
@@ -3432,21 +3623,21 @@ a {{ color: var(--acento); }}
       {{ type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: 1, y1: 1,
          line: {{ color: GRIS, width: 1, dash: "dot" }} }},
       {{ type: "line", xref: "paper", x0: 0, x1: 1, yref: "y", y0: BAL.coef_medio, y1: BAL.coef_medio,
-         line: {{ color: NARANJA, width: 1.2, dash: "dash" }} }}
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }} }}
     ];
     disp.annotations = [
       {{ xref: "paper", x: 0.004, xanchor: "left", y: 1, yanchor: "bottom",
          text: "caudal = lluvia del mes", showarrow: false, font: {{ size: 10, color: GRIS }} }},
       {{ xref: "paper", x: 0.004, xanchor: "left", y: BAL.coef_medio, yanchor: "bottom",
          text: "promedio de Q / PI: " + BAL.coef_medio.toFixed(2), showarrow: false,
-         font: {{ size: 10, color: NARANJA }} }}
+         font: {{ size: 10, color: COLOR_VAR.PI }} }}
     ];
     Plotly.react("g-escorrentia", [
       {{ type: "scatter", mode: "lines", name: "Q / PL", x: BAL.meses, y: BAL.coef_pl,
-         line: {{ color: "#4A5259", width: 1.4 }}, connectgaps: false,
+         line: {{ color: COLOR_VAR.PL, width: 1.4 }}, connectgaps: false,
          hovertemplate: "%{{y:.2f}}<extra>Q / PL</extra>" }},
       {{ type: "scatter", mode: "lines", name: "Q / PI", x: BAL.meses, y: BAL.coef,
-         line: {{ color: AZUL, width: 1, dash: "dot" }}, connectgaps: false,
+         line: {{ color: COLOR_VAR.PI, width: 1, dash: "dot" }}, connectgaps: false,
          hovertemplate: "%{{y:.2f}}<extra>Q / PI</extra>" }}
     ], disp, CONF);
   }}
@@ -3455,20 +3646,20 @@ a {{ color: var(--acento); }}
 
   function dibujarCicloAnual() {{
     if (!window.Plotly) return;
-    const AZUL = "#0072B2", NARANJA = "#D55E00", VERDE = "#009E73", GRIS = css("--tenue");
+    const GRIS = css("--tenue");
 
     Plotly.react("g-ciclo-anual", [
       {{ type: "scatter", mode: "lines+markers", name: "PI · lluvia IMERG",
          x: CICLO.meses, y: CICLO.imerg,
-         line: {{ color: AZUL, width: 2.2 }}, marker: {{ size: 7 }},
+         line: {{ color: COLOR_VAR.PI, width: 2.2 }}, marker: {{ size: 7 }},
          hovertemplate: "%{{y:.0f}} mm<extra>PI</extra>" }},
       {{ type: "scatter", mode: "lines+markers", name: "PL · lluvia de la red",
          x: CICLO.meses, y: CICLO.red,
-         line: {{ color: NARANJA, width: 2.2, dash: "dash" }}, marker: {{ size: 7 }},
+         line: {{ color: COLOR_VAR.PL, width: 2.2, dash: "dash" }}, marker: {{ size: 7 }},
          hovertemplate: "%{{y:.0f}} mm<extra>PL</extra>" }},
       {{ type: "scatter", mode: "lines+markers", name: "Q · caudal", x: CICLO.meses, y: CICLO.caudal,
-         line: {{ color: VERDE, width: 2.6 }}, marker: {{ size: 8 }}, fill: "tozeroy",
-         fillcolor: "rgba(0,158,115,0.15)",
+         line: {{ color: COLOR_VAR.Q, width: 2.6 }}, marker: {{ size: 8 }}, fill: "tozeroy",
+         fillcolor: translucido(COLOR_VAR.Q, 0.15),
          hovertemplate: "%{{y:.0f}} mm<extra>Q</extra>" }}
     ], Object.assign(base(), {{ margin: {{ t: 58, r: 12, b: 38, l: 56 }} }}), CONF);
 
@@ -3478,19 +3669,19 @@ a {{ color: var(--acento); }}
 
   function dibujarGradiente() {{
     if (!window.Plotly) return;
-    const AZUL = "#0072B2", NARANJA = "#D55E00", GRIS = css("--tenue");
+    const GRIS = css("--tenue");
 
     const trazas = [
       // todas las celdas que tocan la cuenca; el tamaño dice cuánto pesan en el ajuste
       {{ type: "scatter", mode: "markers", name: "celdas de IMERG (tamaño = % dentro)",
          x: GRAD.imerg.alt, y: GRAD.imerg.p,
-         marker: {{ size: GRAD.imerg.frac.map(f => 5 + 0.09 * f), color: AZUL,
+         marker: {{ size: GRAD.imerg.frac.map(f => 5 + 0.09 * f), color: COLOR_VAR.PI,
                     line: {{ color: "#FFFFFF", width: 1.2 }} }},
          text: GRAD.imerg.frac,
          hovertemplate: "%{{y:.0f}} mm/año a %{{x:.0f}} m<br>%{{text:.0f}} % dentro"
                       + "<extra>celda de IMERG</extra>" }},
       {{ type: "scatter", mode: "lines", name: "tendencia IMERG", x: GRAD.rectaImerg.x,
-         y: GRAD.rectaImerg.y, line: {{ color: AZUL, width: 2 }}, hoverinfo: "skip" }},
+         y: GRAD.rectaImerg.y, line: {{ color: COLOR_VAR.PI, width: 2 }}, hoverinfo: "skip" }},
       // la estación fuera de la divisoria: hueca, tampoco entra en el ajuste
       {{ type: "scatter", mode: "markers", name: "estación fuera de la divisoria",
          x: GRAD.pluFuera.alt, y: GRAD.pluFuera.p,
@@ -3499,11 +3690,11 @@ a {{ color: var(--acento); }}
          hovertemplate: "%{{y:.0f}} mm/año a %{{x:.0f}} m<extra>%{{text}}</extra>" }},
       {{ type: "scatter", mode: "markers", name: "pluviómetros de la cuenca",
          x: GRAD.plu.alt, y: GRAD.plu.p,
-         marker: {{ size: 13, color: NARANJA, line: {{ color: "#FFFFFF", width: 1.4 }} }},
+         marker: {{ size: 13, color: COLOR_VAR.PL, line: {{ color: "#FFFFFF", width: 1.4 }} }},
          text: GRAD.plu.nombre,
          hovertemplate: "%{{y:.0f}} mm/año a %{{x:.0f}} m<extra>%{{text}}</extra>" }},
       {{ type: "scatter", mode: "lines", name: "tendencia pluviómetros", x: GRAD.rectaPlu.x,
-         y: GRAD.rectaPlu.y, line: {{ color: NARANJA, width: 2, dash: "dash" }}, hoverinfo: "skip" }}
+         y: GRAD.rectaPlu.y, line: {{ color: COLOR_VAR.PL, width: 2, dash: "dash" }}, hoverinfo: "skip" }}
     ];
 
     const disp = base();
@@ -3523,15 +3714,15 @@ a {{ color: var(--acento); }}
          hovertemplate: "%{{y:.0f}} mm/año a %{{x:.0f}} m<extra>%{{text}} · apartada</extra>" }},
       {{ type: "scatter", mode: "markers", name: "estaciones del ajuste",
          x: GRAD.pluLimpio.alt, y: GRAD.pluLimpio.p,
-         marker: {{ size: 13, color: NARANJA, line: {{ color: "#FFFFFF", width: 1.4 }} }},
+         marker: {{ size: 13, color: COLOR_VAR.PL, line: {{ color: "#FFFFFF", width: 1.4 }} }},
          text: GRAD.pluLimpio.nombre,
          hovertemplate: "%{{y:.0f}} mm/año a %{{x:.0f}} m<extra>%{{text}}</extra>" }},
       {{ type: "scatter", mode: "lines", name: "tendencia de estas estaciones",
          x: GRAD.rectaLimpio.x, y: GRAD.rectaLimpio.y,
-         line: {{ color: NARANJA, width: 2.4 }}, hoverinfo: "skip" }},
+         line: {{ color: COLOR_VAR.PL, width: 2.4 }}, hoverinfo: "skip" }},
       {{ type: "scatter", mode: "lines", name: "tendencia de IMERG",
          x: GRAD.rectaImergEnTramo.x, y: GRAD.rectaImergEnTramo.y,
-         line: {{ color: AZUL, width: 2.4, dash: "dash" }}, hoverinfo: "skip" }}
+         line: {{ color: COLOR_VAR.PI, width: 2.4, dash: "dash" }}, hoverinfo: "skip" }}
     ];
 
     const dispLimpio = base();
@@ -3549,7 +3740,7 @@ a {{ color: var(--acento); }}
     // los pluviómetros sueltos van tenues y comparten una sola entrada de leyenda
     const series = D.series.map(s => ({{
       type: "scatter", mode: "lines", name: s.etiquetaGrupo || s.nombre, x: D.meses, y: s.y,
-      line: {{ color: s.color, width: s.grosor, dash: s.guion || "solid" }}, connectgaps: false,
+      line: {{ color: COLOR_VAR[s.variable], width: s.grosor, dash: s.guion || "solid" }}, connectgaps: false,
       opacity: s.opacidad === undefined ? 1 : s.opacidad,
       legendgroup: s.grupo || s.nombre,
       showlegend: s.enLeyenda === undefined ? true : s.enLeyenda,
@@ -3560,7 +3751,7 @@ a {{ color: var(--acento); }}
     const ciclo = D.ciclo.map(s => ({{
       type: "scatter", mode: s.opacidad === undefined ? "lines+markers" : "lines",
       name: s.nombre, x: MES, y: s.y,
-      line: {{ color: s.color, width: s.opacidad === undefined ? 2 : 1.1,
+      line: {{ color: COLOR_VAR[s.variable], width: s.opacidad === undefined ? 2 : 1.1,
               dash: s.guion || "solid" }},
       marker: {{ size: 6 }}, opacity: s.opacidad === undefined ? 1 : s.opacidad,
       legendgroup: s.grupo || s.nombre,
@@ -3583,6 +3774,7 @@ a {{ color: var(--acento); }}
     dibujarAnomalias();
     dibujarAnz();
     dibujarTendMes();
+    dibujarMapaAnioMes();
     dibujarMetodos();
     dibujarPendMes();
     dibujarFourier();

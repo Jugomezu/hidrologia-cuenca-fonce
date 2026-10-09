@@ -25,3 +25,6 @@ __pycache__/
 desktop.ini
 Thumbs.db
 .DS_Store
+
+# Geología del SGC: la geodatabase descomprimida (~26 MB) se rehace desde data/sgc/mgc2023.gdb.zip, que sí se versiona
+data/sgc/mgc2023.gdb/

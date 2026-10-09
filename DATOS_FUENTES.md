@@ -22,6 +22,8 @@ Los DOI y versiones se verificaron contra la fuente autoritativa (API de Zenodo,
 | DEM ALOS PALSAR 12.5 m (recorte de la zona) | sin DOI registrado (ver seccion) | sin registrar (ver seccion) | recorte en `data/dem/`, 2026-09-27 |
 | Copernicus DEM GLO-90 (relieve del mapa de ubicacion) | no verificado (ver seccion) | no verificada (ver seccion) | 2026-10-09, copia publica en Amazon S3 |
 | Natural Earth 1:10 m, limites de paises y departamentos (v5.1.1) | sin DOI | no verificada (ver seccion) | 2026-10-09, copia oficial en Amazon S3 |
+| Mapa Geologico de Colombia 2023, escala 1:1 500 000 (SGC) | sin DOI | no verificada (ver seccion) | 2026-10-09, sitio del SGC |
+| MapBiomas Colombia coleccion 3, cobertura 2022 | sin DOI | publica con cita de la fuente (ver seccion) | 2026-10-09, copia publica en Google Cloud Storage |
 
 ---
 
@@ -869,6 +871,57 @@ propios (ver la seccion siguiente).
 - **Uso:** solo la Figura 1 del informe. Los limites estan generalizados para la escala 1:10 m: sirven para ubicar,
   no para medir.
 
+
+
+## Mapa Geologico de Colombia 2023, escala 1:1 500 000 (Servicio Geologico Colombiano)
+
+- **Producto:** Mapa Geologico de Colombia 2023 del Servicio Geologico Colombiano (SGC), escala 1:1 500 000, en
+  geodatabase de ArcGIS. CAMELS-COL lo cita como Gomez et al. (2023) y saca de el sus siete litologias.
+- **Fuente:** https://www2.sgc.gov.co/MGC/Paginas/mgc_1_5M2023.aspx, archivo
+  `https://www2.sgc.gov.co/MGC/Documents/MGC_2023/mgc2023.gdb.zip` (7.2 MB; el servidor lo marca como modificado
+  el 2023-10-19).
+- **Licencia:** **no verificada.** La pagina de descarga es publica y sin registro; hay que confirmar los terminos
+  de uso del SGC antes de entregar.
+- **Descargado:** 2026-10-09, con `scripts/03c_geologia_sgc.py` (se baja solo si no existe en `data/`; la descarga
+  sigue desde el ultimo byte si la conexion se corta).
+- **Destino local:** `data/sgc/mgc2023.gdb.zip` (en git). La geodatabase descomprimida, `data/sgc/mgc2023.gdb/`
+  (~26 MB), queda fuera de git y la rehace el script.
+- **SHA-256:** `mgc2023.gdb.zip`: `e7b0e9733dc92a72d33e1578d92717774e2a43d6bc67f23e9ad567931db39167`
+- **Capas usadas:** `UC` (unidades cronoestratigraficas: simbolo, descripcion, edad) y `Fallas` (solo para el mapa).
+  Sistema de referencia del archivo: EPSG:4686 (MAGNA-SIRGAS geograficas).
+- **Transformaciones:** recorte de las unidades con el poligono de San Gil del proyecto; area de cada pedazo en
+  EPSG:3116; cada unidad se asigna a un grupo litologico por la letra de su simbolo despues del guion (S, M, P, H,
+  V, VC; minuscula = deposito cuaternario). Productos: `out/geologia_sgc_fonce_unidades.csv`,
+  `out/geologia_sgc_fonce.csv` y `reporte/figuras/mapa_geologico.png`.
+- **Por que no se usa la geologia de CAMELS-COL:** comparada con este recorte, sus columnas de rocas plutonicas,
+  hipoabisales, metamorficas y sedimentarias traen el porcentaje de otro grupo (por ejemplo, su 63.72 % de
+  "plutonic_rock_perc" es el area sedimentaria del SGC), y su columna volcanoclastica repite la volcanica en las
+  346 cuencas del archivo. `scripts/18_calculos_informe.py` comprueba esa correspondencia con `assert`.
+- **Uso:** la geologia del informe (tabla y Figura 5).
+
+
+## MapBiomas Colombia, coleccion 3: cobertura y uso del suelo 2022
+
+- **Producto:** mapa anual de cobertura y uso del suelo de MapBiomas Colombia, coleccion 3.0, ano 2022. GeoTIFF
+  en EPSG:4326 con celdas de 0.000269° (unos 30 m), organizado en bloques de 512 x 512, valor 0 = sin dato.
+- **Fuente:** copia publica en Google Cloud Storage, sin cuenta:
+  `https://storage.googleapis.com/mapbiomas-public/initiatives/colombia/collection_3/coverage/colombia_coverage_2022.tif`
+  (114 MB el pais entero; se lee solo la ventana de la cuenca).
+- **Leyenda:** los codigos de las clases se copiaron de la hoja "LEYENDA" de
+  `statistics_for_website_mb_colombia_transision_col3.xlsx` (misma copia publica,
+  `.../collection_3/statistics/`). El encabezado de esa hoja dice "coleccion 2", pero el archivo es de la
+  coleccion 3 e incluye las clases andinas (81 y 82) que aparecen en la cuenca. Algunos colores de la leyenda vienen
+  con codigos hexadecimales incompletos; en el mapa se reemplazaron por colores parecidos.
+- **Licencia y cita:** segun la hoja "READ_ME" del archivo de estadisticas, los datos son publicos y gratuitos con
+  la cita: "Fundacion Gaia Amazonas (2025). Proyecto MapBiomas Colombia Coleccion 3.0 - Mapeo Anual de Cobertura y
+  Uso del Suelo, recuperado en [FECHA] a traves del enlace [LINK]".
+- **Descargado:** 2026-10-09, con `scripts/03d_coberturas_mapbiomas.py` (lee la ventana solo si no existe en `data/`).
+- **Destino local:** `data/mapbiomas/colombia_coverage_2022_fonce.tif` (en git), la ventana tal como se lee.
+- **SHA-256:** `colombia_coverage_2022_fonce.tif`: `22957c058c523283b40fbc14526b1758e5804dbb45e62ad00c4bd11e7508e58f`
+- **Transformaciones:** una celda entra si su centro cae en el poligono de San Gil del proyecto; area de cada celda
+  en el elipsoide WGS84. Productos: `out/coberturas_mapbiomas_fonce_2022.csv` y `reporte/figuras/mapa_coberturas.png`.
+- **Uso:** las coberturas del informe (tabla y Figura 6). CAMELS-COL usa la coleccion 2 sobre su propio poligono;
+  el informe compara las dos por grupo.
 
 ## Area de la cuenca (decidido el 2026-09-27)
 

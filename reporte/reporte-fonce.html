@@ -2710,27 +2710,96 @@ section, section h3 { scroll-margin-top: 20px; }
 <section>
   <div class="revision" data-etiqueta="Revisión · uso de IA">
   <h2>Uso de inteligencia artificial</h2>
-  <p>Este informe se hizo con ayuda de Claude (Anthropic), un modelo de lenguaje, usado a través de Claude Code, un
-  asistente de programación que trabaja directamente sobre el repositorio del proyecto. Casi todo el código del
-  repositorio se escribió con esa ayuda.</p>
-  <p><b>Qué hizo la IA</b></p>
+  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA) de Anthropic. Casi todo el código
+  del repositorio se escribió con esa ayuda. Las decisiones de método las tomó el equipo: la IA presentó las opciones
+  con su evidencia y una recomendación. Esta sección sigue la declaración que pide la política del curso; el anexo, al
+  final, reúne las propuestas de la IA que el equipo rechazó o corrigió.</p>
+
+  <h3>Herramientas y versión</h3>
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Herramienta</th><th>Versión</th><th>Para qué</th></tr></thead>
+    <tbody>
+<tr><td><b>Claude Code (Anthropic)</b></td><td>2.1.293, el 2026-10-09</td><td>asistente de programación que lee y edita el repositorio y corre los scripts, desde la terminal y VS Code</td></tr>
+<tr><td><b>Claude Opus 5.5 (claude-opus-5-5)</b></td><td>modelo de lenguaje</td><td>el modelo principal; figura como coautor en los commits del repositorio («Co-Authored-By»)</td></tr>
+<tr><td><b>Claude Sonnet 5.5 (claude-sonnet-5-5)</b></td><td>modelo de lenguaje</td><td>tareas delegadas a subagentes, como el dibujo de figuras y el encabezado de autores de esta página</td></tr>
+    </tbody>
+  </table></div>
+  <p class="nota">En el repositorio no queda registro de otras herramientas de IA. Los modelos se identifican por su nombre y su
+  identificador, que es la versión que informa la propia herramienta.</p>
+
+  <h3>En qué tareas intervino</h3>
   <ul>
-    <li>Escribir y corregir el código de Python: la descarga y el procesamiento de los datos, el control de calidad, los cálculos estadísticos, las figuras y el script que genera esta página.</li>
-    <li>Redactar borradores de los textos del informe, que el equipo revisó, corrigió o descartó.</li>
-    <li>Buscar bibliografía y comprobar, leyendo las fuentes disponibles, que cada cita diga lo que el informe le atribuye.</li>
-    <li>Verificar que el código corre de principio a fin y que la página abre sin errores.</li>
+    <li><b>Código:</b> los scripts de <code>scripts/</code>, de la descarga de los datos (IMERG, ERA5-Land, los
+    pluviómetros del IDEAM, ERSST y los campos de ERA5) a su procesamiento, el control de calidad, las pruebas de
+    saltos, la climatología, las anomalías, las tendencias, el análisis de Fourier, los modelos lluvia–caudal, el índice
+    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo empezó angomezma-cyber en su rama y la IA lo
+    integró a los scripts del proyecto.</li>
+    <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
+    particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
+    el equipo los leyera antes de entrar al informe.</li>
+    <li><b>Bibliografía:</b> búsqueda de fuentes y lectura de las disponibles para comprobar que digan lo que el informe
+    les atribuye.</li>
+    <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
-  <p><b>Qué hizo el equipo</b></p>
+
+  <h3>Qué se verificó y cómo</h3>
   <ul>
-    <li>Tomar las decisiones de método: períodos de análisis, umbrales, exclusiones de datos, fuentes y criterios de clasificación. La IA presentó las opciones con su evidencia y una recomendación; las decisiones, con lo que recomendó la IA y los casos en que el equipo decidió distinto, están registradas en <code>DECISIONES.md</code>.</li>
-    <li>Revisar los cambios antes de incorporarlos al informe y responder por ellos.</li>
+    <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
+    partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
+    los datos están protegidas por 137 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    informe: si los datos dejan de sostener una frase, el script se detiene.</li>
+    <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
+    faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
+    comprobado, lo decidido y su efecto.</li>
+    <li><b>Cálculos contra referencias externas:</b> la radiación de la ETP contra el ejemplo de FAO-56 («La
+    evapotranspiración potencial»), IMERG contra su archivo empaquetado, la temperatura de ERSST contra el ONI de la
+    NOAA («Campos climáticos globales») y el área de la cuenca contra la publicada por CAMELS-COL.</li>
+    <li><b>Recálculos independientes:</b> algunas cifras se recalcularon fuera del script, directamente desde los CSV de
+    <code>out/</code>, antes de aceptarlas; por ejemplo, el índice P/ETP anual, sus años extremos y los valores de
+    enero.</li>
+    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente. Una fuente
+    propuesta se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
+    de los Andes, no a los valles interandinos.</li>
+    <li><b>Cada cambio:</b> antes de entrar a la rama principal, el análisis corre sin errores desde la raíz, el
+    JavaScript de la página pasa <code>node --check</code>, la página abre en un navegador sin errores de consola en los
+    temas claro y oscuro, y el notebook congelado no cambia. Esa verificación queda escrita en cada commit y en la
+    descripción de cada pull request.</li>
   </ul>
-  <p><b>Cómo se controló</b></p>
-  <ul>
-    <li>Ninguna cifra del informe se escribió a mano: todas se calculan en <code>scripts/18_calculos_informe.py</code> a partir de los datos descargados, cuya procedencia está en <code>DATOS_FUENTES.md</code>. Las afirmaciones sobre los datos están protegidas con comprobaciones en el código.</li>
-    <li>El análisis es reproducible: los scripts corren de principio a fin desde la raíz del repositorio.</li>
-  </ul>
-  <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores.</p>
+
+  <h3>Propuestas rechazadas o corregidas</h3>
+  <p>El registro <code>DECISIONES.md</code> anota cada decisión del equipo junto con lo que recomendó la IA. En
+  18 el equipo decidió distinto; están en el anexo. Además, la IA corrigió propuestas suyas al
+  verificarlas: un umbral escogido a mano para describir un P/ETP «prácticamente en el límite» se quitó a pedido del
+  equipo, y una fuente se descartó al leerla (ver «Citas», arriba).</p>
+  <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores, que deben poder
+  explicar cada figura, rastrear cada resultado hasta los datos y el código, y justificar cada decisión.</p>
+
+  <h3>Anexo: decisiones en que el equipo contradijo a la IA</h3>
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Fecha</th><th>Tema</th><th>Decisión del equipo</th><th>Recomendación de la IA</th><th>¿Coinciden?</th></tr></thead>
+    <tbody>
+<tr><td>2026-10-07</td><td>Variabilidad mes a mes</td><td>Solo DE y CV, con la inestabilidad del CV; CV de la temperatura en K; después se agregan asimetría e influencia con una o dos figuras</td><td>DE, RIC, CV y RIC/mediana; asimetría clásica y de Bowley</td><td><b>Contradice al agente</b> (menos medidas)</td></tr>
+<tr><td>2026-10-07</td><td>Explicación de la diferencia de PI entre mitades</td><td>Solo el ENSO; no mencionar TRMM → GPM ni el salto de Pueblo Viejo</td><td>Mencionar las tres causas</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-07</td><td>Gráficas repetidas lluvia–caudal</td><td>Juntarlas en una sola sección</td><td>Quedarse solo con la prueba fuera del período</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>PL para tendencias (PL*)</td><td>Red fija de estaciones desde 1981, sin Pueblo Viejo en ningún año, sin rachas de valores repetidos (se quitan todos sus meses) y sin picos extremos</td><td>Red fija de las 5 estaciones; conservar las rachas</td><td><b>Contradice al agente</b> en las rachas: se quitan</td></tr>
+<tr><td>2026-10-08</td><td>Salto de Valle de San José en 1998</td><td>No agregarlo al registro de anomalías</td><td>Agregarlo como incierto</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Explicación de Mann-Kendall en el informe</td><td>Eliminarla (parecía no usarse)</td><td>Conservarla: se usa en tablas y textos y el taller la exige</td><td><b>Contradice al agente</b>; pendiente</td></tr>
+<tr><td>2026-10-08</td><td>Trabajo de angomezma-cyber (rama <code>punto-4</code>)</td><td>Lo integra el agente; PL* y ERA5-Land en el registro extendido; el notebook sigue congelado; ella no revisa el PR, lo revisan el usuario y el agente con las reglas y luego contra la rúbrica</td><td>Lo mismo; sugirió que ella revisara</td><td><b>Contradice al agente</b> en quién revisa</td></tr>
+<tr><td>2026-10-08</td><td>Fusiones</td><td>Los PR #2 a #18 se fusionan como excepción a la regla 20, autorizada por el usuario en cada uno</td><td>Pedir la revisión de otra persona</td><td><b>Contradice al agente</b> (regla 20)</td></tr>
+<tr><td>2026-10-08</td><td>Punto 5.1: variables atmosféricas</td><td>Viento a 850 hPa (u y v) y humedad específica a 850 hPa, para el transporte de humedad; ni presión al nivel del mar ni altura geopotencial</td><td>Presión al nivel del mar y viento a 850 hPa</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Punto 5.1: período</td><td>1998–2022, «por simplicidad»</td><td>1981–2022 (y 1998–2022 aparte)</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Punto 5.1: celdas bajo tierra a 850 hPa</td><td>Una caja de 2° queda vacía si <b>cualquiera</b> de sus celdas de 0.25° tiene presión superficial menor que 850 hPa ese mes</td><td>Vacía solo si más de la mitad de sus celdas está bajo tierra</td><td><b>Contradice al agente</b> (más estricto: se pierde casi toda la cordillera)</td></tr>
+<tr><td>2026-10-08</td><td>Fourier: meses extremos en la prueba de sensibilidad</td><td>Los mismos atípicos de «Revisión de outliers» (1.5 RIC por mes del calendario), «por consistencia» con el resto del informe</td><td>Quitar el 2 % más extremo de cada variable, para que la prueba fuera comparable entre variables</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Fourier: fuente para la ZCIT</td><td>Citar a Mesa et al. (1997)</td><td>Leer <code>InfoPreliminar/poveda2007.pdf</code>; el agente añadió además Poveda (2004), que ya estaba en la bibliografía y que verificó textualmente</td><td><b>Contradice al agente</b> en la fuente</td></tr>
+<tr><td>2026-10-08</td><td>Fourier: conclusión de la sección</td><td>Usar la que redactó el agente («la sé explicar»)</td><td>Que el usuario la escribiera; el agente la dio como borrador</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Trabajo de otra sesión mezclado en la rama de Fourier («Contexto geográfico», «Explicaciones físicas»)</td><td>Fusionarlo todo junto a <code>main</code></td><td>Separar: fusionar solo Fourier y que la otra sesión subiera lo suyo</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-08</td><td>Colores</td><td>Un color por variable en todo el informe (PL naranja, PI azul, Q verde, T púrpura, ETP violeta); los colores que no son de variables y las PNG fijas quedan como están</td><td>Unificar solo el mapa con las cajas</td><td><b>Contradice al agente</b> (lo amplía a todo el informe)</td></tr>
+<tr><td>2026-10-08</td><td>Óptimo pluviográfico: la frase «al subir y enfriarse el aire se le agota el vapor»</td><td>Se conserva en el informe</td><td>Quitarla: Poveda (2004) solo dice que el óptimo existe, no lo explica</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Fuentes de «Explicaciones físicas» (ZCIT y óptimo pluviográfico)</td><td>Primero: Mesa et al. (1997) en lugar de Poveda (2004). Después: Poveda (2004) como cita principal de la ZCIT, Mesa et al. (1997) para el óptimo; sin Hoyos et al. (2018), Espinoza et al. (2020) ni poveda2007.pdf</td><td>Poveda (2004), Espinoza et al. (2020), Hoyos et al. (2018) y Mesa et al. (1997) citado en Poveda</td><td><b>Contradice al agente</b>: quita Espinoza y Hoyos</td></tr>
+    </tbody>
+  </table></div>
+  <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al
+  agente».</p>
   </div>
 </section>
 

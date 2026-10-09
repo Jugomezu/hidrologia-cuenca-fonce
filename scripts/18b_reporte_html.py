@@ -24,6 +24,46 @@ SALIDA = Path("reporte/reporte-fonce.html")
 AUTORES = ["Juan Pablo Gomez", "Andrea Gomez", "Diego Cantillo"]
 PROFESOR = "Carlos David Hoyos"
 
+# Uso de IA (política del curso): herramientas con su versión cuando se conoce. La versión de Claude Code es la de la
+# sesión en que se escribió esta sección; la de sesiones anteriores no quedó registrada.
+IA_HERRAMIENTAS = [
+    ("Claude Code (Anthropic)", "2.1.293, el 2026-10-09",
+     "asistente de programación que lee y edita el repositorio y corre los scripts, desde la terminal y VS Code"),
+    ("Claude Opus 5.5 (claude-opus-5-5)", "modelo de lenguaje",
+     "el modelo principal; figura como coautor en los commits del repositorio («Co-Authored-By»)"),
+    ("Claude Sonnet 5.5 (claude-sonnet-5-5)", "modelo de lenguaje",
+     "tareas delegadas a subagentes, como el dibujo de figuras y el encabezado de autores de esta página"),
+]
+# Las propuestas de la IA que el equipo rechazó o corrigió salen del registro de decisiones: las filas marcadas
+# «Contradice al agente». Así el anexo no se escribe a mano y crece con el registro.
+DECISIONES = Path("DECISIONES.md")
+
+
+def _md_en_linea(texto):
+    """Markdown mínimo de una celda del registro: **negrita** y `código`, con el resto escapado."""
+    t = html.escape(texto.strip())
+    partes = t.split("**")
+    t = "".join(f"<b>{p}</b>" if i % 2 else p for i, p in enumerate(partes))
+    partes = t.split("`")
+    return "".join(f"<code>{p}</code>" if i % 2 else p for i, p in enumerate(partes))
+
+
+ia_rechazos = []
+for _linea in DECISIONES.read_text(encoding="utf-8").splitlines():
+    _celdas = [c.strip() for c in _linea.strip().strip("|").split("|")]
+    if len(_celdas) == 5 and "Contradice al agente" in _celdas[4]:
+        ia_rechazos.append(_celdas)
+assert ia_rechazos, "el registro de decisiones no tiene propuestas rechazadas: revisar el anexo de uso de IA"
+ia_filas_rechazos = "\n".join(
+    "<tr>" + "".join(f"<td>{_md_en_linea(c)}</td>" for c in fila) + "</tr>" for fila in ia_rechazos)
+ia_filas_herramientas = "\n".join(
+    f"<tr><td><b>{html.escape(h)}</b></td><td>{html.escape(v)}</td><td>{html.escape(u)}</td></tr>"
+    for h, v, u in IA_HERRAMIENTAS)
+# cuántas comprobaciones automáticas tiene el análisis (líneas assert de los dos scripts)
+ia_n_assert = sum(
+    sum(1 for l in Path(f"scripts/{s}").read_text(encoding="utf-8").splitlines() if l.strip().startswith("assert"))
+    for s in ("18_calculos_informe.py", "18b_reporte_html.py"))
+
 # Corre el análisis y trae sus resultados a este archivo, para que la f-string de la página los use.
 globals().update(run_path(str(Path(__file__).with_name("18_calculos_informe.py"))))
 
@@ -3360,27 +3400,77 @@ a {{ color: var(--acento); }}
 <section>
   <div{revision("uso de IA")}>
   <h2>Uso de inteligencia artificial</h2>
-  <p>Este informe se hizo con ayuda de Claude (Anthropic), un modelo de lenguaje, usado a través de Claude Code, un
-  asistente de programación que trabaja directamente sobre el repositorio del proyecto. Casi todo el código del
-  repositorio se escribió con esa ayuda.</p>
-  <p><b>Qué hizo la IA</b></p>
+  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA) de Anthropic. Casi todo el código
+  del repositorio se escribió con esa ayuda. Las decisiones de método las tomó el equipo: la IA presentó las opciones
+  con su evidencia y una recomendación. Esta sección sigue la declaración que pide la política del curso; el anexo, al
+  final, reúne las propuestas de la IA que el equipo rechazó o corrigió.</p>
+
+  <h3>Herramientas y versión</h3>
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Herramienta</th><th>Versión</th><th>Para qué</th></tr></thead>
+    <tbody>
+{ia_filas_herramientas}
+    </tbody>
+  </table></div>
+  <p class="nota">En el repositorio no queda registro de otras herramientas de IA. Los modelos se identifican por su nombre y su
+  identificador, que es la versión que informa la propia herramienta.</p>
+
+  <h3>En qué tareas intervino</h3>
   <ul>
-    <li>Escribir y corregir el código de Python: la descarga y el procesamiento de los datos, el control de calidad, los cálculos estadísticos, las figuras y el script que genera esta página.</li>
-    <li>Redactar borradores de los textos del informe, que el equipo revisó, corrigió o descartó.</li>
-    <li>Buscar bibliografía y comprobar, leyendo las fuentes disponibles, que cada cita diga lo que el informe le atribuye.</li>
-    <li>Verificar que el código corre de principio a fin y que la página abre sin errores.</li>
+    <li><b>Código:</b> los scripts de <code>scripts/</code>, de la descarga de los datos (IMERG, ERA5-Land, los
+    pluviómetros del IDEAM, ERSST y los campos de ERA5) a su procesamiento, el control de calidad, las pruebas de
+    saltos, la climatología, las anomalías, las tendencias, el análisis de Fourier, los modelos lluvia–caudal, el índice
+    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo empezó angomezma-cyber en su rama y la IA lo
+    integró a los scripts del proyecto.</li>
+    <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
+    particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
+    el equipo los leyera antes de entrar al informe.</li>
+    <li><b>Bibliografía:</b> búsqueda de fuentes y lectura de las disponibles para comprobar que digan lo que el informe
+    les atribuye.</li>
+    <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
-  <p><b>Qué hizo el equipo</b></p>
+
+  <h3>Qué se verificó y cómo</h3>
   <ul>
-    <li>Tomar las decisiones de método: períodos de análisis, umbrales, exclusiones de datos, fuentes y criterios de clasificación. La IA presentó las opciones con su evidencia y una recomendación; las decisiones, con lo que recomendó la IA y los casos en que el equipo decidió distinto, están registradas en <code>DECISIONES.md</code>.</li>
-    <li>Revisar los cambios antes de incorporarlos al informe y responder por ellos.</li>
+    <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
+    partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
+    los datos están protegidas por {ia_n_assert} comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    informe: si los datos dejan de sostener una frase, el script se detiene.</li>
+    <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
+    faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
+    comprobado, lo decidido y su efecto.</li>
+    <li><b>Cálculos contra referencias externas:</b> la radiación de la ETP contra el ejemplo de FAO-56 («La
+    evapotranspiración potencial»), IMERG contra su archivo empaquetado, la temperatura de ERSST contra el ONI de la
+    NOAA («Campos climáticos globales») y el área de la cuenca contra la publicada por CAMELS-COL.</li>
+    <li><b>Recálculos independientes:</b> algunas cifras se recalcularon fuera del script, directamente desde los CSV de
+    <code>out/</code>, antes de aceptarlas; por ejemplo, el índice P/ETP anual, sus años extremos y los valores de
+    enero.</li>
+    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente. Una fuente
+    propuesta se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
+    de los Andes, no a los valles interandinos.</li>
+    <li><b>Cada cambio:</b> antes de entrar a la rama principal, el análisis corre sin errores desde la raíz, el
+    JavaScript de la página pasa <code>node --check</code>, la página abre en un navegador sin errores de consola en los
+    temas claro y oscuro, y el notebook congelado no cambia. Esa verificación queda escrita en cada commit y en la
+    descripción de cada pull request.</li>
   </ul>
-  <p><b>Cómo se controló</b></p>
-  <ul>
-    <li>Ninguna cifra del informe se escribió a mano: todas se calculan en <code>scripts/18_calculos_informe.py</code> a partir de los datos descargados, cuya procedencia está en <code>DATOS_FUENTES.md</code>. Las afirmaciones sobre los datos están protegidas con comprobaciones en el código.</li>
-    <li>El análisis es reproducible: los scripts corren de principio a fin desde la raíz del repositorio.</li>
-  </ul>
-  <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores.</p>
+
+  <h3>Propuestas rechazadas o corregidas</h3>
+  <p>El registro <code>DECISIONES.md</code> anota cada decisión del equipo junto con lo que recomendó la IA. En
+  {len(ia_rechazos)} el equipo decidió distinto; están en el anexo. Además, la IA corrigió propuestas suyas al
+  verificarlas: un umbral escogido a mano para describir un P/ETP «prácticamente en el límite» se quitó a pedido del
+  equipo, y una fuente se descartó al leerla (ver «Citas», arriba).</p>
+  <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores, que deben poder
+  explicar cada figura, rastrear cada resultado hasta los datos y el código, y justificar cada decisión.</p>
+
+  <h3>Anexo: decisiones en que el equipo contradijo a la IA</h3>
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Fecha</th><th>Tema</th><th>Decisión del equipo</th><th>Recomendación de la IA</th><th>¿Coinciden?</th></tr></thead>
+    <tbody>
+{ia_filas_rechazos}
+    </tbody>
+  </table></div>
+  <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al
+  agente».</p>
   </div>
 </section>
 

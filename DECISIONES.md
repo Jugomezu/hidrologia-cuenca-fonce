@@ -73,3 +73,5 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Punto 5.2: dominio | Todos los mapas de 60° S a 60° N | SST de 60° S a 60° N; viento y humedad, regionales | **Contradice al agente** |
 | 2026-10-09 | Punto 5.2: todos los meses juntos | Sí, un mapa por combinación con anomalías | Lo mismo | Sí |
 | 2026-10-09 | Punto 5.4 | Por ahora, solo un aviso en el informe de que no se ha llegado a esa parte | — | — |
+| 2026-10-09 | Contribuciones de los autores | Sección con lo que hizo cada autor, nombrando los puntos del taller por número (excepción a las reglas 4 y 16) | Nombrarlos por los temas de las secciones, según las reglas 4 y 16 | **Contradice al agente** |
+| 2026-10-09 | Herramientas de IA declaradas | Claude Code con Opus 5.5 (análisis, procesamiento, informe, sugerencia de pruebas estadísticas) y Sonnet 5.5 (gráficas); los mecanismos físicos sin Claude Code: fuentes buscadas con el chat de Claude y Perplexity y leídas directamente por el equipo | — (lo reporta el equipo) | — |

@@ -2793,8 +2793,18 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <div>
+  <h2>Contribuciones de los autores</h2>
+  <ul>
+<li><b>Juan Pablo Gómez:</b> adquisición y procesamiento inicial de los datos; puntos 1 (series mensuales, control de calidad, climatología y ciclo anual), 3 (tendencias) y 5 (campos climáticos globales); correcciones del punto 4 (Fourier); investigación de los mecanismos físicos y conclusiones; presentación.</li><li><b>Andrea Gómez:</b> puntos 2 (relaciones entre las series y modelos lluvia–caudal) y 4 (análisis de frecuencias con Fourier).</li><li><b>Diego Cantillo:</b> apoyo conceptual y en la realización de la presentación.</li>
+  </ul>
+  </div>
+</section>
+
+<section>
+  <div>
   <h2>Uso de inteligencia artificial</h2>
-  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA) de Anthropic. Casi todo el código
+  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA): las de Anthropic (Claude Code y el
+  chat de Claude) y Perplexity. Casi todo el código
   del repositorio se escribió con esa ayuda. Las decisiones de método las tomó el equipo: la IA presentó las opciones
   con su evidencia y una recomendación. Esta sección sigue la declaración que pide la política del curso; el anexo, al
   final, reúne las propuestas de la IA que el equipo rechazó o corrigió.</p>
@@ -2804,25 +2814,31 @@ section, section h3 { scroll-margin-top: 20px; }
     <thead><tr><th>Herramienta</th><th>Versión</th><th>Para qué</th></tr></thead>
     <tbody>
 <tr><td><b>Claude Code (Anthropic)</b></td><td>2.1.293, el 2026-10-09</td><td>asistente de programación que lee y edita el repositorio y corre los scripts, desde la terminal y VS Code</td></tr>
-<tr><td><b>Claude Opus 5.5 (claude-opus-5-5)</b></td><td>modelo de lenguaje</td><td>el modelo principal; figura como coautor en los commits del repositorio («Co-Authored-By»)</td></tr>
-<tr><td><b>Claude Sonnet 5.5 (claude-sonnet-5-5)</b></td><td>modelo de lenguaje</td><td>tareas delegadas a subagentes, como el dibujo de figuras y el encabezado de autores de esta página</td></tr>
+<tr><td><b>Claude Opus 5.5 (claude-opus-5-5)</b></td><td>modelo de lenguaje, dentro de Claude Code</td><td>el análisis, el procesamiento de los datos y la generación del informe en todas sus partes; sugirió las pruebas estadísticas para cada parte del análisis; figura como coautor en los commits del repositorio («Co-Authored-By»)</td></tr>
+<tr><td><b>Claude Sonnet 5.5 (claude-sonnet-5-5)</b></td><td>modelo de lenguaje, dentro de Claude Code</td><td>la generación de gráficas</td></tr>
+<tr><td><b>Claude, chat (claude.ai)</b></td><td>no registrada</td><td>búsqueda de fuentes bibliográficas para los mecanismos físicos</td></tr>
+<tr><td><b>Perplexity</b></td><td>no registrada</td><td>búsqueda de fuentes bibliográficas para los mecanismos físicos</td></tr>
     </tbody>
   </table></div>
-  <p class="nota">En el repositorio no queda registro de otras herramientas de IA. Los modelos se identifican por su nombre y su
-  identificador, que es la versión que informa la propia herramienta.</p>
+  <p class="nota">Claude Code deja rastro en el repositorio (los commits); el chat de Claude y Perplexity se usaron por
+  fuera, así que su uso se declara según lo que reporta el equipo. Los modelos de Claude Code se identifican por su nombre
+  y su identificador, que es la versión que informa la propia herramienta.</p>
 
   <h3>En qué tareas intervino</h3>
   <ul>
     <li><b>Código:</b> los scripts de <code>scripts/</code>, de la descarga de los datos (IMERG, ERA5-Land, los
     pluviómetros del IDEAM, ERSST y los campos de ERA5) a su procesamiento, el control de calidad, las pruebas de
     saltos, la climatología, las anomalías, las tendencias, el análisis de Fourier, los modelos lluvia–caudal, el índice
-    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo empezó angomezma-cyber en su rama y la IA lo
-    integró a los scripts del proyecto.</li>
+    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo hizo Andrea Gómez, con la misma
+    herramienta, en su rama, y después se integró a los scripts del proyecto.</li>
+    <li><b>Pruebas estadísticas:</b> la IA sugirió las pruebas adecuadas para cada parte del análisis; cuáles se usaron,
+    y con qué umbrales, lo decidió el equipo.</li>
     <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
     particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
     el equipo los leyera antes de entrar al informe.</li>
-    <li><b>Bibliografía:</b> la búsqueda, la lectura y la verificación de las fuentes las hizo sobre todo el equipo. La
-    IA buscó algunas fuentes y comprobó citas puntuales contra el texto de la fuente.</li>
+    <li><b>Bibliografía y mecanismos físicos:</b> esta parte no se hizo con Claude Code. Las fuentes se buscaron con el
+    chat de Claude y con Perplexity, y los mecanismos se plantearon a partir de la lectura directa de esas fuentes por el
+    equipo. Claude Code solo comprobó citas puntuales contra el texto de la fuente al pasar los textos al informe.</li>
     <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
 
@@ -2830,7 +2846,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 146 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 147 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
@@ -2852,7 +2868,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
   <h3>Propuestas rechazadas o corregidas</h3>
   <p>El registro <code>DECISIONES.md</code> anota las decisiones del equipo junto con lo que recomendó la IA. En
-  20 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
+  21 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
   llevar el 2026-10-08, cuando el trabajo ya estaba avanzado. Las filas anteriores a esa fecha se
   reconstruyeron después (la más antigua es del 2026-10-04), y de lo decidido antes no queda registro. El
   anexo muestra, entonces, las propuestas rechazadas que quedaron anotadas, no todas. Además, la IA corrigió propuestas suyas al
@@ -2885,6 +2901,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td>2026-10-09</td><td>Fuentes de «Explicaciones físicas» (ZCIT y óptimo pluviográfico)</td><td>Primero: Mesa et al. (1997) en lugar de Poveda (2004). Después: Poveda (2004) como cita principal de la ZCIT, Mesa et al. (1997) para el óptimo; sin Hoyos et al. (2018), Espinoza et al. (2020) ni poveda2007.pdf</td><td>Poveda (2004), Espinoza et al. (2020), Hoyos et al. (2018) y Mesa et al. (1997) citado en Poveda</td><td><b>Contradice al agente</b>: quita Espinoza y Hoyos</td></tr>
 <tr><td>2026-10-09</td><td>Punto 5.2: combinaciones</td><td>PL y Q contra la SST, el viento y la humedad a 850 hPa; PI solo contra la SST y la humedad; sin temperatura. El viento, como su rapidez √(u² + v²) con flechas de la dirección del viento medio del mes</td><td>u y v por separado</td><td><b>Contradice al agente</b> en el viento</td></tr>
 <tr><td>2026-10-09</td><td>Punto 5.2: dominio</td><td>Todos los mapas de 60° S a 60° N</td><td>SST de 60° S a 60° N; viento y humedad, regionales</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Contribuciones de los autores</td><td>Sección con lo que hizo cada autor, nombrando los puntos del taller por número (excepción a las reglas 4 y 16)</td><td>Nombrarlos por los temas de las secciones, según las reglas 4 y 16</td><td><b>Contradice al agente</b></td></tr>
     </tbody>
   </table></div>
   <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al

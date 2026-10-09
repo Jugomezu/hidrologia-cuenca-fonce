@@ -23,16 +23,32 @@ SALIDA = Path("reporte/reporte-fonce.html")
 # Autoría del informe: se escribe en el encabezado de la página y en los metadatos del HTML.
 AUTORES = ["Juan Pablo Gómez", "Andrea Gómez", "Diego Cantillo"]
 PROFESOR = "Carlos David Hoyos"
+# Qué hizo cada autor, según el equipo (2026-10-09). Excepción a la regla de no nombrar los puntos del taller
+# (reglas 4 y 16), por decisión del usuario: aquí van los números, con el tema entre paréntesis.
+CONTRIBUCIONES = [
+    ("Juan Pablo Gómez",
+     "adquisición y procesamiento inicial de los datos; puntos 1 (series mensuales, control de calidad, climatología y "
+     "ciclo anual), 3 (tendencias) y 5 (campos climáticos globales); correcciones del punto 4 (Fourier); investigación "
+     "de los mecanismos físicos y conclusiones; presentación."),
+    ("Andrea Gómez",
+     "puntos 2 (relaciones entre las series y modelos lluvia–caudal) y 4 (análisis de frecuencias con Fourier)."),
+    ("Diego Cantillo", "apoyo conceptual y en la realización de la presentación."),
+]
+assert [c[0] for c in CONTRIBUCIONES] == AUTORES       # cada autor del encabezado tiene su contribución
 
 # Uso de IA (política del curso): herramientas con su versión cuando se conoce. La versión de Claude Code es la de la
 # sesión en que se escribió esta sección; la de sesiones anteriores no quedó registrada.
 IA_HERRAMIENTAS = [
     ("Claude Code (Anthropic)", "2.1.293, el 2026-10-09",
      "asistente de programación que lee y edita el repositorio y corre los scripts, desde la terminal y VS Code"),
-    ("Claude Opus 5.5 (claude-opus-5-5)", "modelo de lenguaje",
-     "el modelo principal; figura como coautor en los commits del repositorio («Co-Authored-By»)"),
-    ("Claude Sonnet 5.5 (claude-sonnet-5-5)", "modelo de lenguaje",
-     "tareas delegadas a subagentes, como el dibujo de figuras y el encabezado de autores de esta página"),
+    ("Claude Opus 5.5 (claude-opus-5-5)", "modelo de lenguaje, dentro de Claude Code",
+     "el análisis, el procesamiento de los datos y la generación del informe en todas sus partes; sugirió las pruebas "
+     "estadísticas para cada parte del análisis; figura como coautor en los commits del repositorio («Co-Authored-By»)"),
+    ("Claude Sonnet 5.5 (claude-sonnet-5-5)", "modelo de lenguaje, dentro de Claude Code",
+     "la generación de gráficas"),
+    ("Claude, chat (claude.ai)", "no registrada",
+     "búsqueda de fuentes bibliográficas para los mecanismos físicos"),
+    ("Perplexity", "no registrada", "búsqueda de fuentes bibliográficas para los mecanismos físicos"),
 ]
 # Las propuestas de la IA que el equipo rechazó o corrigió salen del registro de decisiones: las filas marcadas
 # «Contradice al agente». Así el anexo no se escribe a mano y crece con el registro.
@@ -63,6 +79,8 @@ assert ia_registro_desde and ia_fila_mas_antigua < ia_registro_desde
 assert ia_rechazos, "el registro de decisiones no tiene propuestas rechazadas: revisar el anexo de uso de IA"
 ia_filas_rechazos = "\n".join(
     "<tr>" + "".join(f"<td>{_md_en_linea(c)}</td>" for c in fila) + "</tr>" for fila in ia_rechazos)
+contrib_filas = "".join(
+    f"<li><b>{html.escape(a)}:</b> {html.escape(t)}</li>" for a, t in CONTRIBUCIONES)
 ia_filas_herramientas = "\n".join(
     f"<tr><td><b>{html.escape(h)}</b></td><td>{html.escape(v)}</td><td>{html.escape(u)}</td></tr>"
     for h, v, u in IA_HERRAMIENTAS)
@@ -3493,9 +3511,19 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <div{revision("contribuciones")}>
+  <h2>Contribuciones de los autores</h2>
+  <ul>
+{contrib_filas}
+  </ul>
+  </div>
+</section>
+
+<section>
   <div{revision("uso de IA")}>
   <h2>Uso de inteligencia artificial</h2>
-  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA) de Anthropic. Casi todo el código
+  <p>Este informe se hizo con ayuda de herramientas de inteligencia artificial (IA): las de Anthropic (Claude Code y el
+  chat de Claude) y Perplexity. Casi todo el código
   del repositorio se escribió con esa ayuda. Las decisiones de método las tomó el equipo: la IA presentó las opciones
   con su evidencia y una recomendación. Esta sección sigue la declaración que pide la política del curso; el anexo, al
   final, reúne las propuestas de la IA que el equipo rechazó o corrigió.</p>
@@ -3507,21 +3535,25 @@ a {{ color: var(--acento); }}
 {ia_filas_herramientas}
     </tbody>
   </table></div>
-  <p class="nota">En el repositorio no queda registro de otras herramientas de IA. Los modelos se identifican por su nombre y su
-  identificador, que es la versión que informa la propia herramienta.</p>
+  <p class="nota">Claude Code deja rastro en el repositorio (los commits); el chat de Claude y Perplexity se usaron por
+  fuera, así que su uso se declara según lo que reporta el equipo. Los modelos de Claude Code se identifican por su nombre
+  y su identificador, que es la versión que informa la propia herramienta.</p>
 
   <h3>En qué tareas intervino</h3>
   <ul>
     <li><b>Código:</b> los scripts de <code>scripts/</code>, de la descarga de los datos (IMERG, ERA5-Land, los
     pluviómetros del IDEAM, ERSST y los campos de ERA5) a su procesamiento, el control de calidad, las pruebas de
     saltos, la climatología, las anomalías, las tendencias, el análisis de Fourier, los modelos lluvia–caudal, el índice
-    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo empezó angomezma-cyber en su rama y la IA lo
-    integró a los scripts del proyecto.</li>
+    P/ETP, las figuras y el script que genera esta página. El análisis de Fourier lo hizo Andrea Gómez, con la misma
+    herramienta, en su rama, y después se integró a los scripts del proyecto.</li>
+    <li><b>Pruebas estadísticas:</b> la IA sugirió las pruebas adecuadas para cada parte del análisis; cuáles se usaron,
+    y con qué umbrales, lo decidió el equipo.</li>
     <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
     particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
     el equipo los leyera antes de entrar al informe.</li>
-    <li><b>Bibliografía:</b> la búsqueda, la lectura y la verificación de las fuentes las hizo sobre todo el equipo. La
-    IA buscó algunas fuentes y comprobó citas puntuales contra el texto de la fuente.</li>
+    <li><b>Bibliografía y mecanismos físicos:</b> esta parte no se hizo con Claude Code. Las fuentes se buscaron con el
+    chat de Claude y con Perplexity, y los mecanismos se plantearon a partir de la lectura directa de esas fuentes por el
+    equipo. Claude Code solo comprobó citas puntuales contra el texto de la fuente al pasar los textos al informe.</li>
     <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
 

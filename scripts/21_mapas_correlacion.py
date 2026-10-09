@@ -8,9 +8,9 @@ variable de la cuenca, campo y rezago, doce paneles comparables, uno por mes del
   - en los mapas del viento, flechas con la dirección del viento medio de ese mes a 850 hPa;
   - en cada panel, el rango de pares (n) de las cajas dibujadas, y el rezago en el título;
   - puntos negros en las cajas que sobreviven a la corrección por pruebas múltiples (FDR de Benjamini-Hochberg por
-    panel, con el q que guarda out/correlaciones_campos.nc; el color no se oculta en las demás). El mapa de todos
-    los meses juntos no lleva puntos: sus meses seguidos no son independientes y la prueba t no vale ahí.
-Además, un mapa por combinación con todos los meses juntos (anomalías).
+    panel, con el q que guarda out/correlaciones_campos.nc; el color no se oculta en las demás).
+No se dibuja el mapa de todos los meses juntos (decisión del usuario, 2026-10-09): sus meses seguidos no son
+independientes y su significancia no se puede probar con la prueba t.
 
 Uso:  python scripts/21_mapas_correlacion.py            (todas las figuras)
       python scripts/21_mapas_correlacion.py PL sst 0   (una sola combinación)
@@ -119,28 +119,6 @@ def figura(v, campo, l, metodo, corr, campos, tierra, n_minimo):
     guardar(fig, nombre_figura(v, campo, l, metodo))
 
 
-def figura_todos(corr, tierra, n_minimo):
-    """Un panel por combinación base (ℓ = 0, Pearson) con todos los meses juntos (anomalías)."""
-    base = [(v, c) for v in ("PL", "Q", "PI") for c in ("sst", "viento850", "q850")]
-    lat, lon = corr.lat.values, corr.lon.values
-    fig, ejes = plt.subplots(3, 3, figsize=(16, 8.2), constrained_layout=True)
-    for (v, c), ax in zip(base, ejes.flat):
-        r = corr[f"r_p__{v}__{c}__l0"].values[12]
-        n = corr[f"n__{v}__{c}__l0"].values[12]
-        dentro = n >= n_minimo
-        m = mapas.dibujar_correlacion(ax, lat, lon, r, n, n_minimo, tierra,
-                                      f"{v} contra {NOMBRE_CORTO[c]}  "
-                                      f"({texto_n(n, dentro)})",
-                                      extension=DOMINIO, pasos=(60, 30), tam_titulo=10)
-    barra = fig.colorbar(m, ax=ejes, orientation="horizontal", fraction=0.04, pad=0.01, aspect=60,
-                         ticks=np.linspace(-1, 1, 9))
-    barra.set_label("correlación de Pearson entre las anomalías (escala común de −1 a 1)", fontsize=10)
-    fig.suptitle("Todos los meses juntos (anomalías respecto a cada mes del calendario), 1998–2022, sin rezago. "
-                 f"Gris: sin dato o menos de {n_minimo} pares. Sin puntos de significancia: los meses seguidos no son "
-                 "independientes", fontsize=11.5, x=0.01, ha="left")
-    guardar(fig, "corr_todos_los_meses.png")
-
-
 def main():
     FIGURAS.mkdir(parents=True, exist_ok=True)
     corr = xr.open_dataset(CORRELACIONES)
@@ -154,9 +132,6 @@ def main():
     for v, c, l, metodo in pedidas:
         figura(v, c, l, metodo, corr, campos, tierra, n_minimo)
         print("listo", nombre_figura(v, c, l, metodo), flush=True)
-    if len(sys.argv) != 4:
-        figura_todos(corr, tierra, n_minimo)
-        print("listo corr_todos_los_meses.png")
 
 
 if __name__ == "__main__":

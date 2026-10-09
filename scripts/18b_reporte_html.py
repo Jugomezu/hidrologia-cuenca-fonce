@@ -3692,9 +3692,6 @@ a {{ color: var(--acento); }}
   un solo año (los que más pesan, con el número de paneles: {rob_mapas["anios"]}). <b>Los mapas no dan resultados
   concluyentes</b> más allá de la relación con El Niño: con 25 años, la forma detallada de las manchas no se distingue
   del azar, y en la mayoría de los paneles las zonas que pasan dependen de un solo año.</p>
-  <p class="nota">El mapa de todos los meses juntos no lleva puntos: los meses seguidos no son independientes y la prueba
-  t no vale ahí.</p>
-
   <h3>Los mapas</h3>
   <div class="placa"><img src="{img('corr_PL_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la SST"></div>
   <div class="placa"><img src="{img('corr_Q_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la SST"></div>
@@ -3702,7 +3699,6 @@ a {{ color: var(--acento); }}
   <div class="placa"><img src="{img('corr_Q_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
   <div class="placa"><img src="{img('corr_PL_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la humedad específica a 850 hPa"></div>
   <div class="placa"><img src="{img('corr_Q_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la humedad específica a 850 hPa"></div>
-  <div class="placa"><img src="{img('corr_todos_los_meses.png')}" alt="Nueve mapas del mundo con la correlación de todos los meses juntos entre PL, Q y PI y la SST, el viento y la humedad a 850 hPa"></div>
   <details class="plegable-mini"><summary><b>Contraste con PI (IMERG)</b></summary>
   <div class="placa"><img src="{img('corr_PI_sst_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST"></div>
   <div class="placa"><img src="{img('corr_PI_q850_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la humedad específica a 850 hPa"></div>

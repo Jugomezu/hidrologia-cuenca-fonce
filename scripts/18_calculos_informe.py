@@ -15,7 +15,7 @@ import geopandas as gpd
 from pyproj import Geod
 from pathlib import Path
 from scipy import stats
-from scipy.signal import lfilter, lombscargle, periodogram, welch
+from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
 import numpy as np
 import pandas as pd
 
@@ -2482,3 +2482,152 @@ fou_phi = {v: fou[(_com, v, "anomalía sin tendencia")]["ar1_phi"] for v in FOU_
 assert fou_phi["Q"] > max(fou_phi["PL"], fou_phi["PI"])
 # el texto dice que los vacíos de Q empujan la alta frecuencia hacia arriba, así que no explican que Q tenga menos
 assert fou_vacios["anomalía"]["banda"] != "alta" or fou_vacios["anomalía"]["con"] >= fou_vacios["anomalía"]["sin"]
+
+
+# ---------------------------------------------------------------- frecuencias: ¿cuadra con el ENSO? (ONI, coherencia y fase)
+# El ONI (17_oni_enso.py) es la anomalía de la temperatura del mar en la región Niño 3.4 del Pacífico. Entra como
+# referencia, no como variable de la cuenca: su espectro, y la coherencia y la fase de la lluvia y el caudal con él.
+# La coherencia mide, frecuencia por frecuencia, qué tanto varían juntas dos series (0: nada; 1: una es la otra
+# desplazada y escalada); la fase dice cuál va adelante. A diferencia del espectro de potencia, el espectro cruzado sí
+# conserva la fase entre las dos series.
+#
+# Decisiones del usuario (2026-10-08), todas con la recomendación del agente:
+#  - segmentos de FOU_WELCH_SEGMENTO meses (120) con ventana de Hann y traslape de la mitad, el mismo largo de Welch de
+#    la prueba de estabilidad; la banda de 3 a 7 años queda en las frecuencias 1/60 y 1/40 ciclos/mes. Se descartaron
+#    96 meses (una sola frecuencia en la banda) y 180 (solo 2 segmentos en la ventana común);
+#  - la coherencia necesita meses seguidos: SOLO aquí, un mes vacío de Q se toma como anomalía cero (un mes normal). Se
+#    declara en el texto y se mide su efecto con PL (coherencia PL-ONI con PL completa contra PL con los vacíos de Q en
+#    cero). Se descartó dejar a Q fuera;
+#  - significancia por simulación: FOU_SIMULACIONES pares de series AR(1) independientes, con la autocorrelación de cada
+#    serie y los mismos vacíos en cero; el umbral es el percentil 95 de su coherencia media en la banda. Se descartó la
+#    fórmula analítica, que con segmentos traslapados da un umbral demasiado bajo.
+# Las series son las anomalías sin tendencia (la tendencia inflaría la coherencia en las frecuencias bajas); el ONI recibe
+# la misma transformación. Convención de la fase: el ángulo del espectro cruzado de (a, b), que en scipy es conj(A)·B;
+# negativo quiere decir que b va detrás de a. Cerca de ±180°, las series van en oposición: una sube cuando la otra baja.
+FOU_OPOSICION_GRADOS = 135.0          # |fase| desde la que se lee «en oposición»; por debajo de 45° se lee «en fase»
+FOU_EN_FASE_GRADOS = 45.0
+FOU_REZAGOS_ONI = range(0, 7)         # meses de rezago para la correlación simple con el ONI
+_rng_coh = np.random.default_rng(43)
+
+fou_oni_serie = {}
+for _ven, _archivo in (("común 1998–2022", "out/oni_mensual.csv"), ("extendida 1981–2022", "out/oni_mensual_1981_2022.csv")):
+    _d = pd.read_csv(_archivo)
+    fou_oni_serie[_ven] = pd.Series(_d["oni"].to_numpy(dtype=float), index=pd.PeriodIndex(_d["periodo"], freq="M"))
+# espectro del ONI (versión original: el ONI ya es una anomalía), con los mismos criterios que las demás series
+fou_oni = {ven: _fou_espectro(s - s.mean()) for ven, s in fou_oni_serie.items()}
+
+FOU_PARES = {"común 1998–2022": [("PL", "Q"), ("PI", "Q"), ("PL", "ONI"), ("PI", "ONI"), ("Q", "ONI")],
+             "extendida 1981–2022": [("PL*", "Q"), ("PL*", "ONI"), ("Q", "ONI")]}
+
+
+def _fou_serie_coh(ven, v):
+    """Anomalía sin tendencia de la variable (o del ONI) en la ventana, con sus meses vacíos."""
+    s = fou_oni_serie[ven] if v == "ONI" else FOU_VENTANAS[ven][v]
+    s = s.loc[s.first_valid_index():s.last_valid_index()]
+    return _fou_transformar(s, "anomalía sin tendencia")
+
+
+def _fou_coherencia(a, b):
+    """Coherencia media en la banda de 3 a 7 años y fase del espectro cruzado sumado en la banda (grados). a y b: arreglos
+    del mismo largo, sin vacíos."""
+    seg = FOU_WELCH_SEGMENTO
+    f, pab = csd(a, b, window="hann", nperseg=seg, noverlap=seg // 2, detrend="constant")
+    _, paa = welch(a, window="hann", nperseg=seg, noverlap=seg // 2, detrend="constant")
+    _, pbb = welch(b, window="hann", nperseg=seg, noverlap=seg // 2, detrend="constant")
+    banda = (f >= 1 / FOU_INTERANUAL[1]) & (f <= 1 / FOU_INTERANUAL[0])
+    coh = np.abs(pab[banda]) ** 2 / (paa[banda] * pbb[banda])
+    return float(coh.mean()), float(np.degrees(np.angle(pab[banda].sum()))), 1 / f[banda]
+
+
+def _fou_ar1_sim(phi, n):
+    """Serie AR(1) estacionaria de varianza 1 (la misma construcción de la prueba de ruido rojo)."""
+    return lfilter([np.sqrt(1 - phi ** 2)], [1, -phi], _rng_coh.normal(size=n), zi=[phi * _rng_coh.normal()])[0]
+
+
+fou_coh = {}
+for _ven, _pares in FOU_PARES.items():
+    for _a, _b in _pares:
+        _sa, _sb = _fou_serie_coh(_ven, _a), _fou_serie_coh(_ven, _b)
+        _idx = _sa.index.intersection(_sb.index)
+        _sa, _sb = _sa.reindex(_idx), _sb.reindex(_idx)
+        _va, _vb = _sa.isna().to_numpy(), _sb.isna().to_numpy()
+        _coh, _fase, _periodos = _fou_coherencia(_sa.fillna(0).to_numpy(), _sb.fillna(0).to_numpy())
+        # autocorrelación de cada serie con sus meses consecutivos observados, para las simulaciones
+        _phis = []
+        for _s in (_sa, _sb):
+            _t = np.flatnonzero(_s.notna().to_numpy()).astype(float)
+            _phis.append(max(_fou_ar1(_t, _s.dropna().to_numpy()), 0.0))
+        _sims = np.empty(FOU_SIMULACIONES)
+        for _k in range(FOU_SIMULACIONES):
+            _xa, _xb = _fou_ar1_sim(_phis[0], len(_idx)), _fou_ar1_sim(_phis[1], len(_idx))
+            _xa[_va], _xb[_vb] = 0.0, 0.0
+            _sims[_k] = _fou_coherencia(_xa, _xb)[0]
+        _umbral = float(np.percentile(_sims, 95))
+        _lectura = ("en oposición" if abs(_fase) >= FOU_OPOSICION_GRADOS else
+                    "en fase" if abs(_fase) <= FOU_EN_FASE_GRADOS else "con desfase intermedio")
+        # en fase, la fase se pasa a meses con el período central de la banda (la media armónica de sus frecuencias)
+        _periodo_c = 1 / np.mean(1 / _periodos)
+        fou_coh[(_ven, _a, _b)] = {"coh": _coh, "umbral": _umbral, "signif": _coh > _umbral, "fase": _fase,
+                                   "lectura": _lectura, "rezago": -_fase / 360 * _periodo_c,
+                                   "vacios": int(_va.sum() + _vb.sum()), "periodos": [float(x) for x in _periodos]}
+
+# efecto de tomar los vacíos de Q como anomalía cero: PL-ONI con PL completa contra PL con esos meses en cero
+fou_coh_vacios = {}
+for _ven, _pl in (("común 1998–2022", "PL"), ("extendida 1981–2022", "PL*")):
+    _spl, _soni = _fou_serie_coh(_ven, _pl), _fou_serie_coh(_ven, "ONI")
+    _vq = _fou_serie_coh(_ven, "Q").reindex(_spl.index).isna()
+    _soni = _soni.reindex(_spl.index)
+    fou_coh_vacios[_ven] = (_fou_coherencia(_spl.fillna(0).to_numpy(), _soni.to_numpy())[0],
+                            _fou_coherencia(_spl.where(~_vq).fillna(0).to_numpy(), _soni.to_numpy())[0])
+
+# correlación simple de las anomalías con el ONI de k meses antes: el rezago en que es más fuerte (más negativa)
+fou_corr_oni = {}
+for _ven, _vars in (("común 1998–2022", ("PL", "PI", "Q")), ("extendida 1981–2022", ("PL*", "Q"))):
+    _soni = _fou_serie_coh(_ven, "ONI")
+    for _v in _vars:
+        _s = _fou_serie_coh(_ven, _v)
+        _r = {k: float(_s.corr(_soni.reindex(_s.index).shift(k))) for k in FOU_REZAGOS_ONI}
+        _k = min(_r, key=_r.get)
+        fou_corr_oni[(_ven, _v)] = {"rezago": _k, "r": _r[_k], "r0": _r[0]}
+
+# el pico de 2.2 meses de PL: ¿se distingue del ruido? Se compara con el pico más alto (±Δf) de espectros de ruido
+# blanco con el mismo N, y se mira cuánto tienen PI, Q y T en la misma frecuencia
+_e_pl = fou[(_com, "PL", "anomalía")]
+_f, _p, _N = _e_pl["f"], _e_pl["p"], _e_pl["N"]
+_m = (_f > 1 / 2.4) & (_f < 1 / 2.0)
+_f0 = _f[np.flatnonzero(_m)[np.argmax(_p[_m])]]
+
+
+def _fou_fraccion_en(f, p, f0, n):
+    w = (f >= f0 - 1 / n) & (f <= f0 + 1 / n)
+    return float(100 * np.trapezoid(p[w], f[w]))
+
+
+_maximos_blanco = []
+for _k in range(FOU_SIMULACIONES):
+    _fb, _pb, _, _ = _fou_lomb(pd.Series(_rng_coh.normal(size=_N)))
+    _maximos_blanco.append(max(_fou_fraccion_en(_fb, _pb, x, _N) for x in _fb[::FOU_SOBREMUESTREO]))
+fou_pico_corto = {"periodo": float(1 / _f0), "PL": _fou_fraccion_en(_f, _p, _f0, _N),
+                  "blanco_medio": float(np.mean(_maximos_blanco)), "blanco_95": float(np.percentile(_maximos_blanco, 95)),
+                  **{v: _fou_fraccion_en(fou[(_com, v, "anomalía")]["f"], fou[(_com, v, "anomalía")]["p"], _f0, _N)
+                     for v in ("PI", "Q", "T")}}
+
+# lo que el texto afirma
+_ext = "extendida 1981–2022"
+fou_oni_pico_ext = fou_oni[_ext]["pico"]
+# el texto dice que, en el registro largo, el pico del ONI coincide (dentro de la resolución) con el de la anomalía de PL*
+# (se compara dentro de la misma ventana, regla 6)
+fou_plx_ext = fou[(_ext, "PL*", "anomalía")]
+assert abs(fou_oni_pico_ext - fou_plx_ext["pico"]) <= max(fou_oni[_ext]["dT"], fou_plx_ext["dT"])
+# el texto dice que tomar los vacíos de Q como anomalía cero baja la coherencia: juega en contra de encontrarla
+assert all(con <= sin for sin, con in fou_coh_vacios.values())
+# el texto dice que la lluvia y el caudal van en oposición con el ONI, y PL y Q en fase
+assert all(fou_coh[(ven, a, b)]["lectura"] == "en oposición" for ven, a, b in fou_coh if b == "ONI")
+assert all(fou_coh[(ven, a, b)]["lectura"] == "en fase" for ven, a, b in fou_coh if b == "Q")
+# el texto dice que PL y Q son coherentes en las dos ventanas
+assert all(fou_coh[(ven, a, b)]["signif"] for ven, a, b in fou_coh if b == "Q")
+# el texto dice que, con el ONI, Q responde con más rezago que la lluvia (en cada ventana)
+assert all(fou_corr_oni[(ven, "Q")]["rezago"] > max(r["rezago"] for (v2, x), r in fou_corr_oni.items() if v2 == ven and x != "Q")
+           for ven in ("común 1998–2022", "extendida 1981–2022"))
+# el texto dice que el pico corto de PL no se distingue del ruido blanco
+assert fou_pico_corto["PL"] < fou_pico_corto["blanco_95"]

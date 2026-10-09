@@ -162,6 +162,13 @@ Decisiones que ya están tomadas y no se reabren sin consultar (detalle y fecha 
   el usuario prefirió la consistencia con el resto del informe. Se descartó también el criterio del PR original (3 RIC
   desde la mediana de todas las anomalías), que no aparece en otra parte y en PL y PI no quitaba ningún mes. Con los
   atípicos del proyecto, ningún pico de las anomalías se mueve.
+- **Frecuencias (Fourier), coherencia y fase con el ONI** (2026-10-08): espectro cruzado de las anomalías sin
+  tendencia con segmentos de 120 meses (Hann, traslape de la mitad); la banda de 3 a 7 años queda en 60 y 40 meses. El
+  umbral de significancia es el percentil 95 de 300 pares de series AR(1) independientes con la autocorrelación y los
+  vacíos de cada serie. **Solo para la coherencia**, los meses vacíos de Q se toman como anomalía cero; con PL, eso
+  baja la coherencia con el ONI, así que juega en contra de encontrarla. El ONI entra a la sección como referencia (fila
+  y curva). Lo decidió el usuario, con la recomendación del agente; se descartaron segmentos de 96 y 180 meses, dejar a
+  Q fuera de la coherencia y la fórmula analítica del umbral.
 
 ## 6. Estructura del repositorio
 

@@ -21,7 +21,7 @@ FIG = Path("reporte/figuras")
 SALIDA = Path("reporte/reporte-fonce.html")
 
 # Autoría del informe: se escribe en el encabezado de la página y en los metadatos del HTML.
-AUTORES = ["Juan Pablo Gomez", "Andrea Gomez", "Diego Cantillo"]
+AUTORES = ["Juan Pablo Gómez", "Andrea Gómez", "Diego Cantillo"]
 PROFESOR = "Carlos David Hoyos"
 
 # Uso de IA (política del curso): herramientas con su versión cuando se conoce. La versión de Claude Code es la de la
@@ -3181,7 +3181,9 @@ a {{ color: var(--acento); }}
   entre los dos picos, con excedente todos los meses (P/ETP {_rango_txt(*_sr["pe"]["pl"])} con PL y
   {_rango_txt(*_sr["pe"]["pi"])} con PI).</p>
   <p><b>La humedad de la Amazonía.</b> Según {CITA_POVEDA}, «los vientos alisios del sureste transportan gran cantidad de
-  humedad hacia los Andes» desde la cuenca Amazónica. Con los datos del proyecto no se puede contrastar a escala de la
+  humedad hacia los Andes» desde la cuenca Amazónica, y la relaciona con la lluvia del «pie de monte Andino», la
+  vertiente que da a la Amazonía. La cuenca está en el flanco opuesto, el que mira al valle del Magdalena, así que no se
+  puede suponer que esa humedad sea su fuente principal. Con los datos del proyecto tampoco se puede contrastar a escala de la
   cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver «850 hPa queda bajo los Andes»
   en «Campos climáticos globales»). Queda como contexto, no como resultado.</p>
   <p><b>Convección y relieve.</b> Según {CITA_POVEDA}, en la región Andina «el valle del Río Magdalena y el Norte de
@@ -3195,6 +3197,8 @@ a {{ color: var(--acento); }}
     <li>la lluvia disminuye con la altura ({aj_imerg["por_1000m"]:+.0f} mm/año por cada 1 000 m con IMERG), la rama alta del
     óptimo pluviográfico de arriba.</li>
   </ul>
+  <p>Es poca evidencia: el primer rasgo se apoya en {len(t_max_baja)} y {len(t_max_alta)} meses, y ninguno de los dos
+  distingue la convección de otros mecanismos que también dan lluvia con nubes o menos lluvia arriba.</p>
   <p><b>Lo que no se usa.</b> Los monzones no entran en la explicación: el ciclo se entiende con la ZCIT. Los frentes fríos
   no controlan el ciclo; aparecen como episodios aislados, como el de 2005. La nieve y los glaciares no aparecen en ningún
   dato del proyecto.</p>

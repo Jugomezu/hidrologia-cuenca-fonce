@@ -848,6 +848,53 @@ _pq_ciclo = (_pq_con_q.groupby(_pq_con_q.index.month).pl_q.mean() - _pq_con_q.gr
 pq_meses_guarda = [MESES_ES[m - 1] for m in _pq_ciclo.index[_pq_ciclo > 0]]
 
 
+# ---------------------------------------------------------------- índice P/ETP: ¿húmeda o árida?
+# P/ETP con las dos fuentes de lluvia (PL, que manda, y PI) y la ETP de Hargreaves con ERA5-Land (regla 15), sobre
+# los meses de 1998-2022: el índice no usa Q, así que no se recorta a los meses comunes con el caudal.
+# Clases de aridez de UNEP (Middleton y Thomas, 1997, World Atlas of Desertification, 2.ª ed., UNEP / Arnold,
+# Londres): hiperárido < 0.05; árido 0.05-0.20; semiárido 0.20-0.50; subhúmedo seco 0.50-0.65; húmedo >= 0.65.
+# UNEP definió el índice con la ETP de Thornthwaite; aquí se usa la de Hargreaves, así que la clase es aproximada.
+UNEP_LIMITES = [(0.05, "hiperárido"), (0.20, "árido"), (0.50, "semiárido"), (0.65, "subhúmedo seco"),
+                (np.inf, "húmedo")]                          # cada clase llega hasta su límite, sin incluirlo
+UNEP_HUMEDO = 0.65                                           # desde aquí, húmedo
+
+
+def clase_unep(indice):
+    return next(nombre for limite, nombre in UNEP_LIMITES if indice < limite)
+
+
+# los límites van en orden y el borde es como dice UNEP: 0.65 ya es húmedo, 0.6499 todavía no
+assert [lim for lim, _ in UNEP_LIMITES] == sorted(lim for lim, _ in UNEP_LIMITES)
+assert clase_unep(UNEP_HUMEDO) == "húmedo" and clase_unep(UNEP_HUMEDO - 1e-4) == "subhúmedo seco"
+pe = pq[["pl", "pi", "etp"]]
+# las tres series completas: todos los meses del período, sin huecos, y 12 meses en cada año
+assert len(pe) == len(PERIODOS) and pe.notna().all().all()
+assert (pe.groupby(pe.index.year).size() == 12).all()
+pe_anual = pe.groupby(pe.index.year).sum()                   # totales de cada año (mm/año)
+pe_etp_anual = float(pe_anual.etp.mean())
+pe_indice = {}
+for _f in ("pl", "pi"):
+    _ie_anios = pe_anual[_f] / pe_anual.etp                 # el índice de cada año
+    _p = float(pe_anual[_f].mean())
+    pe_indice[_f] = {"p": _p, "ie": _p / pe_etp_anual, "clase": clase_unep(_p / pe_etp_anual),
+                     "min": float(_ie_anios.min()), "anio_min": int(_ie_anios.idxmin()),
+                     "max": float(_ie_anios.max()), "anio_max": int(_ie_anios.idxmax()),
+                     "bajo_humedo": [int(a) for a in _ie_anios.index[_ie_anios < UNEP_HUMEDO]],
+                     "clases_anios": sorted(set(_ie_anios.map(clase_unep)))}
+pe_n_anios = len(pe_anual)
+# Por mes del calendario: media de P del mes / media de ETP del mes, y en cuántos años ese mes tuvo P < ETP
+_pe_mes = pe.groupby(pe.index.month).mean()
+pe_mes = pd.DataFrame({f: _pe_mes[f] / _pe_mes.etp for f in ("pl", "pi")})
+pe_mes_deficit_anios = pd.DataFrame({f: (pe[f] < pe.etp).groupby(pe.index.month).sum().astype(int) for f in ("pl", "pi")})
+pe_meses_deficit = {f: [m for m in range(1, 13) if pe_mes.loc[m, f] < 1] for f in ("pl", "pi")}
+pe_deficit_igual = pe_meses_deficit["pl"] == pe_meses_deficit["pi"]
+pe_solo_pi = [m for m in pe_meses_deficit["pi"] if m not in pe_meses_deficit["pl"]]
+pe_solo_pl = [m for m in pe_meses_deficit["pl"] if m not in pe_meses_deficit["pi"]]
+# el índice anual es el cociente de los totales medios, y los conteos por mes no pasan del número de años
+assert all(np.isclose(pe_indice[f]["ie"], pe_anual[f].mean() / pe_anual.etp.mean()) for f in ("pl", "pi"))
+assert pe_mes_deficit_anios.to_numpy().max() <= pe_n_anios
+
+
 t_sesgo_media = tc.mswx_media.mean() - tc.era_media.mean()
 t_sesgo_p5 = float(t_cuantiles.loc["p5", "dif"])
 t_sesgo_p95 = float(t_cuantiles.loc["p95", "dif"])

@@ -1827,6 +1827,8 @@ assert anz_ancho_rel["Q"].max() == anz_ancho_rel.max().max()
 # - Mes a mes: OLS y Mann-Kendall en cada subserie anual (12 a 42 años), sin corrección de autocorrelación.
 # Período de cada prueba: el registro completo de cada variable (la pregunta de largo plazo) y, aparte,
 # 1998-2022 (el período común, para comparar fuentes). Para PI los dos coinciden.
+# Nivel de significancia de todas las pruebas de tendencia, fijado antes de mirar los resultados (decidido por el
+# usuario el 2026-10-09): 5 %. Un p menor que TEND_ALFA es «significativo»; nada se reporta solo por tener p pequeño.
 TEND_ALFA = 0.05
 TEND_REZAGOS = 12
 
@@ -2386,6 +2388,98 @@ for _v in LARGO_VARS:
                    "ols": [m for m in range(1, 13) if met_mes[(_v, m)]["q"] < INC_Q_FDR],
                    "mk": [m for m in range(1, 13) if met_mes[(_v, m)]["q_mk"] < INC_Q_FDR]}
 inc_fdr_sobreviven = [v for v in LARGO_VARS if inc_fdr[v]["ols"]]
+
+# Robustez de la familia (decidido por el usuario el 2026-10-09): la familia principal es la de cada variable (12
+# pruebas: «¿en qué meses cambia esta variable?»). Como contraste, la misma corrección con las 72 subseries juntas
+# (6 variables x 12 meses), más exigente: se informa qué meses dejarían de ser significativos.
+_claves72 = [(v, m) for v in LARGO_VARS for m in range(1, 13)]
+_q72 = _benjamini_hochberg([met_mes[k]["p"] for k in _claves72])
+_q72_mk = _benjamini_hochberg([met_mes[k]["p_mk"] for k in _claves72])
+for _k, _q1, _q2 in zip(_claves72, _q72, _q72_mk):
+    met_mes[_k]["q72"], met_mes[_k]["q72_mk"] = float(_q1), float(_q2)
+for _v in LARGO_VARS:
+    inc_fdr[_v]["ols72"] = [m for m in range(1, 13) if met_mes[(_v, m)]["q72"] < INC_Q_FDR]
+    inc_fdr[_v]["mk72"] = [m for m in range(1, 13) if met_mes[(_v, m)]["q72_mk"] < INC_Q_FDR]
+    # con más pruebas en la familia, la corrección solo puede quitar meses, nunca agregar
+    assert set(inc_fdr[_v]["ols72"]) <= set(inc_fdr[_v]["ols"])
+inc_fdr72_pierden = {v: sorted(set(inc_fdr[v]["ols"]) - set(inc_fdr[v]["ols72"])) for v in LARGO_VARS}
+
+# (1b) Sensibilidad a la fecha inicial y final. Con el mismo método de la tabla resumen (OLS con una constante por
+# mes y error de Newey-West, sobre X), se mueve el año inicial de uno en uno con el final fijo, y después el año
+# final con el inicio fijo. Cada ventana tiene al menos TEND_VENTANA_MIN_ANIOS años: con menos, el intervalo es tan
+# ancho que la pendiente no dice nada.
+TEND_VENTANA_MIN_ANIOS = 20
+
+
+def _pend_ventana(v, anio_ini, anio_fin, anio_fuera=None):
+    """Pendiente OLS de X por década entre dos años; con anio_fuera, sin los meses de ese año (ver (1c))."""
+    x = largo[v].loc[f"{anio_ini}-01":f"{anio_fin}-12"].dropna()
+    if anio_fuera is not None:
+        x = x[x.index.year != anio_fuera]
+    t = _t_decimal(x.index)
+    ind = (np.asarray(x.index.month)[:, None] == np.arange(1, 13)[None, :]).astype(float)
+    b, _, se_hac, p_hac, _ = _ols_completo(x.to_numpy(), np.column_stack([t, ind]))
+    return {"inicio": anio_ini, "fin": anio_fin, "pend": b[0] * 10, "ic": 1.96 * se_hac[0] * 10, "p": p_hac[0]}
+
+
+tend_ventanas = {}
+for _v in LARGO_VARS:
+    _x = largo[_v].dropna()
+    _a0, _a1 = int(_x.index.year.min()), int(_x.index.year.max())
+    _filas = [_pend_ventana(_v, i, _a1) | {"mueve": "inicio"} for i in range(_a0, _a1 - TEND_VENTANA_MIN_ANIOS + 2)]
+    _filas += [_pend_ventana(_v, _a0, f) | {"mueve": "fin"} for f in range(_a0 + TEND_VENTANA_MIN_ANIOS - 1, _a1 + 1)]
+    # el registro completo sale al mover el inicio y al mover el final: se cuenta una vez
+    _d = pd.DataFrame(_filas).drop_duplicates(subset=["inicio", "fin"])
+    _completo = met_global[(_v, "completo")]["ols_Xmes"]
+    # la ventana que va de punta a punta es la del registro completo de la tabla resumen
+    assert np.isclose(_d[(_d.inicio == _a0) & (_d.fin == _a1)].pend.iloc[0], _completo["pend"])
+    tend_ventanas[_v] = {
+        "tabla": _d, "a0": _a0, "a1": _a1, "n": len(_d), "pend": _completo["pend"],
+        "min": _d.pend.min(), "max": _d.pend.max(),
+        "n_sig": int((_d.p < TEND_ALFA).sum()),
+        "cambia_signo": bool((_d.pend > 0).any() and (_d.pend < 0).any()),
+        "sig_signos": sorted({int(np.sign(r.pend)) for r in _d.itertuples() if r.p < TEND_ALFA}),
+    }
+# lo que dice el texto: la temperatura sube en todas las ventanas; la lluvia de la red fija y el caudal no son
+# significativos en ninguna y cambian de signo según la ventana
+assert all(not tend_ventanas[t]["cambia_signo"] and tend_ventanas[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
+assert all(tend_ventanas[v]["n_sig"] == 0 and tend_ventanas[v]["cambia_signo"] for v in ("PL*", "Q"))
+
+# (1c) Sensibilidad a años extremos (decidido por el usuario el 2026-10-09). Con el mismo método de la tabla resumen,
+# sobre el registro completo de cada variable, se quita un año calendario completo a la vez (sus 12 meses) y se
+# recalcula la pendiente. Se informa el rango de pendientes, cuántas versiones son significativas, si alguna cambia
+# de signo y qué año mueve más la pendiente: el de mayor cambio absoluto frente a la del registro completo. Para ese
+# año se cuentan sus meses en El Niño y en La Niña según el ONI (scripts/17), como en «Anomalías»; no se clasifica
+# el año con un umbral.
+_fase_largo = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_fase_largo = _fase_largo.set_index(pd.PeriodIndex(_fase_largo.periodo, freq="M"))["fase"]
+tend_sin_anio = {}
+for _v in LARGO_VARS:
+    _a0, _a1 = tend_ventanas[_v]["a0"], tend_ventanas[_v]["a1"]
+    _pend = tend_ventanas[_v]["pend"]
+    _anios = sorted(set(largo[_v].dropna().index.year))          # solo los años que tienen algún mes con dato
+    _d = pd.DataFrame([_pend_ventana(_v, _a0, _a1, anio_fuera=a) | {"fuera": a} for a in _anios])
+    _d["cambio"] = _d.pend - _pend
+    _top = _d.loc[_d.cambio.abs().idxmax()]
+    _fases = _fase_largo[_fase_largo.index.year == int(_top.fuera)].value_counts()
+    tend_sin_anio[_v] = {
+        "tabla": _d, "a0": _a0, "a1": _a1, "n": len(_d), "pend": _pend,
+        "min": float(_d.pend.min()), "max": float(_d.pend.max()), "n_sig": int((_d.p < TEND_ALFA).sum()),
+        "p_min": float(_d.p.min()), "anio_p_min": int(_d.loc[_d.p.idxmin(), "fuera"]),
+        "cambia_signo": bool((_d.pend > 0).any() and (_d.pend < 0).any()),
+        "anio": int(_top.fuera), "cambio": float(_top.cambio), "p_anio": float(_top.p),
+        "nino": int(_fases.get("El Niño", 0)), "nina": int(_fases.get("La Niña", 0)),
+        "meses_anio": int(largo[_v][largo.index.year == int(_top.fuera)].notna().sum()),
+    }
+# lo que dice el texto: ningún año por sí solo cambia la conclusión. La temperatura sube y es significativa en
+# todas las versiones; en la lluvia y el caudal ninguna versión es significativa y ninguna cambia de signo
+assert all(tend_sin_anio[t]["n_sig"] == tend_sin_anio[t]["n"] and tend_sin_anio[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
+assert all(tend_sin_anio[v]["n_sig"] == 0 and not tend_sin_anio[v]["cambia_signo"] for v in ("PL*", "PI", "Q"))
+# y en las tres, quitar el año que más pesa cambia la pendiente en más de la mitad de su valor
+assert all(abs(tend_sin_anio[v]["cambio"]) > 0.5 * abs(tend_sin_anio[v]["pend"]) for v in ("PL*", "PI", "Q"))
+# el año que más mueve la pendiente de la lluvia y el caudal, si es el mismo para las tres (el texto lo nombra)
+_anios_lluvia = {tend_sin_anio[v]["anio"] for v in ("PL*", "PI", "Q")}
+tend_sin_anio_comun = _anios_lluvia.pop() if len(_anios_lluvia) == 1 else None
 
 
 # (2) Banda de 95 % de la recta OLS (error de Newey-West) para la gráfica de series: var(ŷ) = x'Vx en cada punto.

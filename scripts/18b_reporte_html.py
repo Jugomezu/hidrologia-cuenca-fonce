@@ -20,6 +20,10 @@ import pandas as pd
 FIG = Path("reporte/figuras")
 SALIDA = Path("reporte/reporte-fonce.html")
 
+# Autoría del informe: se escribe en el encabezado de la página y en los metadatos del HTML.
+AUTORES = ["Juan Pablo Gomez", "Andrea Gomez", "Diego Cantillo"]
+PROFESOR = "Carlos David Hoyos"
+
 # Corre el análisis y trae sus resultados a este archivo, para que la f-string de la página los use.
 globals().update(run_path(str(Path(__file__).with_name("18_calculos_informe.py"))))
 
@@ -1119,6 +1123,7 @@ pagina = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Reporte cuenca del Fonce</title>
+<meta name="author" content="{html.escape(", ".join(AUTORES))}">
 <script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1244,6 +1249,10 @@ a {{ color: var(--acento); }}
 <header>
   <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca</p>
   <h1>Cuenca del río Fonce hasta San Gil</h1>
+  <div{revision("autores")}>
+    <p class="intro"><b>Autores:</b> {html.escape(", ".join(AUTORES))}</p>
+    <p class="intro"><b>Profesor:</b> {html.escape(PROFESOR)}</p>
+  </div>
   <p class="intro">Santander, Colombia. Estación de aforo IDEAM {24027010} en San Gil, con cinco subcuencas anidadas que también tienen caudal medido.</p>
   <div class="cifras">
     <div class="cifra"><b>{n(sg['area'])} km²</b><span>área de drenaje</span></div>
@@ -3346,6 +3355,33 @@ a {{ color: var(--acento); }}
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
   </ol>
   <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
+</section>
+
+<section>
+  <div{revision("uso de IA")}>
+  <h2>Uso de inteligencia artificial</h2>
+  <p>Este informe se hizo con ayuda de Claude (Anthropic), un modelo de lenguaje, usado a través de Claude Code, un
+  asistente de programación que trabaja directamente sobre el repositorio del proyecto. Casi todo el código del
+  repositorio se escribió con esa ayuda.</p>
+  <p><b>Qué hizo la IA</b></p>
+  <ul>
+    <li>Escribir y corregir el código de Python: la descarga y el procesamiento de los datos, el control de calidad, los cálculos estadísticos, las figuras y el script que genera esta página.</li>
+    <li>Redactar borradores de los textos del informe, que el equipo revisó, corrigió o descartó.</li>
+    <li>Buscar bibliografía y comprobar, leyendo las fuentes disponibles, que cada cita diga lo que el informe le atribuye.</li>
+    <li>Verificar que el código corre de principio a fin y que la página abre sin errores.</li>
+  </ul>
+  <p><b>Qué hizo el equipo</b></p>
+  <ul>
+    <li>Tomar las decisiones de método: períodos de análisis, umbrales, exclusiones de datos, fuentes y criterios de clasificación. La IA presentó las opciones con su evidencia y una recomendación; las decisiones, con lo que recomendó la IA y los casos en que el equipo decidió distinto, están registradas en <code>DECISIONES.md</code>.</li>
+    <li>Revisar los cambios antes de incorporarlos al informe y responder por ellos.</li>
+  </ul>
+  <p><b>Cómo se controló</b></p>
+  <ul>
+    <li>Ninguna cifra del informe se escribió a mano: todas se calculan en <code>scripts/18_calculos_informe.py</code> a partir de los datos descargados, cuya procedencia está en <code>DATOS_FUENTES.md</code>. Las afirmaciones sobre los datos están protegidas con comprobaciones en el código.</li>
+    <li>El análisis es reproducible: los scripts corren de principio a fin desde la raíz del repositorio.</li>
+  </ul>
+  <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores.</p>
+  </div>
 </section>
 
 <footer>

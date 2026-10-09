@@ -852,6 +852,49 @@ ventanas_filas = "\n".join(
     for v, d in tend_ventanas.items())
 
 
+# tendencias: sensibilidad a años extremos (quitar un año completo a la vez; cálculos en tend_sin_anio de 18)
+def _sin_anio_lectura(d):
+    if d["n_sig"] == d["n"]:
+        return ("sube" if d["min"] > 0 else "baja") + " y es significativa sin importar qué año se quite"
+    if d["n_sig"] == 0:
+        return "ninguna versión significativa" + ("; el signo cambia" if d["cambia_signo"] else "; el signo no cambia")
+    return f"significativa en {d['n_sig']} de {d['n']} versiones"
+
+
+def _fases_anio(d, unidad=""):
+    partes = [f"{d['nino']}{unidad} en El Niño" if d["nino"] else "", f"{d['nina']}{unidad} en La Niña" if d["nina"] else ""]
+    partes = [x for x in partes if x]
+    return " y ".join(partes) if partes else "ningún mes en El Niño ni en La Niña"
+
+
+# en Q la pendiente sin algunos años queda cerca de cero: con un decimal se leería «-0.0»
+_dec_sin_anio = lambda v: 1 if v in ("PL*", "PI") else 2
+
+
+sin_anio_filas = "\n".join(
+    f"<tr><td><b>{v}</b> <small>({RES_UNIDAD_DECADA[v]})</small></td><td>{d['a0']}–{d['a1']}</td><td class='num'>{d['n']}</td>"
+    f"<td class='num'>{d['pend']:+.{_dec_sin_anio(v)}f}</td>"
+    f"<td class='num'>{d['min']:+.{_dec_sin_anio(v)}f} a {d['max']:+.{_dec_sin_anio(v)}f}</td>"
+    f"<td class='num'>{d['n_sig']}</td><td class='num'>{d['anio']}: {d['cambio']:+.{_dec_sin_anio(v)}f} "
+    f"<small>(p {_p_txt(d['p_anio'])})</small></td><td>{_fases_anio(d)}</td><td>{_sin_anio_lectura(d)}</td></tr>"
+    for v, d in tend_sin_anio.items())
+# la lluvia y el caudal: el año que más mueve las tres pendientes, si es el mismo, y hacia dónde las mueve
+_lluvia_q = ("PL*", "PI", "Q")
+_p_min_lluvia = min(_lluvia_q, key=lambda v: tend_sin_anio[v]["p_min"])
+if tend_sin_anio_comun is not None:
+    _sentido = {v: "baja" if tend_sin_anio[v]["pend"] + tend_sin_anio[v]["cambio"] < tend_sin_anio[v]["pend"]
+                else "sube" for v in _lluvia_q}
+    _d0 = tend_sin_anio[_lluvia_q[0]]
+    sin_anio_comun_txt = (
+        f" En las tres, el año que más mueve la pendiente es <b>{tend_sin_anio_comun}</b>, que según el ONI tuvo "
+        f"{_fases_anio(_d0, ' meses')}; sin ese año la pendiente "
+        + "; ".join(f"{_sentido[v]} en {v} ({tend_sin_anio[v]['pend']:+.{_dec_sin_anio(v)}f} → "
+                    f"{tend_sin_anio[v]['pend'] + tend_sin_anio[v]['cambio']:+.{_dec_sin_anio(v)}f})" for v in _lluvia_q) + ".")
+else:
+    sin_anio_comun_txt = (" El año que más mueve la pendiente no es el mismo en las tres: "
+                          + ", ".join(f"{tend_sin_anio[v]['anio']} en {v}" for v in _lluvia_q) + ".")
+
+
 def _res_fila(v):
     f = met_global[(v, "completo")]
     x, z = f["ols_Xmes"], f["ols_z"]
@@ -3042,6 +3085,32 @@ a {{ color: var(--acento); }}
   el intervalo se abre (menos años), no porque la pendiente cambie de signo. <b>En la lluvia de la red fija y en el
   caudal, en cambio, el signo depende de dónde se corte el registro</b>, y ninguna ventana es significativa: la falta de
   tendencia en el registro completo no es un efecto de las fechas elegidas.</p>
+
+  <h3>Sensibilidad a años extremos</h3>
+  <p>Un solo año muy húmedo, muy seco o muy cálido puede crear o esconder una tendencia. Para medirlo se repite el ajuste
+  de la tabla resumen (OLS con una constante por mes, error de Newey-West) sobre el registro completo de cada variable,
+  <b>quitando un año completo a la vez</b> (sus 12 meses). Hay una versión por cada año con dato. El año que más mueve la
+  pendiente es el de mayor cambio absoluto frente a la del registro completo; de ese año se cuentan los meses en El Niño
+  y en La Niña según el ONI.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Registro</th><th class="num">Versiones</th><th class="num">Pendiente, registro completo</th>
+    <th class="num">Rango de pendientes sin un año</th><th class="num">Versiones con p &lt; {TEND_ALFA}</th>
+    <th class="num">Año que más la mueve: cambio</th><th>Meses de ese año en El Niño o La Niña</th><th>Lectura</th></tr></thead>
+    <tbody>
+{sin_anio_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendientes de la serie original X por década, en las unidades de la variable (en la lluvia, del acumulado
+  mensual). «Cambio»: pendiente sin ese año menos la del registro completo; la p es la de la versión sin ese año.</p>
+  <p><b>La subida de la temperatura no depende de ningún año</b>: es significativa en todas las versiones, con pendientes de
+  {min(tend_sin_anio[t]["min"] for t in ("T mín", "T media", "T máx")):+.2f} a
+  {max(tend_sin_anio[t]["max"] for t in ("T mín", "T media", "T máx")):+.2f} °C/década. <b>En la lluvia y en el caudal ningún año
+  crea ni esconde una tendencia</b>: ninguna versión es significativa y ninguna cambia el signo de la pendiente del registro
+  completo; la p más baja es {tend_sin_anio[_p_min_lluvia]["p_min"]:.3f} ({_p_min_lluvia} sin
+  {tend_sin_anio[_p_min_lluvia]["anio_p_min"]}).{sin_anio_comun_txt} Que quitar un solo año cambie la pendiente en más de la mitad
+  de su valor es otra forma de ver por qué su intervalo es tan ancho.</p>
 
   <h3>¿Tendencia gradual o salto?</h3>
   <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt ({CITA_PETTITT}) sí marca uno</b>

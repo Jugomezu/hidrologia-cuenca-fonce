@@ -130,32 +130,32 @@ def serie(col):
     return [None if pd.isna(v) else round(float(v), 1) for v in comp[col]]
 
 
-# Paleta apta para daltonismo (Okabe-Ito). Decisión de dibujo: los pluviómetros individuales van
+# Cada serie dice de qué variable es ("variable"); el color lo pone la página, un solo color por variable
+# (COLOR_VAR en scripts/18b_reporte_html.py). Decisión de dibujo: los pluviómetros individuales van
 # tenues, como nube de fondo, y el promedio de la red va a plena opacidad encima. Lo que compite con
 # el satélite es la red, no cada aparato.
-AZUL, VERDE, NARANJA = "#0072B2", "#009E73", "#D55E00"
-nube = [{"nombre": nom, "color": NARANJA, "grosor": 1.0, "guion": None, "opacidad": 0.20,
+nube = [{"nombre": nom, "variable": "PL", "grosor": 1.0, "guion": None, "opacidad": 0.20,
          "enLeyenda": i == 0, "grupo": "pluviometros",
          "etiquetaGrupo": "pluviómetros, uno a uno", "y": serie(cod)}
         for i, (cod, nom) in enumerate(COD_PLUVIO.items())]
 cmp_datos = {
     "meses": [str(x) for x in comp.index],
     "series": nube + [
-        {"nombre": "PI · IMERG", "color": AZUL, "grosor": 2.2, "guion": None, "y": serie("IMERG")},
-        {"nombre": f"PL · promedio de {len(DENTRO)} pluviómetros", "color": NARANJA,
+        {"nombre": "PI · IMERG", "variable": "PI", "grosor": 2.2, "guion": None, "y": serie("IMERG")},
+        {"nombre": f"PL · promedio de {len(DENTRO)} pluviómetros", "variable": "PL",
          "grosor": 2.0, "guion": "dash", "y": serie("RED")}],
 }
 ciclo = comp.groupby(comp.index.month).mean()
 cmp_datos["ciclo"] = (
-    [{"nombre": COD_PLUVIO[cod], "color": NARANJA, "guion": None, "opacidad": 0.22,
+    [{"nombre": COD_PLUVIO[cod], "variable": "PL", "guion": None, "opacidad": 0.22,
       "enLeyenda": False, "grupo": "pluviometros",
       "y": [round(float(v), 1) for v in ciclo[cod]]}
      for cod in COD_PLUVIO]
-    + [{"nombre": nombre, "color": color, "guion": guion,
+    + [{"nombre": nombre, "variable": variable, "guion": guion,
         "y": [round(float(v), 1) for v in ciclo[col]]}
-       for col, nombre, color, guion in [("IMERG", "PI · IMERG", AZUL, None),
-                                         ("RED", f"PL · promedio de {len(DENTRO)} pluviómetros",
-                                          NARANJA, "dash")]])
+       for col, nombre, variable, guion in [("IMERG", "PI · IMERG", "PI", None),
+                                            ("RED", f"PL · promedio de {len(DENTRO)} pluviómetros",
+                                             "PL", "dash")]])
 cmp_stats = {}
 for cod, nom in ([("RED", f"promedio de los {len(DENTRO)} pluviómetros")]
                  + list(COD_PLUVIO.items())):
@@ -395,7 +395,8 @@ firmas_sg = pd.read_csv("data/camels_col/signatures/09_CAMELS_COL_Hydrological_s
 MESES_ES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
 
 # ---------------------------------------------------------------- el ciclo anual, mes a mes
-# Para cada variable y cada mes del calendario: años con dato y estadísticos de esos años. Percentiles
+# Para cada variable y cada mes del calendario: años con dato y estadísticos de esos años (en el informe, sobre
+# los meses comunes clima_meses, definidos más abajo junto al año típico). Percentiles
 # con interpolación lineal (Hyndman y Fan, tipo 7, el de pandas); desviación estándar muestral (n − 1).
 MESES_LARGOS_ES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
                    "octubre", "noviembre", "diciembre"]
@@ -430,6 +431,24 @@ ciclo_datos = {
 }
 
 ciclo_n = len(ciclo_comun)
+
+# Climatología de 12 meses (la tabla por mes del ciclo anual y los diagramas de caja por mes): se calcula
+# sobre los MISMOS meses comunes del año típico, los de ciclo_comun (decisión del usuario, 2026-10-08), para
+# comparar las fuentes con los mismos pares de meses válidos. Sin la máscara, PI, PL y T usarían todos los años
+# del período en cada mes y Q solo los suyos. La máscara es la de arriba; aquí no se reescribe. Solo cambia estas dos
+# salidas: la tabla general (variables_resumen, 300 meses), los atípicos, la variabilidad, el régimen, las
+# anomalías y lo demás siguen con todos los meses válidos de cada variable.
+clima_meses = ciclo_comun.index
+clima_series = variables_resumen.loc[clima_meses]
+# en la máscara, todas las variables de la tabla y de las cajas (PI, PL, Q y las tres temperaturas) tienen dato
+assert len(clima_meses) == ciclo_n and clima_series.notna().all().all()
+# años con dato de cada mes del calendario dentro de la máscara (iguales para todas las variables)
+clima_anios_mes = clima_series.groupby(clima_series.index.month).size()
+assert len(clima_anios_mes) == 12
+clima_anios_periodo = PERIODOS[-1].year - PERIODOS[0].year + 1          # años del período, para el texto
+# las variables con huecos en el período son las que recortan la máscara (el texto las nombra)
+clima_huecos_de = [c for c in variables_resumen.columns if variables_resumen[c].isna().any()]
+assert clima_huecos_de == ["Q"]       # el informe dice que PI, PL y las temperaturas no tienen huecos y Q sí
 
 
 def mes_de(serie, extremo="max"):
@@ -503,6 +522,11 @@ _var_mf = [(v, m) for v in _VAR_LC for m in var_fuertes[v]]
 var_bowley_max = var_tabla.loc[_var_mf, "bowley"].abs().max() if _var_mf else float("nan")
 var_por_pocos = bool(_var_mf) and var_bowley_max < 0.5 * var_tabla.loc[_var_mf, "asim"].min()
 var_top = {v: max(var_influencia[v].items(), key=lambda kv: abs(kv[1])) for v in VAR_SERIES}
+# años por mes que usa esta sección (todos los meses válidos de cada variable, no los meses comunes de la
+# tabla del ciclo anual): (mínimo, máximo) sobre los 12 meses, para la nota del informe
+var_n = {v: (int(var_tabla.loc[v, "n"].min()), int(var_tabla.loc[v, "n"].max())) for v in VAR_SERIES}
+# la nota agrupa PL, PI y T media con un solo número de años por mes: tiene que ser el mismo en las tres
+assert var_n["PL"] == var_n["PI"] == var_n["T media"] and var_n["PL"][0] == var_n["PL"][1]
 
 ALFA_KW = 0.05
 REG_PASOS = 1200
@@ -1402,6 +1426,62 @@ assert anom_rho["PL–Q"]["anomalías"] > 0
 assert (anom_rho["PL–Q"]["tal cual"] - anom_rho["PL–Q"]["anomalías"]) < (anom_rho["PI–Q"]["tal cual"] - anom_rho["PI–Q"]["anomalías"])
 assert anom_anios[anom_humedos[0]]["meses_sobre"] > 6 and anom_anios[anom_secos[0]]["meses_sobre"] < 6
 assert anom_anios[anom_humedos[0]]["nina"] >= 6 and anom_anios[anom_secos[0]]["nino"] >= 6
+
+
+# ---------------------------------------------------------------- mapa año–mes de valores
+# Una matriz por variable: filas = años del período, columnas = los 12 meses, valor del mes tal cual. Va en la
+# sección del ciclo anual, pero se calcula aquí porque su lectura usa los picos de «¿se repite cada año?» y los
+# años contrastantes de las anomalías. Usa TODOS los meses válidos de cada variable (variables_resumen), no los
+# meses comunes de la tabla y las cajas (decisión del usuario, 2026-10-08): el mapa muestra cada año, no compara
+# fuentes. Los meses sin dato quedan vacíos (NaN); no se rellena nada.
+MAPA_AM_VARIABLES = [("PL", "mm/mes", 0), ("PI", "mm/mes", 0), ("Q", "m³/s", 1), ("T media", "°C", 1)]
+MAPA_AM_ANIOS = list(range(PERIODOS[0].year, PERIODOS[-1].year + 1))
+mapa_am = {}
+for _v, _u, _dec in MAPA_AM_VARIABLES:
+    _s = variables_resumen[_v]
+    mapa_am[_v] = (pd.DataFrame({"anio": _s.index.year, "mes": _s.index.month, "valor": _s.to_numpy()})
+                   .pivot(index="anio", columns="mes", values="valor").reindex(index=MAPA_AM_ANIOS, columns=range(1, 13)))
+mapa_am_vacias = {v: int(m.isna().sum().sum()) for v, m in mapa_am.items()}
+# la matriz es la serie mensual reacomodada: 12 meses por año y los mismos vacíos que la serie
+assert all(m.shape == (len(MAPA_AM_ANIOS), 12) for m in mapa_am.values())
+assert all(mapa_am_vacias[v] == int(variables_resumen[v].isna().sum()) for v in mapa_am)
+# la nota del mapa dice que los vacíos son solo de Q
+assert [v for v, k in mapa_am_vacias.items() if k > 0] == ["Q"]
+
+
+# Lectura del mapa, con PL y PI en paralelo:
+# 1. Los dos picos año a año: es el «método simple» de est_anual (el mes más lluvioso de cada semestre a ±1 mes del
+#    pico promedio de esa fuente); aquí solo se nombran las ventanas de meses que resultan.
+def _ventana(nombre_pico):
+    i = MESES_LARGOS_ES.index(nombre_pico)
+    return f"{MESES_ES[(i - 1) % 12]}–{MESES_ES[(i + 1) % 12]}"
+
+
+mapa_am_picos = {f: {"picos": est_anual[f]["picos"], "ventanas": [_ventana(p) for p in est_anual[f]["picos"]],
+                     "anios": est_anual[f]["anios"], "simple": est_anual[f]["simple"]} for f in ("PL", "PI")}
+# el texto dice que los dos picos aparecen en la mayoría de los años, con las dos fuentes
+assert all(r["simple"] > r["anios"] / 2 for r in mapa_am_picos.values())
+# 2. Años húmedos o secos de punta a punta: cuántos meses de cada año quedan por encima (y por debajo) de la mediana
+#    de su mes; la cuenta «por encima» es la de «Meses sobre lo normal» de los años contrastantes. Se nombran los años
+#    con más y con menos meses por encima, y si coinciden con los años contrastantes de las anomalías.
+mapa_am_sobre = {}
+for _f in ("PL", "PI"):
+    _s = variables_resumen[_f]
+    _mediana_mes = _s.groupby(_s.index.month).transform("median")
+    _sobre = (_s > _mediana_mes).groupby(_s.index.year).sum().astype(int)
+    _bajo = (_s < _mediana_mes).groupby(_s.index.year).sum().astype(int)
+    _mas, _menos = int(_sobre.max()), int(_sobre.min())
+    _anios_mas = [int(a) for a in _sobre.index[_sobre == _mas]]
+    _anios_menos = [int(a) for a in _sobre.index[_sobre == _menos]]
+    mapa_am_sobre[_f] = {"mas": _mas, "anios_mas": _anios_mas, "menos": _menos, "anios_menos": _anios_menos,
+                         "bajo_menos": [int(_bajo[a]) for a in _anios_menos],
+                         "coinciden_humedos": [a for a in _anios_mas if a in anom_humedos],
+                         "coinciden_secos": [a for a in _anios_menos if a in anom_secos]}
+    if _f == "PL":
+        # es la misma cuenta de la tabla de los años contrastantes
+        assert all(int(_sobre[a]) == r["meses_sobre"] for a, r in anom_anios.items())
+# el texto dice que hay años con la mayoría de los meses por encima de lo normal y años con la mayoría por debajo
+assert all(r["mas"] > 6 and min(r["bajo_menos"]) > 6 for r in mapa_am_sobre.values())
 
 
 # ---------------------------------------------------------------- registro largo (1981-2022) para tendencias

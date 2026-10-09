@@ -80,3 +80,4 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Modelos lluvia–caudal: cómo se comparan las alternativas | Validación cruzada por bloques de años, además del BIC y de la evaluación en 2015–2022 | BIC en el ajuste y la evaluación en 2015–2022; la validación cruzada, para el punto 2.3 | **Contradice al agente** |
 | 2026-10-09 | Modelos lluvia–caudal: caudal del mes anterior como predictor | No: exige conocer el caudal que se quiere estimar, y Q tiene 38 meses vacíos | Lo mismo | Sí |
 | 2026-10-09 | Modelos lluvia–caudal: dónde va el código | Un script nuevo, `scripts/22_modelos_lluvia_caudal.py`, que escribe a `out/` y que lee 18 | Lo mismo | Sí |
+| 2026-10-09 | Modelos lluvia–caudal: bloques de la validación cruzada | 5 bloques de 5 años seguidos (1998–2002 … 2018–2022) | Lo mismo; la otra opción era dejar fuera un año a la vez | Sí |

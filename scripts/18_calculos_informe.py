@@ -18,6 +18,7 @@ from scipy import stats
 from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
 import numpy as np
 import pandas as pd
+import rasterio
 import xarray as xr
 
 
@@ -787,6 +788,16 @@ assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_s
 mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
 assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
 
+# ¿conserva masa M4? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
+mod_balance = pd.read_csv("out/modelos_balance.csv").set_index("fuente")
+for _f in MOD_FUENTES:
+    _b = mod_balance.loc[_f]
+    # el texto dice que el volumen total casi coincide (menos de 2 %), que M4 da menos meses con Q > P que los
+    # observados y que ningún año estimado tiene más caudal que lluvia
+    assert abs(_b.diferencia_volumen_pct) < 2
+    assert _b.meses_q_mayor_p_estimado < _b.meses_q_mayor_p_observado
+    assert _b.anios_q_mayor_p_estimado == 0
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()
@@ -1412,6 +1423,15 @@ mapa_plu_baja = _plu_dentro.loc[_plu_dentro.altitud.idxmin()]          # el pluv
 mapa_plu_alta = _plu_dentro.loc[_plu_dentro.altitud.idxmax()]          # y el más alto
 _hips = pd.read_csv("out/curva_hipsometrica_fonce.csv")                 # fracción del área por encima de cada altura
 mapa_pct_sin_pluvio = float(np.interp(mapa_plu_alta.altitud, _hips.altura_m, _hips.fraccion_area_encima)) * 100
+
+# mapa de ubicación: el relieve de la región (Copernicus GLO-90 promediado, de 03b_relieve_regional.py)
+with rasterio.open("out/relieve_region_copernicus.tif") as _rel:
+    _z_rel = _rel.read(1)
+    ubic_limites = _rel.bounds                                  # oeste, sur, este, norte (grados)
+    ubic_paso_seg = abs(_rel.transform.a) * 3600                # tamaño de la celda, en segundos de arco
+ubic_elev_min, ubic_elev_max = float(_z_rel.min()), float(_z_rel.max())
+ubic_limites_gpkg = gpd.read_file("out/limites_region.gpkg", layer="departamentos")
+assert "Santander" in set(ubic_limites_gpkg.nombre)            # el texto dice que Santander va resaltado
 # área de una celda de 0.1° x 0.1° a la latitud media de los píxeles de IMERG, en el elipsoide WGS84
 _lat = float(pix.lat.mean())
 mapa_km2_pixel = abs(Geod(ellps="WGS84").polygon_area_perimeter(

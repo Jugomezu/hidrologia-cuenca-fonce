@@ -1280,6 +1280,36 @@ mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in
      f"aplana las pendientes."),
 ])
 
+# ¿conserva masa M4?
+_bal = mod_balance
+_bal_ind = [
+    ("Lluvia media (mm/mes)", lambda f, c: f"{_bal.loc[f, 'lluvia_media']:.1f}"),
+    ("Caudal medio (mm/mes)", lambda f, c: f"{_bal.loc[f, f'caudal_{c}_medio']:.1f}"),
+    ("Coeficiente de escorrentía, Q / P", lambda f, c: f"{_bal.loc[f, f'coef_escorrentia_{c}']:.3f}"),
+    ("P − Q (mm/mes)", lambda f, c: f"{_bal.loc[f, f'p_menos_q_{c}']:.1f}"),
+    ("ETP (mm/mes)", lambda f, c: f"{_bal.loc[f, 'etp_media']:.1f}"),
+    ("Meses con Q mayor que P", lambda f, c: f"{_bal.loc[f, f'meses_q_mayor_p_{c}']:.0f}"),
+    ("Meses con Q mayor que P con el mes anterior", lambda f, c: f"{_bal.loc[f, f'meses_q_mayor_p_dos_meses_{c}']:.0f}"),
+    ("Años con P − Q mayor que la ETP", lambda f, c: f"{_bal.loc[f, f'anios_p_menos_q_mayor_etp_{c}']:.0f}"),
+]
+mod_balance_filas = "\n".join(
+    f"<tr><td>{nombre}</td>" + "".join(f"<td class='num'>{fn(f, c)}</td>" for f in MOD_FUENTES
+                                         for c in ("observado", "estimado")) + "</tr>"
+    for nombre, fn in _bal_ind)
+_anios_txt = lambda k: f"{k:.0f} año" + ("" if k == 1 else "s")
+_bal_pl_obs, _bal_pl_est = _bal.loc["PL", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PL", "anios_p_menos_q_mayor_etp_estimado"]
+_bal_pi_obs, _bal_pi_est = _bal.loc["PI", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PI", "anios_p_menos_q_mayor_etp_estimado"]
+_balance_etp_txt = (
+    f"Con PL, P − Q supera a la ETP en {_anios_txt(_bal_pl_obs)} observados de {_bal.loc['PL', 'n_anios_completos']:.0f}, "
+    f"y con M4 en {_anios_txt(_bal_pl_est)}; con PI, "
+    + ("en ningún año, ni observado ni con M4. " if _bal_pi_obs == _bal_pi_est == 0 else
+       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M4. ")
+    + ("Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la "
+       "ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos."
+       if max(_bal_pl_obs, _bal_pl_est) > 0 else
+       "Con ninguna de las dos fuentes el balance anual pide más evaporación de la posible.")
+    + f" Ningún año estimado tiene más caudal que lluvia.")
+
 # la gráfica: 2015-2022 con el modelo ajustado en 1998-2014, con los meses sin Q como vacíos
 _part = mod_est[mod_est.esquema == "partición 2015-2022"].set_index(["fuente", "modelo", "periodo"]).sort_index()
 _meses_ev = [str(p) for p in pd.period_range(EV_VALIDACION[0], EV_VALIDACION[1], freq="M")]
@@ -1445,6 +1475,24 @@ a {{ color: var(--acento); }}
   <p>La cuenca del Fonce está en Santander, en el flanco occidental de la <b>cordillera Oriental</b> de Colombia, el
   que mira al valle del Magdalena. El centroide de su polígono queda en {centroide_lat:.2f}° N,
   {abs(centroide_lon):.2f}° W.</p>
+  <figure>
+    <div class="placa"><img src="{img('ubicacion_cuenca.png')}" alt="Mapa del relieve de la cordillera Oriental de Colombia entre el valle del Magdalena, al occidente, y los Llanos, al oriente, con los límites de Santander y de los demás departamentos, la frontera con Venezuela y la cuenca del Fonce hasta San Gil marcada en rojo" width="1440" height="1152"></div>
+    <figcaption>
+      <h3>Figura 1 · Ubicación de la cuenca en la cordillera Oriental</h3>
+      <p>La cuenca, en rojo, queda en el flanco occidental de la cordillera Oriental. Al occidente están las tierras bajas
+      del valle del Magdalena y, en el borde del mapa, el flanco de la cordillera Central; al oriente de la cordillera,
+      los Llanos. El triángulo es la estación de aforo de San Gil, la salida de la cuenca.</p>
+      <dl class="lista-datos">
+        <dt>Relieve</dt><dd>Copernicus DEM GLO-90 (ESA): celdas de 3″ (unos 90 m), promediadas a {ubic_paso_seg:.0f}″ para la figura</dd>
+        <dt>Límites</dt><dd>Natural Earth, escala 1:10 m: países y departamentos; Santander, con línea más gruesa</dd>
+        <dt>Recuadro</dt><dd>{abs(ubic_limites.left):.1f}° a {abs(ubic_limites.right):.1f}° W, {ubic_limites.bottom:.1f}° a {ubic_limites.top:.1f}° N</dd>
+        <dt>Elevación en el recuadro</dt><dd>{n(ubic_elev_min)}–{n(ubic_elev_max)} m</dd>
+      </dl>
+      <p class="nota">Coordenadas geográficas (EPSG:4326), con la escala horizontal ajustada a la latitud para que un
+      kilómetro mida lo mismo en las dos direcciones. Los límites de Natural Earth están generalizados para esa escala:
+      sirven para ubicar la cuenca, no para medir.</p>
+    </figcaption>
+  </figure>
   <p><b>A sotavento de los alisios.</b> En las laderas que reciben los vientos alisios de frente, a barlovento, la
   lluvia tiende a ser mucho mayor que en sus vecinas del lado opuesto, a sotavento: del orden del doble
   ({CITA_MESA_P90}). Los alisios llegan del oriente, y la mayor parte de la cuenca está en el flanco occidental de la
@@ -1468,6 +1516,113 @@ a {{ color: var(--acento); }}
   <p class="nota">Área: la del polígono de cada cuenca, calculada por el proyecto (geodésica). Elevación: atributos de
   CAMELS-COL. Lluvia: promedio de los totales anuales de IMERG mensual (1998–2022) ponderado por área sobre cada subcuenca.</p>
 </section>
+
+<section>
+  <h2>Mapas de la cuenca</h2>
+  <div class="pestanas" role="tablist" aria-label="Mapa a mostrar">
+    <button type="button" role="tab" id="pestana-dem" aria-controls="panel-dem" aria-selected="true">Relieve (DEM)</button>
+    <button type="button" role="tab" id="pestana-imerg" aria-controls="panel-imerg" aria-selected="false" tabindex="-1">Píxeles de IMERG</button>
+    <button type="button" role="tab" id="pestana-era5" aria-controls="panel-era5" aria-selected="false" tabindex="-1">Píxeles de ERA5-Land</button>
+  </div>
+  <div role="tabpanel" id="panel-dem" aria-labelledby="pestana-dem">
+  <figure>
+    <div class="placa"><img src="{img('dem_fonce.png')}" alt="Mapa de elevación de la cuenca del Fonce con sombreado, la estación de aforo de San Gil y los siete pluviómetros del IDEAM que están dentro de la cuenca" width="1024" height="1376"></div>
+    <figcaption>
+      <h3>Figura 2 · Modelo digital de elevación</h3>
+      <p>La mitad norte y oeste es un valle entre 1 100 y 2 000 m, donde está la estación de aforo de San Gil, la salida de la cuenca.
+      La mitad sureste sube hasta el páramo, por encima de 3 500 m.</p>
+      <p>Los <b>{len(DENTRO)} pluviómetros</b> dentro de la divisoria, con su altitud, van de
+      {html.escape(mapa_plu_baja.etiqueta)} ({n(mapa_plu_baja.altitud)} m), en el fondo del valle, a
+      {html.escape(mapa_plu_alta.etiqueta)} ({n(mapa_plu_alta.altitud)} m). <b>Ninguno llega al páramo</b>: por
+      encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la cuenca, no se mide la lluvia.</p>
+      <p class="nota">Se descargó un octavo pluviómetro, Mamonal El Hacienda, que queda fuera de la divisoria, en la vertiente del
+      Chicamocha. No aparece en el mapa ni entra en el promedio de la cuenca.</p>
+      <dl class="lista-datos">
+        <dt>Fuente</dt><dd>ALOS PALSAR</dd>
+        <dt>Resolución</dt><dd>12.5 m original; remuestreado a 50 m para la figura</dd>
+        <dt>Proyección</dt><dd>UTM 19N (EPSG:32619); áreas y longitudes, en el elipsoide o en EPSG:3116</dd>
+        <dt>Elevación en la cuenca</dt><dd>{n(elev_min)}–{n(elev_max)} m, media {n(elev_media)} m</dd>
+      </dl>
+      <p class="nota">CAMELS-COL publica {n(sg['minimum_ele'])}–{n(sg['maximum_ele'])} m, media
+      {n(sg['mean_ele'])} m: la mayor diferencia es de {n(elev_dif_max)} m, así que el polígono y el DEM
+      están bien alineados.</p>
+    </figcaption>
+  </figure>
+  </div>
+  <div role="tabpanel" id="panel-imerg" aria-labelledby="pestana-imerg" hidden>
+  <figure>
+    <div class="placa"><img src="{img('imerg_pixeles.png')}" alt="Grilla de píxeles de IMERG sobre la cuenca, coloreados por lluvia media anual, rotulados con el porcentaje de cada píxel dentro de la cuenca, con el aforo de San Gil y los siete pluviómetros" width="1088" height="1376"></div>
+    <figcaption>
+      <h3>Figura 3 · Píxeles de IMERG sobre la cuenca</h3>
+      <p>IMERG trabaja con píxeles de 0.1° (unos {mapa_km_lado:.0f} km de lado). La lluvia de la cuenca es el promedio de los
+      píxeles que la tocan, ponderado por la fracción de cada uno dentro (el número rotulado).</p>
+      <dl class="lista-datos">
+        <dt>Píxeles que tocan la cuenca</dt><dd>{n_pix}</dd>
+        <dt>Con más de la mitad dentro</dt><dd>{n_mitad}</dd>
+        <dt>Totalmente dentro</dt><dd>{n_llenos}</dd>
+        <dt>Lluvia media anual</dt><dd>{n(p_dmin)}–{n(p_dmax)} mm/año (píxeles con más de la mitad dentro)</dd>
+      </dl>
+      <p>Según IMERG, llueve más en el valle del oeste que en el páramo del sureste.</p>
+      <p class="aviso">Con cautela: IMERG se corrige con pluviómetros, y aquí ninguno pasa de {n(mapa_plu_alta.altitud)} m, así que
+      la parte alta no tiene con qué contrastarse.</p>
+      <p class="nota">Monchía ({n(mapa_area_chicas['Monchía'])} km²) y Mogoticos ({n(mapa_area_chicas['Mogoticos'])} km²) miden
+      {mapa_area_chicas['Monchía'] / mapa_km2_pixel:.1f} y {mapa_area_chicas['Mogoticos'] / mapa_km2_pixel:.1f} píxeles de IMERG
+      (unos {n(mapa_km2_pixel)} km² cada uno): IMERG no ve variaciones de la lluvia dentro de ellas.</p>
+    </figcaption>
+  </figure>
+  </div>
+  <div role="tabpanel" id="panel-era5" aria-labelledby="pestana-era5" hidden>
+  <figure>
+    <div class="placa"><img src="{img('era5land_pixeles.png')}" alt="Grilla de píxeles de ERA5-Land sobre la cuenca, coloreados por la temperatura media del aire a 2 m entre 1998 y 2022, con el valor de cada píxel rotulado" width="1088" height="1376"></div>
+    <figcaption>
+      <h3>Figura 4 · Píxeles de ERA5-Land sobre la cuenca</h3>
+      <p>La temperatura del aire a 2 m sale de <b>ERA5-Land</b>, el reanálisis del ECMWF, en píxeles de 0.1° igual que IMERG.
+      Cada número es la temperatura media de ese píxel entre 1998 y 2022.</p>
+      <dl class="lista-datos">
+        <dt>Píxeles que tocan la cuenca</dt><dd>{t_npix}</dd>
+        <dt>Con más de la mitad dentro</dt><dd>{t_nmitad}</dd>
+        <dt>Temperatura media por píxel</dt><dd>{t_min_mitad:.1f}–{t_max_mitad:.1f} °C (píxeles con más de la mitad dentro)</dd>
+        <dt>Promedio sobre la cuenca</dt><dd>{t_ponderada:.2f} °C (ponderado por área)</dd>
+      </dl>
+      <p><b>De un extremo al otro de la cuenca hay {t_max_mitad - t_min_mitad:.1f} °C de diferencia</b>
+      ({t_max_mitad:.1f} °C en el valle del noroeste y {t_min_mitad:.1f} °C en el páramo del sur, en los píxeles con más
+      de la mitad dentro): {(t_max_mitad - t_min_mitad) / mapa_t_amplitud_anual:.0f} veces la diferencia entre el mes más
+      cálido y el más frío ({mapa_t_amplitud_anual:.1f} °C). <b>Aquí la temperatura la manda la altura, no el
+      calendario</b>: por eso se usa ERA5-Land, de malla más fina que ERA5. El patrón es el del relieve: los píxeles
+      cálidos siguen el valle del Fonce y los fríos se acumulan en la mitad sureste, la más alta.</p>
+      <p class="nota">El promedio ponderado del mapa ({t_ponderada:.2f} °C) y la serie diaria de la cuenca
+      ({t_serie_media:.2f} °C) difieren en {abs(t_ponderada - t_serie_media):.2f} °C, el error de tomar el centro de cada
+      píxel en vez de integrar sobre el polígono. Con los píxeles que solo rozan la cuenca el rango llega a
+      {t_min_px:.1f}–{t_max_px:.1f} °C, pero describen terreno de afuera: el más cálido tiene apenas el
+      {mapa_pct_px_calido:.0f} % de su área dentro.</p>
+      <p class="aviso">La malla de ERA5-Land tiene el paso de la de IMERG pero <b>corrida medio píxel</b> (centros en
+      múltiplos de 0.1° contra los terminados en 0.05°): por eso son {t_npix} píxeles aquí y {n_pix} allá.</p>
+    </figcaption>
+  </figure>
+  </div>
+</section>
+<script>
+(function () {{
+  const pestanas = [...document.querySelectorAll('[role="tab"]')];
+  function activar(p, enfocar) {{
+    pestanas.forEach(t => {{
+      const activa = t === p;
+      t.setAttribute("aria-selected", activa);
+      t.tabIndex = activa ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !activa;
+    }});
+    if (enfocar) p.focus();
+  }}
+  pestanas.forEach((t, i) => {{
+    t.addEventListener("click", () => activar(t));
+    t.addEventListener("keydown", e => {{
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const j = (i + (e.key === "ArrowRight" ? 1 : pestanas.length - 1)) % pestanas.length;
+      activar(pestanas[j], true);
+    }});
+  }});
+}})();
+</script>
 
 <section>
   <h2>En esta cuenca llueve menos arriba</h2>
@@ -1580,113 +1735,6 @@ a {{ color: var(--acento); }}
   {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
   {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
 </section>
-
-<section>
-  <h2>Mapas de la cuenca</h2>
-  <div class="pestanas" role="tablist" aria-label="Mapa a mostrar">
-    <button type="button" role="tab" id="pestana-dem" aria-controls="panel-dem" aria-selected="true">Relieve (DEM)</button>
-    <button type="button" role="tab" id="pestana-imerg" aria-controls="panel-imerg" aria-selected="false" tabindex="-1">Píxeles de IMERG</button>
-    <button type="button" role="tab" id="pestana-era5" aria-controls="panel-era5" aria-selected="false" tabindex="-1">Píxeles de ERA5-Land</button>
-  </div>
-  <div role="tabpanel" id="panel-dem" aria-labelledby="pestana-dem">
-  <figure>
-    <div class="placa"><img src="{img('dem_fonce.png')}" alt="Mapa de elevación de la cuenca del Fonce con sombreado, la estación de aforo de San Gil y los siete pluviómetros del IDEAM que están dentro de la cuenca" width="1024" height="1376"></div>
-    <figcaption>
-      <h3>Figura 1 · Modelo digital de elevación</h3>
-      <p>La mitad norte y oeste es un valle entre 1 100 y 2 000 m, donde está la estación de aforo de San Gil, la salida de la cuenca.
-      La mitad sureste sube hasta el páramo, por encima de 3 500 m.</p>
-      <p>Los <b>{len(DENTRO)} pluviómetros</b> dentro de la divisoria, con su altitud, van de
-      {html.escape(mapa_plu_baja.etiqueta)} ({n(mapa_plu_baja.altitud)} m), en el fondo del valle, a
-      {html.escape(mapa_plu_alta.etiqueta)} ({n(mapa_plu_alta.altitud)} m). <b>Ninguno llega al páramo</b>: por
-      encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la cuenca, no se mide la lluvia.</p>
-      <p class="nota">Se descargó un octavo pluviómetro, Mamonal El Hacienda, que queda fuera de la divisoria, en la vertiente del
-      Chicamocha. No aparece en el mapa ni entra en el promedio de la cuenca.</p>
-      <dl class="lista-datos">
-        <dt>Fuente</dt><dd>ALOS PALSAR</dd>
-        <dt>Resolución</dt><dd>12.5 m original; remuestreado a 50 m para la figura</dd>
-        <dt>Proyección</dt><dd>UTM 19N (EPSG:32619); áreas y longitudes, en el elipsoide o en EPSG:3116</dd>
-        <dt>Elevación en la cuenca</dt><dd>{n(elev_min)}–{n(elev_max)} m, media {n(elev_media)} m</dd>
-      </dl>
-      <p class="nota">CAMELS-COL publica {n(sg['minimum_ele'])}–{n(sg['maximum_ele'])} m, media
-      {n(sg['mean_ele'])} m: la mayor diferencia es de {n(elev_dif_max)} m, así que el polígono y el DEM
-      están bien alineados.</p>
-    </figcaption>
-  </figure>
-  </div>
-  <div role="tabpanel" id="panel-imerg" aria-labelledby="pestana-imerg" hidden>
-  <figure>
-    <div class="placa"><img src="{img('imerg_pixeles.png')}" alt="Grilla de píxeles de IMERG sobre la cuenca, coloreados por lluvia media anual, rotulados con el porcentaje de cada píxel dentro de la cuenca, con el aforo de San Gil y los siete pluviómetros" width="1088" height="1376"></div>
-    <figcaption>
-      <h3>Figura 2 · Píxeles de IMERG sobre la cuenca</h3>
-      <p>IMERG trabaja con píxeles de 0.1° (unos {mapa_km_lado:.0f} km de lado). La lluvia de la cuenca es el promedio de los
-      píxeles que la tocan, ponderado por la fracción de cada uno dentro (el número rotulado).</p>
-      <dl class="lista-datos">
-        <dt>Píxeles que tocan la cuenca</dt><dd>{n_pix}</dd>
-        <dt>Con más de la mitad dentro</dt><dd>{n_mitad}</dd>
-        <dt>Totalmente dentro</dt><dd>{n_llenos}</dd>
-        <dt>Lluvia media anual</dt><dd>{n(p_dmin)}–{n(p_dmax)} mm/año (píxeles con más de la mitad dentro)</dd>
-      </dl>
-      <p>Según IMERG, llueve más en el valle del oeste que en el páramo del sureste.</p>
-      <p class="aviso">Con cautela: IMERG se corrige con pluviómetros, y aquí ninguno pasa de {n(mapa_plu_alta.altitud)} m, así que
-      la parte alta no tiene con qué contrastarse.</p>
-      <p class="nota">Monchía ({n(mapa_area_chicas['Monchía'])} km²) y Mogoticos ({n(mapa_area_chicas['Mogoticos'])} km²) miden
-      {mapa_area_chicas['Monchía'] / mapa_km2_pixel:.1f} y {mapa_area_chicas['Mogoticos'] / mapa_km2_pixel:.1f} píxeles de IMERG
-      (unos {n(mapa_km2_pixel)} km² cada uno): IMERG no ve variaciones de la lluvia dentro de ellas.</p>
-    </figcaption>
-  </figure>
-  </div>
-  <div role="tabpanel" id="panel-era5" aria-labelledby="pestana-era5" hidden>
-  <figure>
-    <div class="placa"><img src="{img('era5land_pixeles.png')}" alt="Grilla de píxeles de ERA5-Land sobre la cuenca, coloreados por la temperatura media del aire a 2 m entre 1998 y 2022, con el valor de cada píxel rotulado" width="1088" height="1376"></div>
-    <figcaption>
-      <h3>Figura 3 · Píxeles de ERA5-Land sobre la cuenca</h3>
-      <p>La temperatura del aire a 2 m sale de <b>ERA5-Land</b>, el reanálisis del ECMWF, en píxeles de 0.1° igual que IMERG.
-      Cada número es la temperatura media de ese píxel entre 1998 y 2022.</p>
-      <dl class="lista-datos">
-        <dt>Píxeles que tocan la cuenca</dt><dd>{t_npix}</dd>
-        <dt>Con más de la mitad dentro</dt><dd>{t_nmitad}</dd>
-        <dt>Temperatura media por píxel</dt><dd>{t_min_mitad:.1f}–{t_max_mitad:.1f} °C (píxeles con más de la mitad dentro)</dd>
-        <dt>Promedio sobre la cuenca</dt><dd>{t_ponderada:.2f} °C (ponderado por área)</dd>
-      </dl>
-      <p><b>De un extremo al otro de la cuenca hay {t_max_mitad - t_min_mitad:.1f} °C de diferencia</b>
-      ({t_max_mitad:.1f} °C en el valle del noroeste y {t_min_mitad:.1f} °C en el páramo del sur, en los píxeles con más
-      de la mitad dentro): {(t_max_mitad - t_min_mitad) / mapa_t_amplitud_anual:.0f} veces la diferencia entre el mes más
-      cálido y el más frío ({mapa_t_amplitud_anual:.1f} °C). <b>Aquí la temperatura la manda la altura, no el
-      calendario</b>: por eso se usa ERA5-Land, de malla más fina que ERA5. El patrón es el del relieve: los píxeles
-      cálidos siguen el valle del Fonce y los fríos se acumulan en la mitad sureste, la más alta.</p>
-      <p class="nota">El promedio ponderado del mapa ({t_ponderada:.2f} °C) y la serie diaria de la cuenca
-      ({t_serie_media:.2f} °C) difieren en {abs(t_ponderada - t_serie_media):.2f} °C, el error de tomar el centro de cada
-      píxel en vez de integrar sobre el polígono. Con los píxeles que solo rozan la cuenca el rango llega a
-      {t_min_px:.1f}–{t_max_px:.1f} °C, pero describen terreno de afuera: el más cálido tiene apenas el
-      {mapa_pct_px_calido:.0f} % de su área dentro.</p>
-      <p class="aviso">La malla de ERA5-Land tiene el paso de la de IMERG pero <b>corrida medio píxel</b> (centros en
-      múltiplos de 0.1° contra los terminados en 0.05°): por eso son {t_npix} píxeles aquí y {n_pix} allá.</p>
-    </figcaption>
-  </figure>
-  </div>
-</section>
-<script>
-(function () {{
-  const pestanas = [...document.querySelectorAll('[role="tab"]')];
-  function activar(p, enfocar) {{
-    pestanas.forEach(t => {{
-      const activa = t === p;
-      t.setAttribute("aria-selected", activa);
-      t.tabIndex = activa ? 0 : -1;
-      document.getElementById(t.getAttribute("aria-controls")).hidden = !activa;
-    }});
-    if (enfocar) p.focus();
-  }}
-  pestanas.forEach((t, i) => {{
-    t.addEventListener("click", () => activar(t));
-    t.addEventListener("keydown", e => {{
-      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
-      const j = (i + (e.key === "ArrowRight" ? 1 : pestanas.length - 1)) % pestanas.length;
-      activar(pestanas[j], true);
-    }});
-  }});
-}})();
-</script>
 
 <section>
   <h2>Comparando PI con PL</h2>
@@ -3292,13 +3340,44 @@ a {{ color: var(--acento); }}
   y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M4 no
   puede dar caudales negativos.</p>
 
+  <h3>¿Conserva masa el modelo?</h3>
+  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
+  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
+  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
+  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los {mod_balance.loc["PL", "n_meses"]:.0f}
+  meses del ajuste.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
+    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
+    <tbody>
+{mod_balance_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
+  anterior»: a la lluvia de los dos meses juntos. Años: los {mod_balance.loc["PL", "n_anios_completos"]:.0f} con los
+  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
+  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
+  <ul>
+    <li><b>En el total, M4 reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL y
+    {mod_balance.loc["PI", "diferencia_volumen_pct"]:+.1f} % con PI) y el coeficiente de escorrentía. No es una prueba de
+    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
+    <li><b>Mes a mes, no representa el almacenamiento.</b> En {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f}
+    meses el río llevó más agua que la lluvia del mes según PL ({mod_balance.loc["PI", "meses_q_mayor_p_observado"]:.0f}
+    según PI): la cuenca soltaba agua guardada de antes. M4 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}
+    con PL y {mod_balance.loc["PI", "meses_q_mayor_p_estimado"]:.0f} con PI. La lluvia del mes anterior le da un mes de
+    memoria, pero no un depósito que se llene y se vacíe.</li>
+    <li><b>Hereda el balance de la fuente de lluvia.</b> {_balance_etp_txt}</li>
+  </ul>
+
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
   <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
-  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Una relación estadística entre la
-  lluvia y el caudal tampoco sustituye un balance hídrico ni garantiza que se conserve la masa. Además, IMERG incorpora
-  datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
+  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
+  independientes.</p>
 </section>
 
 

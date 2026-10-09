@@ -112,6 +112,19 @@ CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
+CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
+CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
+CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
+CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
+
+# Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
+# cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
+RESALTAR_CAMBIOS = True
+
+
+def _cambio(etiqueta):
+    """Atributos HTML que marcan un bloque como cambiado en la revisión (o nada, si el resaltado está apagado)."""
+    return f' class="cambio" data-etiqueta="{html.escape(etiqueta)}"' if RESALTAR_CAMBIOS else ""
 
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
@@ -753,6 +766,109 @@ marzo_html = "".join(
     f"({r['q_mes']['ols']:+.1f} m³/s por década, p {_p_txt(r['q_mes']['p'])}).</p>"
     for m, r in inc_lluvia_fdr.items())
 
+# frecuencias (Fourier): tablas y datos de la gráfica
+FOU_NOMBRE = {"original": "original", "anomalía": "anomalía", "anomalía sin tendencia": "anomalía sin tendencia"}
+
+
+def _fou_fila(ven, v, tipo):
+    e = fou[(ven, v, tipo)]
+    b = e["bandas"]
+    dec = 1 if e["dT"] < 1 else 0
+    ar1 = f"{_p_txt(e['ar1_p'])}" if "ar1_p" in e else "—"
+    return (f"<tr><td><b>{v}</b></td><td>{FOU_NOMBRE[tipo]}</td><td class='num'>{e['N']}</td><td class='num'>{e['n']}</td>"
+            f"<td class='num'>{e['pico']:.{dec}f} ± {e['dT']:.{dec}f}</td><td class='num'>{e['ciclos']:.1f}</td>"
+            f"<td class='num'>{b['anual']:.1f} %</td><td class='num'>{b['semianual']:.1f} %</td>"
+            f"<td class='num'>{b['interanual']:.1f} %</td><td class='num'>{b['alta']:.1f} %</td><td class='num'>{ar1}</td></tr>")
+
+
+fou_filas = "\n".join(_fou_fila("común 1998–2022", v, t) for v in FOU_VENTANAS["común 1998–2022"] for t in FOU_TRANSFORMACIONES)
+fou_filas_ext = "\n".join(_fou_fila("extendida 1981–2022", v, t) for v in FOU_VENTANAS["extendida 1981–2022"]
+                          for t in FOU_TRANSFORMACIONES)
+fou_json = json.dumps({
+    ven: {v: {t: {"f": [round(float(x), 5) for x in fou[(ven, v, t)]["f"]],
+                  "p": [round(float(x), 4) for x in fou[(ven, v, t)]["p"]]}
+              for t in FOU_TRANSFORMACIONES} for v in series}
+    for ven, series in FOU_VENTANAS.items()}, ensure_ascii=False)
+fou_botones_tipo = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-fou-t{i}" aria-controls="panel-fou" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{t}</button>'
+    for i, t in enumerate(FOU_TRANSFORMACIONES))
+fou_botones_ven = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-fou-v{i}" aria-controls="panel-fou" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>Ventana {ven}</button>'
+    for i, ven in enumerate(FOU_VENTANAS))
+_fc = "común 1998–2022"
+
+# estabilidad frente a la ventana: solo cuentan las variables en que Welch usa más de un segmento
+_fou_comparables = {v: r for v, r in fou_sens.items() if not r["un_segmento"]}
+_fou_un_segmento = {v: r for v, r in fou_sens.items() if r["un_segmento"]}
+fou_sens_txt = "; ".join(f"{v}: Hann {r['hann']:.1f} y Welch {r['welch']:.1f} meses" for v, r in _fou_comparables.items())
+fou_inestables = {v: r for v, r in _fou_comparables.items() if not r["hann_welch_estable"]}
+fou_ventana_txt = (
+    ("Coinciden dentro de la resolución, salvo en " + "; ".join(
+        f"{v}: con Hann el máximo queda en {r['hann']:.1f} meses y con Welch en {r['welch']:.1f}, así que ese máximo depende de la "
+        "ventana y no se lee como un período estable" for v, r in fou_inestables.items()) + ".")
+    if fou_inestables else "Coinciden dentro de la resolución en todas.")
+fou_ventana_txt += "".join(
+    f" En {v}, cuyo tramo continuo más largo tiene {r['tramo']} meses (menos que un segmento), Welch se reduciría al mismo "
+    f"periodograma de Hann; en su lugar se promedia el periodograma de Lomb-Scargle de {r['tramos_lomb']} tramos de "
+    f"{FOU_WELCH_SEGMENTO} meses que se traslapan la mitad, sobre toda la serie con sus vacíos (el tramo más incompleto tiene "
+    f"{r['min_obs_lomb']} meses con dato): pico en {r['welch']:.1f} meses, contra {r['hann']:.1f} de Hann en el tramo de "
+    f"{r['tramo']} meses. " + ("Coinciden dentro de la resolución." if r["hann_welch_estable"]
+                              else "No coinciden: ese máximo depende del estimador y no se lee como un período estable.")
+    for v, r in _fou_un_segmento.items())
+# extremos: cuántos meses se quitaron en cada variable; donde no se quitó ninguno, la prueba no dice nada
+_fou_cuantos = [f"{r['extremos']} {'mes' if r['extremos'] == 1 else 'meses'} de {v}" for v, r in fou_sens.items()]
+fou_extremos_txt = ", ".join(_fou_cuantos[:-1]) + " y " + _fou_cuantos[-1]
+_fou_sin_extremos = [v for v, r in fou_sens.items() if r["extremos"] == 0]
+_fou_mueven_ext = {v: r for v, r in fou_sens.items() if not r["extremos_estable"]}
+fou_extremos_efecto = (
+    "no mueve el pico de ninguna anomalía" if not _fou_mueven_ext else
+    "mueve el pico de la anomalía en " + "; ".join(
+        f"{v}, de {fou[(_fc, v, 'anomalía')]['pico']:.0f} a {r['pico_sin_extremos']:.0f} meses" for v, r in _fou_mueven_ext.items())
+    + " (ese pico depende de unos pocos meses), y no lo mueve en las demás")
+fou_extremos_nada = (f" En {' y '.join(_fou_sin_extremos)} no hubo nada que quitar, así que ahí la prueba no dice nada."
+                     if _fou_sin_extremos else "")
+# tendencia: el reparto por bandas casi no cambia, pero el pico más alto de algunas anomalías sí se mueve
+_fou_mueve_tend = [(ven, v, t) for (ven, v), t in fou_tendencia.items() if t["mueve"]]
+_fou_signif_tend = [v for ven, v in fou_significativos if fou_tendencia[(ven, v)]["mueve"]]
+(_fou_tmax_ven, _fou_tmax_v), _fou_tmax = fou_tendencia_max
+fou_tendencia_txt = (
+    f"Quitar la tendencia casi no cambia el reparto de la varianza por bandas: como mucho {_fou_tmax['puntos']:.1f} puntos "
+    f"porcentuales ({_fou_tmax_v}, ventana {_fou_tmax_ven}).")
+if _fou_mueve_tend:
+    fou_tendencia_txt += (
+        " Sí mueve el pico más alto de la anomalía en " + "; ".join(
+            f"{v} (ventana {ven}), de {t['antes']:.0f} a {t['despues']:.0f} meses" for ven, v, t in _fou_mueve_tend)
+        + ": son picos de muy baja frecuencia, con pocos ciclos en el registro, justo donde una tendencia pesa más, así que no "
+        "se leen como períodos.")
+    if _fou_signif_tend:
+        fou_tendencia_txt += (f" El pico de {' y '.join(_fou_signif_tend)} que supera el ruido rojo es uno de ellos: solo aparece "
+                              "al quitar la tendencia.")
+else:
+    fou_tendencia_txt += " Tampoco mueve el pico más alto de ninguna anomalía."
+# vacíos de Q: el texto dice si distorsionan o no según el criterio declarado en 18
+_fv = {k: fou_vacios[k] for k in ("original", "anomalía")}
+_fv_mueve = [k for k, r in _fv.items() if r["mueve"]]
+_fv_bandas = [k for k, r in _fv.items() if r["puntos"] >= FOU_TENDENCIA_MAX_PUNTOS]
+fou_vacios_txt = (
+    f"¿Distorsionan el espectro los {fou_vacios['meses']} meses vacíos de Q? Se calcula el de PL dejando vacíos esos mismos meses y se "
+    "compara con el de PL completa. "
+    + ("El pico no se mueve, ni en la serie original ni en la anomalía. " if not _fv_mueve else
+       "El pico se mueve en " + "; ".join(f"la {k} (de {_fv[k]['antes']:.0f} a {_fv[k]['despues']:.0f} meses)" for k in _fv_mueve) + ". ")
+    + ("Las bandas tampoco cambian más de " + f"{FOU_TENDENCIA_MAX_PUNTOS:.0f} puntos porcentuales." if not _fv_bandas else
+       "Las bandas sí cambian: " + "; ".join(
+           f"en la {k}, la {_fv[k]['banda']} pasa de {_fv[k]['sin']:.1f} a {_fv[k]['con']:.1f} %" for k in _fv_bandas)
+       + f". Así que los vacíos no mueven los picos de Q, pero sus porcentajes por banda pueden estar corridos en unos "
+         f"{max(_fv[k]['puntos'] for k in _fv_bandas):.0f} puntos por los vacíos.")
+    + " Es una prueba indirecta: supone que los vacíos afectarían al caudal como afectan a la lluvia.")
+# ventana extendida: en las originales no mueve el pico (protegido en 18); en las anomalías, se nombra dónde lo mueve
+fou_extendida_txt = (
+    "En las anomalías sí cambia el pico de " + "; ".join(
+        f"{v} ({tipo}), de {a:.0f} a {b:.0f} meses" for v, tipo, a, b in fou_extendida_anom_mueve)
+    + ": los picos de baja frecuencia dependen de qué años entran en el registro."
+    if fou_extendida_anom_mueve else "En las anomalías tampoco cambia ningún pico.")
+
 # años que se salen de lo normal: tabla y datos de las dos gráficas
 def _anom_z(v):
     return "sin año completo" if v is None else f"{v:+.2f}"
@@ -787,7 +903,7 @@ pagina = f"""<!doctype html>
 <style>
 :root {{
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -795,12 +911,12 @@ pagina = f"""<!doctype html>
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
   }}
 }}
 :root[data-theme="dark"] {{
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
 }}
 * {{ box-sizing: border-box; }}
 body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }}
@@ -847,6 +963,12 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .revision > p:last-child {{ margin-bottom: 0; }}
 .revision::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }}
+.cambio {{ background: var(--cambio); border-left: 4px solid var(--cambio-borde); padding: 10px 14px;
+  margin: 14px 0; border-radius: 0 4px 4px 0; }}
+.cambio > p {{ margin: 0 0 8px; }}
+.cambio > p:last-child {{ margin-bottom: 0; }}
+.cambio::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--cambio-borde); margin-bottom: 6px; }}
 .formula {{ font: 500 16px/1.5 var(--f-dato); margin: 4px 0 12px; overflow-wrap: anywhere; }}
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
 td.res-anotado {{ background: var(--anotado); }}
@@ -2384,6 +2506,123 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>Frecuencias: análisis de Fourier</h2>
+  <p>El espectro de potencia dice cómo se reparte la varianza de una serie entre escalas de tiempo: el ciclo anual
+  (12 meses), el semianual (6 meses, el régimen bimodal), la variabilidad interanual (de 3 a 7 años, la escala del ENSO) y la
+  alta frecuencia (menos de 6 meses). Se calcula para PL, PI, Q y T en tres versiones: la serie original, su anomalía (sin el
+  ciclo anual) y la anomalía sin tendencia.</p>
+  <ul>
+    <li{_cambio('Cambio de la revisión · bandas con ±Δf, remisión a «El régimen» y la ZCIT')}><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
+    su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
+    de Colombia, que trae dos temporadas de lluvias al año ({CITA_MESA}; {CITA_POVEDA}). La banda semianual tiene el
+    {fou[(_fc, "PL", "original")]["bandas"]["semianual"]:.0f} % de la varianza de PL, el {fou[(_fc, "PI", "original")]["bandas"]["semianual"]:.0f} % de la de PI
+    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
+    allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
+    <li{_cambio('Nuevo · la temperatura')}><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en {fou[(_fc, "T", "original")]["pico"]:.0f} meses,
+    pero la banda anual tiene solo el {fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} % de su varianza y la interanual, el
+    {fou[(_fc, "T", "original")]["bandas"]["interanual"]:.0f} %: la temperatura varía más de un año a otro que dentro del año. Coincide
+    con «Lo que solo se ve al quitar el ciclo anual», donde el ciclo explica solo el {corr_peso_ciclo['T ERA5']:.0f} % de la variación de T.</li>
+    <li{_cambio('Cambio de la revisión · remisión al desfase y persistencia')}><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el {fou_alta_q:.0f} % de la
+    varianza de Q y el {fou_alta_lluvia:.0f} % de la lluvia (promedio de PL y PI). Es la misma memoria de la cuenca que
+    muestran «Desfase estacional» (el río va {desfase["Q_PL"]:.0f} días detrás de PL) y la correlación cruzada (sin el ciclo
+    anual, la lluvia del mes anterior sigue aportando: correlación parcial de {memoria.loc['PL', 'parcial_mes_anterior']:.2f}),
+    vista ahora en frecuencia: el agua que se guarda en el suelo y el acuífero filtra las fluctuaciones rápidas. La
+    persistencia lo confirma: la autocorrelación de un mes al siguiente, en las anomalías sin tendencia, es
+    {fou_phi["Q"]:.2f} en Q contra {fou_phi["PL"]:.2f} en PL y {fou_phi["PI"]:.2f} en PI. Los vacíos de Q no explican la diferencia:
+    con ellos, la alta frecuencia sube en vez de bajar (ver «Qué tan estables son los picos»).</li>
+    <li><b>Quitado el ciclo anual, la temperatura varía sobre todo de un año a otro y la lluvia de un mes a otro</b>: la banda
+    interanual es el {fou_interanual["T"]:.0f} % de la anomalía de T, el {fou_interanual["Q"]:.0f} % de la de Q y apenas el
+    {fou_interanual["PL"]:.0f} y {fou_interanual["PI"]:.0f} % de la de PL y PI.</li>
+    <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)).{"".join(f" Solo {v} ({ven}) supera el ruido rojo, con su pico en {fou[(ven, v, 'anomalía sin tendencia')]['pico']:.0f} meses (p = {fou[(ven, v, 'anomalía sin tendencia')]['ar1_p']:.2f}), pero ese período cabe apenas {c:.1f} veces en el registro y es una de {sum(1 for k in fou if k[2] == 'anomalía sin tendencia')} pruebas: no alcanza para hablar de un ciclo." for (ven, v), c in fou_signif_ciclos.items())} La variabilidad
+    interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.</li>
+    <li{_cambio('Corregido · antes decía que no cambiaba ningún pico')}><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: {", ".join(f"{v} {b:.0f} meses" for v, (a, b) in fou_extendida.items())},
+    los mismos que en la ventana común (PL* frente a PL). {fou_extendida_txt}</li>
+  </ul>
+
+  <div class="pestanas" role="tablist" aria-label="Qué versión de la serie">
+{fou_botones_tipo}
+  </div>
+  <div class="pestanas" role="tablist" aria-label="Qué ventana">
+{fou_botones_ven}
+  </div>
+  <div role="tabpanel" id="panel-fou" aria-labelledby="pestana-fou-t0">
+    <div id="g-fou" class="grafico" style="min-height:0; height:420px"></div>
+  </div>
+  <p class="nota">Periodograma de Lomb-Scargle ({CITA_LOMB}; {CITA_SCARGLE}) normalizado para que el área sea 1 (el 100 % de la
+  varianza): compara la forma del espectro entre variables con unidades distintas; la altura no es variabilidad absoluta. Eje
+  inferior en ciclos por mes; arriba, el período. Franjas: las bandas de 12 y 6 meses (±Δf), y la banda interanual de 3 a 7 años.</p>
+
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Versión</th><th class="num">N (meses)</th><th class="num">Con dato</th><th class="num">Pico ± ΔT (meses)</th>
+    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
+    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
+    <tbody>
+{fou_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Ventana común {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. N: meses de la ventana, del primero al último con dato;
+  «Con dato»: los observados (Q tiene vacíos). Porcentajes: fracción de la varianza en cada banda. La resolución
+  es Δf = 1/N ciclos por mes y, en período, ΔT = T²·Δf: los decimales del pico no dicen más que eso. «Ciclos observados»:
+  cuántas veces cabe el período en el registro; con pocos ciclos el pico es incierto. Ruido rojo: el pico más alto de la anomalía
+  sin tendencia contra el de {FOU_SIMULACIONES} series AR(1) con la misma autocorrelación y las mismas fechas observadas (al comparar
+  el máximo se corrige que se buscó en todas las frecuencias a la vez).</p>
+
+  <details class="plegable-mini"><summary><b>Ventana extendida 1981–2022</b> <small>(PL*, Q y T)</small></summary>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Versión</th><th class="num">N (meses)</th><th class="num">Con dato</th><th class="num">Pico ± ΔT (meses)</th>
+    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
+    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
+    <tbody>
+{fou_filas_ext}
+    </tbody>
+  </table>
+  </div>
+  </details>
+
+  <div{_cambio('Nuevo · el método (y las columnas N y «Con dato» de las tablas)')}>
+  <h3>Cómo se calcula</h3>
+  <p><b>Las series.</b> La secuencia mensual en orden cronológico, no las 12 medias del año típico, con Δt = 1 mes y
+  N = {fou[(_fc, "PL", "original")]["N"]} meses en la ventana común ({fou[("extendida 1981–2022", "PL*", "original")]["N"]} en la extendida).
+  No se borran meses ni se pegan los que quedan como si fueran seguidos, y no se rellena nada: Q tiene
+  {fou[(_fc, "Q", "original")]["N"] - fou[(_fc, "Q", "original")]["n"]} meses vacíos en la ventana común, y por eso el estimador es el
+  periodograma de Lomb-Scargle, que trabaja con las fechas observadas. Con muestreo regular y sin vacíos (PL, PI y T), en
+  las frecuencias de Fourier coincide con el periodograma clásico de la FFT. Cada serie se centra antes (se le resta su media),
+  así que la frecuencia cero, que es la media y no un período, se excluye.</p>
+  <p><b>Las frecuencias.</b> f<sub>k</sub> = k/(N·Δt) ciclos por mes, de k = 1 hasta la frecuencia de Nyquist, 0.5 ciclos por mes:
+  el período más corto que se puede resolver con datos mensuales es de 2 meses. El período es T<sub>k</sub> = 1/f<sub>k</sub> y la
+  resolución, Δf = 1/(N·Δt) = 1/{fou[(_fc, "PL", "original")]["N"]} ciclos por mes. La gráfica usa {FOU_SOBREMUESTREO} puntos por cada frecuencia
+  de Fourier: eso solo afina el dibujo, no agrega resolución.</p>
+  <p><b>Convención y normalización.</b> Espectro unilateral (solo frecuencias positivas), dividido por su área para que integre 1:
+  la altura es la fracción de la varianza por cada ciclo/mes, y el área de una banda es la parte de la varianza que cae en
+  ella. Así se comparan formas entre variables con unidades distintas, pero la altura no es variabilidad absoluta.</p>
+  <p><b>Fuga y resolución.</b> Un ciclo puro en un registro de N meses no da una línea, sino un pico: su lóbulo principal
+  ocupa ±Δf y unos lóbulos laterales reparten algo de su potencia en frecuencias lejanas (la fuga espectral). El espectro
+  principal no usa ventana, así que conserva la resolución completa (±Δf) a cambio de esa fuga; por eso las bandas anual y
+  semianual miden ±Δf alrededor de 1/12 y 1/6. Las otras dos estimaciones se usan solo para probar la estabilidad de los
+  picos. La ventana de Hann baja los lóbulos laterales, con menos fuga, pero ensancha el lóbulo principal a ±2Δf, así que
+  pierde la mitad de la resolución. Welch ({CITA_WELCH}) promedia segmentos de {FOU_WELCH_SEGMENTO} meses con ventana de Hann y
+  traslape de la mitad: el promedio da un espectro menos ruidoso, pero la resolución baja a 1/{FOU_WELCH_SEGMENTO} ciclos por mes.
+  En Q, Welch se reemplaza por Lomb-Scargle promediado en segmentos del mismo largo, que admite los vacíos.</p>
+  </div>
+
+  <h3>Qué tan estables son los picos</h3>
+  <div{_cambio('Corregido · la ventana en Q, los atípicos, la tendencia y los vacíos de Q')}>
+  <p>El pico de la serie original con la FFT y ventana de Hann, contra el de Welch ({CITA_WELCH}), con segmentos de
+  {FOU_WELCH_SEGMENTO} meses: {fou_sens_txt}. {fou_ventana_txt}
+  Quitar los meses atípicos (los mismos de «Revisión de outliers»: más de {FACTOR_ATIPICO:.1f} rangos intercuartiles por fuera
+  de los cuartiles de su mes del calendario) {fou_extremos_efecto}; se quitaron {fou_extremos_txt}.{fou_extremos_nada}</p>
+  <p>{fou_tendencia_txt}</p>
+  <p>{fou_vacios_txt}</p>
+  </div>
+  <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
+  y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual»). La FFT con Hann se calcula en el tramo
+  continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
+</section>
+
+<section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
   mes a mes en años que el ajuste no vio.</p>
@@ -2480,8 +2719,12 @@ a {{ color: var(--acento); }}
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
+    <li id="ref-lomb1976">Lomb, N. R. (1976). Least-squares frequency analysis of unequally spaced data. <i>Astrophysics and
+    Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
+    <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
+    Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
@@ -2494,12 +2737,18 @@ a {{ color: var(--acento); }}
     inter-decadal hasta la escala diurna. <i>Revista de la Academia Colombiana de Ciencias Exactas, Físicas y
     Naturales</i>, 28(107), 201–221.
     <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
+    <li id="ref-scargle1982">Scargle, J. D. (1982). Studies in astronomical time series analysis. II. Statistical aspects of
+    spectral analysis of unevenly spaced data. <i>The Astrophysical Journal</i>, 263, 835 y siguientes.
+    <a href="https://doi.org/10.1086/160554">https://doi.org/10.1086/160554</a></li>
     <li id="ref-sen1968">Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
     <i>Journal of the American Statistical Association</i>, 63(324), 1379–1389.
     <a href="https://doi.org/10.1080/01621459.1968.10480934">https://doi.org/10.1080/01621459.1968.10480934</a></li>
     <li id="ref-shapiro1965">Shapiro, S. S., y Wilk, M. B. (1965). An analysis of variance test for normality (complete
     samples). <i>Biometrika</i>, 52(3–4), 591–611.
     <a href="https://doi.org/10.1093/biomet/52.3-4.591">https://doi.org/10.1093/biomet/52.3-4.591</a></li>
+    <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
+    based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
+    70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
   </ol>
   <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
 </section>
@@ -3264,6 +3513,48 @@ a {{ color: var(--acento); }}
     }}));
   }})();
 
+  const FOU = {fou_json};
+  let fouTipo = 0, fouVen = 0;
+  const FOU_TIPOS = ["original", "anomalía", "anomalía sin tendencia"];
+  const FOU_COLOR = {{ ...COLOR_VAR, "T": COLOR_VAR["T media"] }};   // Fourier llama T a la T media
+
+  function dibujarFourier() {{
+    if (!window.Plotly) return;
+    const ven = Object.keys(FOU)[fouVen], tipo = FOU_TIPOS[fouTipo];
+    const trazas = Object.entries(FOU[ven]).map(([v, d]) => ({{
+      type: "scatter", mode: "lines", name: v, x: d[tipo].f, y: d[tipo].p,
+      line: {{ color: FOU_COLOR[v], width: 1.6 }},
+      hovertemplate: "f = %{{x:.4f}} ciclos/mes (T = %{{customdata:.1f}} meses)<br>%{{y:.2f}}<extra>" + v + "</extra>",
+      customdata: d[tipo].f.map(f => 1 / f) }}));
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 64, r: 10, b: 44, l: 62 }};
+    d.xaxis.title = {{ text: "frecuencia (ciclos/mes)", font: {{ size: 11, color: css("--tenue") }} }};
+    d.xaxis.range = [0, 0.5];
+    d.yaxis.title.text = "potencia normalizada";
+    const T = [84, 36, 12, 6, 4, 3, 2];
+    d.xaxis2 = {{ overlaying: "x", side: "top", range: [0, 0.5], tickvals: T.map(t => 1 / t), ticktext: T.map(t => t + " m"),
+                  tickfont: {{ color: css("--tenue"), size: 10 }}, showgrid: false }};
+    trazas.push({{ type: "scatter", x: [0.25], y: [0], xaxis: "x2", showlegend: false, hoverinfo: "skip", mode: "markers",
+                   marker: {{ opacity: 0 }} }});
+    // las franjas de 12 y 6 meses son las bandas que se miden: ±Δf, con Δf = 1/N (la primera frecuencia de la grilla)
+    const df = Object.values(FOU[ven])[0][tipo].f[0];
+    d.shapes = [[1 / 84, 1 / 36, "rgba(124,91,199,0.10)"], [1 / 12 - df, 1 / 12 + df, "rgba(120,120,120,0.18)"],
+                [1 / 6 - df, 1 / 6 + df, "rgba(120,120,120,0.18)"]].map(([x0, x1, c]) => ({{
+      type: "rect", xref: "x", yref: "paper", x0: x0, x1: x1, y0: 0, y1: 1, fillcolor: c, line: {{ width: 0 }}, layer: "below" }}));
+    Plotly.react("g-fou", trazas, d, CONF);
+  }}
+
+  [["pestana-fou-t", 3, i => {{ fouTipo = i; dibujarFourier(); }}],
+   ["pestana-fou-v", Object.keys(FOU).length, i => {{ fouVen = i; dibujarFourier(); }}]].forEach(([prefijo, cuantos, accion]) => {{
+    const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
+    if (botones.some(b => !b)) return;
+    botones.forEach((boton, i) => boton.addEventListener("click", () => {{
+      botones.forEach((otro, j) => {{ otro.setAttribute("aria-selected", String(i === j)); otro.tabIndex = i === j ? 0 : -1; }});
+      accion(i);
+    }}));
+  }});
+
   const P2 = {p2_pipl_json};
   const EV = {ev_json};
 
@@ -3486,6 +3777,7 @@ a {{ color: var(--acento); }}
     dibujarMapaAnioMes();
     dibujarMetodos();
     dibujarPendMes();
+    dibujarFourier();
     dibujarPQ();
     dibujarCicloAnual();
     dibujarGradiente();

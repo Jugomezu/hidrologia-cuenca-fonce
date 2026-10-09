@@ -116,6 +116,7 @@ CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
 CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
+CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
 # cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
@@ -300,6 +301,72 @@ pq_json = json.dumps({"meses": [f"{p}-01" for p in pq.index], "pl_q": _red1(pq.p
 
 etp_json = json.dumps({"meses": MESES_ES, **{k: _etp_ciclo[k].round(1).tolist() for k in etp_comun},
                        "pl_q": _etp_pq_ciclo.round(1).tolist()}, ensure_ascii=False)
+
+# índice P/ETP: tablas, datos de la figura y textos (las cifras salen de pe_* en 18_calculos_informe.py)
+PE_FUENTE = {"pl": "PL", "pi": "PI"}
+PE_CASI_LIMITE = 0.05      # un P/ETP a menos de esto de 1 se describe como «prácticamente en el límite»
+pe_filas_anual = "\n".join(
+    f"<tr><td><b>{PE_FUENTE[f]}</b></td><td class='num'>{n(r['p'])}</td><td class='num'>{n(pe_etp_anual)}</td>"
+    f"<td class='num'><b>{r['ie']:.2f}</b></td><td>{r['clase']}</td>"
+    f"<td class='num'>{r['min']:.2f} ({r['anio_min']})</td><td class='num'>{r['max']:.2f} ({r['anio_max']})</td>"
+    f"<td class='num'>{len(r['bajo_humedo'])}</td></tr>" for f, r in pe_indice.items())
+_pe_celda = lambda x: f"<td class='num'><b>{x:.2f}</b></td>" if x < 1 else f"<td class='num'>{x:.2f}</td>"
+pe_filas_mes = "\n".join(
+    f"<tr><td>{MESES_LARGOS_ES[m - 1]}</td>{_pe_celda(pe_mes.loc[m, 'pl'])}{_pe_celda(pe_mes.loc[m, 'pi'])}"
+    f"<td class='num'>{pe_mes_deficit_anios.loc[m, 'pl']}</td><td class='num'>{pe_mes_deficit_anios.loc[m, 'pi']}</td></tr>"
+    for m in range(1, 13))
+pe_json = json.dumps({"meses": MESES_ES, "pl": pe_mes.pl.round(2).tolist(), "pi": pe_mes.pi.round(2).tolist()},
+                     ensure_ascii=False)
+# los límites de las clases de UNEP, escritos desde la constante del código
+_pe_limites = [0] + [lim for lim, _ in UNEP_LIMITES[:-1]]
+pe_clases_txt = html.escape("; ".join(
+    f"{nombre} {'< ' + f'{lim:.2f}' if i == 0 else ('≥ ' + f'{_pe_limites[i]:.2f}' if lim == float('inf') else f'{_pe_limites[i]:.2f}–{lim:.2f}')}"
+    for i, (lim, nombre) in enumerate(UNEP_LIMITES)))
+_pe_meses_txt = lambda ms: _y_lista([MESES_LARGOS_ES[m - 1] for m in ms])
+_pe_dos = all(r["clase"] == pe_indice["pl"]["clase"] for r in pe_indice.values())
+pe_resultado_txt = (
+    (f"<b>El clima de la cuenca es {pe_indice['pl']['clase']} con las dos fuentes</b>" if _pe_dos else
+     f"<b>La clase depende de la fuente</b>: {pe_indice['pl']['clase']} con PL y {pe_indice['pi']['clase']} con PI")
+    + f": P/ETP = {pe_indice['pl']['ie']:.2f} con PL y {pe_indice['pi']['ie']:.2f} con PI, contra el umbral de húmedo de "
+    f"{UNEP_HUMEDO:.2f}. ")
+_pe_bajo = {f: r["bajo_humedo"] for f, r in pe_indice.items()}
+pe_anios_txt = (
+    (f"<b>Ningún año baja de ese umbral</b>, con ninguna de las dos fuentes" if not _pe_bajo["pl"] and not _pe_bajo["pi"] else
+     f"Bajan del umbral {len(_pe_bajo['pl'])} años con PL ({', '.join(map(str, _pe_bajo['pl'])) or 'ninguno'}) y "
+     f"{len(_pe_bajo['pi'])} con PI ({', '.join(map(str, _pe_bajo['pi'])) or 'ninguno'})")
+    + f": el índice de cada año va de {pe_indice['pl']['min']:.2f} ({pe_indice['pl']['anio_min']}) a "
+    f"{pe_indice['pl']['max']:.2f} ({pe_indice['pl']['anio_max']}) con PL, y de {pe_indice['pi']['min']:.2f} "
+    f"({pe_indice['pi']['anio_min']}) a {pe_indice['pi']['max']:.2f} ({pe_indice['pi']['anio_max']}) con PI.")
+# el año más seco, con la fuente más baja, frente al umbral (para decir cuánto margen hay)
+pe_min_global = min(r["min"] for r in pe_indice.values())
+pe_margen_txt = (f"Incluso el año más seco, con la fuente más baja, queda en {pe_min_global:.2f}, "
+                 f"{pe_min_global / UNEP_HUMEDO:.1f} veces el umbral: la clase no depende solo del promedio."
+                 if pe_min_global >= UNEP_HUMEDO else
+                 "La clase del promedio no se cumple todos los años: depende de cuáles se miren.")
+# meses de déficit en el año típico, con cada fuente, y si coinciden
+_pe_def_txt = lambda f: (f"hay déficit en {_pe_meses_txt(pe_meses_deficit[f])}" if pe_meses_deficit[f]
+                         else "ningún mes tiene déficit")
+pe_deficit_txt = f"Con PL, {_pe_def_txt('pl')}; con PI, {_pe_def_txt('pi')}."
+if not pe_deficit_igual:
+    _pe_dif = pe_solo_pi + pe_solo_pl
+    pe_deficit_txt += (
+        f" <b>Las dos fuentes no coinciden</b>: "
+        + "; ".join(f"{MESES_LARGOS_ES[m - 1]} tiene déficit con {'PI' if m in pe_solo_pi else 'PL'} "
+                    f"({pe_mes.loc[m, 'pi' if m in pe_solo_pi else 'pl']:.2f}) y no con {'PL' if m in pe_solo_pi else 'PI'} "
+                    f"({pe_mes.loc[m, 'pl' if m in pe_solo_pi else 'pi']:.2f}"
+                    # si la otra fuente queda a menos de PE_CASI_LIMITE de 1, se dice
+                    + (", prácticamente en el límite" if abs(pe_mes.loc[m, 'pl' if m in pe_solo_pi else 'pi'] - 1) < PE_CASI_LIMITE else "")
+                    + ")" for m in _pe_dif) + ".")
+# año por año: meses en que P < ETP en más de la mitad de los años con alguna fuente, y meses sin déficit nunca
+_pe_frecuentes = [m for m in range(1, 13) if pe_mes_deficit_anios.loc[m].max() > pe_n_anios / 2]
+_pe_nunca = [m for m in range(1, 13) if pe_mes_deficit_anios.loc[m].max() == 0]
+pe_anios_mes_txt = (
+    ("Año por año, el déficit es frecuente (más de la mitad de los años) en "
+     + "; ".join(f"{MESES_LARGOS_ES[m - 1]} ({pe_mes_deficit_anios.loc[m, 'pl']} de {pe_n_anios} años con PL, "
+                 f"{pe_mes_deficit_anios.loc[m, 'pi']} con PI)" for m in _pe_frecuentes) + ". "
+     if _pe_frecuentes else "Año por año, ningún mes tiene déficit en más de la mitad de los años. ")
+    + (f"{_pe_meses_txt(_pe_nunca).capitalize()} no {'tuvo' if len(_pe_nunca) == 1 else 'tuvieron'} déficit en ningún año, "
+       "con ninguna de las dos fuentes." if _pe_nunca else ""))
 
 UNIDAD_VAR = {"PI": "mm/mes", "PL": "mm/mes", "Q": "mm/mes",
               "ETP": "mm/mes", "T MSWX": "°C", "T ERA5": "°C"}
@@ -1945,6 +2012,46 @@ a {{ color: var(--acento); }}
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
   {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
   {"" if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else pq_explicaciones}
+
+  <div{revision("índice P/ETP")}>
+  <h3>¿Húmeda o árida? La lluvia contra la ETP</h3>
+  <p>El índice <b>P/ETP</b> compara la lluvia con la evapotranspiración potencial: cuánta agua cae frente a cuánta
+  podría evaporar el clima. <b>No es la lluvia total</b>: la misma lluvia es abundante en un clima frío y escasa en uno
+  cálido, y por eso la clase de aridez de UNEP ({CITA_UNEP}) se define con este cociente y no con los milímetros.
+  Se calcula con PL y con PI, y con la ETP de Hargreaves con ERA5-Land, sobre los {len(PERIODOS)} meses de
+  {PERIODOS[0].year}–{PERIODOS[-1].year}: no usa Q, así que no se recorta a los meses con caudal.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Lluvia</th><th class="num">P (mm/año)</th><th class="num">ETP (mm/año)</th><th class="num">P/ETP</th>
+    <th>Clase (UNEP)</th><th class="num">Año más seco</th><th class="num">Año más húmedo</th>
+    <th class="num">Años bajo {UNEP_HUMEDO:.2f}</th></tr></thead>
+    <tbody>
+{pe_filas_anual}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P y ETP: totales anuales medios de {PERIODOS[0].year}–{PERIODOS[-1].year} ({pe_n_anios} años). Año más
+  seco y más húmedo: el índice de cada año por separado. Clases de UNEP: {pe_clases_txt}. UNEP las definió con la ETP de
+  Thornthwaite; aquí se usa la de Hargreaves, así que la clase es aproximada.</p>
+  <p>{pe_resultado_txt}{pe_anios_txt} {pe_margen_txt}</p>
+  <div id="g-pe-mes" class="grafico" style="min-height:0; height:340px"></div>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Mes</th><th class="num">P/ETP con PL</th><th class="num">P/ETP con PI</th>
+    <th class="num">Años con P &lt; ETP (PL)</th><th class="num">Años con P &lt; ETP (PI)</th></tr></thead>
+    <tbody>
+{pe_filas_mes}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P/ETP del mes: la media de P de ese mes en los {pe_n_anios} años dividida por la media de la ETP del
+  mismo mes (no el promedio de los cocientes de cada año). En negrita, P/ETP &lt; 1: déficit, llueve menos de lo que
+  podría evaporarse; por encima de 1, excedente. Las dos últimas columnas cuentan los años en que ese mes tuvo P &lt; ETP.</p>
+  <p>{pe_deficit_txt} {pe_anios_mes_txt}</p>
+  <p><b>La ETP es potencial, no real</b>: es lo que evaporaría un pasto bien regado con el clima de ese mes. Un mes con
+  P/ETP &lt; 1 no quiere decir que la cuenca se seque: la evapotranspiración real queda limitada por el agua disponible, y
+  la cuenca gasta lo que guardó en los meses húmedos (ver P − Q, arriba).</p>
+  </div>
 </section>
 
 <section>
@@ -2837,6 +2944,8 @@ a {{ color: var(--acento); }}
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
     <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
     Universidad Nacional de Colombia, Medellín.</li>
+    <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
+    Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
@@ -3316,6 +3425,27 @@ a {{ color: var(--acento); }}
       {{ type: "scatter", mode: "lines+markers", name: "ETP", x: PQ.anios, y: PQ.etp_anual,
          line: {{ color: COLOR_VAR.ETP, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
     ], anual, CONF);
+  }}
+
+  // P/ETP por mes del calendario, con PL y con PI lado a lado; la línea en 1 separa el déficit del excedente
+  const PE = {pe_json};
+
+  function dibujarPEMes() {{
+    if (!window.Plotly) return;
+    const d = base();
+    d.margin = {{ t: 46, r: 10, b: 30, l: 54 }};
+    d.barmode = "group";
+    d.hovermode = "x unified";
+    d.yaxis.title.text = "P/ETP";
+    d.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 1, y1: 1, line: {{ color: css("--tinta"), width: 1.2, dash: "dash" }} }}];
+    d.annotations = [{{ xref: "paper", x: 1, xanchor: "right", y: 1, yanchor: "bottom", showarrow: false,
+      text: "P = ETP", font: {{ size: 10, color: css("--tinta") }}, bgcolor: css("--fondo") }}];
+    Plotly.react("g-pe-mes", [
+      {{ type: "bar", name: "P/ETP con PL", x: PE.meses, y: PE.pl, marker: {{ color: COLOR_VAR.PL }},
+         hovertemplate: "%{{y:.2f}}<extra>PL</extra>" }},
+      {{ type: "bar", name: "P/ETP con PI", x: PE.meses, y: PE.pi, marker: {{ color: COLOR_VAR.PI }},
+         hovertemplate: "%{{y:.2f}}<extra>PI</extra>" }}
+    ], d, CONF);
   }}
 
 
@@ -3893,6 +4023,7 @@ a {{ color: var(--acento); }}
     dibujarPendMes();
     dibujarFourier();
     dibujarPQ();
+    dibujarPEMes();
     dibujarCicloAnual();
     dibujarGradiente();
   }}

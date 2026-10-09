@@ -348,6 +348,77 @@ section, section h3 { scroll-margin-top: 20px; }
 </script>
 
 <section>
+  <h2>Coberturas, suelos y geología</h2>
+  <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
+  guarda. El proyecto no tiene mapas propios de ninguno de los tres: las cifras son los atributos que publica
+  CAMELS-COL para San Gil (<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>), que los calculó cruzando cada mapa con su polígono de la cuenca. Aquí solo se
+  usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca transforma la
+  lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una hipótesis para las
+  relaciones y las tendencias»).</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Grupo</th><th>Categoría</th><th class="num">% del área</th></tr></thead>
+    <tbody>
+<tr><th scope='rowgroup' rowspan='5'>Coberturas</th><td>Agropecuario</td><td class='num'>50.21</td></tr>
+<tr><td>Bosque</td><td class='num'>42.03</td></tr>
+<tr><td>Formación natural no boscosa</td><td class='num'>7.39</td></tr>
+<tr><td>Área sin vegetación</td><td class='num'>0.25</td></tr>
+<tr><td>Cuerpos de agua</td><td class='num'>0.13</td></tr>
+<tr><th scope='rowgroup' rowspan='8'>Suelos (órdenes)</th><td>Inceptisoles</td><td class='num'>43.54</td></tr>
+<tr><td>Andisoles</td><td class='num'>29.70</td></tr>
+<tr><td>Entisoles</td><td class='num'>17.61</td></tr>
+<tr><td>Molisoles</td><td class='num'>7.16</td></tr>
+<tr><td>Alfisoles</td><td class='num'>0.98</td></tr>
+<tr><td>Misceláneo rocoso</td><td class='num'>0.72</td></tr>
+<tr><td>Cuerpos de agua</td><td class='num'>0.20</td></tr>
+<tr><td>Zona urbana</td><td class='num'>0.08</td></tr>
+<tr><th scope='rowgroup' rowspan='7'>Capacidad de uso</th><td>Clase 8</td><td class='num'>43.74</td></tr>
+<tr><td>Clase 7</td><td class='num'>26.67</td></tr>
+<tr><td>Clase 6</td><td class='num'>16.08</td></tr>
+<tr><td>Clase 4</td><td class='num'>12.46</td></tr>
+<tr><td>Clase 3</td><td class='num'>0.98</td></tr>
+<tr><td>Zona urbana</td><td class='num'>0.07</td></tr>
+<tr><td>Sin clasificar</td><td class='num'>0.01</td></tr>
+<tr><th scope='rowgroup' rowspan='5'>Geología (litología)</th><td>Rocas plutónicas</td><td class='num'>63.72</td></tr>
+<tr><td>Rocas hipoabisales</td><td class='num'>16.98</td></tr>
+<tr><td>Rocas metamórficas</td><td class='num'>8.80</td></tr>
+<tr><td>Volcánicas y volcanoclásticas</td><td class='num'>5.40</td></tr>
+<tr><td>Rocas sedimentarias</td><td class='num'>5.07</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <dl class="lista-datos">
+    <dt>Coberturas</dt><dd>MapBiomas Colombia, colección 2, año 2022: clasificación de mosaicos Landsat, celdas de 30 m</dd>
+    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
+    <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
+    <dt>Geología</dt><dd>Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano, escala 1:1 500 000,
+    agrupado por CAMELS-COL en siete litologías</dd>
+  </dl>
+  <p class="aviso"><b>Una columna repetida.</b> En el archivo de geología de CAMELS-COL la columna de rocas
+  volcanoclásticas es igual a la de rocas volcánicas en las 346 cuencas, y por eso la geología de San Gil, tal
+  como viene, suma 105.37 %. Aquí las dos se cuentan una sola vez, como «Volcánicas y
+  volcanoclásticas», y la suma queda en 100 %.</p>
+  <p><b>Qué dicen para los resultados.</b></p>
+  <ul>
+    <li><b>La roca.</b> El 89.5 % de la cuenca es roca cristalina (plutónica, hipoabisal o
+    metamórfica) y solo el 5.1 % es roca sedimentaria o depósito no consolidado. Si el
+    almacenamiento que atrasa el caudal está en el subsuelo, lo más probable es que esté en el suelo y en la roca
+    meteorizada o fracturada, no en un acuífero sedimentario extenso. Es una hipótesis: el proyecto no tiene datos de
+    acuíferos.</li>
+    <li><b>Los suelos y el uso.</b> Inceptisoles, andisoles y entisoles cubren el
+    90.8 % de la cuenca, y el 70.4 % está en
+    las clases 7 y 8 de capacidad de uso, las de mayores limitaciones. Los mapas no dicen cuánta agua retiene cada
+    suelo, así que no permiten medir el almacenamiento: solo lo describen.</li>
+    <li><b>La cobertura.</b> El 50.2 % de la cuenca es agropecuario y el
+    42.0 %, bosque. Es una foto de 2022: no dice cómo era la cuenca en 1998 ni si cambió, así que
+    no sirve para poner a prueba los «cambios de cobertura» que podrían refutar la hipótesis H.</li>
+  </ul>
+  <p class="nota">Limitaciones. Los porcentajes se calcularon sobre el polígono de CAMELS-COL (2 124 km²),
+  no sobre el del proyecto (2 098.85 km²); la diferencia es de borde. La geología a escala 1:1 500 000 solo
+  distingue unidades grandes. Las coberturas son de un solo año.</p>
+</section>
+
+<section>
   <h2>En esta cuenca llueve menos arriba</h2>
   <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
   <b>PAVAS LAS</b>, a 2 625 m, registra
@@ -3171,7 +3242,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 196 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 200 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

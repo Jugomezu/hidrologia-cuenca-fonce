@@ -240,6 +240,9 @@ geologia = _atributos_san_gil("05_CAMELS_COL_Geologic_characteristics.csv", {
     "metamor_rock_perc": "Rocas metamórficas", "volcanic_rock_perc": "Volcánicas y volcanoclásticas",
     "sedimen_rock_perc": "Rocas sedimentarias", "unconso_depo_perc": "Depósitos no consolidados"})
 
+# Área del polígono de CAMELS-COL, sobre el que se calcularon estos porcentajes (solo para declararlo en el texto)
+sg_area_camels = float(_atributos_san_gil("10_CAMELS_COL_Physiograpic_characteristics.csv", {"area": "área"}).iloc[0])
+
 # Cada grupo debe cubrir la cuenca entera (100 % con tolerancia de redondeo); con la geología eso solo
 # se cumple contando una vez el grupo volcánico.
 for _nombre, _serie in {"coberturas": coberturas, "suelos": suelos, "capacidad de uso": capacidad_uso,
@@ -249,6 +252,14 @@ assert geo_suma_publicada > 100.1      # tal como viene publicada, sí se pasa d
 # Solo se muestran las categorías presentes en San Gil, de mayor a menor
 coberturas, suelos, capacidad_uso, geologia = (s[s > 0].sort_values(ascending=False)
                                                for s in (coberturas, suelos, capacidad_uso, geologia))
+# Para el texto: la roca cristalina (ígnea intrusiva y metamórfica) frente a la sedimentaria y los depósitos,
+# y la parte de la cuenca en las dos clases de capacidad de uso con más limitaciones (7 y 8)
+geo_cristalinas = float(geologia[["Rocas plutónicas", "Rocas hipoabisales", "Rocas metamórficas"]].sum())
+geo_sedimentarias_y_depositos = float(geologia.get("Rocas sedimentarias", 0) +
+                                      geologia.get("Depósitos no consolidados", 0))
+uso_clases_7_8 = float(capacidad_uso[["Clase 7", "Clase 8"]].sum())
+# el texto dice que la roca cristalina domina y que las clases 7 y 8 son la mayor parte de la cuenca
+assert geo_cristalinas > 50 and uso_clases_7_8 > 50
 
 # Encino con su tramo 2016-2018: solo para explicar por qué se excluyó, así que se lee la serie CRUDA
 pm_crudo = pd.read_csv("out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])

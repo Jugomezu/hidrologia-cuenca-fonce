@@ -119,6 +119,16 @@ filas = "\n".join(
     f"<td class='num'>{n(m.loc[i, 'mean_ele'])}</td><td class='num'>{n(p_imerg[i])}</td></tr>"
     for i, (nom, rio) in ESTACIONES.items())
 
+# coberturas, suelos, capacidad de uso y geología de San Gil (CAMELS-COL): una tabla, un bloque de filas por grupo
+def _filas_superficie(grupo, serie):
+    celdas = [f"<td>{html.escape(cat)}</td><td class='num'>{pct:.2f}</td>" for cat, pct in serie.items()]
+    celdas[0] = f"<th scope='rowgroup' rowspan='{len(serie)}'>{grupo}</th>" + celdas[0]
+    return "\n".join(f"<tr>{c}</tr>" for c in celdas)
+
+filas_superficie = "\n".join(_filas_superficie(g, s) for g, s in [
+    ("Coberturas", coberturas), ("Suelos (órdenes)", suelos), ("Capacidad de uso", capacidad_uso),
+    ("Geología (litología)", geologia)])
+
 cmp_json = json.dumps(cmp_datos, ensure_ascii=False)
 filas_cmp = "\n".join(
     f"<tr><td>{html.escape(nom)}</td><td class='num'>{v['n']}</td><td class='num'>{v['imerg']:.0f}</td>"
@@ -1722,6 +1732,53 @@ a {{ color: var(--acento); }}
   }});
 }})();
 </script>
+
+<section>
+  <h2>Coberturas, suelos y geología</h2>
+  <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
+  guarda. El proyecto no tiene mapas propios de ninguno de los tres: las cifras son los atributos que publica
+  CAMELS-COL para San Gil ({CITA_JIMENEZ}), que los calculó cruzando cada mapa con su polígono de la cuenca. Aquí solo se
+  usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca transforma la
+  lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una hipótesis para las
+  relaciones y las tendencias»).</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Grupo</th><th>Categoría</th><th class="num">% del área</th></tr></thead>
+    <tbody>
+{filas_superficie}
+    </tbody>
+  </table>
+  </div>
+  <dl class="lista-datos">
+    <dt>Coberturas</dt><dd>MapBiomas Colombia, colección 2, año 2022: clasificación de mosaicos Landsat, celdas de 30 m</dd>
+    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
+    <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
+    <dt>Geología</dt><dd>Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano, escala 1:1 500 000,
+    agrupado por CAMELS-COL en siete litologías</dd>
+  </dl>
+  <p class="aviso"><b>Una columna repetida.</b> En el archivo de geología de CAMELS-COL la columna de rocas
+  volcanoclásticas es igual a la de rocas volcánicas en las {geo_n_cuencas} cuencas, y por eso la geología de San Gil, tal
+  como viene, suma {geo_suma_publicada:.2f} %. Aquí las dos se cuentan una sola vez, como «Volcánicas y
+  volcanoclásticas», y la suma queda en 100 %.</p>
+  <p><b>Qué dicen para los resultados.</b></p>
+  <ul>
+    <li><b>La roca.</b> El {geo_cristalinas:.1f} % de la cuenca es roca cristalina (plutónica, hipoabisal o
+    metamórfica) y solo el {geo_sedimentarias_y_depositos:.1f} % es roca sedimentaria o depósito no consolidado. Si el
+    almacenamiento que atrasa el caudal está en el subsuelo, lo más probable es que esté en el suelo y en la roca
+    meteorizada o fracturada, no en un acuífero sedimentario extenso. Es una hipótesis: el proyecto no tiene datos de
+    acuíferos.</li>
+    <li><b>Los suelos y el uso.</b> Inceptisoles, andisoles y entisoles cubren el
+    {suelos[["Inceptisoles", "Andisoles", "Entisoles"]].sum():.1f} % de la cuenca, y el {uso_clases_7_8:.1f} % está en
+    las clases 7 y 8 de capacidad de uso, las de mayores limitaciones. Los mapas no dicen cuánta agua retiene cada
+    suelo, así que no permiten medir el almacenamiento: solo lo describen.</li>
+    <li><b>La cobertura.</b> El {coberturas["Agropecuario"]:.1f} % de la cuenca es agropecuario y el
+    {coberturas["Bosque"]:.1f} %, bosque. Es una foto de 2022: no dice cómo era la cuenca en 1998 ni si cambió, así que
+    no sirve para poner a prueba los «cambios de cobertura» que podrían refutar la hipótesis H.</li>
+  </ul>
+  <p class="nota">Limitaciones. Los porcentajes se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²),
+  no sobre el del proyecto ({n(sg['area'], 2)} km²); la diferencia es de borde. La geología a escala 1:1 500 000 solo
+  distingue unidades grandes. Las coberturas son de un solo año.</p>
+</section>
 
 <section>
   <h2>En esta cuenca llueve menos arriba</h2>

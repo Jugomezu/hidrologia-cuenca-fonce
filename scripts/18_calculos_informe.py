@@ -2411,8 +2411,11 @@ inc_fdr72_pierden = {v: sorted(set(inc_fdr[v]["ols"]) - set(inc_fdr[v]["ols72"])
 TEND_VENTANA_MIN_ANIOS = 20
 
 
-def _pend_ventana(v, anio_ini, anio_fin):
+def _pend_ventana(v, anio_ini, anio_fin, anio_fuera=None):
+    """Pendiente OLS de X por década entre dos años; con anio_fuera, sin los meses de ese año (ver (1c))."""
     x = largo[v].loc[f"{anio_ini}-01":f"{anio_fin}-12"].dropna()
+    if anio_fuera is not None:
+        x = x[x.index.year != anio_fuera]
     t = _t_decimal(x.index)
     ind = (np.asarray(x.index.month)[:, None] == np.arange(1, 13)[None, :]).astype(float)
     b, _, se_hac, p_hac, _ = _ols_completo(x.to_numpy(), np.column_stack([t, ind]))
@@ -2441,6 +2444,42 @@ for _v in LARGO_VARS:
 # significativos en ninguna y cambian de signo según la ventana
 assert all(not tend_ventanas[t]["cambia_signo"] and tend_ventanas[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
 assert all(tend_ventanas[v]["n_sig"] == 0 and tend_ventanas[v]["cambia_signo"] for v in ("PL*", "Q"))
+
+# (1c) Sensibilidad a años extremos (decidido por el usuario el 2026-10-09). Con el mismo método de la tabla resumen,
+# sobre el registro completo de cada variable, se quita un año calendario completo a la vez (sus 12 meses) y se
+# recalcula la pendiente. Se informa el rango de pendientes, cuántas versiones son significativas, si alguna cambia
+# de signo y qué año mueve más la pendiente: el de mayor cambio absoluto frente a la del registro completo. Para ese
+# año se cuentan sus meses en El Niño y en La Niña según el ONI (scripts/17), como en «Anomalías»; no se clasifica
+# el año con un umbral.
+_fase_largo = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_fase_largo = _fase_largo.set_index(pd.PeriodIndex(_fase_largo.periodo, freq="M"))["fase"]
+tend_sin_anio = {}
+for _v in LARGO_VARS:
+    _a0, _a1 = tend_ventanas[_v]["a0"], tend_ventanas[_v]["a1"]
+    _pend = tend_ventanas[_v]["pend"]
+    _anios = sorted(set(largo[_v].dropna().index.year))          # solo los años que tienen algún mes con dato
+    _d = pd.DataFrame([_pend_ventana(_v, _a0, _a1, anio_fuera=a) | {"fuera": a} for a in _anios])
+    _d["cambio"] = _d.pend - _pend
+    _top = _d.loc[_d.cambio.abs().idxmax()]
+    _fases = _fase_largo[_fase_largo.index.year == int(_top.fuera)].value_counts()
+    tend_sin_anio[_v] = {
+        "tabla": _d, "a0": _a0, "a1": _a1, "n": len(_d), "pend": _pend,
+        "min": float(_d.pend.min()), "max": float(_d.pend.max()), "n_sig": int((_d.p < TEND_ALFA).sum()),
+        "p_min": float(_d.p.min()), "anio_p_min": int(_d.loc[_d.p.idxmin(), "fuera"]),
+        "cambia_signo": bool((_d.pend > 0).any() and (_d.pend < 0).any()),
+        "anio": int(_top.fuera), "cambio": float(_top.cambio), "p_anio": float(_top.p),
+        "nino": int(_fases.get("El Niño", 0)), "nina": int(_fases.get("La Niña", 0)),
+        "meses_anio": int(largo[_v][largo.index.year == int(_top.fuera)].notna().sum()),
+    }
+# lo que dice el texto: ningún año por sí solo cambia la conclusión. La temperatura sube y es significativa en
+# todas las versiones; en la lluvia y el caudal ninguna versión es significativa y ninguna cambia de signo
+assert all(tend_sin_anio[t]["n_sig"] == tend_sin_anio[t]["n"] and tend_sin_anio[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
+assert all(tend_sin_anio[v]["n_sig"] == 0 and not tend_sin_anio[v]["cambia_signo"] for v in ("PL*", "PI", "Q"))
+# y en las tres, quitar el año que más pesa cambia la pendiente en más de la mitad de su valor
+assert all(abs(tend_sin_anio[v]["cambio"]) > 0.5 * abs(tend_sin_anio[v]["pend"]) for v in ("PL*", "PI", "Q"))
+# el año que más mueve la pendiente de la lluvia y el caudal, si es el mismo para las tres (el texto lo nombra)
+_anios_lluvia = {tend_sin_anio[v]["anio"] for v in ("PL*", "PI", "Q")}
+tend_sin_anio_comun = _anios_lluvia.pop() if len(_anios_lluvia) == 1 else None
 
 
 # (2) Banda de 95 % de la recta OLS (error de Newey-West) para la gráfica de series: var(ŷ) = x'Vx en cada punto.

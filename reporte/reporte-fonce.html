@@ -2451,6 +2451,48 @@ section, section h3 { scroll-margin-top: 20px; }
     no alcanza a la recta con PL (0.66), y el rezago le ayuda menos. Con PL, los cuatro modelos con lluvia superan a la climatología. Con PI, M3 no supera a la climatología.</li>
   </ul>
 
+  <div>
+  <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
+  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los 261 meses, pero ninguna cifra de esta tabla
+  usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
+  coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
+  (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
+  correlación entre Q estimado y observado (¿sube y baja cuando debe?); <b>α</b>, la razón de sus desviaciones estándar
+  (¿reproduce la variabilidad?), y <b>β</b>, la razón de sus medias (¿reproduce el volumen?).</p>
+  <p class="formula">KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²)</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Modelo</th><th>Meses evaluados</th><th class="num">NSE</th><th class="num">KGE</th><th class="num" style="text-transform:none">r</th>
+    <th class="num" style="text-transform:none">α</th><th class="num" style="text-transform:none">β</th><th class="num">Sesgo (mm/mes)</th></tr></thead>
+    <tbody>
+<tr><td colspan='8'><b>Con PL</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>validación cruzada</td><td class=num>0.47</td><td class=num>0.57</td><td class=num>0.68</td><td class=num>0.72</td><td class=num>0.998</td><td class=num>-0.2</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>validación cruzada</b></td><td class=num><b>0.79</b></td><td class=num><b>0.78</b></td><td class=num><b>0.89</b></td><td class=num><b>0.81</b></td><td class=num><b>0.993</b></td><td class=num><b>-0.8</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>2015–2022</td><td class=num>0.46</td><td class=num>0.58</td><td class=num>0.70</td><td class=num>0.72</td><td class=num>1.100</td><td class=num>+10.7</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>2015–2022</b></td><td class=num><b>0.79</b></td><td class=num><b>0.81</b></td><td class=num><b>0.89</b></td><td class=num><b>0.85</b></td><td class=num><b>0.974</b></td><td class=num><b>-2.8</b></td></tr>
+<tr><td colspan='8'><b>Con PI</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>validación cruzada</td><td class=num>0.47</td><td class=num>0.57</td><td class=num>0.68</td><td class=num>0.72</td><td class=num>0.998</td><td class=num>-0.2</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>validación cruzada</b></td><td class=num><b>0.52</b></td><td class=num><b>0.55</b></td><td class=num><b>0.73</b></td><td class=num><b>0.64</b></td><td class=num><b>0.992</b></td><td class=num><b>-0.9</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>2015–2022</td><td class=num>0.46</td><td class=num>0.58</td><td class=num>0.70</td><td class=num>0.72</td><td class=num>1.100</td><td class=num>+10.7</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>2015–2022</b></td><td class=num><b>0.58</b></td><td class=num><b>0.51</b></td><td class=num><b>0.80</b></td><td class=num><b>0.55</b></td><td class=num><b>1.042</b></td><td class=num><b>+4.4</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">NSE y KGE: 1 es perfecto. Sesgo: la media de (estimado − observado). M0 no usa lluvia, así que sus
+  filas son las mismas con PL y con PI. La validación cruzada evalúa los
+  261 meses, cada uno estimado con el modelo ajustado sin su bloque de 5 años; 2015–2022, los meses con Q
+  de esos años, con el modelo ajustado en 1998–2014.</p>
+  <ul>
+    <li><b>Con PL, M4 supera a la climatología en las dos medidas y en los dos esquemas</b>: KGE
+    0.78 contra 0.57 en la validación cruzada, y
+    0.81 contra 0.58 en
+    2015–2022.</li>
+    <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
+    0.974 y 1.042 y el sesgo entre -2.8 y +4.4 mm/mes.</li>
+    <li><b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es 0.52 contra 0.47, y su KGE 0.55 contra 0.57 (en 2015–2022, 0.51 contra 0.58). La correlación de M4 es mayor (r 0.73 contra 0.68), pero su caudal varía menos que el observado: α = 0.64, es decir, reproduce el 64 % de la desviación estándar de Q, contra el 72 % de la climatología. El NSE junta todo el error en un solo número; el KGE castiga por separado que el modelo varíe menos que el río.</li>
+  </ul>
+  </div>
+
   <h3>El modelo elegido: M4</h3>
   <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
   &nbsp; con C = D · e<sup>a</sup></p>
@@ -2473,6 +2515,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td>D, factor de Duan</td><td class='num'>1.022</td><td class='num'>1.051</td></tr>
 <tr><td>C = D·e<sup>a</sup></td><td class='num'>0.351</td><td class='num'>1.121</td></tr>
 <tr><td>NSE en la validación cruzada</td><td class='num'>0.79</td><td class='num'>0.52</td></tr>
+<tr><td>KGE en la validación cruzada</td><td class='num'>0.78</td><td class='num'>0.55</td></tr>
     </tbody>
   </table>
   </div>
@@ -2922,6 +2965,9 @@ section, section h3 { scroll-margin-top: 20px; }
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-gupta2009">Gupta, H. V., Kling, H., Yilmaz, K. K., y Martinez, G. F. (2009). Decomposition of the mean
+    squared error and NSE performance criteria: implications for improving hydrological modelling. <i>Journal of
+    Hydrology</i>, 377(1–2), 80–91. <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">https://doi.org/10.1016/j.jhydrol.2009.08.003</a></li>
     <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
     autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
     <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>
@@ -3048,7 +3094,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 175 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 180 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

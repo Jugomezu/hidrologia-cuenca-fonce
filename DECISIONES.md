@@ -89,3 +89,4 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Mapa de ubicación: rótulos | Sin nombres de regiones en el mapa; las nombra el texto | Rótulos declarados en el código | **Contradice al agente** |
 | 2026-10-09 | Modelos lluvia–caudal: balance hídrico | Hacerlo («cierra el pendiente»): el caudal de M4 contra la lluvia y la ETP de Hargreaves con ERA5-Land, en el período, mes a mes y en los años con los 12 meses de Q, con PL y PI | Lo mismo | Sí |
 | 2026-10-09 | `requirements.txt` | Agregar lo que los scripts usan y no estaba declarado (xarray, netCDF4, h5netcdf, fsspec, aiohttp, pillow) | Lo mismo | Sí |
+| 2026-10-09 | Modelos lluvia–caudal: validación fuera del ajuste | Agregar el KGE a la validación cruzada y a la partición 2015–2022, en la versión de Gupta et al. (2009), «más confiable por ser más conocida»; se reportan también r, α y β | Gupta et al. (2009); la otra opción era Kling et al. (2012) | Sí |

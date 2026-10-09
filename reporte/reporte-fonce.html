@@ -2310,8 +2310,11 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
-  <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
-  mes a mes en años que el ajuste no vio.</p>
+  <p>Tres pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico; ver qué relación hay
+  entre la lluvia y el caudal de cada mes; y estimar el caudal en años que el ajuste no vio, con cinco modelos de
+  complejidad creciente, para escoger uno. Todo con PL y con PI en paralelo. En las dos últimas, Q va como
+  <b>lámina sobre la cuenca, en mm/mes</b> (el volumen del mes repartido sobre los 2 099 km²), para
+  compararlo con la lluvia en las mismas unidades.</p>
   <h3>Primero, en el año típico</h3>
   <p>PL tiene sus picos en <b>abril y octubre</b>, y Q en <b>mayo y noviembre</b>. Para
   medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
@@ -2331,37 +2334,173 @@ section, section h3 { scroll-margin-top: 20px; }
   arrastre</b>. Con PI el ajuste es más pobre (59 % →
   66 %).</p>
 
-  <h3>Después, en años que el ajuste no vio</h3>
-  <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
-  no vio</b>: una recta ajustada con 1998–2014 se evalúa con
-  2015–2022, en bloques continuos para que meses vecinos no queden uno en cada lado.
-  La referencia es la <b>climatología</b> (el caudal medio de cada mes en el ajuste): superarla quiere decir que la
-  lluvia dice algo que el calendario solo no dice.</p>
+  <h3>Qué relación sugieren los datos</h3>
+  <p>Antes de proponer un modelo se ajusta una recta de Q contra la lluvia del mismo mes, en los 262 meses con Q
+  de 1998–2022, y se mira qué deja sin explicar: los <b>residuos</b> (Q observado menos Q de la recta). Se repite con
+  logaritmos (ln Q contra ln P), la alternativa usual cuando el error crece con el nivel. Ningún mes tiene lluvia ni caudal
+  en cero (mínimos: PL 29.9, PI 14.8 y Q 29.2 mm/mes), así que
+  el logaritmo se puede usar sin ajustes.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
-    <th class="num">RMSE en la evaluación (m³/s)</th><th class="num">MAE en la evaluación</th>
-    <th class="num">Sesgo en la evaluación</th><th class="num">Meses evaluados</th></tr></thead>
+    <thead><tr><th>Prueba</th><th class="num">PL, recta</th><th class="num">PL, logaritmos</th>
+    <th class="num">PI, recta</th><th class="num">PI, logaritmos</th></tr></thead>
     <tbody>
-<tr><td>climatología mensual de Q</td><td class='num'>29.3</td><td class='num'>31.5</td><td class='num'>25.1</td><td class='num'>+8.3</td><td class='num'>84</td></tr>
-<tr><td><b>PL del mismo mes</b></td><td class='num'>23.2</td><td class='num'>25.6</td><td class='num'>19.1</td><td class='num'>+0.1</td><td class='num'>84</td></tr>
-<tr><td>PL del mes anterior</td><td class='num'>32.9</td><td class='num'>31.4</td><td class='num'>22.1</td><td class='num'>+1.0</td><td class='num'>80</td></tr>
-<tr><td>PI del mismo mes</td><td class='num'>29.6</td><td class='num'>29.9</td><td class='num'>22.6</td><td class='num'>+5.2</td><td class='num'>84</td></tr>
-<tr><td>PI del mes anterior</td><td class='num'>36.2</td><td class='num'>33.0</td><td class='num'>25.5</td><td class='num'>+4.3</td><td class='num'>80</td></tr>
+<tr><td>Varianza de Q que explica la recta (R²)</td><td class='num'>0.68</td><td class='num'>0.67</td><td class='num'>0.51</td><td class='num'>0.48</td></tr>
+<tr><td>Pendiente b</td><td class='num'>0.50</td><td class='num'>0.82</td><td class='num'>0.54</td><td class='num'>0.70</td></tr>
+<tr><td>¿Se curva? <i>p</i> del término cuadrático</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td></tr>
+<tr><td>Varianza del residuo: tercio más lluvioso / tercio más seco</td><td class='num'>2.50</td><td class='num'>0.57</td><td class='num'>2.16</td><td class='num'>0.63</td></tr>
+<tr><td>Residuo por mes del calendario: <i>p</i> de Kruskal-Wallis</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td><td class='num'>&lt; 0.001</td></tr>
+<tr><td>Mes con el residuo medio más alto</td><td class='num'>dic (+31.5)</td><td class='num'>dic (+0.30)</td><td class='num'>nov (+42.8)</td><td class='num'>dic (+0.36)</td></tr>
+<tr><td>Mes con el residuo medio más bajo</td><td class='num'>mar (-29.6)</td><td class='num'>mar (-0.24)</td><td class='num'>ago (-31.6)</td><td class='num'>ago (-0.31)</td></tr>
+<tr><td>Correlación del residuo con el del mes siguiente</td><td class='num'>0.43</td><td class='num'>0.39</td><td class='num'>0.55</td><td class='num'>0.54</td></tr>
+<tr><td>Correlación del residuo con la lluvia del mes anterior</td><td class='num'>0.62</td><td class='num'>0.64</td><td class='num'>0.33</td><td class='num'>0.38</td></tr>
+<tr><td>Residuos normales: <i>p</i> de Shapiro-Wilk</td><td class='num'>&lt; 0.001</td><td class='num'>0.486</td><td class='num'>&lt; 0.001</td><td class='num'>0.017</td></tr>
+<tr><td>Asimetría del residuo</td><td class='num'>+0.72</td><td class='num'>+0.09</td><td class='num'>+0.64</td><td class='num'>-0.05</td></tr>
     </tbody>
   </table>
   </div>
+  <p class="nota">Residuos en mm/mes en la recta y en unidades de ln Q en los logaritmos (+0.30 es un caudal un 35 % mayor
+  que el estimado). <i>p</i> del término cuadrático con error de Newey-West (<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>; 12 rezagos), tomando los meses con
+  Q en orden aunque haya vacíos entre ellos. Kruskal-Wallis (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>) y Shapiro-Wilk
+  (<a class="cita" href="#ref-shapiro1965">Shapiro y Wilk, 1965</a>). Pruebas al 5 %.</p>
+  <ul>
+    <li><b>Es casi una recta, pero se curva hacia arriba</b>: el término cuadrático es significativo. Con mucha lluvia,
+    Q sube más rápido de lo que dice la recta.</li>
+    <li><b>El error crece con la lluvia</b>: la varianza del residuo es 2.5
+    veces mayor en el tercio de meses más lluviosos que en el más seco con PL (2.2
+    con PI). En logaritmos la razón baja a 0.57: el logaritmo corrige la
+    dispersión, incluso de más, y deja residuos casi simétricos.</li>
+    <li><b>Queda el calendario.</b> Con PL, en diciembre el río lleva en promedio 32 mm/mes más de
+    lo que explica la lluvia del mes, y en marzo 30 menos. Diciembre viene de noviembre, el
+    mes más lluvioso de la segunda temporada: el suelo y los acuíferos quedan llenos y siguen drenando. Marzo viene de la
+    temporada seca: parte de su lluvia se gasta en volver a llenar el suelo antes de llegar al río.</li>
+    <li><b>Es la memoria de la cuenca</b>: el residuo de un mes se parece al del siguiente
+    (0.43 con PL) y se explica en buena parte con la lluvia del mes anterior
+    (0.62 con PL, 0.33 con PI).</li>
+  </ul>
+  <p>Los datos sugieren una relación positiva, con un error que crece en proporción al caudal y con un mes de memoria:
+  una regresión con la lluvia del mes anterior, y una transformación logarítmica.</p>
+
+  <h3>Cinco modelos, de menos a más complejo</h3>
+  <p>La climatología (M0) es la referencia: superarla quiere decir que la lluvia dice algo que el calendario solo no dice.
+  La recta (M1) es la referencia que se le pone a todo modelo; M2 le agrega la lluvia del mes anterior, M3 la
+  transformación logarítmica y M4 las dos. No se usa el caudal del mes anterior como variable: exigiría conocer el caudal,
+  que es lo que se quiere estimar. Todos usan los mismos 261 meses (enero de 1998 no tiene mes anterior). En M3 y M4,
+  volver del logaritmo da la mediana del caudal y no su media; se corrige con el factor de Duan, la media de
+  e<sup>residuo</sup> en el ajuste (<a class="cita" href="#ref-duan1983">Duan, 1983</a>).</p>
+  <p>Se comparan con el error al estimar meses que el ajuste no vio, en mm/mes: (1) <b>validación cruzada</b> con 5 bloques
+  de 5 años seguidos (1998-2002, 2003-2007, 2008-2012, 2013-2017, 2018-2022): cada bloque se estima con un modelo ajustado con los otros 20 años, así que cada mes
+  se estima una vez sin haberlo visto; y (2) una sola <b>partición</b>, ajuste con 1998–2014 y
+  evaluación con 2015–2022. Los bloques son continuos para que meses vecinos, que se
+  parecen, no queden uno en el ajuste y otro en la evaluación. El BIC, que castiga los parámetros de más, solo compara
+  modelos de la misma escala: el de los logaritmos mide el error en ln Q.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Modelo</th><th>Ecuación</th><th class="num">Parámetros</th><th class="num">R² de Q (mm/mes)</th>
+    <th class="num">ΔBIC en su escala</th><th class="num">RMSE, validación cruzada</th><th class="num">NSE, validación cruzada</th>
+    <th class="num">RMSE, 2015–2022</th><th class="num">NSE, 2015–2022</th></tr></thead>
+    <tbody>
+<tr><td colspan='9'><b>Con PL</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>Q̂ = Q medio de ese mes del calendario</td><td class=num>12</td><td class=num>—</td><td class=num>—</td><td class=num>38.8</td><td class=num>0.47</td><td class=num>39.7</td><td class=num>0.46</td></tr>
+<tr><td>M1 · recta</td><td>Q = a + b·P<sub>t</sub></td><td class=num>2</td><td class=num>0.68</td><td class=num>146</td><td class=num>30.8</td><td class=num>0.66</td><td class=num>32.0</td><td class=num>0.65</td></tr>
+<tr><td>M2 · recta con la lluvia del mes anterior</td><td>Q = a + b<sub>0</sub>·P<sub>t</sub> + b<sub>1</sub>·P<sub>t−1</sub></td><td class=num>3</td><td class=num>0.82</td><td class=num>0</td><td class=num>23.5</td><td class=num>0.80</td><td class=num>24.6</td><td class=num>0.79</td></tr>
+<tr><td>M3 · logaritmos</td><td>ln Q = a + b·ln P<sub>t</sub></td><td class=num>2</td><td class=num>0.66</td><td class=num>159</td><td class=num>31.7</td><td class=num>0.64</td><td class=num>32.5</td><td class=num>0.64</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub></b></td><td class=num><b>3</b></td><td class=num><b>0.80</b></td><td class=num><b>0</b></td><td class=num><b>24.6</b></td><td class=num><b>0.79</b></td><td class=num><b>24.5</b></td><td class=num><b>0.79</b></td></tr>
+<tr><td colspan='9'><b>Con PI</b></td></tr>
+<tr><td>M0 · climatología mensual de Q</td><td>Q̂ = Q medio de ese mes del calendario</td><td class=num>12</td><td class=num>—</td><td class=num>—</td><td class=num>38.8</td><td class=num>0.47</td><td class=num>39.7</td><td class=num>0.46</td></tr>
+<tr><td>M1 · recta</td><td>Q = a + b·P<sub>t</sub></td><td class=num>2</td><td class=num>0.51</td><td class=num>34</td><td class=num>37.7</td><td class=num>0.49</td><td class=num>37.4</td><td class=num>0.52</td></tr>
+<tr><td>M2 · recta con la lluvia del mes anterior</td><td>Q = a + b<sub>0</sub>·P<sub>t</sub> + b<sub>1</sub>·P<sub>t−1</sub></td><td class=num>3</td><td class=num>0.58</td><td class=num>0</td><td class=num>35.1</td><td class=num>0.56</td><td class=num>33.1</td><td class=num>0.62</td></tr>
+<tr><td>M3 · logaritmos</td><td>ln Q = a + b·ln P<sub>t</sub></td><td class=num>2</td><td class=num>0.47</td><td class=num>49</td><td class=num>39.1</td><td class=num>0.46</td><td class=num>39.3</td><td class=num>0.47</td></tr>
+<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub></b></td><td class=num><b>3</b></td><td class=num><b>0.54</b></td><td class=num><b>0</b></td><td class=num><b>36.6</b></td><td class=num><b>0.52</b></td><td class=num><b>35.1</b></td><td class=num><b>0.58</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P es PL o PI, en mm/mes; P<sub>t−1</sub>, la del mes anterior. RMSE en mm/mes. NSE
+  (<a class="cita" href="#ref-nash1970">Nash y Sutcliffe, 1970</a>):
+  1 es perfecto y 0 es tan bueno como la media de los meses evaluados. R² con todos los meses, sobre Q en mm/mes, así que
+  se puede comparar entre escalas. ΔBIC: diferencia con el mejor de la misma escala (0 es el mejor).</p>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p><b>La mejor estimación sale de PL del mismo mes</b>: RMSE de 25.6 m³/s en la
-  evaluación, contra 31.5 de la climatología y 29.9
-  con PI. Con la lluvia del mes anterior sola el error crece (31.4
-  con PL): el río responde sobre todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  <p class="nota">Q de 2015–2022 estimado con M4 ajustado en
+  1998–2014, con PL y con PI, y la climatología de esos años de ajuste. Los cortes de la
+  línea verde son meses sin Q.</p>
+  <ul>
+    <li><b>La lluvia del mes anterior es lo que más mejora</b>, en los cinco bloques: con PL, el error baja de
+    30.8 (M1) a 23.5 mm/mes (M2); con PI, de 37.7 a
+    35.1.</li>
+    <li><b>El logaritmo no baja el error</b> (M3 frente a M1, M4 frente a M2): no agrega información, cambia la forma en
+    que se mide el error. Lo que gana es que sus supuestos se cumplen mejor y que no puede dar caudales negativos.</li>
+    <li><b>Con PI todo es más pobre</b>: el mejor modelo con PI (NSE 0.56)
+    no alcanza a la recta con PL (0.66), y el rezago le ayuda menos. Con PL, los cuatro modelos con lluvia superan a la climatología. Con PI, M3 no supera a la climatología.</li>
+  </ul>
+
+  <h3>El modelo elegido: M4</h3>
+  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
+  &nbsp; con C = D · e<sup>a</sup></p>
+  <p>Es M4 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
+  y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
+  <dl class="lista-datos">
+    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre 2 099 km²; en m³/s, Q̂ · 2 099 · 10³ / (segundos del mes)</dd>
+    <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
+    <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
+    <dt>Ajuste</dt><dd>261 meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
+  </dl>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Parámetro</th><th class="num">Con PL</th><th class="num">Con PI</th></tr></thead>
+    <tbody>
+<tr><td>a</td><td class='num'>-1.07 <small>(-1.46 a -0.67)</small></td><td class='num'>0.06 <small>(-0.51 a 0.64)</small></td></tr>
+<tr><td>b<sub>0</sub>, lluvia del mes</td><td class='num'>0.67 <small>(0.61 a 0.73)</small></td><td class='num'>0.53 <small>(0.45 a 0.62)</small></td></tr>
+<tr><td>b<sub>1</sub>, lluvia del mes anterior</td><td class='num'>0.41 <small>(0.36 a 0.47)</small></td><td class='num'>0.35 <small>(0.28 a 0.42)</small></td></tr>
+<tr><td>b<sub>0</sub> + b<sub>1</sub></td><td class='num'>1.079 <small>(1.004 a 1.155)</small></td><td class='num'>0.884 <small>(0.773 a 0.995)</small></td></tr>
+<tr><td>D, factor de Duan</td><td class='num'>1.022</td><td class='num'>1.051</td></tr>
+<tr><td>C = D·e<sup>a</sup></td><td class='num'>0.351</td><td class='num'>1.121</td></tr>
+<tr><td>NSE en la validación cruzada</td><td class='num'>0.79</td><td class='num'>0.52</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><b>Cómo se leen b<sub>0</sub> y b<sub>1</sub>.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en 1 %
+  la lluvia que acompaña; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
+  10 %, Q sube un 6.6 % (1.1<sup>b<sub>0</sub></sup>); si
+  sube la del mes anterior, un 4.0 %; si suben las dos, un
+  10.8 % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
+  el caudal crece algo más rápido que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por encima de 1); con PI, el caudal crece algo más despacio que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por debajo de 1).</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
+    <tbody>
+<tr><td>La relación es una recta en logaritmos</td><td><b>No del todo</b>: queda curvatura (<i>p</i> &lt; 0.001 con PL y &lt; 0.001 con PI).</td></tr>
+<tr><td>Los residuos son independientes</td><td><b>No</b>: el residuo de un mes se parece al del siguiente (0.38 con PL y 0.61 con PI; una serie sin memoria quedaría bajo ±0.13). Por eso los intervalos de los parámetros son de Newey-West.</td></tr>
+<tr><td>La varianza es constante en logaritmos</td><td><b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = 0.07 con PL y 0.37 con PI).</td></tr>
+<tr><td>Los residuos son normales</td><td><b>Con PL, sí</b> (Shapiro-Wilk, <i>p</i> = 0.46); <b>con PI, no</b> (<i>p</i> = 0.03).</td></tr>
+<tr><td>No queda patrón por mes del calendario</td><td><b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> &lt; 0.001 con PL). La cuenca guarda agua por más de un mes y el modelo solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo.</td></tr>
+<tr><td>La lluvia se mide sin error</td><td><b>No</b>: PL promedia entre 4 y 7 pluviómetros según el mes, ninguno por encima de 2 625 m, y PI es una estimación de satélite. El error de la lluvia aplana las pendientes.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
+  29.9 y 445.1 mm/mes con PL, y entre
+  14.8 y 375.1 con PI (en el mes y en el anterior); el
+  caudal observado fue de 29.2 a 299.8 mm/mes. Fuera de ese rango
+  no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
+  <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
+  cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
+  fuera del rango de aplicación.</p>
+  <p><b>Por qué M4 y no M2.</b> Fuera del ajuste yerran casi lo mismo (24.6 contra
+  23.5 mm/mes con PL), menos de lo que cambia el error de M4 de un bloque a otro
+  (19.0 a 30.5). Tienen los mismos tres
+  parámetros. El desempate lo dan los supuestos, que M4 cumple mejor (el error de M2 crece con la lluvia y sus residuos no
+  son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses seguidos baja de
+  40.9 mm/mes con PL o de 16.7 con PI,
+  y este último valor ya está dentro de lo observado (el mínimo de PI es 14.8). M4 no
+  puede dar caudales negativos.</p>
+
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   45.5 mm/mes en la evaluación, contra 47.6 de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
-  <p class="nota">Una recta mensual simplifica mucho: no representa el agua guardada en el suelo, la humedad
-  que trae la cuenca ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Además,
-  IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Una relación estadística entre la
+  lluvia y el caudal tampoco sustituye un balance hídrico ni garantiza que se conserve la masa. Además, IMERG incorpora
+  datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
 </section>
 
 
@@ -2615,10 +2754,11 @@ section, section h3 { scroll-margin-top: 20px; }
     <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
     anterior agrega información. Hoy: ρ(PL, Q) en anomalías = 0.77
     (0.61 con PI), y la correlación parcial de la lluvia del mes anterior es
-    0.52 (0.42). En años que el ajuste
-    no vio, la lluvia del mismo mes ya supera a la climatología (RMSE de 25.6 m³/s con PL y 29.9 con PI,
-    contra 31.5; ver «¿Sirve la lluvia para estimar el caudal?»). Falta probar ahí un modelo con la lluvia del
-    mes y la del anterior, que debería mejorar, más con PL que con PI.</li>
+    0.52 (0.42). En meses que el ajuste
+    no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
+    en la validación cruzada, el error baja de 30.8 a 24.6 mm/mes con PL y
+    de 37.7 a 36.6 con PI, contra 38.8 de
+    la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
     <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
     lluvia de marzo sube (+33 mm/mes por década con PL*, la única subserie de la lluvia que resiste la
     corrección FDR), pero el caudal de marzo no muestra tendencia significativa (+5.0 m³/s por
@@ -2720,6 +2860,9 @@ section, section h3 { scroll-margin-top: 20px; }
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-duan1983">Duan, N. (1983). Smearing estimate: a nonparametric retransformation method. <i>Journal of the
+    American Statistical Association</i>, 78(383), 605–610.
+    <a href="https://doi.org/10.1080/01621459.1983.10478017">https://doi.org/10.1080/01621459.1983.10478017</a></li>
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
@@ -2763,6 +2906,9 @@ section, section h3 { scroll-margin-top: 20px; }
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-middleton1997">Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
     Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
+    <li id="ref-nash1970">Nash, J. E., y Sutcliffe, J. V. (1970). River flow forecasting through conceptual models part I —
+    A discussion of principles. <i>Journal of Hydrology</i>, 10(3), 282–290.
+    <a href="https://doi.org/10.1016/0022-1694(70)90255-6">https://doi.org/10.1016/0022-1694(70)90255-6</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
@@ -2846,7 +2992,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 147 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 171 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
@@ -2868,7 +3014,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
   <h3>Propuestas rechazadas o corregidas</h3>
   <p>El registro <code>DECISIONES.md</code> anota las decisiones del equipo junto con lo que recomendó la IA. En
-  21 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
+  23 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
   llevar el 2026-10-08, cuando el trabajo ya estaba avanzado. Las filas anteriores a esa fecha se
   reconstruyeron después (la más antigua es del 2026-10-04), y de lo decidido antes no queda registro. El
   anexo muestra, entonces, las propuestas rechazadas que quedaron anotadas, no todas. Además, la IA corrigió propuestas suyas al
@@ -2902,6 +3048,8 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td>2026-10-09</td><td>Punto 5.2: combinaciones</td><td>PL y Q contra la SST, el viento y la humedad a 850 hPa; PI solo contra la SST y la humedad; sin temperatura. El viento, como su rapidez √(u² + v²) con flechas de la dirección del viento medio del mes</td><td>u y v por separado</td><td><b>Contradice al agente</b> en el viento</td></tr>
 <tr><td>2026-10-09</td><td>Punto 5.2: dominio</td><td>Todos los mapas de 60° S a 60° N</td><td>SST de 60° S a 60° N; viento y humedad, regionales</td><td><b>Contradice al agente</b></td></tr>
 <tr><td>2026-10-09</td><td>Contribuciones de los autores</td><td>Sección con lo que hizo cada autor, nombrando los puntos del taller por número (excepción a las reglas 4 y 16)</td><td>Nombrarlos por los temas de las secciones, según las reglas 4 y 16</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Modelos lluvia–caudal (2.2): alcance</td><td>No se hace el modelo de PL a partir de PI; el de Q a partir de la lluvia parte de lo que ya calcula el informe (rectas con la lluvia del mes y del anterior, evaluadas en 2015–2022)</td><td>Incluir también el modelo de PL a partir de PI</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Modelos lluvia–caudal: cómo se comparan las alternativas</td><td>Validación cruzada por bloques de años, además del BIC y de la evaluación en 2015–2022</td><td>BIC en el ajuste y la evaluación en 2015–2022; la validación cruzada, para el punto 2.3</td><td><b>Contradice al agente</b></td></tr>
     </tbody>
   </table></div>
   <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al
@@ -3735,7 +3883,7 @@ section, section h3 { scroll-margin-top: 20px; }
   });
 
   const P2 = {"pi": [49.9, 121.1, 158.3, 267.3, 286.9, 197.6, 230.1, 208.3, 211.3, 300.8, 188.5, 139.8, 115.6, 225.0, 143.7, 251.1, 206.7, 223.1, 174.4, 182.8, 283.4, 302.1, 257.0, 146.8, 79.3, 161.1, 157.7, 210.0, 266.1, 252.2, 212.0, 218.6, 303.8, 282.2, 207.2, 103.4, 52.3, 52.3, 151.4, 165.8, 271.0, 200.1, 238.1, 169.3, 229.2, 291.1, 185.3, 149.2, 39.2, 56.6, 208.3, 246.7, 219.6, 195.0, 147.9, 161.4, 191.9, 176.7, 149.7, 107.7, 14.8, 90.8, 168.8, 259.2, 217.4, 224.6, 165.8, 160.4, 227.0, 264.8, 203.5, 134.5, 57.5, 73.2, 131.5, 236.5, 321.4, 166.5, 178.0, 149.9, 260.4, 275.0, 207.6, 81.1, 125.3, 136.8, 95.8, 270.2, 283.1, 207.2, 151.5, 172.9, 159.6, 318.3, 253.8, 105.4, 98.4, 61.6, 214.5, 256.5, 269.8, 247.2, 173.6, 174.3, 175.2, 298.5, 224.9, 118.8, 66.1, 37.8, 222.9, 237.5, 262.5, 177.5, 180.7, 217.4, 182.2, 327.4, 158.8, 134.2, 90.8, 108.8, 134.1, 203.9, 324.6, 234.4, 196.6, 238.4, 201.7, 270.5, 260.3, 77.7, 110.2, 117.4, 239.5, 197.1, 202.7, 208.2, 161.3, 193.5, 121.2, 211.0, 174.8, 82.6, 31.1, 75.3, 138.2, 246.4, 312.8, 229.1, 300.3, 239.7, 268.0, 264.7, 278.5, 171.0, 66.7, 132.0, 207.1, 375.1, 313.4, 188.9, 163.5, 183.8, 171.6, 260.8, 283.3, 163.6, 73.6, 60.4, 236.4, 320.8, 213.6, 147.6, 186.8, 189.1, 164.1, 250.1, 114.4, 90.2, 48.4, 176.7, 188.2, 288.3, 286.2, 179.8, 102.8, 209.1, 186.3, 170.6, 210.7, 124.7, 65.5, 191.5, 148.2, 156.2, 179.0, 157.4, 168.1, 155.5, 187.6, 266.3, 230.4, 109.8, 115.5, 132.5, 179.4, 260.6, 147.9, 109.1, 146.9, 116.0, 168.8, 182.6, 217.4, 59.7, 56.7, 77.5, 141.4, 269.4, 262.4, 128.2, 166.9, 149.9, 145.5, 215.2, 179.4, 153.1, 73.8, 95.3, 251.8, 265.9, 264.5, 206.5, 137.4, 245.9, 195.0, 236.2, 200.6, 119.1, 113.3, 77.8, 256.6, 259.2, 310.2, 126.9, 190.8, 115.0, 194.8, 320.8, 203.4, 54.2, 65.4, 130.4, 246.5, 260.7, 269.3, 150.5, 128.1, 142.2, 161.1, 259.8, 231.3, 134.7, 86.0, 95.8, 219.6, 166.0, 212.8, 184.5, 178.6, 150.1, 162.8, 217.6, 253.8, 128.6, 36.8, 146.2, 200.1, 205.0, 278.7, 220.0, 182.7, 213.2, 197.4, 271.8, 185.7, 127.3, 81.6, 198.4, 202.4, 291.5, 354.7, 282.8, 184.7, 206.3, 252.3, 275.2, 249.6, 111.1], "pl": [68.8, 135.9, 240.5, 296.2, 293.9, 133.9, 182.0, 216.8, 231.5, 420.7, 242.5, 252.4, 206.3, 355.0, 257.0, 290.2, 237.2, 275.6, 151.6, 218.1, 310.0, 307.2, 310.5, 221.7, 115.9, 227.2, 189.2, 297.6, 214.5, 232.9, 183.5, 167.5, 279.0, 239.4, 221.5, 98.6, 100.8, 103.6, 244.0, 197.2, 274.9, 144.6, 154.5, 124.2, 217.3, 321.4, 251.7, 218.4, 62.3, 72.8, 229.4, 389.6, 259.4, 182.4, 109.4, 170.0, 208.2, 241.9, 212.2, 198.2, 41.8, 113.8, 212.1, 360.6, 276.4, 219.0, 139.5, 228.4, 271.0, 394.4, 354.6, 138.5, 135.0, 118.6, 179.0, 347.4, 387.2, 128.6, 168.8, 115.1, 279.0, 310.5, 282.4, 138.6, 206.8, 203.1, 135.3, 294.1, 253.9, 166.2, 156.8, 141.2, 164.0, 374.2, 307.2, 114.3, 115.1, 65.0, 300.4, 355.1, 338.7, 209.4, 108.6, 195.3, 181.5, 344.0, 332.8, 196.0, 169.2, 56.4, 330.6, 334.6, 317.9, 153.2, 219.9, 248.7, 201.2, 417.1, 220.6, 215.5, 121.8, 137.0, 187.6, 239.5, 330.3, 207.8, 197.4, 253.4, 237.7, 297.6, 293.3, 94.1, 152.6, 209.6, 323.9, 235.1, 171.7, 166.2, 110.9, 252.6, 109.9, 215.8, 203.5, 117.6, 70.7, 86.6, 178.7, 264.9, 299.2, 273.7, 310.2, 221.6, 327.8, 323.3, 331.2, 131.4, 80.8, 180.3, 326.2, 445.1, 301.2, 175.7, 122.8, 220.7, 187.6, 356.7, 332.4, 226.0, 159.0, 66.3, 276.8, 410.5, 240.4, 133.7, 113.9, 192.8, 150.5, 298.8, 156.7, 107.5, 43.7, 226.4, 238.9, 315.8, 328.2, 91.1, 97.2, 193.5, 146.8, 285.3, 269.4, 166.4, 111.3, 225.0, 224.0, 267.6, 253.2, 91.6, 102.5, 140.3, 170.1, 274.3, 289.2, 122.0, 108.7, 139.2, 284.3, 363.9, 136.1, 54.0, 116.5, 180.2, 139.6, 255.2, 167.6, 85.8, 35.9, 59.0, 141.8, 265.8, 264.5, 122.2, 149.6, 160.3, 181.0, 277.6, 274.5, 166.7, 78.7, 64.1, 336.0, 297.0, 315.8, 263.0, 158.0, 155.9, 184.8, 225.5, 241.7, 145.3, 154.1, 71.2, 274.7, 291.9, 394.8, 141.3, 157.0, 121.1, 189.8, 365.6, 206.8, 70.4, 87.9, 225.3, 320.9, 307.9, 288.8, 83.6, 157.4, 111.4, 213.5, 229.1, 198.2, 150.8, 69.3, 62.2, 241.4, 228.2, 213.3, 222.2, 172.2, 183.4, 190.0, 278.8, 356.1, 133.6, 29.9, 138.3, 313.0, 240.9, 303.3, 153.1, 158.7, 223.4, 246.5, 274.5, 193.2, 129.4, 52.1, 161.3, 334.9, 276.8, 276.9, 332.9, 149.2, 213.0, 320.4, 338.8, 340.4, 127.5], "mes": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "periodo": ["1998-01", "1998-02", "1998-03", "1998-04", "1998-05", "1998-06", "1998-07", "1998-08", "1998-09", "1998-10", "1998-11", "1998-12", "1999-01", "1999-02", "1999-03", "1999-04", "1999-05", "1999-06", "1999-07", "1999-08", "1999-09", "1999-10", "1999-11", "1999-12", "2000-01", "2000-02", "2000-03", "2000-04", "2000-05", "2000-06", "2000-07", "2000-08", "2000-09", "2000-10", "2000-11", "2000-12", "2001-01", "2001-02", "2001-03", "2001-04", "2001-05", "2001-06", "2001-07", "2001-08", "2001-09", "2001-10", "2001-11", "2001-12", "2002-01", "2002-02", "2002-03", "2002-04", "2002-05", "2002-06", "2002-07", "2002-08", "2002-09", "2002-10", "2002-11", "2002-12", "2003-01", "2003-02", "2003-03", "2003-04", "2003-05", "2003-06", "2003-07", "2003-08", "2003-09", "2003-10", "2003-11", "2003-12", "2004-01", "2004-02", "2004-03", "2004-04", "2004-05", "2004-06", "2004-07", "2004-08", "2004-09", "2004-10", "2004-11", "2004-12", "2005-01", "2005-02", "2005-03", "2005-04", "2005-05", "2005-06", "2005-07", "2005-08", "2005-09", "2005-10", "2005-11", "2005-12", "2006-01", "2006-02", "2006-03", "2006-04", "2006-05", "2006-06", "2006-07", "2006-08", "2006-09", "2006-10", "2006-11", "2006-12", "2007-01", "2007-02", "2007-03", "2007-04", "2007-05", "2007-06", "2007-07", "2007-08", "2007-09", "2007-10", "2007-11", "2007-12", "2008-01", "2008-02", "2008-03", "2008-04", "2008-05", "2008-06", "2008-07", "2008-08", "2008-09", "2008-10", "2008-11", "2008-12", "2009-01", "2009-02", "2009-03", "2009-04", "2009-05", "2009-06", "2009-07", "2009-08", "2009-09", "2009-10", "2009-11", "2009-12", "2010-01", "2010-02", "2010-03", "2010-04", "2010-05", "2010-06", "2010-07", "2010-08", "2010-09", "2010-10", "2010-11", "2010-12", "2011-01", "2011-02", "2011-03", "2011-04", "2011-05", "2011-06", "2011-07", "2011-08", "2011-09", "2011-10", "2011-11", "2011-12", "2012-01", "2012-02", "2012-03", "2012-04", "2012-05", "2012-06", "2012-07", "2012-08", "2012-09", "2012-10", "2012-11", "2012-12", "2013-01", "2013-02", "2013-03", "2013-04", "2013-05", "2013-06", "2013-07", "2013-08", "2013-09", "2013-10", "2013-11", "2013-12", "2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06", "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"]};
-  const EV = {"meses": ["2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "q": [31.39, 51.44, 70.93, 132.92, 45.97, null, null, null, null, null, null, null, 22.91, 24.66, 40.13, 80.99, 91.78, 54.53, 49.58, null, 39.84, 87.54, 129.01, 107.11, 61.21, 34.98, 118.94, 109.58, 143.01, 108.02, 74.33, 54.02, 62.11, 78.77, 107.22, 63.38, 60.98, 37.78, 61.97, 134.39, 185.4, 89.37, 69.51, 53.59, 57.19, 162.47, 141.06, 53.95, 35.0, 61.72, 111.61, 163.34, 115.46, 79.44, 49.63, 42.2, 51.22, 85.83, 101.12, 56.25, 30.91, 28.49, 52.37, 82.15, 73.99, 97.94, 71.25, 76.51, 68.38, 82.14, 164.47, 73.81, 37.5, 35.93, 101.26, 112.54, 152.72, 98.67, 66.93, 81.92, 90.03, 104.86, 94.86, 68.48, 41.39, 63.14, 122.8, 131.43, 129.61, null, null, null, null, 204.49, 242.76, 119.6], "clima": [57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44, 57.75, 59.09, 78.74, 127.47, 131.9, 83.52, 62.31, 63.7, 72.44, 134.76, 135.4, 97.44], "pl": [47.89, 60.14, 118.49, 150.47, 58.91, null, null, null, null, null, null, null, 18.62, 27.9, 61.19, 111.03, 110.52, 53.34, 64.32, null, 76.97, 115.8, 114.53, 71.19, 35.84, 29.97, 139.26, 123.57, 131.14, 109.93, 67.71, 66.85, 78.5, 94.84, 101.36, 62.61, 66.15, 32.8, 114.64, 121.54, 162.92, 60.99, 67.3, 52.89, 80.5, 151.14, 87.33, 32.51, 39.55, 94.77, 133.19, 127.99, 120.28, 37.82, 67.48, 48.97, 90.01, 96.29, 83.88, 64.83, 32.05, 29.2, 101.23, 95.92, 89.96, 93.52, 73.43, 77.93, 80.59, 116.27, 147.36, 57.92, 16.24, 59.81, 130.01, 101.04, 126.13, 65.73, 68.01, 94.0, 103.29, 114.54, 81.87, 56.21, 25.13, 69.03, 138.82, 115.48, 115.51, null, null, null, null, 140.37, 141.05, 55.47], "pi": [61.5, 68.69, 88.42, 122.68, 75.16, null, null, null, null, null, null, null, 36.73, 45.51, 72.41, 126.36, 123.42, 66.87, 83.17, null, 74.17, 103.55, 88.43, 77.35, 43.93, 52.99, 118.95, 124.9, 124.31, 99.85, 70.75, 116.47, 95.02, 112.39, 97.37, 63.02, 60.6, 45.62, 120.98, 122.07, 143.57, 66.33, 93.25, 61.29, 94.91, 148.04, 98.54, 35.68, 40.38, 67.8, 116.72, 122.69, 126.32, 76.26, 66.81, 72.76, 80.75, 122.31, 110.32, 69.62, 49.08, 53.19, 105.38, 82.8, 102.51, 90.6, 88.1, 76.1, 81.44, 104.56, 119.81, 67.05, 28.33, 74.44, 97.15, 99.21, 130.28, 105.54, 89.84, 102.67, 96.02, 127.39, 91.11, 66.49, 47.22, 96.45, 98.15, 135.7, 162.34, null, null, null, null, 128.8, 118.05, 59.64]};
+  const EV = {"meses": ["2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "q": [40.1, 59.3, 90.5, 164.2, 58.7, null, null, null, null, null, null, null, 29.2, 29.4, 51.2, 100.0, 117.1, 67.3, 63.3, null, 49.2, 111.7, 159.3, 136.7, 78.1, 40.3, 151.8, 135.3, 182.5, 133.4, 94.9, 68.9, 76.7, 100.5, 132.4, 80.9, 77.8, 43.6, 79.1, 166.0, 236.6, 110.4, 88.7, 68.4, 70.6, 207.3, 174.2, 68.8, 44.7, 71.1, 142.4, 201.7, 147.3, 98.1, 63.3, 53.9, 63.3, 109.5, 124.9, 71.8, 39.4, 34.0, 66.8, 101.5, 94.4, 121.0, 90.9, 97.6, 84.5, 104.8, 203.1, 94.2, 47.9, 41.4, 129.2, 139.0, 194.9, 121.9, 85.4, 104.5, 111.2, 133.8, 117.1, 87.4, 52.8, 72.8, 156.7, 162.3, 165.4, null, null, null, null, 261.0, 299.8, 152.6], "clima": [76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, null, null, null, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, null, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, 172.0, 167.2, 124.4], "pl": [55.0, 62.8, 117.2, 189.2, 102.4, null, null, null, null, null, null, null, 21.2, 21.1, 49.3, 112.5, 145.8, 82.9, 69.5, null, 89.5, 128.6, 152.5, 105.5, 49.5, 31.2, 95.8, 174.9, 173.8, 156.0, 99.7, 79.7, 89.8, 111.5, 127.4, 90.5, 76.4, 44.5, 86.4, 158.8, 203.1, 108.9, 76.5, 66.2, 82.4, 160.3, 139.2, 50.0, 37.5, 81.7, 156.6, 176.2, 165.3, 65.2, 61.6, 62.3, 86.7, 119.8, 111.0, 85.6, 43.3, 28.9, 74.3, 125.7, 116.9, 117.1, 98.9, 93.1, 98.1, 131.7, 184.8, 100.1, 22.3, 36.5, 125.4, 145.8, 154.6, 103.4, 79.8, 103.9, 128.8, 145.1, 117.5, 75.7, 33.0, 51.4, 140.5, 166.0, 153.3, null, null, null, null, 188.8, 194.0, 95.0], "pi": [78.5, 85.3, 103.1, 135.5, 113.8, null, null, null, null, null, null, null, 46.2, 53.2, 78.5, 128.7, 152.9, 106.2, 98.6, null, 96.3, 116.0, 118.6, 104.0, 69.0, 63.6, 111.1, 150.9, 152.9, 134.9, 102.6, 122.0, 128.4, 132.2, 128.8, 94.7, 79.6, 65.0, 105.8, 149.8, 164.3, 110.8, 105.1, 91.8, 103.2, 153.9, 141.6, 64.2, 48.2, 71.8, 120.3, 148.5, 153.4, 115.9, 90.4, 91.0, 99.8, 131.2, 142.1, 105.0, 71.8, 66.6, 103.9, 114.7, 119.8, 119.9, 113.2, 102.8, 101.9, 120.5, 141.4, 105.3, 46.4, 64.4, 112.0, 124.1, 145.6, 141.4, 120.4, 123.3, 124.0, 142.3, 129.0, 95.8, 68.9, 94.4, 123.0, 148.4, 181.7, null, null, null, null, 153.6, 150.0, 97.4]};
 
   function dibujarPuntoDos() {
     if (!window.Plotly) return;
@@ -3764,16 +3912,16 @@ section, section h3 { scroll-margin-top: 20px; }
 
     const d2 = base();
     d2.margin.t = 46;
-    d2.yaxis.title.text = "Q (m³/s)";
+    d2.yaxis.title.text = "Q (mm/mes)";
     Plotly.react("g-evaluacion", [
       { type: "scatter", mode: "lines", name: "Q observado", x: EV.meses, y: EV.q,
-         line: { color: COLOR_VAR.Q, width: 2 }, connectgaps: false, hovertemplate: "%{y:.0f} m³/s<extra>Q observado</extra>" },
-      { type: "scatter", mode: "lines", name: "climatología", x: EV.meses, y: EV.clima,
-         line: { color: GRIS, width: 1.4, dash: "dot" }, hovertemplate: "%{y:.0f} m³/s<extra>climatología</extra>" },
-      { type: "scatter", mode: "lines", name: "estimado con PL", x: EV.meses, y: EV.pl,
-         line: { color: COLOR_VAR.PL, width: 1.6 }, connectgaps: false, hovertemplate: "%{y:.0f} m³/s<extra>con PL</extra>" },
-      { type: "scatter", mode: "lines", name: "estimado con PI", x: EV.meses, y: EV.pi,
-         line: { color: COLOR_VAR.PI, width: 1.2, dash: "dash" }, connectgaps: false, hovertemplate: "%{y:.0f} m³/s<extra>con PI</extra>" }
+         line: { color: COLOR_VAR.Q, width: 2 }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>Q observado</extra>" },
+      { type: "scatter", mode: "lines", name: "climatología (M0)", x: EV.meses, y: EV.clima,
+         line: { color: GRIS, width: 1.4, dash: "dot" }, hovertemplate: "%{y:.0f} mm/mes<extra>climatología (M0)</extra>" },
+      { type: "scatter", mode: "lines", name: "M4 con PL", x: EV.meses, y: EV.pl,
+         line: { color: COLOR_VAR.PL, width: 1.6 }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M4 con PL</extra>" },
+      { type: "scatter", mode: "lines", name: "M4 con PI", x: EV.meses, y: EV.pi,
+         line: { color: COLOR_VAR.PI, width: 1.2, dash: "dash" }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M4 con PI</extra>" }
     ], d2, CONF);
   }
   const BAL = {"meses": ["1998-01", "1998-02", "1998-03", "1998-04", "1998-05", "1998-06", "1998-07", "1998-08", "1998-09", "1998-10", "1998-11", "1998-12", "1999-01", "1999-02", "1999-03", "1999-04", "1999-05", "1999-06", "1999-07", "1999-08", "1999-09", "1999-10", "1999-11", "1999-12", "2000-01", "2000-02", "2000-03", "2000-04", "2000-05", "2000-06", "2000-07", "2000-08", "2000-09", "2000-10", "2000-11", "2000-12", "2001-01", "2001-02", "2001-03", "2001-04", "2001-05", "2001-06", "2001-07", "2001-08", "2001-09", "2001-10", "2001-11", "2001-12", "2002-01", "2002-02", "2002-03", "2002-04", "2002-05", "2002-06", "2002-07", "2002-08", "2002-09", "2002-10", "2002-11", "2002-12", "2003-01", "2003-02", "2003-03", "2003-04", "2003-05", "2003-06", "2003-07", "2003-08", "2003-09", "2003-10", "2003-11", "2003-12", "2004-01", "2004-02", "2004-03", "2004-04", "2004-05", "2004-06", "2004-07", "2004-08", "2004-09", "2004-10", "2004-11", "2004-12", "2005-01", "2005-02", "2005-03", "2005-04", "2005-05", "2005-06", "2005-07", "2005-08", "2005-09", "2005-10", "2005-11", "2005-12", "2006-01", "2006-02", "2006-03", "2006-04", "2006-05", "2006-06", "2006-07", "2006-08", "2006-09", "2006-10", "2006-11", "2006-12", "2007-01", "2007-02", "2007-03", "2007-04", "2007-05", "2007-06", "2007-07", "2007-08", "2007-09", "2007-10", "2007-11", "2007-12", "2008-01", "2008-02", "2008-03", "2008-04", "2008-05", "2008-06", "2008-07", "2008-08", "2008-09", "2008-10", "2008-11", "2008-12", "2009-01", "2009-02", "2009-03", "2009-04", "2009-05", "2009-06", "2009-07", "2009-08", "2009-09", "2009-10", "2009-11", "2009-12", "2010-01", "2010-02", "2010-03", "2010-04", "2010-05", "2010-06", "2010-07", "2010-08", "2010-09", "2010-10", "2010-11", "2010-12", "2011-01", "2011-02", "2011-03", "2011-04", "2011-05", "2011-06", "2011-07", "2011-08", "2011-09", "2011-10", "2011-11", "2011-12", "2012-01", "2012-02", "2012-03", "2012-04", "2012-05", "2012-06", "2012-07", "2012-08", "2012-09", "2012-10", "2012-11", "2012-12", "2013-01", "2013-02", "2013-03", "2013-04", "2013-05", "2013-06", "2013-07", "2013-08", "2013-09", "2013-10", "2013-11", "2013-12", "2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06", "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "p": [49.9, 121.1, 158.3, 267.3, 286.9, 197.6, 230.1, 208.3, 211.3, 300.9, 188.5, 139.8, 115.6, 225.0, 143.7, 251.1, 206.7, 223.1, 174.3, 182.8, 283.4, 302.1, 257.0, 146.8, 79.3, 161.1, 157.7, 210.0, 266.1, 252.2, 212.0, 218.6, 303.8, 282.2, 207.2, 103.3, 52.3, 52.3, 151.4, 165.8, 271.0, 200.1, 238.1, 169.3, 229.2, 291.1, 185.3, 149.2, 39.2, 56.6, 208.3, 246.7, 219.6, 195.0, 147.9, 161.4, 191.9, 176.7, 149.7, 107.7, 14.8, 90.8, 168.8, 259.2, 217.4, 224.6, 165.8, 160.4, 227.1, 264.8, 203.5, 134.5, 57.5, 73.2, 131.5, 236.5, 321.4, 166.5, 178.0, 149.9, 260.4, 275.1, 207.6, 81.1, 125.3, 136.8, 95.8, 270.2, 283.1, 207.2, 151.5, 172.9, 159.6, 318.3, 253.8, 105.4, 98.4, 61.6, 214.5, 256.5, 269.8, 247.2, 173.6, 174.3, 175.2, 298.5, 224.9, 118.8, 66.1, 37.8, 222.9, 237.5, 262.5, 177.5, 180.7, 217.3, 182.2, 327.4, 158.8, 134.2, 90.8, 108.8, 134.1, 203.9, 324.6, 234.4, 196.6, 238.4, 201.7, 270.5, 260.3, 77.7, 110.2, 117.4, 239.5, 197.1, 202.7, 208.2, 161.3, 193.5, 121.2, 211.0, 174.8, 82.6, 31.1, 75.3, 138.2, 246.3, 312.8, 229.1, 300.3, 239.7, 268.0, 264.7, 278.5, 171.0, 66.7, 132.0, 207.1, 375.1, 313.4, 188.9, 163.5, 183.8, 171.6, 260.8, 283.3, 163.7, 73.6, 60.4, 236.4, 320.8, 213.6, 147.6, 186.8, 189.1, 164.1, 250.1, 114.4, 90.2, 48.5, 176.7, 188.2, 288.3, 286.2, 179.8, 102.8, 209.1, 186.3, 170.6, 210.7, 124.7, 65.5, 191.5, 148.2, 156.2, 179.0, 157.4, 168.1, 155.5, 187.6, 266.3, 230.4, 109.8, 115.5, 132.5, 179.3, 260.6, 147.9, 109.1, 146.9, 116.0, 168.8, 182.6, 217.4, 59.7, 56.7, 77.5, 141.4, 269.4, 262.4, 128.2, 166.9, 149.9, 145.5, 215.2, 179.4, 153.1, 73.8, 95.3, 251.8, 265.9, 264.5, 206.5, 137.4, 245.9, 195.0, 236.2, 200.6, 119.1, 113.3, 77.8, 256.6, 259.2, 310.2, 126.9, 190.8, 115.0, 194.8, 320.8, 203.4, 54.2, 65.4, 130.4, 246.5, 260.7, 269.3, 150.5, 128.1, 142.2, 161.1, 259.8, 231.3, 134.7, 86.0, 95.8, 219.6, 166.0, 212.8, 184.5, 178.6, 150.1, 162.8, 217.7, 253.8, 128.6, 36.8, 146.2, 200.1, 205.0, 278.7, 220.0, 182.7, 213.2, 197.4, 271.8, 185.7, 127.3, 81.6, 198.4, 202.4, 291.5, 354.7, 282.8, 184.7, 206.3, 252.3, 275.2, 249.7, 111.1], "q": [34.7, 49.5, 81.4, null, null, 88.9, 83.2, 95.6, 104.0, 199.9, 172.4, 170.1, 109.9, 179.2, 156.2, 169.3, 159.6, 109.7, 87.6, 93.5, null, 191.2, 214.4, 139.5, 76.2, 88.2, 121.9, 114.0, null, 114.9, 85.5, 63.1, null, null, 136.2, null, 52.5, 43.3, null, 69.3, 119.4, 96.2, 63.1, 47.1, 66.7, 145.9, 142.5, 128.5, 49.7, 45.9, 102.8, 196.5, 138.4, 136.8, 65.0, 52.0, 79.0, 107.8, 104.4, 92.9, 43.3, 37.5, 69.6, 156.9, 115.2, 113.5, 68.6, 81.9, 97.9, 199.0, 168.7, 131.4, 71.5, 44.0, 55.9, 152.0, 199.7, 78.8, 64.0, 50.1, 95.9, 144.5, 202.0, 105.1, 96.2, 102.7, 61.9, null, 152.9, 99.8, 75.5, 64.4, 70.2, 205.1, 208.7, 102.9, null, 48.3, 142.1, 177.2, 221.7, 142.8, 66.8, 60.9, 70.5, 158.9, 190.4, 145.6, 82.6, 36.8, 101.4, 157.5, 167.3, 112.3, 88.2, 102.5, 98.6, 207.0, 152.8, 128.9, 94.7, 67.2, null, null, null, 120.7, 107.7, 128.6, 120.8, 163.0, 180.9, 101.2, 98.3, 114.8, null, 142.1, null, 95.9, 56.9, 92.4, 66.9, 75.3, 148.8, 62.6, 33.5, 30.3, 52.0, 105.8, 149.6, 125.4, 177.3, 130.5, 205.9, 206.4, 244.2, 161.9, 70.2, 78.8, 183.0, 279.0, 231.5, 120.9, 76.8, 87.9, 89.5, 231.6, 189.6, 223.8, 121.3, 57.7, 87.1, 234.7, 193.4, 75.9, 60.0, 104.5, 57.4, null, 76.2, 59.5, null, 74.4, 90.9, null, 171.1, 64.9, 46.0, 73.6, 68.6, null, 143.0, 111.4, 71.0, null, null, 92.2, null, 55.8, null, 53.2, 50.0, null, null, null, 40.1, 59.3, 90.5, 164.2, 58.7, null, null, null, null, null, null, null, 29.2, 29.4, 51.2, 100.0, 117.1, 67.3, 63.3, null, 49.2, 111.7, 159.3, 136.7, 78.1, 40.3, 151.8, 135.3, 182.5, 133.4, 94.9, 68.9, 76.7, 100.5, 132.4, 80.9, 77.8, 43.6, 79.1, 166.0, 236.6, 110.4, 88.7, 68.4, 70.6, 207.3, 174.2, 68.8, 44.7, 71.1, 142.4, 201.7, 147.3, 98.1, 63.3, 53.9, 63.3, 109.5, 124.9, 71.8, 39.4, 34.0, 66.8, 101.5, 94.4, 121.0, 90.9, 97.6, 84.5, 104.8, 203.1, 94.2, 47.9, 41.4, 129.2, 139.0, 194.9, 121.9, 85.4, 104.5, 111.2, 133.8, 117.1, 87.4, 52.8, 72.8, 156.7, 162.3, 165.4, null, null, null, null, 261.0, 299.8, 152.6], "coef": [0.696, 0.409, 0.514, null, null, 0.45, 0.362, 0.459, 0.492, 0.664, 0.915, 1.217, 0.951, 0.796, 1.087, 0.674, 0.773, 0.491, 0.502, 0.511, null, 0.633, 0.834, 0.95, 0.96, 0.547, 0.773, 0.543, null, 0.456, 0.403, 0.289, null, null, 0.657, null, 1.003, 0.828, null, 0.418, 0.441, 0.481, 0.265, 0.278, 0.291, 0.501, 0.769, 0.861, 1.267, 0.811, 0.493, 0.797, 0.63, 0.701, 0.439, 0.322, 0.412, 0.61, 0.698, 0.862, 2.924, 0.413, 0.412, 0.605, 0.53, 0.505, 0.414, 0.51, 0.431, 0.752, 0.829, 0.977, 1.243, 0.601, 0.425, 0.643, 0.621, 0.473, 0.36, 0.334, 0.368, 0.525, 0.973, 1.295, 0.768, 0.751, 0.647, null, 0.54, 0.482, 0.498, 0.373, 0.44, 0.644, 0.822, 0.976, null, 0.785, 0.663, 0.691, 0.822, 0.578, 0.385, 0.35, 0.402, 0.532, 0.846, 1.225, 1.25, 0.976, 0.455, 0.663, 0.637, 0.633, 0.488, 0.472, 0.541, 0.632, 0.962, 0.961, 1.043, 0.618, null, null, null, 0.515, 0.548, 0.54, 0.599, 0.603, 0.695, 1.302, 0.892, 0.977, null, 0.721, null, 0.461, 0.353, 0.477, 0.552, 0.357, 0.851, 0.757, 1.078, 0.402, 0.376, 0.43, 0.478, 0.547, 0.59, 0.545, 0.768, 0.78, 0.877, 0.947, 1.052, 0.597, 0.883, 0.744, 0.738, 0.64, 0.47, 0.478, 0.522, 0.888, 0.669, 1.368, 1.647, 0.954, 0.369, 0.732, 0.905, 0.514, 0.321, 0.552, 0.35, null, 0.666, 0.66, null, 0.421, 0.483, null, 0.598, 0.361, 0.447, 0.352, 0.369, null, 0.679, 0.893, 1.083, null, null, 0.59, null, 0.355, null, 0.342, 0.267, null, null, null, 0.347, 0.447, 0.505, 0.63, 0.397, null, null, null, null, null, null, null, 0.516, 0.38, 0.362, 0.371, 0.446, 0.525, 0.379, null, 0.338, 0.519, 0.888, 0.893, 1.059, 0.423, 0.603, 0.509, 0.69, 0.646, 0.69, 0.28, 0.393, 0.426, 0.66, 0.679, 0.687, 0.56, 0.308, 0.64, 0.763, 0.87, 0.465, 0.595, 0.363, 0.646, 0.857, 1.27, 0.683, 0.546, 0.578, 0.774, 0.547, 0.652, 0.495, 0.379, 0.393, 0.422, 0.54, 0.533, 0.459, 0.355, 0.304, 0.611, 0.444, 0.655, 0.509, 0.65, 0.519, 0.482, 0.8, 0.732, 1.302, 0.283, 0.646, 0.678, 0.699, 0.554, 0.467, 0.49, 0.563, 0.492, 0.631, 0.686, 0.647, 0.367, 0.774, 0.557, 0.466, null, null, null, null, 0.948, 1.201, 1.374], "coef_medio": 0.605, "coef_pl": [0.505, 0.364, 0.339, null, null, 0.664, 0.457, 0.441, 0.449, 0.475, 0.711, 0.674, 0.533, 0.505, 0.608, 0.584, 0.673, 0.398, 0.578, 0.428, null, 0.622, 0.691, 0.629, 0.657, 0.388, 0.644, 0.383, null, 0.493, 0.466, 0.377, null, null, 0.615, null, 0.521, 0.418, null, 0.351, 0.434, 0.665, 0.408, 0.379, 0.307, 0.454, 0.566, 0.588, 0.798, 0.63, 0.448, 0.504, 0.534, 0.75, 0.594, 0.306, 0.379, 0.446, 0.492, 0.469, 1.036, 0.329, 0.328, 0.435, 0.417, 0.518, 0.491, 0.358, 0.361, 0.505, 0.476, 0.948, 0.53, 0.371, 0.312, 0.437, 0.516, 0.613, 0.379, 0.435, 0.344, 0.465, 0.715, 0.758, 0.465, 0.506, 0.458, null, 0.602, 0.601, 0.482, 0.456, 0.428, 0.548, 0.679, 0.901, null, 0.743, 0.473, 0.499, 0.655, 0.682, 0.615, 0.312, 0.388, 0.462, 0.572, 0.743, 0.488, 0.653, 0.307, 0.471, 0.526, 0.733, 0.401, 0.412, 0.49, 0.496, 0.693, 0.598, 0.778, 0.491, null, null, null, 0.581, 0.546, 0.508, 0.508, 0.548, 0.617, 1.076, 0.644, 0.547, null, 0.604, null, 0.577, 0.513, 0.366, 0.609, 0.349, 0.731, 0.532, 0.474, 0.35, 0.291, 0.399, 0.5, 0.458, 0.572, 0.589, 0.628, 0.639, 0.737, 1.232, 0.869, 0.437, 0.561, 0.627, 0.769, 0.688, 0.625, 0.398, 0.477, 0.649, 0.57, 0.99, 0.762, 0.87, 0.315, 0.572, 0.804, 0.568, 0.527, 0.542, 0.381, null, 0.486, 0.554, null, 0.329, 0.381, null, 0.521, 0.712, 0.473, 0.38, 0.468, null, 0.531, 0.669, 0.637, null, null, 0.345, null, 0.609, null, 0.379, 0.294, null, null, null, 0.369, 0.426, 0.318, 0.451, 0.431, null, null, null, null, null, null, null, 0.815, 0.499, 0.361, 0.376, 0.443, 0.551, 0.423, null, 0.272, 0.402, 0.58, 0.82, 0.993, 0.629, 0.452, 0.456, 0.578, 0.507, 0.6, 0.442, 0.415, 0.446, 0.548, 0.557, 0.505, 0.612, 0.288, 0.569, 0.599, 0.781, 0.565, 0.565, 0.372, 0.567, 0.842, 0.977, 0.508, 0.316, 0.444, 0.655, 0.51, 1.173, 0.402, 0.484, 0.296, 0.478, 0.63, 0.476, 0.569, 0.547, 0.277, 0.445, 0.443, 0.544, 0.528, 0.532, 0.444, 0.376, 0.57, 0.705, 1.598, 0.299, 0.413, 0.577, 0.643, 0.796, 0.538, 0.468, 0.451, 0.487, 0.606, 0.675, 1.015, 0.451, 0.468, 0.586, 0.597, null, null, null, null, 0.77, 0.881, 1.197]};

@@ -61,6 +61,8 @@ Salidas:
   out/modelos_ajuste.csv                    R², BIC y diagnóstico de los residuos de cada modelo
   out/modelos_evaluacion.csv                errores fuera del ajuste: partición, validación cruzada y cada bloque
   out/modelos_ficha.csv                     la ficha del modelo elegido, M4: una fila por fuente de lluvia
+  out/modelos_estimados.csv                 el caudal estimado de cada mes fuera del ajuste, por modelo y esquema
+Las lee 18_calculos_informe.py, que por eso corre después.
 """
 from pathlib import Path
 
@@ -188,7 +190,7 @@ def diagnostico(fuente, escala):
     r_ant, p_ant = stats.pearsonr(e[con_anterior], datos.p_anterior[con_anterior])
 
     return {
-        "fuente": fuente, "escala": escala, "n_meses": len(datos),
+        "fuente": fuente, "escala": escala, "n_meses": len(datos), "rezagos_newey_west": REZAGOS_HAC,
         "intercepto_a": a, "pendiente_b": b, "r2": r2,
         "cuadratico_coef": beta_c[2], "cuadratico_p_hac": p_c[2],
         "varianza_tercio_lluvioso_sobre_seco": razon_tercios,
@@ -305,7 +307,7 @@ parametros, ajustes = pd.DataFrame(filas_parametros), pd.DataFrame(filas_ajuste)
 ajustes["delta_bic_en_su_escala"] = ajustes.bic - ajustes.groupby(["fuente", "escala"]).bic.transform("min")
 
 # --- errores fuera del ajuste
-filas_evaluacion = []
+filas_evaluacion, estimados_fuera = [], []
 todos = [REFERENCIA, *MODELOS]
 for fuente in FUENTES:
     # (a) partición: ajuste 1998-2014, evaluación 2015-2022
@@ -313,6 +315,9 @@ for fuente in FUENTES:
     indice_ev = MUESTRA[(MUESTRA >= PARTICION["evaluacion"][0]) & (MUESTRA <= PARTICION["evaluacion"][1])]
     for modelo in todos:
         estimado = estimar_cualquiera(fuente, modelo, indice_aj, indice_ev)
+        estimados_fuera.append(pd.DataFrame({"periodo": indice_ev.astype(str), "esquema": "partición 2015-2022",
+                                             "fuente": fuente, "modelo": modelo,
+                                             "q_observado": caudal.loc[indice_ev].to_numpy(), "q_estimado": estimado.to_numpy()}))
         filas_evaluacion.append({"fuente": fuente, "modelo": modelo, "esquema": "partición 2015-2022",
                                  **metricas(caudal.loc[indice_ev], estimado)})
     # (b) validación cruzada por bloques: cada bloque se estima con los otros cuatro
@@ -326,6 +331,9 @@ for fuente in FUENTES:
                                      **metricas(caudal.loc[MUESTRA[en_bloque]], estimado)})
         estimado = pd.concat(estimados).sort_index()
         assert estimado.index.equals(MUESTRA)          # cada mes se estimó una vez, sin haberlo visto
+        estimados_fuera.append(pd.DataFrame({"periodo": MUESTRA.astype(str), "esquema": "validación cruzada",
+                                             "fuente": fuente, "modelo": modelo,
+                                             "q_observado": caudal.loc[MUESTRA].to_numpy(), "q_estimado": estimado.to_numpy()}))
         filas_evaluacion.append({"fuente": fuente, "modelo": modelo, "esquema": "validación cruzada",
                                  **metricas(caudal.loc[MUESTRA], estimado)})
 evaluacion = pd.DataFrame(filas_evaluacion)
@@ -334,7 +342,7 @@ evaluacion = pd.DataFrame(filas_evaluacion)
 # Q̂ = D · e^a · P(t)^b0 · P(t−1)^b1, en mm/mes. Todo lo que dice la ficha sale de las tablas de arriba o de
 # los datos de la muestra; los textos de los supuestos se escriben en el informe a partir de estas cifras.
 _ev_vc = evaluacion[evaluacion.esquema == "validación cruzada"].set_index(["fuente", "modelo"])
-_ev_bl = evaluacion[evaluacion.esquema.str.startswith("bloque")].set_index(["fuente", "modelo"])
+_ev_bl = evaluacion[evaluacion.esquema.str.startswith("bloque")].set_index(["fuente", "modelo"]).sort_index()
 filas_ficha = []
 for fuente in FUENTES:
     X = matriz(fuente, ELEGIDO, MUESTRA)
@@ -383,6 +391,7 @@ assert all(abs(f.rmse_vc - f.rmse_vc_competidor) < f.rmse_bloques_max - f.rmse_b
 
 parametros.round(6).to_csv(OUT / "modelos_parametros.csv", index=False)
 ficha.round(6).to_csv(OUT / "modelos_ficha.csv", index=False)
+pd.concat(estimados_fuera).round(4).to_csv(OUT / "modelos_estimados.csv", index=False)
 ajustes.round(6).to_csv(OUT / "modelos_ajuste.csv", index=False)
 evaluacion.round(4).to_csv(OUT / "modelos_evaluacion.csv", index=False)
 

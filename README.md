@@ -57,7 +57,9 @@ Después de congelar el notebook, **todo el análisis nuevo está solo en los sc
 falta para reproducirlo): años contrastantes y anomalías respecto al ciclo anual; **anomalías y anomalías
 estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis variables); **tendencias de largo plazo**
 (registro completo desde 1981 cuando existe: Q, temperatura y PL*, la red fija de pluviómetros; OLS con Newey-West,
-Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); y **frecuencias** (Fourier: Lomb-Scargle y
+Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); **modelos lluvia–caudal** (`scripts/16b_modelos_lluvia_caudal.py`: diagnóstico, cinco modelos de la
+climatología a ln Q con la lluvia del mes y del anterior, validación cruzada con 5 bloques de 5 años; elegido M4);
+y **frecuencias** (Fourier: Lomb-Scargle y
 FFT, bandas, ruido rojo AR(1)), que viene de la rama `punto-4` de angomezma-cyber, integrada a los scripts el 2026-10-08.
 La ampliación del Punto 2 de esa rama no se integró: lo que ya estaba en `main` se consideró suficiente (decisión del
 usuario, 2026-10-08).

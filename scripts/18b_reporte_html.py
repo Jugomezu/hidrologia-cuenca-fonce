@@ -331,17 +331,6 @@ reg_filas = "\n".join(f"<tr><td>{nombre}</td>" + "".join(f"<td>{f(r)}</td>" for 
 p2_pipl_json = json.dumps({"pi": _p2.IMERG.round(1).tolist(), "pl": _p2.RED.round(1).tolist(),
                            "mes": [p.month for p in _p2.index], "periodo": [str(p) for p in _p2.index]})
 
-ev_filas = "\n".join(
-    f"<tr><td>{'<b>' + m + '</b>' if m == ev_mejor else m}</td><td class='num'>{t['ajuste']['rmse']:.1f}</td>"
-    f"<td class='num'>{t['validacion']['rmse']:.1f}</td><td class='num'>{t['validacion']['mae']:.1f}</td>"
-    f"<td class='num'>{t['validacion']['sesgo']:+.1f}</td><td class='num'>{t['validacion']['n']}</td></tr>"
-    for m, t in ev_tabla.items())
-
-ev_json = json.dumps({"meses": [str(p) for p in _ev_val.index], "q": _ev_val.Q.round(2).tolist(),
-                      **{k: ev_estimados[m].loc[_ev_val.index].round(2).tolist() for k, m in
-                         (("clima", "climatología mensual de Q"), ("pl", "PL del mismo mes"), ("pi", "PI del mismo mes"))}},
-                     default=lambda v: None).replace("NaN", "null")
-
 t_json = json.dumps({"meses": MESES_ES, "ciclo": t_ciclo}, ensure_ascii=False)
 
 _lista_y = lambda l: ", ".join(l[:-1]) + " y " + l[-1] if len(l) > 1 else (l[0] if l else "")
@@ -1182,7 +1171,123 @@ _q_abril = met_mes[("Q", 4)]
 fis_q_abril_txt = (f"En abril, el mes siguiente, Q tampoco tiene tendencia significativa ({_q_abril['ols']:+.1f} m³/s por década, "
                    f"p = {_p_txt(_q_abril['p'])})." if _q_abril["p"] >= TEND_ALFA else
                    f"En abril, el mes siguiente, Q sí tiene tendencia ({_q_abril['ols']:+.1f} m³/s por década, p = {_p_txt(_q_abril['p'])}).")
-_ev_pl, _ev_pi = ev_tabla["PL del mismo mes"]["validacion"]["rmse"], ev_tabla["PI del mismo mes"]["validacion"]["rmse"]
+
+# ---------------------------------------------------------------- modelos para estimar Q con la lluvia
+MOD_NOMBRE = {"M0": "climatología mensual de Q", "M1": "recta", "M2": "recta con la lluvia del mes anterior",
+              "M3": "logaritmos", "M4": "logaritmos con la lluvia del mes anterior"}
+MOD_ECUACION = {"M0": "Q̂ = Q medio de ese mes del calendario",
+                "M1": "Q = a + b·P<sub>t</sub>",
+                "M2": "Q = a + b<sub>0</sub>·P<sub>t</sub> + b<sub>1</sub>·P<sub>t−1</sub>",
+                "M3": "ln Q = a + b·ln P<sub>t</sub>",
+                "M4": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>"}
+_mes_corto = lambda k: MESES_ES[int(k) - 1]
+
+# el diagnóstico: una columna por fuente y escala
+_diag_cols = [(f, e) for f in MOD_FUENTES for e in ("lineal", "logarítmica")]
+_res = lambda e, v: f"{v:+.1f}" if e == "lineal" else f"{v:+.2f}"
+_diag_ind = [
+    ("Varianza de Q que explica la recta (R²)", lambda r, e: f"{r.r2:.2f}"),
+    ("Pendiente b", lambda r, e: f"{r.pendiente_b:.2f}"),
+    ("¿Se curva? <i>p</i> del término cuadrático", lambda r, e: _p_txt(r.cuadratico_p_hac)),
+    ("Varianza del residuo: tercio más lluvioso / tercio más seco", lambda r, e: f"{r.varianza_tercio_lluvioso_sobre_seco:.2f}"),
+    ("Residuo por mes del calendario: <i>p</i> de Kruskal-Wallis", lambda r, e: _p_txt(r.kruskal_residuo_por_mes_p)),
+    ("Mes con el residuo medio más alto", lambda r, e: f"{_mes_corto(r.mes_residuo_medio_max)} ({_res(e, r.residuo_medio_max)})"),
+    ("Mes con el residuo medio más bajo", lambda r, e: f"{_mes_corto(r.mes_residuo_medio_min)} ({_res(e, r.residuo_medio_min)})"),
+    ("Correlación del residuo con el del mes siguiente", lambda r, e: f"{r.autocorr_residuo_1_mes:.2f}"),
+    ("Correlación del residuo con la lluvia del mes anterior", lambda r, e: f"{r.corr_residuo_lluvia_mes_anterior:.2f}"),
+    ("Residuos normales: <i>p</i> de Shapiro-Wilk", lambda r, e: _p_txt(r.shapiro_residuo_p)),
+    ("Asimetría del residuo", lambda r, e: f"{r.asimetria_residuo:+.2f}"),
+]
+mod_diag_filas = "\n".join(
+    f"<tr><td>{nombre}</td>" + "".join(f"<td class='num'>{f(mod_diag.loc[c], c[1])}</td>" for c in _diag_cols) + "</tr>"
+    for nombre, f in _diag_ind)
+_dl, _dg = mod_diag.loc[("PL", "lineal")], mod_diag.loc[("PL", "logarítmica")]
+_di = mod_diag.loc[("PI", "lineal")]
+
+# la comparación de los cinco modelos
+def _fila_modelo(f, m):
+    elegido = m == MOD_ELEGIDO
+    vc, pa = mod_vc.loc[(f, m)], mod_part.loc[(f, m)]
+    if m == MOD_REFERENCIA:
+        k, r2, dbic = "12", "—", "—"
+    else:
+        a = mod_ajuste.loc[(f, m)]
+        k, r2, dbic = f"{a.n_parametros:.0f}", f"{a.r2_en_mm:.2f}", f"{a.delta_bic_en_su_escala:.0f}"
+    celdas = [f"{m} · {MOD_NOMBRE[m]}", MOD_ECUACION[m], k, r2, dbic, f"{vc.rmse:.1f}", f"{vc.nse:.2f}",
+              f"{pa.rmse:.1f}", f"{pa.nse:.2f}"]
+    celdas = [f"<b>{c}</b>" if elegido else c for c in celdas]
+    return ("<tr>" + "".join(f"<td{' class=num' if i >= 2 else ''}>{c}</td>" for i, c in enumerate(celdas)) + "</tr>")
+
+
+mod_filas = "\n".join(
+    f"<tr><td colspan='9'><b>Con {f}</b></td></tr>\n" + "\n".join(_fila_modelo(f, m) for m in (MOD_REFERENCIA, *MOD_CON_LLUVIA))
+    for f in MOD_FUENTES)
+_bloques_txt = ", ".join(c.replace("bloque ", "") for c in mod_bloques.columns)
+_no_superan_txt = " ".join(
+    (f"Con {f}, los cuatro modelos con lluvia superan a la climatología." if not ms else
+     f"Con {f}, {_lista_y([m for m in ms])} no {'supera' if len(ms) == 1 else 'superan'} a la climatología.")
+    for f, ms in mod_no_superan.items())
+
+# la ficha de M4
+_ic = lambda f, par: (f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'valor']:.2f} "
+                      f"<small>({mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_inferior']:.2f} a "
+                      f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_superior']:.2f})</small>")
+_fi = mod_ficha
+mod_param_filas = "\n".join([
+    "<tr><td>a</td>" + "".join(f"<td class='num'>{_ic(f, 'a')}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>b<sub>0</sub>, lluvia del mes</td>" + "".join(f"<td class='num'>{_ic(f, 'b0')}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>b<sub>1</sub>, lluvia del mes anterior</td>" + "".join(f"<td class='num'>{_ic(f, 'b1')}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>b<sub>0</sub> + b<sub>1</sub></td>" + "".join(
+        f"<td class='num'>{_fi.loc[f, 'b0_mas_b1']:.3f} <small>({_fi.loc[f, 'b0_mas_b1_ic95_inferior']:.3f} a "
+        f"{_fi.loc[f, 'b0_mas_b1_ic95_superior']:.3f})</small></td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>D, factor de Duan</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'factor_duan']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{_fi.loc[f, 'coeficiente_C']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>NSE en la validación cruzada</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'nse_vc']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
+])
+
+
+def _proporcional_txt(f):
+    inf, sup = _fi.loc[f, "b0_mas_b1_ic95_inferior"], _fi.loc[f, "b0_mas_b1_ic95_superior"]
+    if inf > 1:
+        return "el caudal crece algo más rápido que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por encima de 1)"
+    if sup < 1:
+        return "el caudal crece algo más despacio que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por debajo de 1)"
+    return "no se puede descartar que el caudal sea proporcional a la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> incluye el 1)"
+
+
+_cumple = lambda p: "sí" if p >= MOD_ALFA else "no"
+mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in [
+    ("La relación es una recta en logaritmos",
+     f"<b>No del todo</b>: queda curvatura (<i>p</i> {_p_txt(_fi.loc['PL', 'cuadratico_p_hac'])} con PL y "
+     f"{_p_txt(_fi.loc['PI', 'cuadratico_p_hac'])} con PI)."),
+    ("Los residuos son independientes",
+     f"<b>No</b>: el residuo de un mes se parece al del siguiente ({_fi.loc['PL', 'autocorr_residuo_1_mes']:.2f} con PL y "
+     f"{_fi.loc['PI', 'autocorr_residuo_1_mes']:.2f} con PI; una serie sin memoria quedaría bajo ±{mod_banda_autocorr:.2f}). "
+     f"Por eso los intervalos de los parámetros son de Newey-West."),
+    ("La varianza es constante en logaritmos",
+     f"<b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = "
+     f"{_fi.loc['PL', 'spearman_abs_residuo_ajustado_p']:.2f} con PL y {_fi.loc['PI', 'spearman_abs_residuo_ajustado_p']:.2f} con PI)."),
+    ("Los residuos son normales",
+     f"<b>Con PL, {_cumple(_fi.loc['PL', 'shapiro_residuo_p'])}</b> (Shapiro-Wilk, <i>p</i> = {_fi.loc['PL', 'shapiro_residuo_p']:.2f}); "
+     f"<b>con PI, {_cumple(_fi.loc['PI', 'shapiro_residuo_p'])}</b> (<i>p</i> = {_fi.loc['PI', 'shapiro_residuo_p']:.2f})."),
+    ("No queda patrón por mes del calendario",
+     f"<b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> "
+     f"{_p_txt(_fi.loc['PL', 'kruskal_residuo_por_mes_p'])} con PL). La cuenca guarda agua por más de un mes y el modelo "
+     f"solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo."),
+    ("La lluvia se mide sin error",
+     f"<b>No</b>: PL promedia entre {_fi.loc['PL', 'pluviometros_min_por_mes']:.0f} y {len(DENTRO)} pluviómetros según el mes, "
+     f"ninguno por encima de {n(mapa_plu_alta.altitud)} m, y PI es una estimación de satélite. El error de la lluvia "
+     f"aplana las pendientes."),
+])
+
+# la gráfica: 2015-2022 con el modelo ajustado en 1998-2014, con los meses sin Q como vacíos
+_part = mod_est[mod_est.esquema == "partición 2015-2022"].set_index(["fuente", "modelo", "periodo"]).sort_index()
+_meses_ev = [str(p) for p in pd.period_range(EV_VALIDACION[0], EV_VALIDACION[1], freq="M")]
+_serie_ev = lambda f, m, col: _part.loc[(f, m)][col].reindex(_meses_ev).round(1).tolist()
+ev_json = json.dumps({"meses": _meses_ev, "q": _serie_ev("PL", MOD_REFERENCIA, "q_observado"),
+                      "clima": _serie_ev("PL", MOD_REFERENCIA, "q_estimado"),
+                      "pl": _serie_ev("PL", MOD_ELEGIDO, "q_estimado"), "pi": _serie_ev("PI", MOD_ELEGIDO, "q_estimado")},
+                     default=lambda v: None).replace("NaN", "null")
 
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
@@ -3035,8 +3140,11 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
-  <p>Dos pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico, y estimar el caudal
-  mes a mes en años que el ajuste no vio.</p>
+  <p>Tres pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico; ver qué relación hay
+  entre la lluvia y el caudal de cada mes; y estimar el caudal en años que el ajuste no vio, con cinco modelos de
+  complejidad creciente, para escoger uno. Todo con PL y con PI en paralelo. En las dos últimas, Q va como
+  <b>lámina sobre la cuenca, en mm/mes</b> (el volumen del mes repartido sobre los {n(AREA_SG_KM2)} km²), para
+  compararlo con la lluvia en las mismas unidades.</p>
   <h3>Primero, en el año típico</h3>
   <p>PL tiene sus picos en <b>{pico_pl[0]} y {pico_pl[1]}</b>, y Q en <b>{pico_q[0]} y {pico_q[1]}</b>. Para
   medirlo, el ciclo de Q se reconstruye con la lluvia del mismo mes, y luego con la del mes y la del anterior.</p>
@@ -3056,33 +3164,141 @@ a {{ color: var(--acento); }}
   arrastre</b>. Con PI el ajuste es más pobre ({ajuste_lq.loc[('PI', 'mes'), 'r2'] * 100:.0f} % →
   {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %).</p>
 
-  <h3>Después, en años que el ajuste no vio</h3>
-  <p>La prueba más exigente de la relación lluvia–caudal es usarla para <b>estimar el caudal en años que el ajuste
-  no vio</b>: una recta ajustada con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} se evalúa con
-  {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}, en bloques continuos para que meses vecinos no queden uno en cada lado.
-  La referencia es la <b>climatología</b> (el caudal medio de cada mes en el ajuste): superarla quiere decir que la
-  lluvia dice algo que el calendario solo no dice.</p>
+  <h3>Qué relación sugieren los datos</h3>
+  <p>Antes de proponer un modelo se ajusta una recta de Q contra la lluvia del mismo mes, en los {mod_n_diag} meses con Q
+  de 1998–2022, y se mira qué deja sin explicar: los <b>residuos</b> (Q observado menos Q de la recta). Se repite con
+  logaritmos (ln Q contra ln P), la alternativa usual cuando el error crece con el nivel. Ningún mes tiene lluvia ni caudal
+  en cero (mínimos: PL {mod_minimos["PL"]:.1f}, PI {mod_minimos["PI"]:.1f} y Q {mod_minimos["Q"]:.1f} mm/mes), así que
+  el logaritmo se puede usar sin ajustes.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Estimación del caudal con…</th><th class="num">RMSE en el ajuste (m³/s)</th>
-    <th class="num">RMSE en la evaluación (m³/s)</th><th class="num">MAE en la evaluación</th>
-    <th class="num">Sesgo en la evaluación</th><th class="num">Meses evaluados</th></tr></thead>
+    <thead><tr><th>Prueba</th><th class="num">PL, recta</th><th class="num">PL, logaritmos</th>
+    <th class="num">PI, recta</th><th class="num">PI, logaritmos</th></tr></thead>
     <tbody>
-{ev_filas}
+{mod_diag_filas}
     </tbody>
   </table>
   </div>
+  <p class="nota">Residuos en mm/mes en la recta y en unidades de ln Q en los logaritmos (+0.30 es un caudal un 35 % mayor
+  que el estimado). <i>p</i> del término cuadrático con error de Newey-West (<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>; {mod_diag.rezagos_newey_west.iloc[0]:.0f} rezagos), tomando los meses con
+  Q en orden aunque haya vacíos entre ellos. Kruskal-Wallis (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>) y Shapiro-Wilk
+  (<a class="cita" href="#ref-shapiro1965">Shapiro y Wilk, 1965</a>). Pruebas al {MOD_ALFA * 100:.0f} %.</p>
+  <ul>
+    <li><b>Es casi una recta, pero se curva hacia arriba</b>: el término cuadrático es significativo. Con mucha lluvia,
+    Q sube más rápido de lo que dice la recta.</li>
+    <li><b>El error crece con la lluvia</b>: la varianza del residuo es {_dl.varianza_tercio_lluvioso_sobre_seco:.1f}
+    veces mayor en el tercio de meses más lluviosos que en el más seco con PL ({_di.varianza_tercio_lluvioso_sobre_seco:.1f}
+    con PI). En logaritmos la razón baja a {_dg.varianza_tercio_lluvioso_sobre_seco:.2f}: el logaritmo corrige la
+    dispersión, incluso de más, y deja residuos casi simétricos.</li>
+    <li><b>Queda el calendario.</b> Con PL, en diciembre el río lleva en promedio {_dl.residuo_medio_max:.0f} mm/mes más de
+    lo que explica la lluvia del mes, y en marzo {abs(_dl.residuo_medio_min):.0f} menos. Diciembre viene de noviembre, el
+    mes más lluvioso de la segunda temporada: el suelo y los acuíferos quedan llenos y siguen drenando. Marzo viene de la
+    temporada seca: parte de su lluvia se gasta en volver a llenar el suelo antes de llegar al río.</li>
+    <li><b>Es la memoria de la cuenca</b>: el residuo de un mes se parece al del siguiente
+    ({_dl.autocorr_residuo_1_mes:.2f} con PL) y se explica en buena parte con la lluvia del mes anterior
+    ({_dl.corr_residuo_lluvia_mes_anterior:.2f} con PL, {_di.corr_residuo_lluvia_mes_anterior:.2f} con PI).</li>
+  </ul>
+  <p>Los datos sugieren una relación positiva, con un error que crece en proporción al caudal y con un mes de memoria:
+  una regresión con la lluvia del mes anterior, y una transformación logarítmica.</p>
+
+  <h3>Cinco modelos, de menos a más complejo</h3>
+  <p>La climatología (M0) es la referencia: superarla quiere decir que la lluvia dice algo que el calendario solo no dice.
+  La recta (M1) es la referencia que se le pone a todo modelo; M2 le agrega la lluvia del mes anterior, M3 la
+  transformación logarítmica y M4 las dos. No se usa el caudal del mes anterior como variable: exigiría conocer el caudal,
+  que es lo que se quiere estimar. Todos usan los mismos {mod_n} meses (enero de 1998 no tiene mes anterior). En M3 y M4,
+  volver del logaritmo da la mediana del caudal y no su media; se corrige con el factor de Duan, la media de
+  e<sup>residuo</sup> en el ajuste (<a class="cita" href="#ref-duan1983">Duan, 1983</a>).</p>
+  <p>Se comparan con el error al estimar meses que el ajuste no vio, en mm/mes: (1) <b>validación cruzada</b> con 5 bloques
+  de 5 años seguidos ({_bloques_txt}): cada bloque se estima con un modelo ajustado con los otros 20 años, así que cada mes
+  se estima una vez sin haberlo visto; y (2) una sola <b>partición</b>, ajuste con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} y
+  evaluación con {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}. Los bloques son continuos para que meses vecinos, que se
+  parecen, no queden uno en el ajuste y otro en la evaluación. El BIC, que castiga los parámetros de más, solo compara
+  modelos de la misma escala: el de los logaritmos mide el error en ln Q.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Modelo</th><th>Ecuación</th><th class="num">Parámetros</th><th class="num">R² de Q (mm/mes)</th>
+    <th class="num">ΔBIC en su escala</th><th class="num">RMSE, validación cruzada</th><th class="num">NSE, validación cruzada</th>
+    <th class="num">RMSE, {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}</th><th class="num">NSE, {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}</th></tr></thead>
+    <tbody>
+{mod_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P es PL o PI, en mm/mes; P<sub>t−1</sub>, la del mes anterior. RMSE en mm/mes. NSE
+  (<a class="cita" href="#ref-nash1970">Nash y Sutcliffe, 1970</a>):
+  1 es perfecto y 0 es tan bueno como la media de los meses evaluados. R² con todos los meses, sobre Q en mm/mes, así que
+  se puede comparar entre escalas. ΔBIC: diferencia con el mejor de la misma escala (0 es el mejor).</p>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p><b>La mejor estimación sale de {ev_mejor}</b>: RMSE de {ev_tabla[ev_mejor]["validacion"]["rmse"]:.1f} m³/s en la
-  evaluación, contra {ev_rmse_clima:.1f} de la climatología y {ev_tabla["PI del mismo mes"]["validacion"]["rmse"]:.1f}
-  con PI. Con la lluvia del mes anterior sola el error crece ({ev_tabla["PL del mes anterior"]["validacion"]["rmse"]:.1f}
-  con PL): el río responde sobre todo dentro del mismo mes. Ninguna estimación da caudales negativos.</p>
+  <p class="nota">Q de {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]} estimado con M4 ajustado en
+  {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}, con PL y con PI, y la climatología de esos años de ajuste. Los cortes de la
+  línea verde son meses sin Q.</p>
+  <ul>
+    <li><b>La lluvia del mes anterior es lo que más mejora</b>, en los cinco bloques: con PL, el error baja de
+    {mod_rmse("PL", "M1"):.1f} (M1) a {mod_rmse("PL", "M2"):.1f} mm/mes (M2); con PI, de {mod_rmse("PI", "M1"):.1f} a
+    {mod_rmse("PI", "M2"):.1f}.</li>
+    <li><b>El logaritmo no baja el error</b> (M3 frente a M1, M4 frente a M2): no agrega información, cambia la forma en
+    que se mide el error. Lo que gana es que sus supuestos se cumplen mejor y que no puede dar caudales negativos.</li>
+    <li><b>Con PI todo es más pobre</b>: el mejor modelo con PI (NSE {max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA):.2f})
+    no alcanza a la recta con PL ({mod_vc.loc[("PL", "M1"), "nse"]:.2f}), y el rezago le ayuda menos. {_no_superan_txt}</li>
+  </ul>
+
+  <h3>El modelo elegido: M4</h3>
+  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
+  &nbsp; con C = D · e<sup>a</sup></p>
+  <p>Es M4 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
+  y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
+  <dl class="lista-datos">
+    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre {n(AREA_SG_KM2)} km²; en m³/s, Q̂ · {n(AREA_SG_KM2)} · 10³ / (segundos del mes)</dd>
+    <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
+    <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
+    <dt>Ajuste</dt><dd>{mod_n} meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
+  </dl>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Parámetro</th><th class="num">Con PL</th><th class="num">Con PI</th></tr></thead>
+    <tbody>
+{mod_param_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>Cómo se leen b<sub>0</sub> y b<sub>1</sub>.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en 1 %
+  la lluvia que acompaña; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
+  {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q sube un {mod_elasticidad["PL"]["mes"] * 100:.1f} % (1.1<sup>b<sub>0</sub></sup>); si
+  sube la del mes anterior, un {mod_elasticidad["PL"]["anterior"] * 100:.1f} %; si suben las dos, un
+  {mod_elasticidad["PL"]["ambos"] * 100:.1f} % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
+  {_proporcional_txt("PL")}; con PI, {_proporcional_txt("PI")}.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
+    <tbody>
+{mod_supuestos_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
+  {_fi.loc["PL", "lluvia_mes_min"]:.1f} y {_fi.loc["PL", "lluvia_mes_max"]:.1f} mm/mes con PL, y entre
+  {_fi.loc["PI", "lluvia_mes_min"]:.1f} y {_fi.loc["PI", "lluvia_mes_max"]:.1f} con PI (en el mes y en el anterior); el
+  caudal observado fue de {_fi.loc["PL", "caudal_min"]:.1f} a {_fi.loc["PL", "caudal_max"]:.1f} mm/mes. Fuera de ese rango
+  no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
+  <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
+  cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
+  fuera del rango de aplicación.</p>
+  <p><b>Por qué M4 y no M2.</b> Fuera del ajuste yerran casi lo mismo ({mod_rmse("PL", MOD_ELEGIDO):.1f} contra
+  {mod_rmse("PL", MOD_COMPETIDOR):.1f} mm/mes con PL), menos de lo que cambia el error de M4 de un bloque a otro
+  ({_fi.loc["PL", "rmse_bloques_min"]:.1f} a {_fi.loc["PL", "rmse_bloques_max"]:.1f}). Tienen los mismos tres
+  parámetros. El desempate lo dan los supuestos, que M4 cumple mejor (el error de M2 crece con la lluvia y sus residuos no
+  son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses seguidos baja de
+  {_fi.loc["PL", "lluvia_q_cero_competidor"]:.1f} mm/mes con PL o de {_fi.loc["PI", "lluvia_q_cero_competidor"]:.1f} con PI,
+  y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M4 no
+  puede dar caudales negativos.</p>
+
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
-  <p class="nota">Una recta mensual simplifica mucho: no representa el agua guardada en el suelo, la humedad
-  que trae la cuenca ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Además,
-  IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Una relación estadística entre la
+  lluvia y el caudal tampoco sustituye un balance hídrico ni garantiza que se conserve la masa. Además, IMERG incorpora
+  datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
 </section>
 
 
@@ -3334,10 +3550,11 @@ a {{ color: var(--acento); }}
     <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
     anterior agrega información. Hoy: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
     ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
-    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En años que el ajuste
-    no vio, la lluvia del mismo mes ya supera a la climatología (RMSE de {_ev_pl:.1f} m³/s con PL y {_ev_pi:.1f} con PI,
-    contra {ev_rmse_clima:.1f}; ver «¿Sirve la lluvia para estimar el caudal?»). Falta probar ahí un modelo con la lluvia del
-    mes y la del anterior, que debería mejorar, más con PL que con PI.</li>
+    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En meses que el ajuste
+    no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
+    en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_ELEGIDO):.1f} mm/mes con PL y
+    de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_ELEGIDO):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
+    la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
     <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
     lluvia de marzo sube ({fis_marzo["pend"]:+.0f} mm/mes por década con PL*, la única subserie de la lluvia que resiste la
     corrección FDR), pero el caudal de marzo no muestra tendencia significativa ({fis_marzo["q_mes"]["ols"]:+.1f} m³/s por
@@ -3439,6 +3656,9 @@ a {{ color: var(--acento); }}
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-duan1983">Duan, N. (1983). Smearing estimate: a nonparametric retransformation method. <i>Journal of the
+    American Statistical Association</i>, 78(383), 605–610.
+    <a href="https://doi.org/10.1080/01621459.1983.10478017">https://doi.org/10.1080/01621459.1983.10478017</a></li>
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
@@ -3482,6 +3702,9 @@ a {{ color: var(--acento); }}
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
     Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
+    <li id="ref-nash1970">Nash, J. E., y Sutcliffe, J. V. (1970). River flow forecasting through conceptual models part I —
+    A discussion of principles. <i>Journal of Hydrology</i>, 10(3), 282–290.
+    <a href="https://doi.org/10.1016/0022-1694(70)90255-6">https://doi.org/10.1016/0022-1694(70)90255-6</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
@@ -4459,16 +4682,16 @@ a {{ color: var(--acento); }}
 
     const d2 = base();
     d2.margin.t = 46;
-    d2.yaxis.title.text = "Q (m³/s)";
+    d2.yaxis.title.text = "Q (mm/mes)";
     Plotly.react("g-evaluacion", [
       {{ type: "scatter", mode: "lines", name: "Q observado", x: EV.meses, y: EV.q,
-         line: {{ color: COLOR_VAR.Q, width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>Q observado</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "climatología", x: EV.meses, y: EV.clima,
-         line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} m³/s<extra>climatología</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "estimado con PL", x: EV.meses, y: EV.pl,
-         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PL</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "estimado con PI", x: EV.meses, y: EV.pi,
-         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} m³/s<extra>con PI</extra>" }}
+         line: {{ color: COLOR_VAR.Q, width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>Q observado</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "climatología (M0)", x: EV.meses, y: EV.clima,
+         line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} mm/mes<extra>climatología (M0)</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "M4 con PL", x: EV.meses, y: EV.pl,
+         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PL</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "M4 con PI", x: EV.meses, y: EV.pi,
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PI</extra>" }}
     ], d2, CONF);
   }}
   const BAL = {bal_json};

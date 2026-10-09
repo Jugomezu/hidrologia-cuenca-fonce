@@ -90,3 +90,4 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Modelos lluvia–caudal: balance hídrico | Hacerlo («cierra el pendiente»): el caudal de M4 contra la lluvia y la ETP de Hargreaves con ERA5-Land, en el período, mes a mes y en los años con los 12 meses de Q, con PL y PI | Lo mismo | Sí |
 | 2026-10-09 | `requirements.txt` | Agregar lo que los scripts usan y no estaba declarado (xarray, netCDF4, h5netcdf, fsspec, aiohttp, pillow) | Lo mismo | Sí |
 | 2026-10-09 | Tendencias: nivel de significancia y familia de pruebas | α = 0.05, declarado en el código y en el informe; familia de la FDR: las 12 subseries de cada variable; como robustez, las 72 juntas | Lo mismo | Sí |
+| 2026-10-09 | Tendencias: sensibilidad a la fecha inicial y final | Hacerla («sip»): mismo método de la tabla resumen, inicio móvil con final fijo y al revés, ventanas de al menos 20 años | Lo mismo (el agente fijó los 20 años y lo informó) | Sí |

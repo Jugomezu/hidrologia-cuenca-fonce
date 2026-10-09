@@ -2891,6 +2891,63 @@ a {{ color: var(--acento); }}
 
 
 <section>
+  <h2>Campos climáticos globales</h2>
+  <div class="revision" data-etiqueta="Revisión · campos climáticos">
+  <p>Para buscar qué patrones del océano y de la atmósfera acompañan a la lluvia y al caudal de la cuenca se usan tres
+  <b>campos mensuales globales</b>, no índices: un índice como el ONI resume una región en un número, y un campo deja
+  ver dónde está la señal. <b>La temperatura superficial del mar (SST)</b> es la fuente de la variabilidad de gran
+  escala del ENSO. <b>El viento a 850 hPa</b> y
+  <b>la humedad específica a 850 hPa</b> dicen por dónde viaja el vapor de agua en los niveles bajos, que es el que
+  llega a la cuenca como lluvia; su producto, <b>q·V</b>, es el transporte de humedad. No se usan la presión al nivel
+  del mar ni la altura geopotencial a 500 hPa.</p>
+
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Campo</th><th>Fuente y versión</th><th>Variable y nivel</th><th>Unidades</th><th>Malla</th>
+    <th>Máscara</th></tr></thead>
+    <tbody>
+      <tr><td>SST</td><td>ERSST v5, NOAA (<a href="#ref-huang2017">Huang et al., 2017</a>)</td><td>temperatura del agua en
+      superficie</td><td>°C</td><td>2° (la nativa)</td><td>tierra vacía</td></tr>
+      <tr><td>Viento</td><td rowspan="2">ERA5 medias mensuales, ECMWF (<a href="#ref-hersbach2020">Hersbach et al.,
+      2020</a>), copia de NCAR GDEX (<a href="#ref-ecmwf2017">ECMWF, 2017</a>)</td><td>componente zonal u (+ hacia el
+      este) y meridional v (+ hacia el norte), 850 hPa</td><td>m/s</td><td rowspan="2">0.25° → 2°</td>
+      <td rowspan="2">850 hPa bajo el terreno</td></tr>
+      <tr><td>Humedad</td><td>humedad específica q, 850 hPa</td><td>g/kg</td></tr>
+      <tr><td>Transporte</td><td>calculado</td><td>q·u y q·v con las medias mensuales</td><td>(g/kg)·(m/s)</td>
+      <td>2°</td><td>la de u, v y q</td></tr>
+    </tbody>
+  </table></div>
+  <p class="nota">Período {cam_anios[0]}–{cam_anios[1]} ({cam_n_meses} meses), malla común de {cam_malla[0]} × {cam_malla[1]}
+  cajas de 2° (la de ERSST). ERA5 se baja a 0.25° y se lleva a 2° con un <b>promedio por bloques ponderado por el área</b>
+  de cada celda, que conserva la media en lugar de tomar muestras como una interpolación. La humedad viene en kg/kg y
+  se pasa a g/kg. El transporte con medias mensuales pierde el que hacen los eventos de días dentro del mes (la media
+  de q·u no es la media de q por la de u); a escala mensual y de gran escala es una aproximación usual. ERA5 se tomó
+  de la copia del NCAR porque la cola del servicio de Copernicus tenía los pedidos detenidos; es el mismo producto.</p>
+
+  <h3>850 hPa queda bajo los Andes</h3>
+  <p>Un nivel de presión no es una altura fija: donde el terreno es alto, la presión en la superficie es menor que
+  850 hPa y ese nivel queda <b>bajo tierra</b>, con valores que el modelo extrapola. Una caja de 2° queda vacía en un
+  mes si <b>cualquiera</b> de sus celdas de 0.25° tiene ese mes una presión superficial menor que 850 hPa. Con esa regla
+  estricta, el {cam_850_completas_pct:.0f} % del área del planeta tiene los {cam_n_meses} meses,
+  el {cam_850_nunca_pct:.0f} % no tiene ninguno y {cam_850_parcial} cajas pierden algunos meses. <b>La caja de la cuenca
+  ({cam_caja_cuenca["lat"]:.0f}° N, {360 - cam_caja_cuenca["lon"]:.0f}° O) no tiene ningún mes a 850 hPa</b>, y
+  tampoco {cam_caja_cuenca["vecinas_sin_850"]} de sus 8 vecinas: en promedio el {cam_caja_cuenca["bajo_tierra"] * 100:.0f} % de su área
+  está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
+  {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
+  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
+  <div class="placa"><img src="{img('campos_meses_validos_850.png')}" alt="Mapa del mundo con el número de meses válidos a 850 hPa en cada caja de 2°; los Andes, el Tíbet, la Antártida y otras zonas altas quedan en gris"></div>
+
+  <h3>Los campos</h3>
+  <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
+  850 hPa, de {cam_rango["q850"][0]:.1f} a {cam_rango["q850"][1]:.1f} g/kg. La cuenca va marcada en fucsia.</p>
+  <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
+  <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
+  <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
+  que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
+  {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
+  </div>
+</section>
+
+<section>
   <h2>Bibliografía</h2>
   <ol class="bibliografia">
     <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:
@@ -2908,18 +2965,27 @@ a {{ color: var(--acento); }}
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
+    Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
+    <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
     <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
     autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
     <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>
     <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
     temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
     <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
+    <li id="ref-hersbach2020">Hersbach, H., Bell, B., Berrisford, P., et al. (2020). The ERA5 global reanalysis.
+    <i>Quarterly Journal of the Royal Meteorological Society</i>, 146(730), 1999–2049.
+    <a href="https://doi.org/10.1002/qj.3803">https://doi.org/10.1002/qj.3803</a></li>
     <li id="ref-hirsch1982">Hirsch, R. M., Slack, J. R., y Smith, R. A. (1982). Techniques of trend analysis for monthly
     water quality data. <i>Water Resources Research</i>, 18(1), 107–121.
     <a href="https://doi.org/10.1029/WR018i001p00107">https://doi.org/10.1029/WR018i001p00107</a></li>
     <li id="ref-horn1960">Horn, L. H., y Bryson, R. A. (1960). Harmonic analysis of the annual march of
     precipitation over the United States. <i>Annals of the Association of American Geographers</i>, 50, 157–171.
     <a href="https://doi.org/10.1111/j.1467-8306.1960.tb00342.x">https://doi.org/10.1111/j.1467-8306.1960.tb00342.x</a></li>
+    <li id="ref-huang2017">Huang, B., Thorne, P. W., Banzon, V. F., et al. (2017). Extended Reconstructed Sea Surface
+    Temperature, Version 5 (ERSSTv5): Upgrades, Validations, and Intercomparisons. <i>Journal of Climate</i>, 30(20),
+    8179–8205. <a href="https://doi.org/10.1175/JCLI-D-16-0836.1">https://doi.org/10.1175/JCLI-D-16-0836.1</a></li>
     <li id="ref-huffman2023">Huffman, G. J., Bolvin, D. T., Joyce, R., Kelley, O. A., Nelkin, E. J., Tan, J., Watters,
     D. C., y West, B. J. (2023, 13 de julio). <i>Integrated Multi-satellitE Retrievals for GPM (IMERG) Technical
     Documentation</i> (V07). NASA Goddard Space Flight Center.

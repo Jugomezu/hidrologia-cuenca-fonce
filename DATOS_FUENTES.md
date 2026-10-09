@@ -900,6 +900,74 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
   referencia.
 
 
+## ERSST v5 - temperatura superficial del mar (NOAA), campos mensuales del Punto 5
+
+- **Producto:** NOAA Extended Reconstructed Sea Surface Temperature, version 5 (ERSST v5): temperatura
+  superficial del mar mensual, global, en una malla de 2° x 2° (centros de 88° N a 88° S y de 0° a 358° E;
+  89 x 180 puntos). Las celdas de tierra vienen vacias. Es la misma base con que la NOAA calcula el ONI.
+- **Referencia:** Huang, B., Thorne, P. W., Banzon, V. F., et al. (2017). Extended Reconstructed Sea Surface
+  Temperature, Version 5 (ERSSTv5): Upgrades, Validations, and Intercomparisons. *Journal of Climate*, 30(20),
+  8179-8205. https://doi.org/10.1175/JCLI-D-16-0836.1 (verificado en Crossref el 2026-10-08).
+- **Fuente:** NOAA PSL, https://downloads.psl.noaa.gov/Datasets/noaa.ersst.v5/sst.mnmean.nc (NetCDF, °C).
+- **Licencia:** datos publicos del gobierno de EE. UU.
+- **Descargado:** 2026-10-08, con `scripts/19_campos_climaticos.py` (se baja solo si no existe en `data/`).
+- **Periodo del archivo:** 1854-01 a 2026-09 (2 073 meses). El proyecto usa 1998-2022 (decision del usuario).
+- **Destino local:** `data/noaa/ersst_v5/sst.mnmean.nc`, **fuera de git** porque pesa 160.8 MB (mas que el
+  limite de GitHub); se vuelve a bajar con el script y se comprueba con su SHA-256.
+- **SHA-256 de `data/noaa/ersst_v5/sst.mnmean.nc`:**
+  `56659057862e8e064365d0c695570a4512937d5ebbf744f4af3f47699c267e81`
+- **Transformaciones:** recorte a 1998-2022; ninguna mas (ya esta en la malla de 2° que usa el proyecto para
+  los campos climaticos).
+- **Control de calidad (2026-10-08):** con este archivo se calcula la temperatura media de la region Nino 3.4
+  (5° S-5° N, 170° O-120° O; centros de 4° N a 4° S y de 190° a 240° E, ponderados por el coseno de la latitud)
+  en trimestres moviles y se compara con la columna TOTAL del ONI (`data/noaa/oni.ascii.txt`) en 1998-2022:
+  correlacion 0.997, diferencia media -0.05 °C y maxima 0.29 °C. Variantes de la caja no eliminan la
+  diferencia residual; una posible razon es que el ONI local se bajo el 2026-09-28 y la NOAA lo recalcula
+  cuando actualiza ERSST (ver la nota del ONI), pero no se comprobo. Resultado en
+  `out/ersst_nino34_contra_oni.csv`.
+
+
+## ERA5 mensual (viento, humedad y presion superficial), campos del Punto 5
+
+- **Producto:** ERA5, reanalisis global de ECMWF, medias mensuales («monthly means of daily means»), malla de
+  0.25° (721 x 1 440 puntos). Variables: componente zonal del viento `U` (m/s, positiva hacia el este),
+  componente meridional `V` (m/s, positiva hacia el norte) y humedad especifica `Q` (kg/kg) en el nivel de
+  **850 hPa**, y presion superficial `SP` (Pa).
+- **Referencia del reanalisis:** Hersbach, H., Bell, B., Berrisford, P., et al. (2020). The ERA5 global
+  reanalysis. *Quarterly Journal of the Royal Meteorological Society*, 146(730), 1999-2049.
+  https://doi.org/10.1002/qj.3803 (verificado en Crossref el 2026-10-08).
+- **Referencia del dataset usado:** European Centre for Medium-Range Weather Forecasts (2017). ERA5 Reanalysis
+  Monthly Means. NSF National Center for Atmospheric Research, Geoscience Data Exchange (GDEX), dataset d633001.
+  https://doi.org/10.5065/D63B5XW1 (verificado en DataCite el 2026-10-08).
+- **Fuente:** https://data.gdex.ucar.edu/d633001/ , por HTTPS y sin cuenta. Un archivo por variable y por año:
+  - niveles de presion: `e5.moda.an.pl/<año>/e5.moda.an.pl.128_131_u.ll025uv.<año>010100_<año>120100.nc`
+    (y `128_132_v.ll025uv`, `128_133_q.ll025sc`), con los 37 niveles (~600 MB por archivo);
+  - superficie: `e5.moda.an.sfc/<año>/e5.moda.an.sfc.128_134_sp.ll025sc.<año>010100_<año>120100.nc`.
+- **Por que GDEX y no el Copernicus Climate Data Store:** es el mismo producto mensual de ECMWF. Primero se pidio
+  al CDS, pero su cola tuvo los pedidos de niveles de presion mas de una hora sin empezar (2026-10-08). GDEX no
+  tiene cola. Decision del usuario; ver `DECISIONES.md`.
+- **Licencia:** ERA5 se distribuye bajo la licencia de Copernicus (uso libre con atribucion: «Contains modified
+  Copernicus Climate Change Service information»); GDEX pide citar el DOI del dataset.
+- **Descargado:** 2026-10-08, con `scripts/19_campos_climaticos.py`, que lee cada archivo anual por HTTPS y
+  guarda solo el nivel de 850 hPa (o la presion superficial), sin otro cambio.
+- **Periodo:** 1998-01 a 2022-12 (300 meses; decision del usuario).
+- **Destino local:** `data/era5_campos/<variable>_<año>.nc` (100 archivos: u, v, q y sp por 25 años), **fuera de
+  git** (suman ~2 GB). Se vuelven a obtener con el script. No se registra el SHA-256 de cada extracto porque los
+  produce el propio script; los archivos de GDEX son la fuente y se identifican por su ruta.
+- **Transformaciones** (`scripts/19_campos_climaticos.py`):
+  1. **Celdas bajo tierra:** una celda de 0.25° esta bajo el terreno en un mes si su presion superficial media es
+     menor que 850 hPa; sus valores de 850 hPa son extrapolados por el modelo y no se usan.
+  2. **Remuestreo a 2°:** promedio por bloques ponderado por el coseno de la latitud, en cajas de 2° centradas en
+     los puntos de ERSST v5 (las celdas que caen justo en el borde cuentan la mitad en cada caja).
+  3. **Mascara a 2° (estricta):** una caja queda vacia en un mes si cualquiera de sus celdas de 0.25° esta bajo
+     tierra ese mes. Ademas se guarda la fraccion de la caja bajo tierra.
+  4. **Unidades:** q de kg/kg a g/kg.
+  5. **Transporte de humedad a 850 hPa:** q·u y q·v con las medias mensuales, en (g/kg)·(m/s). Limitacion: la
+     media del mes de q·u no es (media de q)·(media de u); se pierde el transporte de los eventos de dias.
+- **Producto:** `out/campos_climaticos_2deg_1998_2022.nc` (SST, u850, v850, q850, qu850, qv850 y la fraccion bajo
+  tierra, en la malla de 2° de ERSST).
+
+
 ## Plotly.js 2.32.0 (biblioteca de gráficas del informe)
 
 - **Qué es:** la biblioteca de JavaScript con que se dibujan las gráficas interactivas del informe. No es un

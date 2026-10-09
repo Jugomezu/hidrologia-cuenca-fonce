@@ -1,0 +1,3 @@
+fuente,modelo,n_meses,n_anios_completos,lluvia_media,caudal_observado_medio,caudal_estimado_medio,etp_media,coef_escorrentia_observado,coef_escorrentia_estimado,p_menos_q_observado,p_menos_q_estimado,diferencia_volumen_pct,meses_q_mayor_p_observado,meses_q_mayor_p_estimado,meses_q_mayor_p_dos_meses_observado,meses_q_mayor_p_dos_meses_estimado,anios_p_menos_q_mayor_etp_observado,anios_p_menos_q_mayor_etp_estimado,anios_q_mayor_p_estimado
+PL,M4,261,11,210.3121,111.2009,110.5969,104.7307,0.5287,0.5259,99.1112,99.7152,-0.5432,7,0,0,0,3,4,0
+PI,M4,261,11,183.9238,111.2009,110.5392,104.7307,0.6046,0.601,72.7229,73.3846,-0.5951,21,6,0,0,0,0,0

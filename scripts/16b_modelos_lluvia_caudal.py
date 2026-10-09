@@ -36,7 +36,8 @@ Cómo se comparan (decidido por el usuario el 2026-10-09):
     mide el error en ln Q y no en mm/mes;
   - error fuera del ajuste, en mm/mes para todos: (a) ajuste 1998-2014 y evaluación 2015-2022, la partición
     que ya usaba el informe; (b) validación cruzada con 5 bloques de 5 años seguidos: cada bloque se estima
-    con un modelo ajustado con los otros 20 años.
+    con un modelo ajustado con los otros 20 años. En cada esquema se reportan RMSE, sesgo, NSE y KGE
+    (Gupta et al., 2009); el KGE se agregó el 2026-10-09 porque separa correlación, variabilidad y volumen.
 Todos los modelos usan la misma muestra: los meses con Q desde 1998-02 (enero de 1998 no tiene mes anterior).
 
 El elegido es M4 (decidido por el usuario el 2026-10-09): fuera del ajuste yerra lo mismo que M2, pero cumple
@@ -50,8 +51,9 @@ pendiente es una elasticidad: el % que cambia Q cuando P cambia 1 %.
 Período: 1998-2022, porque es una comparación entre variables (regla 6). Muestra: los meses con Q.
 
 Entradas:
-  out/variables_mensuales.csv               Q en mm/mes, ya pasada a mensual con la regla de los 4 días
-                                            (16_correlaciones_variables.py)
+  out/variables_mensuales.csv               Q y la ETP en mm/mes, ya pasadas a mensual con la regla de los 4 días
+                                            (16_correlaciones_variables.py); la ETP es la de Hargreaves con
+                                            ERA5-Land que calcula el proyecto (regla 15)
   out/imerg_mensual_fonce.csv               PI (05_imerg_mensual_cuencas.py)
   out/pluviometros_fonce_mensual_depurado.csv, out/pluviometros_fonce_catalogo.csv
                                             PL depurada (07_pluviometros_dhime.py)
@@ -62,6 +64,7 @@ Salidas:
   out/modelos_evaluacion.csv                errores fuera del ajuste: partición, validación cruzada y cada bloque
   out/modelos_ficha.csv                     la ficha del modelo elegido, M4: una fila por fuente de lluvia
   out/modelos_estimados.csv                 el caudal estimado de cada mes fuera del ajuste, por modelo y esquema
+  out/modelos_balance.csv                   ¿conserva masa M4? su caudal contra la lluvia y la ETP, por fuente
 Las lee 18_calculos_informe.py, que por eso corre después.
 """
 from pathlib import Path
@@ -254,12 +257,22 @@ def estimar_cualquiera(fuente, modelo, indice_ajuste, indice):
 
 
 def metricas(observado, estimado):
-    """Errores en mm/mes (estimado − observado) y NSE (Nash-Sutcliffe: 1 es perfecto, 0 es tan bueno
-    como usar la media de los meses evaluados)."""
+    """Errores en mm/mes (estimado − observado), NSE y KGE.
+
+    NSE (Nash-Sutcliffe): 1 es perfecto, 0 es tan bueno como usar la media de los meses evaluados.
+    KGE (Kling-Gupta, en la versión de Gupta et al., 2009, decidida por el usuario el 2026-10-09):
+    KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²), con r la correlación entre estimado y observado,
+    α = σ_estimado / σ_observado (¿reproduce la variabilidad?) y β = media_estimado / media_observado
+    (¿reproduce el volumen?). 1 es perfecto. Se guardan también r, α y β para saber qué parte falla."""
     error = estimado - observado
+    r = float(np.corrcoef(observado, estimado)[0, 1])
+    alfa = float(np.std(estimado) / np.std(observado))
+    beta = float(np.mean(estimado) / np.mean(observado))
     return {"n_meses": len(error), "rmse": float(np.sqrt(np.mean(error ** 2))), "mae": float(np.mean(np.abs(error))),
             "sesgo": float(np.mean(error)),
             "nse": float(1 - np.sum(error ** 2) / np.sum((observado - observado.mean()) ** 2)),
+            "kge": float(1 - np.sqrt((r - 1) ** 2 + (alfa - 1) ** 2 + (beta - 1) ** 2)),
+            "kge_r": r, "kge_alfa": alfa, "kge_beta": beta,
             "estimados_negativos": int((estimado < 0).sum())}
 
 
@@ -392,6 +405,47 @@ assert all(abs(f.rmse_vc - f.rmse_vc_competidor) < f.rmse_bloques_max - f.rmse_b
 parametros.round(6).to_csv(OUT / "modelos_parametros.csv", index=False)
 ficha.round(6).to_csv(OUT / "modelos_ficha.csv", index=False)
 pd.concat(estimados_fuera).round(4).to_csv(OUT / "modelos_estimados.csv", index=False)
+
+
+# ------------------------------------------------------------------ ¿conserva masa el modelo elegido?
+# Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede por debajo de la
+# lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Se compara lo que implica M4,
+# ajustado con todos los meses, con lo observado:
+#   - en el período: el coeficiente de escorrentía (Q / P) y P − Q contra la ETP. A largo plazo lo que la cuenca
+#     guarda se compensa, P − Q es la evapotranspiración real, y esta no puede superar a la potencial (ETP);
+#   - mes a mes: meses en que Q supera a la lluvia del mes, o a la del mes y el anterior juntas. En los datos puede
+#     pasar (el río drena agua guardada de antes); en M4 solo pasa si la fórmula lo produce, no por un almacenamiento;
+#   - año a año: en los años con los 12 meses de Q, años en que P − Q supera a la ETP.
+etp = variables["ETP"].reindex(PERIODOS)                   # mm/mes, Hargreaves con ERA5-Land
+assert etp.loc[MUESTRA].notna().all()
+anios_completos = [a for a, g in caudal.groupby(caudal.index.year) if g.notna().sum() == 12]
+filas_balance = []
+for fuente in FUENTES:
+    q_obs = caudal.loc[MUESTRA]
+    q_est = estimar(fuente, ELEGIDO, ajustar(fuente, ELEGIDO, MUESTRA), MUESTRA)
+    p_mes, p_dos = lluvia[fuente].loc[MUESTRA], (lluvia[fuente] + lluvia[fuente].shift(1)).loc[MUESTRA]
+    anual = pd.DataFrame({"p": lluvia[fuente], "q_obs": caudal, "etp": etp}).groupby(PERIODOS.year).sum()
+    anual = anual.loc[anios_completos]
+    # el caudal estimado de un año completo necesita los 12 meses; enero de 1998 no tiene mes anterior
+    q_est_todo = estimar(fuente, ELEGIDO, ajustar(fuente, ELEGIDO, MUESTRA), PERIODOS[1:])
+    anual["q_est"] = q_est_todo.groupby(q_est_todo.index.year).sum().reindex(anual.index)
+    anual = anual[[a > PERIODOS[0].year for a in anual.index]]
+    filas_balance.append({
+        "fuente": fuente, "modelo": ELEGIDO, "n_meses": len(MUESTRA), "n_anios_completos": len(anual),
+        "lluvia_media": p_mes.mean(), "caudal_observado_medio": q_obs.mean(), "caudal_estimado_medio": q_est.mean(),
+        "etp_media": etp.loc[MUESTRA].mean(),
+        "coef_escorrentia_observado": q_obs.sum() / p_mes.sum(), "coef_escorrentia_estimado": q_est.sum() / p_mes.sum(),
+        "p_menos_q_observado": (p_mes - q_obs).mean(), "p_menos_q_estimado": (p_mes - q_est).mean(),
+        "diferencia_volumen_pct": (q_est.sum() / q_obs.sum() - 1) * 100,
+        "meses_q_mayor_p_observado": int((q_obs > p_mes).sum()), "meses_q_mayor_p_estimado": int((q_est > p_mes).sum()),
+        "meses_q_mayor_p_dos_meses_observado": int((q_obs > p_dos).sum()),
+        "meses_q_mayor_p_dos_meses_estimado": int((q_est > p_dos).sum()),
+        "anios_p_menos_q_mayor_etp_observado": int((anual.p - anual.q_obs > anual.etp).sum()),
+        "anios_p_menos_q_mayor_etp_estimado": int((anual.p - anual.q_est > anual.etp).sum()),
+        "anios_q_mayor_p_estimado": int((anual.q_est > anual.p).sum()),
+    })
+balance = pd.DataFrame(filas_balance)
+balance.round(4).to_csv(OUT / "modelos_balance.csv", index=False)
 ajustes.round(6).to_csv(OUT / "modelos_ajuste.csv", index=False)
 evaluacion.round(4).to_csv(OUT / "modelos_evaluacion.csv", index=False)
 
@@ -407,10 +461,13 @@ print(parametros.to_string(index=False, float_format=lambda v: f"{v:.4g}"))
 print(ajustes.set_index(["fuente", "modelo"]).T.to_string(float_format=lambda v: f"{v:.4g}"))
 print("\nErrores fuera del ajuste (mm/mes)")
 resumen = evaluacion[~evaluacion.esquema.str.startswith("bloque")]
-print(resumen.pivot_table(index=["fuente", "modelo"], columns="esquema", values=["rmse", "nse", "sesgo"]).round(2).to_string())
+print(resumen.pivot_table(index=["fuente", "modelo"], columns="esquema", values=["rmse", "nse", "kge", "sesgo"]).round(2).to_string())
 print("\nRMSE por bloque de la validación cruzada (mm/mes)")
 print(evaluacion[evaluacion.esquema.str.startswith("bloque")].pivot_table(
     index=["fuente", "modelo"], columns="esquema", values="rmse").round(1).to_string())
 
 print(f"\nFicha de {ELEGIDO}: Q̂ = C · P(t)^b0 · P(t−1)^b1, en mm/mes")
 print(ficha.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))
+
+print(f"\n¿Conserva masa {ELEGIDO}? (mm/mes; años con los 12 meses de Q)")
+print(balance.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))

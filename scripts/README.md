@@ -52,6 +52,7 @@ Los paquetes están en `requirements.txt`, en la raíz.
 | 17 | `17_oni_enso.py` | Descarga el Índice Oceánico El Niño (ONI) de la NOAA y marca cada mes como El Niño, La Niña o neutro (1998-2022 y, aparte, 1981-2022 para el registro largo) | internet (NOAA CPC), una sola vez; luego `data/noaa/` | `out/oni_mensual.csv` |
 | 18 | `18_calculos_informe.py` | **El análisis del informe**: lee `out/` y `data/` y calcula todas las cifras, tablas y series que muestra el informe, por tema. Sin HTML. No se corre solo: lo corre 18b | casi todo `out/` | (variables en memoria para 18b) |
 | 18b | `18b_reporte_html.py` | **La página del informe**: corre 18, arma el HTML (texto, tablas, CSS y JavaScript de las gráficas) e incrusta las figuras y Plotly; el informe se edita en 18 y 18b, nunca en el HTML | lo que calcula 18, `reporte/figuras/`, `reporte/vendor/plotly-2.32.0.min.js` | `reporte/reporte-fonce.html` |
+| 19 | `19_campos_climaticos.py` | **Campos climáticos del Punto 5**: baja ERSST v5 (SST) y ERA5 mensual (viento u y v, humedad específica y presión superficial a 850 hPa), enmascara 850 hPa bajo el terreno, remuestrea ERA5 a la malla de 2° de ERSST (promedio por bloques ponderado por área) y calcula el transporte de humedad q·u y q·v; 1998-2022 | internet (NOAA PSL y Copernicus CDS, con `~/.cdsapirc`), una sola vez; luego `data/noaa/ersst_v5/` y `data/era5_campos/` (fuera de git) | `out/campos_climaticos_2deg_1998_2022.nc` |
 
 El informe (18 y 18b) no depende del notebook congelado, que también lee las salidas de 16.
 

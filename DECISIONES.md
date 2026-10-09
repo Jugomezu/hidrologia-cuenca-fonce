@@ -38,3 +38,7 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-08 | Punto 5.1: malla | Remuestreo a 2° | 2° (la malla de ERSST) | Sí |
 | 2026-10-08 | Punto 5.1: período | 1998–2022, «por simplicidad» | 1981–2022 (y 1998–2022 aparte) | **Contradice al agente** |
 | 2026-10-08 | Registro de decisiones | Llevar este archivo desde ahora, marcando cuando el usuario contradice al agente | — | — |
+| 2026-10-08 | Punto 5.1: transporte de humedad | q × V a 850 hPa con las medias mensuales (se declara que pierde el transporte de los eventos de días) | Lo mismo; el flujo integrado en la columna solo como contraste si hiciera falta | Sí |
+| 2026-10-08 | Punto 5.1: celdas bajo tierra a 850 hPa | Una caja de 2° queda vacía si **cualquiera** de sus celdas de 0.25° tiene presión superficial menor que 850 hPa ese mes | Vacía solo si más de la mitad de sus celdas está bajo tierra | **Contradice al agente** (más estricto: se pierde casi toda la cordillera) |
+| 2026-10-08 | Punto 5.1: remuestreo | Promedio por bloques ponderado por área (cos de la latitud) en las cajas de 2° de ERSST | Lo mismo | Sí |
+| 2026-10-08 | Punto 5.1: archivos crudos | Los crudos (ERSST ~160 MB y ERA5 a 0.25°, varios GB) quedan fuera de git, con su SHA-256 y el script para volver a bajarlos; el producto a 2° sí se versiona | Lo mismo (el usuario no objetó) | Sí |

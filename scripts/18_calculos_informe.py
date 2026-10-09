@@ -766,6 +766,23 @@ for _f in MOD_FUENTES:
 # con PI, cada modelo yerra más que con PL, y el mejor con PI no alcanza a la recta con PL
 assert all(mod_rmse("PI", m) > mod_rmse("PL", m) for m in MOD_CON_LLUVIA)
 assert max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA) < mod_vc.loc[("PL", "M1"), "nse"]
+# KGE fuera del ajuste (Gupta et al., 2009; lo calcula 16b con r, α y β por separado), para M4 y la climatología
+MOD_TOLERANCIA_VOLUMEN = 0.05     # el texto dice que M4 reproduce el volumen fuera del ajuste: |β − 1| < 5 %
+mod_kge = {(f, m, esq): tabla.loc[(f, m)] for f in MOD_FUENTES for m in (MOD_REFERENCIA, MOD_ELEGIDO)
+           for esq, tabla in (("vc", mod_vc), ("partición", mod_part))}
+for _esq in ("vc", "partición"):
+    # con PL, M4 supera a la climatología en NSE y en KGE
+    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].kge > mod_kge[("PL", MOD_REFERENCIA, _esq)].kge
+    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].nse > mod_kge[("PL", MOD_REFERENCIA, _esq)].nse
+    for _f in MOD_FUENTES:
+        assert abs(mod_kge[(_f, MOD_ELEGIDO, _esq)].kge_beta - 1) < MOD_TOLERANCIA_VOLUMEN
+# con PI, M4 se correlaciona menos con Q que con PL y reproduce menos su variabilidad (el texto lo dice)
+assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_r"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_r"]
+assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_alfa"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_alfa"]
+# ¿queda M4 con PI por debajo de la climatología en KGE? El texto lo dice según lo que salga, en cada esquema
+mod_pi_kge_bajo_m0 = {esq: mod_kge[("PI", MOD_ELEGIDO, esq)].kge < mod_kge[("PI", MOD_REFERENCIA, esq)].kge
+                      for esq in ("vc", "partición")}
+
 # qué modelos no superan a la climatología (el texto lo dice según lo que salga)
 mod_no_superan = {f: [m for m in MOD_CON_LLUVIA if mod_rmse(f, m) >= mod_rmse(f, MOD_REFERENCIA)] for f in MOD_FUENTES}
 

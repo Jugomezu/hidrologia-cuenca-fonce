@@ -1228,6 +1228,36 @@ _no_superan_txt = " ".join(
      f"Con {f}, {_lista_y([m for m in ms])} no {'supera' if len(ms) == 1 else 'superan'} a la climatología.")
     for f, ms in mod_no_superan.items())
 
+# NSE, KGE y sesgo fuera del ajuste, para la climatología y M4
+_ESQUEMAS_KGE = (("vc", "validación cruzada"), ("partición", f"{EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}"))
+mod_kge_filas = "\n".join(
+    f"<tr><td colspan='8'><b>Con {f}</b></td></tr>\n" + "\n".join(
+        (lambda k, elegido: "<tr>" + "".join(
+            f"<td{' class=num' if i >= 2 else ''}>{f'<b>{c}</b>' if elegido else c}</td>" for i, c in enumerate([
+                f"{m} · {MOD_NOMBRE[m]}", nombre_esq, f"{k.nse:.2f}", f"{k.kge:.2f}", f"{k.kge_r:.2f}",
+                f"{k.kge_alfa:.2f}", f"{k.kge_beta:.3f}", f"{k.sesgo:+.1f}"])) + "</tr>")(mod_kge[(f, m, esq)], m == MOD_ELEGIDO)
+        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_ELEGIDO))
+    for f in MOD_FUENTES)
+_k = lambda f, m, esq="vc": mod_kge[(f, m, esq)]
+_betas_m4 = [_k(f, MOD_ELEGIDO, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_sesgos_m4 = [_k(f, MOD_ELEGIDO, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+if mod_pi_kge_bajo_m0["vc"]:
+    _pi_kge_txt = (
+        f"<b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es "
+        f"{_k('PI', MOD_ELEGIDO).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_ELEGIDO).kge:.2f} contra "
+        f"{_k('PI', MOD_REFERENCIA).kge:.2f}"
+        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_ELEGIDO, 'partición').kge:.2f} contra "
+           f"{_k('PI', MOD_REFERENCIA, 'partición').kge:.2f})" if mod_pi_kge_bajo_m0["partición"] else "")
+        + f". La correlación de M4 es mayor (r {_k('PI', MOD_ELEGIDO).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
+        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_ELEGIDO).kge_alfa:.2f}, es decir, reproduce el "
+        f"{_k('PI', MOD_ELEGIDO).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
+        f"{_k('PI', MOD_REFERENCIA).kge_alfa * 100:.0f} % de la climatología. El NSE junta todo el error en un solo "
+        f"número; el KGE castiga por separado que el modelo varíe menos que el río.")
+else:
+    _pi_kge_txt = (
+        f"<b>Con PI, M4 también supera a la climatología en KGE</b> en la validación cruzada "
+        f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+
 # la ficha de M4
 _ic = lambda f, par: (f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'valor']:.2f} "
                       f"<small>({mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_inferior']:.2f} a "
@@ -1243,6 +1273,7 @@ mod_param_filas = "\n".join([
     "<tr><td>D, factor de Duan</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'factor_duan']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{_fi.loc[f, 'coeficiente_C']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>NSE en la validación cruzada</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'nse_vc']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>KGE en la validación cruzada</td>" + "".join(f"<td class='num'>{mod_vc.loc[(f, MOD_ELEGIDO), 'kge']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
 ])
 
 
@@ -3290,6 +3321,39 @@ a {{ color: var(--acento); }}
     no alcanza a la recta con PL ({mod_vc.loc[("PL", "M1"), "nse"]:.2f}), y el rezago le ayuda menos. {_no_superan_txt}</li>
   </ul>
 
+  <div{revision("nuevo")}>
+  <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
+  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los {mod_n} meses, pero ninguna cifra de esta tabla
+  usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
+  coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
+  (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
+  correlación entre Q estimado y observado (¿sube y baja cuando debe?); <b>α</b>, la razón de sus desviaciones estándar
+  (¿reproduce la variabilidad?), y <b>β</b>, la razón de sus medias (¿reproduce el volumen?).</p>
+  <p class="formula">KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²)</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Modelo</th><th>Meses evaluados</th><th class="num">NSE</th><th class="num">KGE</th><th class="num" style="text-transform:none">r</th>
+    <th class="num" style="text-transform:none">α</th><th class="num" style="text-transform:none">β</th><th class="num">Sesgo (mm/mes)</th></tr></thead>
+    <tbody>
+{mod_kge_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">NSE y KGE: 1 es perfecto. Sesgo: la media de (estimado − observado). M0 no usa lluvia, así que sus
+  filas son las mismas con PL y con PI. La validación cruzada evalúa los
+  {mod_n} meses, cada uno estimado con el modelo ajustado sin su bloque de 5 años; {_ESQUEMAS_KGE[1][1]}, los meses con Q
+  de esos años, con el modelo ajustado en {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}.</p>
+  <ul>
+    <li><b>Con PL, M4 supera a la climatología en las dos medidas y en los dos esquemas</b>: KGE
+    {_k("PL", MOD_ELEGIDO).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada, y
+    {_k("PL", MOD_ELEGIDO, "partición").kge:.2f} contra {_k("PL", MOD_REFERENCIA, "partición").kge:.2f} en
+    {_ESQUEMAS_KGE[1][1]}.</li>
+    <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
+    {min(_betas_m4):.3f} y {max(_betas_m4):.3f} y el sesgo entre {min(_sesgos_m4):+.1f} y {max(_sesgos_m4):+.1f} mm/mes.</li>
+    <li>{_pi_kge_txt}</li>
+  </ul>
+  </div>
+
   <h3>El modelo elegido: M4</h3>
   <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
   &nbsp; con C = D · e<sup>a</sup></p>
@@ -3741,6 +3805,9 @@ a {{ color: var(--acento); }}
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-gupta2009">Gupta, H. V., Kling, H., Yilmaz, K. K., y Martinez, G. F. (2009). Decomposition of the mean
+    squared error and NSE performance criteria: implications for improving hydrological modelling. <i>Journal of
+    Hydrology</i>, 377(1–2), 80–91. <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">https://doi.org/10.1016/j.jhydrol.2009.08.003</a></li>
     <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
     autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
     <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>

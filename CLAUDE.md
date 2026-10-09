@@ -159,7 +159,9 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
 
 22. **Hay un solo informe** (decidido el 2026-10-04): `reporte/reporte-fonce.html`, generado por
     `scripts/18b_reporte_html.py` con los cálculos de `scripts/18_calculos_informe.py`. Todo lo que vaya al informe, de cualquier
-    punto y de cualquier persona, entra como una sección de esos dos scripts. El HTML no se edita a mano. **No se hacen informes, visores ni páginas HTML aparte.** El visor
+    punto y de cualquier persona, entra como una sección de esos dos scripts. **Única excepción** (decidida el 2026-10-09): el
+    tablero `reporte/tablero-fonce.html`, que genera `scripts/18c_tablero_html.py` con los mismos cálculos. Solo resume lo que
+    el informe ya muestra: no agrega análisis, conclusiones ni secciones pendientes. El HTML no se edita a mano. **No se hacen informes, visores ni páginas HTML aparte.** El visor
     `reporte/punto2_i.html` del Punto 2, anterior a esta regla, se integró al informe y se borró el 2026-10-04.
 
 ## Estructura

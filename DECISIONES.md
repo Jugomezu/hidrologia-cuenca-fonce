@@ -73,3 +73,4 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Punto 5.2: dominio | Todos los mapas de 60° S a 60° N | SST de 60° S a 60° N; viento y humedad, regionales | **Contradice al agente** |
 | 2026-10-09 | Punto 5.2: todos los meses juntos | Sí, un mapa por combinación con anomalías | Lo mismo | Sí |
 | 2026-10-09 | Punto 5.4 | Por ahora, solo un aviso en el informe de que no se ha llegado a esa parte | — | — |
+| 2026-10-09 | Tablero de resumen (presentación) | Primero: un artifact aparte con las cifras exportadas fuera del repositorio (opción B). Después: un script del repositorio, `scripts/18c_tablero_html.py`, que corre los cálculos del informe y escribe `reporte/tablero-fonce.html` (opción A), como excepción a la regla 22; sin las secciones que aún no se han hecho | Opción A, para que las cifras salgan calculadas (reglas 1 y 16) | Al final sí; el usuario cambió de decisión |

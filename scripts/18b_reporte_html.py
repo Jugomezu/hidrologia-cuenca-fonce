@@ -12,7 +12,7 @@ El HTML no se edita a mano: se editan este script y el de cálculos, y se regene
 Dentro de la f-string, las llaves de CSS y de JavaScript van dobladas ({{ y }}); las sencillas son
 expresiones de Python.
 """
-import base64, hashlib, html, json
+import base64, hashlib, html, json, re
 from pathlib import Path
 from runpy import run_path
 import pandas as pd
@@ -3423,54 +3423,26 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Bibliografía</h2>
+  <h3>Métodos estadísticos y de análisis de series</h3>
   <ol class="bibliografia">
-    <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:
-    Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
-    Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
-    <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
-    data. <i>Bulletin of the American Meteorological Society</i>.
-    <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
     <li id="ref-benjamini1995">Benjamini, Y., y Hochberg, Y. (1995). Controlling the false discovery rate: a practical and
     powerful approach to multiple testing. <i>Journal of the Royal Statistical Society Series B</i>, 57(1), 289–300.
     <a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x">https://doi.org/10.1111/j.2517-6161.1995.tb02031.x</a></li>
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
-    <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
-    Emergencia invernal durante el primer bimestre de 2005</i>.
-    <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
-    <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
-    Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
-    <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
     <li id="ref-hamed1998">Hamed, K. H., y Ramachandra Rao, A. (1998). A modified Mann-Kendall trend test for
     autocorrelated data. <i>Journal of Hydrology</i>, 204(1–4), 182–196.
     <a href="https://doi.org/10.1016/S0022-1694(97)00125-X">https://doi.org/10.1016/S0022-1694(97)00125-X</a></li>
-    <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
-    temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
-    <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
-    <li id="ref-hersbach2020">Hersbach, H., Bell, B., Berrisford, P., et al. (2020). The ERA5 global reanalysis.
-    <i>Quarterly Journal of the Royal Meteorological Society</i>, 146(730), 1999–2049.
-    <a href="https://doi.org/10.1002/qj.3803">https://doi.org/10.1002/qj.3803</a></li>
     <li id="ref-hirsch1982">Hirsch, R. M., Slack, J. R., y Smith, R. A. (1982). Techniques of trend analysis for monthly
     water quality data. <i>Water Resources Research</i>, 18(1), 107–121.
     <a href="https://doi.org/10.1029/WR018i001p00107">https://doi.org/10.1029/WR018i001p00107</a></li>
     <li id="ref-horn1960">Horn, L. H., y Bryson, R. A. (1960). Harmonic analysis of the annual march of
     precipitation over the United States. <i>Annals of the Association of American Geographers</i>, 50, 157–171.
     <a href="https://doi.org/10.1111/j.1467-8306.1960.tb00342.x">https://doi.org/10.1111/j.1467-8306.1960.tb00342.x</a></li>
-    <li id="ref-huang2017">Huang, B., Thorne, P. W., Banzon, V. F., et al. (2017). Extended Reconstructed Sea Surface
-    Temperature, Version 5 (ERSSTv5): Upgrades, Validations, and Intercomparisons. <i>Journal of Climate</i>, 30(20),
-    8179–8205. <a href="https://doi.org/10.1175/JCLI-D-16-0836.1">https://doi.org/10.1175/JCLI-D-16-0836.1</a></li>
-    <li id="ref-huffman2023">Huffman, G. J., Bolvin, D. T., Joyce, R., Kelley, O. A., Nelkin, E. J., Tan, J., Watters,
-    D. C., y West, B. J. (2023, 13 de julio). <i>Integrated Multi-satellitE Retrievals for GPM (IMERG) Technical
-    Documentation</i> (V07). NASA Goddard Space Flight Center.
-    <a href="https://gpm.nasa.gov/resources/documents/imerg-v07-technical-documentation">gpm.nasa.gov</a></li>
     <li id="ref-hyndman1996">Hyndman, R. J., y Fan, Y. (1996). Sample quantiles in statistical packages.
     <i>The American Statistician</i>, 50(4), 361–365.
     <a href="https://doi.org/10.1080/00031305.1996.10473566">https://doi.org/10.1080/00031305.1996.10473566</a></li>
-    <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
-    B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
-    <i>Earth System Science Data Discussions</i> (preprint).
-    <a href="https://doi.org/10.5194/essd-2025-200">https://doi.org/10.5194/essd-2025-200</a></li>
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
@@ -3478,22 +3450,12 @@ a {{ color: var(--acento); }}
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
-    <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
-    Universidad Nacional de Colombia, Medellín.</li>
-    <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
-    Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
-    <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
-    2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
     <i>Journal of the Royal Statistical Society, Series C (Applied Statistics)</i>, 28(2), 126–135.
     <a href="https://doi.org/10.2307/2346729">https://doi.org/10.2307/2346729</a></li>
-    <li id="ref-poveda2004">Poveda, G. (2004). La hidroclimatología de Colombia: una síntesis desde la escala
-    inter-decadal hasta la escala diurna. <i>Revista de la Academia Colombiana de Ciencias Exactas, Físicas y
-    Naturales</i>, 28(107), 201–221.
-    <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
     <li id="ref-scargle1982">Scargle, J. D. (1982). Studies in astronomical time series analysis. II. Statistical aspects of
     spectral analysis of unevenly spaced data. <i>The Astrophysical Journal</i>, 263, 835 y siguientes.
     <a href="https://doi.org/10.1086/160554">https://doi.org/10.1086/160554</a></li>
@@ -3506,6 +3468,51 @@ a {{ color: var(--acento); }}
     <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
     based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
+  </ol>
+  <h3>Clima, hidrología y procesos físicos</h3>
+  <ol class="bibliografia">
+    <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:
+    Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
+    Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
+    <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
+    Emergencia invernal durante el primer bimestre de 2005</i>.
+    <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
+    <li id="ref-hargreaves1985">Hargreaves, G. H., y Samani, Z. A. (1985). Reference crop evapotranspiration from
+    temperature. <i>Applied Engineering in Agriculture</i>, 1(2), 96–99.
+    <a href="https://doi.org/10.13031/2013.26773">https://doi.org/10.13031/2013.26773</a></li>
+    <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
+    Universidad Nacional de Colombia, Medellín.</li>
+    <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
+    Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
+    <li id="ref-poveda2004">Poveda, G. (2004). La hidroclimatología de Colombia: una síntesis desde la escala
+    inter-decadal hasta la escala diurna. <i>Revista de la Academia Colombiana de Ciencias Exactas, Físicas y
+    Naturales</i>, 28(107), 201–221.
+    <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
+  </ol>
+  <h3>Datos y productos</h3>
+  <ol class="bibliografia">
+    <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
+    data. <i>Bulletin of the American Meteorological Society</i>.
+    <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
+    <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
+    Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
+    <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-hersbach2020">Hersbach, H., Bell, B., Berrisford, P., et al. (2020). The ERA5 global reanalysis.
+    <i>Quarterly Journal of the Royal Meteorological Society</i>, 146(730), 1999–2049.
+    <a href="https://doi.org/10.1002/qj.3803">https://doi.org/10.1002/qj.3803</a></li>
+    <li id="ref-huang2017">Huang, B., Thorne, P. W., Banzon, V. F., et al. (2017). Extended Reconstructed Sea Surface
+    Temperature, Version 5 (ERSSTv5): Upgrades, Validations, and Intercomparisons. <i>Journal of Climate</i>, 30(20),
+    8179–8205. <a href="https://doi.org/10.1175/JCLI-D-16-0836.1">https://doi.org/10.1175/JCLI-D-16-0836.1</a></li>
+    <li id="ref-huffman2023">Huffman, G. J., Bolvin, D. T., Joyce, R., Kelley, O. A., Nelkin, E. J., Tan, J., Watters,
+    D. C., y West, B. J. (2023, 13 de julio). <i>Integrated Multi-satellitE Retrievals for GPM (IMERG) Technical
+    Documentation</i> (V07). NASA Goddard Space Flight Center.
+    <a href="https://gpm.nasa.gov/resources/documents/imerg-v07-technical-documentation">gpm.nasa.gov</a></li>
+    <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
+    B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
+    <i>Earth System Science Data Discussions</i> (preprint).
+    <a href="https://doi.org/10.5194/essd-2025-200">https://doi.org/10.5194/essd-2025-200</a></li>
+    <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
+    2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
   </ol>
   <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
 </section>
@@ -4669,6 +4676,11 @@ a {{ color: var(--acento); }}
 </div>
 {INDICE_HTML}
 """
+# Bibliografía: cada referencia aparece una sola vez (los tres grupos no se pisan ni dejan ninguna fuera).
+_refs = re.findall(r'<li id="(ref-[a-z0-9-]+)"', pagina)
+assert len(_refs) == len(set(_refs)), "una referencia de la bibliografía está repetida"
+# toda cita del texto apunta a una referencia que existe
+assert set(re.findall(r'href="#(ref-[a-z0-9-]+)"', pagina)) <= set(_refs), "hay una cita sin su referencia"
 SALIDA.write_text(pagina, encoding="utf-8")
 print(f"{SALIDA} ({SALIDA.stat().st_size / 1e6:.1f} MB)")
 print(p_imerg.round(0).to_dict())

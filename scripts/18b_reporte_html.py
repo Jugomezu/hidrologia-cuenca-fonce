@@ -1291,6 +1291,49 @@ ev_json = json.dumps({"meses": _meses_ev, "q": _serie_ev("PL", MOD_REFERENCIA, "
 
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
+# --- La cuenca frente a los campos: qué tan firme es la relación con El Niño y qué dicen los mapas
+def _lista_meses(meses):
+    """«junio, julio y septiembre», o «ningún mes»."""
+    nombres = [MESES_LARGOS_ES[m - 1] for m in meses]
+    if not nombres:
+        return "ningún mes"
+    return nombres[0] if len(nombres) == 1 else ", ".join(nombres[:-1]) + " y " + nombres[-1]
+
+
+def _celda_n34(f):
+    """r del índice Niño 3.4: en negrita si pasa el FDR, con ✓ si además es robusto; debajo, el rango sin un año."""
+    r = f"{f.r:+.2f}" + (" ✓" if f.robusto else "")
+    r = f"<b>{r}</b>" if f.sobrevive_fdr else r
+    return (f"<td class='num' style='white-space: nowrap'>{r}<br>"
+            f"<span class='nota'>{f.r_min:+.2f}…{f.r_max:+.2f}</span></td>")
+
+
+_n34 = corr_n34_indice
+n34_filas = "\n".join(
+    f"<tr><td style='white-space: nowrap'>{v}{' (ℓ = 1)' if l else ''}</td>"
+    + "".join(_celda_n34(f) for f in _n34[(_n34.cuenca == v) & (_n34.rezago == l)].sort_values("mes").itertuples())
+    + "</tr>" for l in (0, 1) for v in ("PL", "Q", "PI"))
+_n34_0 = _n34[_n34.rezago == 0]
+n34_robustos = {v: _lista_meses(_n34_0[(_n34_0.cuenca == v) & _n34_0.robusto].mes.tolist()) for v in ("PL", "Q", "PI")}
+n34_solo_fdr = {v: _lista_meses(_n34_0[(_n34_0.cuenca == v) & _n34_0.sobrevive_fdr & ~_n34_0.robusto].mes.tolist())
+                for v in ("PL", "Q", "PI")}
+n34_n = (int(_n34.n.min()), int(_n34.n.max()))
+n34_fdr_l = {l: int(_n34[(_n34.rezago == l) & (_n34.cuenca == "Q")].sobrevive_fdr.sum()) for l in (0, 1)}
+# lo que afirma el texto
+assert (_n34[_n34.sobrevive_fdr].r < 0).all()                                    # todas las que pasan son negativas
+assert set(_n34_0[_n34_0.sobrevive_fdr].mes) <= {12, 1, 2, 3, 6, 7, 8, 9}       # mitad de año y diciembre a marzo
+assert not _n34_0[_n34_0.mes.isin([4, 5])].sobrevive_fdr.any()                  # abril y mayo: ninguna
+assert all(n34_robustos[v] != "ningún mes" for v in ("PL", "Q", "PI"))
+assert n34_fdr_l[1] >= n34_fdr_l[0]                                              # Q pasa en más meses con ℓ = 1
+_rob = corr_jackknife[corr_jackknife.cajas_fdr > 0]
+rob_mapas = {"total": len(corr_jackknife), "con_fdr": len(_rob),
+             "caen": int((_rob.cajas_que_quita == _rob.cajas_fdr).sum()),
+             "anios": ", ".join(f"{int(a)} ({c})" for a, c in _rob.anio_que_mas_quita.value_counts().head(4).items())}
+_cajas = corr_significancia[corr_significancia.mes <= 12].cajas
+rob_cajas = (int(_cajas.min()), int(_cajas.max()))
+assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
+
+
 pagina = f"""<!doctype html>
 <html lang="es">
 <head>
@@ -3609,6 +3652,48 @@ a {{ color: var(--acento); }}
   {corr_nino34[(corr_cambio_rezago["var"], 1)][corr_cambio_rezago["mes"] - 1]:+.2f} con él). Spearman difiere de Pearson en más de 0.2 en el
   {corr_spearman_q["dif_02_pct"]:.1f} % de las cajas de Q contra la SST, y cambia de signo con una correlación mayor que 0.3 en el
   {corr_spearman_q["signo_pct"]:.2f} %: los extremos del caudal no cambian el patrón.</p>
+
+  <h3>¿Es firme la relación con El Niño?</h3>
+  <p>El promedio de la tabla anterior junta muchas cajas y no es una correlación con un número fijo de pares, así que
+  no admite una prueba. Para probar la relación se usa una sola serie: el <b>índice Niño 3.4</b>, la anomalía de la SST
+  promediada en la misma región (ponderando por el coseno de la latitud). En cada mes del calendario se correlaciona con
+  la anomalía de la cuenca a través de los años, y se le aplican tres filtros:</p>
+  <ol>
+    <li><b>Prueba t</b> de la correlación, con los pares de ese mes (entre {n34_n[0]} y {n34_n[1]}). Para que p &lt;
+    {CORR_ALFA_LOCAL:.2f}, |r| debe llegar a {corr_r_critico[25]:.2f} con 25 pares y a {corr_r_critico[20]:.2f} con 20.</li>
+    <li><b>Corrección por pruebas múltiples.</b> Con 12 meses, alguno podría salir significativo por azar. Se controla
+    la tasa de falsos descubrimientos ({CITA_BH}) sobre los 12 meses de cada variable, con
+    q &lt; {CORR_Q_FDR:.2f}.</li>
+    <li><b>Quitar un año a la vez.</b> Todo se repite 25 veces, cada vez sin un año. Un mes es <b>robusto</b> si sigue
+    pasando la corrección, con el mismo signo, en las 25 versiones: ningún año extremo lo sostiene solo.</li>
+  </ol>
+  <div class="tabla-caja"><table>
+    <thead><tr><th></th>{"".join(f"<th class='num'>{m}</th>" for m in MESES_ES)}</tr></thead>
+    <tbody>
+    {n34_filas}
+    </tbody>
+  </table></div>
+  <p class="nota">r entre el índice Niño 3.4 y la cuenca. En negrita, los meses que pasan la corrección (q &lt;
+  {CORR_Q_FDR:.2f}); con ✓, los que además son robustos. Debajo, el menor y el mayor r al quitar un año.</p>
+  <p>Sin rezago, la relación es robusta en {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en
+  {n34_robustos["PI"]} con PI. Pasan la corrección, pero dependen de algún año, en {n34_solo_fdr["PL"]} con PL, en
+  {n34_solo_fdr["Q"]} con Q y en {n34_solo_fdr["PI"]} con PI. Todas las correlaciones que pasan son negativas, y el
+  índice cuenta la misma historia que el promedio de las cajas (las dos tablas se correlacionan en
+  {corr_n34_acuerdo:.3f}). Con el índice un mes antes (ℓ = 1), Q pasa la corrección en {n34_fdr_l[1]} meses, frente a
+  {n34_fdr_l[0]} sin rezago.</p>
+  <p><b>Lo que se puede afirmar:</b> cuando el Pacífico central está más caliente que lo normal, llueve menos en la
+  cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
+  a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
+
+  <h3>¿Y los mapas?</h3>
+  <p>Los puntos negros de los mapas marcan las cajas que pasan la misma corrección dentro de cada panel (Benjamini y
+  Hochberg sobre sus {n(rob_cajas[0])} a {n(rob_cajas[1])} cajas, q &lt; {CORR_Q_FDR:.2f}). Solo {rob_mapas["con_fdr"]} de
+  los {rob_mapas["total"]} paneles mensuales tienen alguna, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar
+  un solo año (los que más pesan, con el número de paneles: {rob_mapas["anios"]}). <b>Los mapas no dan resultados
+  concluyentes</b> más allá de la relación con El Niño: con 25 años, la forma detallada de las manchas no se distingue
+  del azar, y en la mayoría de los paneles las zonas que pasan dependen de un solo año.</p>
+  <p class="nota">El mapa de todos los meses juntos no lleva puntos: los meses seguidos no son independientes y la prueba
+  t no vale ahí.</p>
 
   <h3>Los mapas</h3>
   <div class="placa"><img src="{img('corr_PL_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la SST"></div>

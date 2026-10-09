@@ -3359,6 +3359,64 @@ for (_v, _campo, _l), _d in corr_resultados.items():
 corr_jackknife = pd.DataFrame(corr_jackknife)
 # ¿algún panel de Niño 3.4 cambia de signo al quitar un año?
 corr_jackknife["nino34_cambia_signo"] = np.sign(corr_jackknife.nino34_r_min) != np.sign(corr_jackknife.nino34_r_max)
+
+# (4) La relación con El Niño, con una sola serie. La tabla de Niño 3.4 de arriba promedia las correlaciones de muchas
+#     cajas; ese promedio no es una correlación con un número de pares, así que no admite la prueba t. Para probarla
+#     se construye el índice Niño 3.4 de la ERSST (la anomalía de la SST promediada en la región, ponderando por el
+#     coseno de la latitud, la misma de los mapas) y se correlaciona con la anomalía de la cuenca mes por mes, con
+#     los pares de cada mes. Prueba t, FDR de Benjamini-Hochberg sobre los 12 meses de cada variable y rezago
+#     (CORR_Q_FDR, el mismo de los mapas) y quitar un año a la vez como en (3): un mes es robusto si sobrevive al FDR,
+#     con el mismo signo, en las 25 versiones sin un año.
+_a_sst = _anom_campo["sst"]
+_peso_34 = np.where(np.isfinite(_a_sst), _w34_plano[None, :], 0.0)
+_indice_34 = np.nansum(np.nan_to_num(_a_sst) * _peso_34, axis=1) / _peso_34.sum(axis=1)
+corr_n34_indice = []
+for _l in CORR_REZAGOS["sst"]:
+    _idx = np.full(len(PERIODOS), np.nan)
+    _idx[_l:] = _indice_34[:len(PERIODOS) - _l]               # el índice ℓ meses antes, como el campo en los mapas
+    for _v in CORR_CUENCA:
+        _filas = []
+        for _j in range(1, 13):
+            _sel = PERIODOS.month.to_numpy() == _j
+            _x, _y, _anios = _anom_cuenca[_v][_sel], _idx[_sel], _anios_mes[_sel]
+            _ok = np.isfinite(_x) & np.isfinite(_y)
+            _r = float(np.corrcoef(_x[_ok], _y[_ok])[0, 1])
+            _r_sin = []                                           # r quitando cada año con dato
+            for _a in _anios[_ok]:
+                _m = _ok & (_anios != _a)
+                _r_sin.append((_a, float(np.corrcoef(_x[_m], _y[_m])[0, 1]), int(_m.sum())))
+            _filas.append({"cuenca": _v, "rezago": _l, "mes": _j, "r": _r, "n": int(_ok.sum()),
+                           "p": float(_p_correlacion(np.array(_r), np.array(_ok.sum()))), "r_sin": _r_sin})
+        _q = _benjamini_hochberg([f["p"] for f in _filas])
+        # el FDR repetido en cada versión sin un año (se quita el mismo año en los 12 meses)
+        _sobrevive = np.ones(12, dtype=bool)
+        for _a in np.unique(_anios_mes):
+            _r_a, _p_a = [], []
+            for f in _filas:
+                _x_a = [(r, n) for a, r, n in f["r_sin"] if a == _a]
+                r, n = _x_a[0] if _x_a else (f["r"], f["n"])           # año sin dato en ese mes: no cambia
+                _r_a.append(r)
+                _p_a.append(float(_p_correlacion(np.array(r), np.array(n))))
+            _q_a = _benjamini_hochberg(_p_a)
+            _sobrevive &= (_q_a < CORR_Q_FDR) & (np.sign(_r_a) == np.sign([f["r"] for f in _filas]))
+        for k, f in enumerate(_filas):
+            _rs = np.array([r for _, r, _ in f["r_sin"]])
+            _cambio = np.abs(_rs - f["r"])
+            corr_n34_indice.append({"cuenca": f["cuenca"], "rezago": f["rezago"], "mes": f["mes"], "r": f["r"],
+                                    "n": f["n"], "p": f["p"], "q": float(_q[k]), "sobrevive_fdr": bool(_q[k] < CORR_Q_FDR),
+                                    "r_min": float(_rs.min()), "r_max": float(_rs.max()),
+                                    "anio_mas_influyente": int(f["r_sin"][int(np.argmax(_cambio))][0]),
+                                    "robusto": bool(_sobrevive[k])})
+corr_n34_indice = pd.DataFrame(corr_n34_indice)
+assert not (corr_n34_indice.robusto & ~corr_n34_indice.sobrevive_fdr).any()
+# el índice y el promedio de las correlaciones de las cajas cuentan la misma historia (para ligar las dos tablas)
+_comp = [(corr_nino34[(f.cuenca, f.rezago)][f.mes - 1], f.r) for f in corr_n34_indice.itertuples()]
+corr_n34_acuerdo = float(np.corrcoef(*zip(*_comp))[0, 1])
+assert corr_n34_acuerdo > 0.9
+corr_n34_indice.to_csv("out/correlacion_nino34_indice.csv", index=False, float_format="%.4f")
+# |r| mínimo para p < CORR_ALFA_LOCAL con n pares (lo cita el texto)
+corr_r_critico = {_n: float(stats.t.ppf(1 - CORR_ALFA_LOCAL / 2, _n - 2) /
+                            np.sqrt(_n - 2 + stats.t.ppf(1 - CORR_ALFA_LOCAL / 2, _n - 2) ** 2)) for _n in (20, 25)}
 corr_significancia.to_csv("out/correlaciones_campos_significancia.csv", index=False, float_format="%.4f")
 corr_jackknife.to_csv("out/correlaciones_campos_jackknife.csv", index=False, float_format="%.4f")
 

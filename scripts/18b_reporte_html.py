@@ -1394,6 +1394,10 @@ n34_rob_total = len(_n34_rob)
 n34_rob_fuera = "; ".join(f"{_lista_meses(sorted(g.mes))} con {v}"
                           for v, g in _n34_rob[~_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA)].groupby("cuenca"))
 assert n34_rob_en_temporadas > n34_rob_total / 2                                # el texto dice «la mayoría»
+# lo que afirma la interpretación física: marzo es robusto con Q y queda fuera de las dos temporadas, y Q pasa
+# la corrección en más meses con el índice un mes antes
+assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
+assert n34_fdr_l[1] > n34_fdr_l[0]
 assert all(n34_robustos[v] != "ningún mes" for v in ("PL", "Q", "PI"))
 assert n34_fdr_l[1] >= n34_fdr_l[0]                                              # Q pasa en más meses con ℓ = 1
 _rob = corr_jackknife[corr_jackknife.cajas_fdr > 0]
@@ -3878,7 +3882,20 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Interpretación física de los patrones</h2>
-  <p><i>Hasta el momento no hemos llegado a esta parte.</i></p>
+  <div{revision("sección nueva: interpretación física")}>
+  <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
+  pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
+  {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {n34_rob_total} meses robustos,
+  {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
+  (diciembre a febrero y junio a agosto).</p>
+  <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
+  coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
+  marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
+  {n34_fdr_l[1]} meses, frente a {n34_fdr_l[0]} sin rezago, y que el río vaya unos {desfase["Q_PL"]:.0f} días detrás de PL
+  (ver «Desfase estacional»). No lo prueba: el almacenamiento se infiere del atraso; no se mide.</p>
+  </div>
 </section>
 
 <section>

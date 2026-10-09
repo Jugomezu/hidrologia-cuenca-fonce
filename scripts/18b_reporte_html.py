@@ -116,6 +116,7 @@ CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
 CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
+CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a>'
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
 # cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
@@ -340,6 +341,8 @@ filas_disp = "\n".join(
 fmt_p = lambda p: "&lt; 0.001" if p < 0.001 else f"{p:.3f}"
 
 fmt_mes_an = lambda p: fmt_mes(pd.Period(p, "M"))
+# «Explicaciones físicas» dice que enero y febrero de 2005 estuvieron sobre lo normal en PL, PI y Q
+assert all(ene05[k] > 0 for k in ("z_pl", "z_pi", "z_q", "z_pl_feb", "z_pi_feb", "z_q_feb"))
 nota_enso = f"""  <p class="nota">Color de las fechas, según el Índice Oceánico El Niño (ONI) de la NOAA ({CITA_ONI}):
   <span class="fase-nino">rojo</span>, el mes cae dentro de un episodio de El Niño;
   <span class="fase-nina">azul</span>, dentro de uno de La Niña; sin color, ninguno de los dos. Un episodio
@@ -945,6 +948,35 @@ fou_pico_corto_txt = (
     f"{fou_pico_corto['blanco_95']:.1f} %): no se distingue del azar. En la misma frecuencia, PI tiene el {fou_pico_corto['PI']:.1f} %, "
     f"Q el {fou_pico_corto['Q']:.1f} % y T el {fou_pico_corto['T']:.1f} %.")
 
+# qué se atenúa al retirar la climatología, y la comparación de PI con PL (cada afirmación protegida en 18)
+fou_atenua_txt = "; ".join(f"{v}, del {fou_estacional[v]:.1f} al {fou_estacional_anom[v]:.1f} %" for v in FOU_VENTANAS[_fc])
+_fc_pl, _fc_pi = fou_coh[(_fc, "PL", "ONI")], fou_coh[(_fc, "PI", "ONI")]
+if _fc_pi["signif"] and not _fc_pl["signif"]:
+    fou_fuentes_oni_txt = (f"Con el ONI, en la ventana común solo PI es coherente ({_fc_pi['coh']:.2f} contra un umbral de "
+                           f"{_fc_pi['umbral']:.2f}); PL queda por debajo ({_fc_pl['coh']:.2f} contra {_fc_pl['umbral']:.2f}).")
+elif _fc_pl["signif"] and not _fc_pi["signif"]:
+    fou_fuentes_oni_txt = (f"Con el ONI, en la ventana común solo PL es coherente ({_fc_pl['coh']:.2f} contra un umbral de "
+                           f"{_fc_pl['umbral']:.2f}); PI queda por debajo ({_fc_pi['coh']:.2f} contra {_fc_pi['umbral']:.2f}).")
+else:
+    fou_fuentes_oni_txt = (f"Con el ONI, en la ventana común las dos fuentes dan lo mismo: PL {_fc_pl['coh']:.2f} y PI "
+                           f"{_fc_pi['coh']:.2f}, {'las dos' if _fc_pl['signif'] else 'ninguna'} por encima del umbral.")
+
+# conclusión: las frases que dependen del resultado se redactan según el dato
+_fou_ruido_rojo_txt = (
+    "Ningún pico de las anomalías supera el ruido rojo de forma convincente"
+    + "".join(f": el único, el de {v} en {fou[(ven, v, 'anomalía sin tendencia')]['pico']:.0f} meses, cabe {c:.0f} veces en el registro"
+              + (" y solo aparece al quitar la tendencia" if v in _fou_signif_tend else "")
+              for (ven, v), c in fou_signif_ciclos.items())
+    + ".") if fou_significativos else "Ningún pico de las anomalías supera el ruido rojo."
+_fou_ext = "extendida 1981–2022"
+fou_conclusion_enso_txt = (
+    (f"Pero la coherencia muestra que, en el registro largo, la lluvia y el caudal varían en oposición con el ONI (PL*–ONI "
+     f"{fou_coh[(_fou_ext, 'PL*', 'ONI')]['coh']:.2f} y Q–ONI {fou_coh[(_fou_ext, 'Q', 'ONI')]['coh']:.2f}, ambas significativas): menos "
+     f"agua en El Niño. Además, el ONI y PL* tienen su pico en la misma escala, unos {fou_plx_ext['pico']:.0f} meses."
+     if _fou_ext_signif else
+     "Y la coherencia con el ONI, aunque va en oposición, no es significativa en todos los pares ni siquiera en el registro largo.")
+    + ("" if _fou_com_signif else " Con 25 años la señal está, pero no alcanza a separarse del ruido en todas las series."))
+
 # ventana extendida: en las originales no mueve el pico (protegido en 18); en las anomalías, se nombra dónde lo mueve
 fou_extendida_txt = (
     "En las anomalías sí cambia el pico de " + "; ".join(
@@ -1118,7 +1150,18 @@ a {{ color: var(--acento); }}
 </div>
 
 <section>
-  <h2>La cuenca y sus subcuencas</h2>
+  <h2>Contexto geográfico</h2>
+  <p>La cuenca del Fonce está en Santander, en el flanco occidental de la <b>cordillera Oriental</b> de Colombia, el
+  que mira al valle del Magdalena. El centroide de su polígono queda en {centroide_lat:.2f}° N,
+  {abs(centroide_lon):.2f}° W.</p>
+  <p><b>A sotavento de los alisios.</b> En las laderas que reciben los vientos alisios de frente, a barlovento, la
+  lluvia tiende a ser mucho mayor que en sus vecinas del lado opuesto, a sotavento: del orden del doble
+  ({CITA_MESA_P90}). Los alisios llegan del oriente, y la mayor parte de la cuenca está en el flanco occidental de la
+  cordillera, a sotavento. De ahí sale una hipótesis que este trabajo no comprueba: la vertiente oriental de la
+  cordillera, la que mira a los Llanos, debería recibir bastante más lluvia que el Fonce. La vecina inmediata al
+  oriente, la vertiente del Chicamocha, no sirve para compararla, porque también es interandina.</p>
+
+  <h3>La cuenca y sus subcuencas</h3>
   <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
   Las cinco estaciones aguas arriba dividen la cuenca en subcuencas de tamaños muy distintos: Mérida, sobre el mismo Fonce,
   drena casi toda la cuenca; Monchía y Mogoticos son pequeñas.</p>
@@ -1131,7 +1174,8 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p class="nota">Área y elevación: atributos de CAMELS-COL. Lluvia: promedio de los totales anuales de IMERG mensual (1998–2022) ponderado por área sobre cada subcuenca.</p>
+  <p class="nota">Área: la del polígono de cada cuenca, calculada por el proyecto (geodésica). Elevación: atributos de
+  CAMELS-COL. Lluvia: promedio de los totales anuales de IMERG mensual (1998–2022) ponderado por área sobre cada subcuenca.</p>
 </section>
 
 <section>
@@ -1227,14 +1271,10 @@ a {{ color: var(--acento); }}
   <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
   parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
 
-  <h3>Por qué pasa: el óptimo pluviográfico</h3>
-  <p>La lluvia no crece indefinidamente con la altura. En los valles interandinos colombianos hay una franja
-  donde es máxima, el <b>óptimo pluviográfico</b> ({CITA_POVEDA}), y por encima <b>disminuye</b>: las lluvias
-  tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el vapor que condensar.</p>
-
-  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m: <b>está entero por encima de esa franja</b>, y solo se ve
-  la rama descendente. De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a
-  las más altas ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>.</p>
+  <h3>La lluvia contra la altura</h3>
+  <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas
+  ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>. Por qué la lluvia
+  disminuye con la altura en esta cuenca se explica en «Explicaciones físicas» (el óptimo pluviográfico).</p>
 
   <div class="tabla-caja">
   <table>
@@ -1700,15 +1740,12 @@ a {{ color: var(--acento); }}
     PL {atip_z.loc[_F99, "PL"]:+.1f}). {"El caudal de ese mes sí fue atípico. " if feb99_q_atipico else ""}Es un evento
     extremo a tener en cuenta.</li>
     <li><b>Enero y febrero de 2005: la emergencia
-    invernal en Santander.</b> La Defensoría del Pueblo documentó una emergencia invernal en el primer bimestre de 2005,
-    con inundaciones en Santander, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón; según el
-    IDEAM, por cuatro frentes fríos del hemisferio norte, cuando lo normal en enero y febrero son uno o dos
-    ({CITA_DEFENSORIA}). En la cuenca, enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal
+    invernal en Santander.</b> En la cuenca, enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal
     en PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q, y febrero {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
     y {ene05["z_q_feb"]:+.1f}. Enero ({n(ene05["pl"])} mm de PL) era atípico antes de excluir el primer tramo de Pueblo
     Viejo, que medía {an_pv.razon_antes:.2f} veces lo de sus vecinos y bajaba los eneros de 1998 a 2004: el umbral pasó
-    de {n(ene05["umbral_antes"])} a {n(ene05["umbral_hoy"])} mm con el mismo valor del mes. El documento no nombra la
-    cuenca del Fonce, así que no se puede confirmar que sean las mismas lluvias.</li>
+    de {n(ene05["umbral_antes"])} a {n(ene05["umbral_hoy"])} mm con el mismo valor del mes. Qué pasó en la atmósfera
+    esos meses se explica en «Explicaciones físicas».</li>
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
@@ -2605,6 +2642,18 @@ a {{ color: var(--acento); }}
     pero la banda anual tiene solo el {fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} % de su varianza y la interanual, el
     {fou[(_fc, "T", "original")]["bandas"]["interanual"]:.0f} %: la temperatura varía más de un año a otro que dentro del año. Coincide
     con «Lo que solo se ve al quitar el ciclo anual», donde el ciclo explica solo el {corr_peso_ciclo['T ERA5']:.0f} % de la variación de T.</li>
+    <li{_cambio('Nuevo · lo que se atenúa al retirar la climatología')}><b>Al retirar la climatología, las bandas anual y
+    semianual se reducen a menos de una décima parte</b>: juntas pasan, de la serie original a la anomalía, {fou_atenua_txt}
+    de la varianza. Lo que queda se reparte entre la alta frecuencia y la banda interanual, que pesan más en proporción porque
+    el total se achica (ver la pestaña «anomalía» de la tabla).</li>
+    <li{_cambio('Nuevo · las dos fuentes de lluvia')}><b>PI y PL coinciden en el pico de 6 meses, pero no en la banda de 12</b>:
+    la semianual tiene el {fou_fuentes["PL"]["semianual"]:.1f} % de la varianza de PL y el {fou_fuentes["PI"]["semianual"]:.1f} % de la de
+    PI, pero la anual tiene el {fou_fuentes["PI"]["anual"]:.1f} % en PI y apenas el {fou_fuentes["PL"]["anual"]:.1f} % en PL. El satélite
+    ve un ciclo de 12 meses que los pluviómetros casi no tienen; coincide con «El régimen», donde el armónico de 12 meses explica el
+    {regimen["PI"]["var1"]:.0f} % de la forma del año típico de PI y el {regimen["PL"]["var1"]:.0f} % de la de PL. En las anomalías, en
+    cambio, las dos fuentes se reparten la varianza casi igual: ninguna banda difiere más de {fou_fuentes_anom_dif:.1f} puntos
+    porcentuales (alta frecuencia: {fou_fuentes_anom["PL"]["alta"]:.1f} % en PL y {fou_fuentes_anom["PI"]["alta"]:.1f} % en PI). {fou_fuentes_oni_txt}
+    No se puede decidir cuál fuente tiene la razón: por eso se llevan las dos.</li>
     <li{_cambio('Cambio de la revisión · remisión al desfase y persistencia')}><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el {fou_alta_q:.0f} % de la
     varianza de Q y el {fou_alta_lluvia:.0f} % de la lluvia (promedio de PL y PI). Es la misma memoria de la cuenca que
     muestran «Desfase estacional» (el río va {desfase["Q_PL"]:.0f} días detrás de PL) y la correlación cruzada (sin el ciclo
@@ -2732,6 +2781,30 @@ a {{ color: var(--acento); }}
   y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual») y, en la escala interanual, con el
   espectro cruzado (ver «¿Cuadra con el ENSO?»). La FFT con Hann se calcula en el tramo
   continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
+
+  <div{_cambio('Nuevo · conclusión')}>
+  <h3>Conclusión</h3>
+  <p>La variabilidad de la cuenca se concentra en dos escalas: <b>la semianual, que domina, y la interanual, que es débil pero
+  real</b>.</p>
+  <p><b>El pico de 6 meses es la señal más fuerte, y viene del clima regional.</b> Tiene el {fou_fuentes["PL"]["semianual"]:.1f} % de
+  la varianza de PL, el {fou_fuentes["PI"]["semianual"]:.1f} % de la de PI y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.1f} % de la
+  del caudal: es el doble paso de la ZCIT, que da dos temporadas de lluvias al año
+  ({CITA_MESA}; {CITA_POVEDA}). Es un período bien determinado: cabe {fou[(_fc, "PL", "original")]["ciclos"]:.0f} veces en el registro
+  y no se mueve con la ventana, con los vacíos de Q ni con el largo del registro. La temperatura es distinta: su ciclo anual
+  pesa poco ({fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} %), y la mayor parte de su variación es de un año a otro
+  ({fou[(_fc, "T", "original")]["bandas"]["interanual"]:.0f} %).</p>
+  <p><b>La cuenca funciona como un filtro: atenúa lo rápido y conserva lo lento.</b> En las anomalías, la alta frecuencia es el
+  {fou_alta_lluvia:.0f} % de la varianza de la lluvia y solo el {fou_alta_q:.0f} % de la del caudal; la autocorrelación de un mes es
+  {fou_phi["Q"]:.2f} en Q contra {min(fou_phi["PL"], fou_phi["PI"]):.2f}–{max(fou_phi["PL"], fou_phi["PI"]):.2f} en la lluvia, y en la
+  escala interanual el río va entre {fou_coh_q_rezago[0]:.1f} y {fou_coh_q_rezago[1]:.1f} meses detrás de la lluvia. Es el
+  almacenamiento en el suelo y el acuífero que ya mostraban el desfase estacional y la correlación cruzada.</p>
+  <p><b>La variabilidad interanual sigue al ENSO, pero no tiene un período fijo.</b> {_fou_ruido_rojo_txt}
+  {fou_conclusion_enso_txt} Es una banda amplia, de {FOU_INTERANUAL[0] / 12:.0f} a {FOU_INTERANUAL[1] / 12:.0f} años, no una
+  periodicidad.</p>
+  <p><b>La conclusión depende poco de la fuente de lluvia, salvo en el ciclo anual.</b> PI y PL coinciden en la escala semianual
+  y en las anomalías; difieren en la banda de 12 meses ({fou_fuentes["PI"]["anual"]:.1f} % contra {fou_fuentes["PL"]["anual"]:.1f} %),
+  que el satélite ve y los pluviómetros no. Con los datos no se puede arbitrar cuál tiene la razón.</p>
+  </div>
 </section>
 
 <section>
@@ -2843,6 +2916,48 @@ a {{ color: var(--acento); }}
   {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
   </div>
 </section>
+
+<section>
+  <h2>Explicaciones físicas</h2>
+  <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
+  literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
+  cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
+
+  <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
+  <p>La lluvia y el caudal de la cuenca tienen dos picos al año (ver «El régimen» en «El ciclo anual» y el pico de 6 meses
+  en «Frecuencias: análisis de Fourier»). La explicación está en la <b>Zona de Convergencia Intertropical (ZCIT)</b>, la
+  franja de lluvias que migra de norte a sur a lo largo del año. Según {CITA_MESA}, pasa por el interior de Colombia en
+  <b>septiembre, octubre y noviembre</b>.</p>
+  <p>El segundo pico cae en esa temporada: PL en {pico_pl[1]}, PI en {pico_pi[1]} y Q en {pico_q[1]}. El primero cae
+  en {pico_pl[0]} (PL), {pico_pi[0]} (PI) y {pico_q[0]} (Q). Correspondería al otro paso de la ZCIT, pero la fuente
+  consultada solo precisa la temporada de septiembre a noviembre.</p>
+
+  <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
+  <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
+  <b>óptimo pluviográfico</b>, que normalmente no pasa de {n(ALTURA_OPTIMO_M)} m, y por encima <b>disminuye</b>
+  ({CITA_MESA_P90}): las lluvias tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el
+  vapor que condensar.</p>
+  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
+  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). Salvo la parte más baja, cerca de San Gil, la
+  cuenca queda en la rama descendente: por eso llueve menos arriba, como se ve en «En esta cuenca llueve menos arriba»,
+  donde IMERG pierde unos {n(grad_caida)} mm/año de sus celdas más bajas a las más altas.</p>
+
+  <h3>Un episodio aparte: los frentes fríos de enero y febrero de 2005</h3>
+  <p>En el primer bimestre de 2005, la Defensoría del Pueblo documentó una emergencia invernal en Santander, Norte de
+  Santander, Tolima y Huila: inundaciones, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón. Según
+  el IDEAM, citado en el documento, las lluvias eran atípicas para la época y se debían a <b>cuatro frentes fríos del
+  hemisferio norte</b>, cuando entre enero y febrero lo normal son uno o dos ({CITA_DEFENSORIA}).</p>
+  <p><b>Qué es un frente frío.</b> El mismo documento lo explica (nota 2): las masas de aire casi no se mezclan, y el
+  frente es la línea en que la superficie que separa dos de ellas toca el suelo. En un frente frío, el aire frío avanza
+  sobre el cálido. Como es más denso, entra por debajo como una cuña, lo levanta y lo obliga a subir por la superficie
+  frontal; en ese ascenso se forman «abundantes nubes de desarrollo vertical», que son las que dan los aguaceros. La
+  Defensoría toma esa definición de una página web de divulgación, no de una publicación técnica.</p>
+  <p><b>Qué se vio en la cuenca.</b> Enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal en
+  PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
+  y {ene05["z_q_feb"]:+.1f} (ver «Revisión de outliers»). El documento no nombra la cuenca del Fonce, así que no se
+  puede confirmar que sean las mismas lluvias. Es un episodio de un bimestre, no un rasgo del clima de la cuenca.</p>
+</section>
+
 
 <section>
   <h2>Bibliografía</h2>

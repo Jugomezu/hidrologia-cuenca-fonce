@@ -177,6 +177,19 @@ elev_min, elev_media, elev_max = (float(_morfo[k]) for k in ("altura mínima", "
 elev_dif_max = max(abs(elev_min - sg["minimum_ele"]), abs(elev_max - sg["maximum_ele"]),
                    abs(elev_media - sg["mean_ele"]))
 
+# contexto geográfico: centroide del polígono de San Gil, calculado en EPSG:3116 (regla 13) y devuelto a grados
+_poligono_sg = gpd.read_file("out/shp_fonce/cuencas_fonce.shp").query("gauge_id == 24027010")
+_centroide_sg = _poligono_sg.to_crs(3116).centroid.to_crs(4326).iloc[0]
+centroide_lat, centroide_lon = float(_centroide_sg.y), float(_centroide_sg.x)
+
+# óptimo pluviográfico: según Mesa et al. (1997, p. 90), la lluvia máxima ocurre normalmente a no más de 1 500 m.
+# Qué parte de la cuenca queda por encima, leída de la curva hipsométrica del proyecto (13_morfometria.py)
+ALTURA_OPTIMO_M = 1500
+_hipso = pd.read_csv("out/curva_hipsometrica_fonce.csv")
+frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fraccion_area_encima))
+# el texto dice que la cuenca empieza por debajo de esa altura y que la mayor parte queda por encima
+assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
+
 # Encino con su tramo 2016-2018: solo para explicar por qué se excluyó, así que se lee la serie CRUDA
 pm_crudo = pd.read_csv("out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])
 enc = pm_crudo[pm_crudo.codigo == 24020040].set_index("fecha")["precipitacion_mm"]
@@ -907,6 +920,11 @@ def picos(serie):
 
 
 pico_pl, pico_q = picos(ciclo_lq.PL), picos(ciclo_lq.Q)
+pico_pi = picos(ciclo_lq.PI)
+# ZCIT: según Mesa et al. (1997), pasa por el interior de Colombia en septiembre, octubre y noviembre (SON).
+# El texto dice que el segundo pico de PL, PI y Q cae en esa temporada
+MESES_SON = ("septiembre", "octubre", "noviembre")
+assert all(p[1] in MESES_SON for p in (pico_pl, pico_pi, pico_q))
 _c = ajuste_lq.loc[("PL", "mes_y_anterior")]
 peso_mes_pl = _c.coef_mes / (_c.coef_mes + _c.coef_mes_anterior)      # parte que viene del mismo mes
 
@@ -2710,6 +2728,26 @@ assert all(fou_coh[(ven, a, b)]["signif"] for ven, a, b in fou_coh if b == "Q")
 # el texto dice que, con el ONI, Q responde con más rezago que la lluvia (en cada ventana)
 assert all(fou_corr_oni[(ven, "Q")]["rezago"] > max(r["rezago"] for (v2, x), r in fou_corr_oni.items() if v2 == ven and x != "Q")
            for ven in ("común 1998–2022", "extendida 1981–2022"))
+# qué se atenúa al retirar la climatología: las bandas anual y semianual juntas, en la serie original y en la anomalía
+fou_estacional_anom = {v: fou[(_com, v, "anomalía")]["bandas"]["anual"] + fou[(_com, v, "anomalía")]["bandas"]["semianual"]
+                       for v in FOU_VENTANAS[_com]}
+# el texto dice que se reducen a menos de una décima parte en las cuatro variables
+assert all(fou_estacional_anom[v] < fou_estacional[v] / 10 for v in FOU_VENTANAS[_com])
+# comparación de las dos fuentes de lluvia (regla 11): coinciden en el pico de 6 meses, no en la banda de 12
+fou_fuentes = {v: fou[(_com, v, "original")]["bandas"] for v in ("PL", "PI")}
+fou_fuentes_anom = {v: fou[(_com, v, "anomalía")]["bandas"] for v in ("PL", "PI")}
+# el texto dice que la banda anual de PI es varias veces la de PL (más del triple) y que coincide con «El régimen»
+assert fou_fuentes["PI"]["anual"] > 3 * fou_fuentes["PL"]["anual"]
+assert regimen["PI"]["var1"] > regimen["PL"]["var1"]
+# el texto dice que en las anomalías el reparto de las dos fuentes difiere menos de FOU_TENDENCIA_MAX_PUNTOS puntos por
+# banda (el mismo criterio de «casi no cambia» de la sección)
+fou_fuentes_anom_dif = max(abs(fou_fuentes_anom["PL"][b] - fou_fuentes_anom["PI"][b]) for b in fou_fuentes_anom["PL"])
+assert fou_fuentes_anom_dif < FOU_TENDENCIA_MAX_PUNTOS
+# el texto dice que las dos fuentes tienen el pico más alto de la serie original en 6 meses (ya protegido arriba)
+# la conclusión dice que el pico de 6 meses de la serie original de PL, PI y Q no se mueve con la ventana (Hann contra
+# Welch, o Lomb por segmentos en Q), con los vacíos de Q ni con el largo del registro (este último, protegido arriba)
+assert all(fou_sens[v]["hann_welch_estable"] for v in ("PL", "PI", "Q"))
+assert not fou_vacios["original"]["mueve"]
 # el texto dice que el pico corto de PL no se distingue del ruido blanco
 assert fou_pico_corto["PL"] < fou_pico_corto["blanco_95"]
 

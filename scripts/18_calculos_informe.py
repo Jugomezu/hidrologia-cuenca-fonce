@@ -3167,11 +3167,13 @@ assert (PERIODOS == _t_campo).all()
 _anom_cuenca = {k: _anomalia_mensual(v.to_numpy(dtype=float), PERIODOS.month.to_numpy()) for k, v in _cuenca.items()}
 
 corr_resultados = {}          # (cuenca, campo, ℓ) -> {"r_p", "r_s", "n"} con forma (13, lat, lon); índice 12 = todos
+_campo_desplazado = {}        # (campo, ℓ) -> anomalías del campo desplazadas; las usa la robustez de los mapas
 for _campo, _rezagos in CORR_REZAGOS.items():
     for _l in _rezagos:
         # campo desplazado: en la posición t queda el campo de t − ℓ (vacío si cae antes de 1998-01)
         _Y = np.full_like(_anom_campo[_campo], np.nan)
         _Y[_l:] = _anom_campo[_campo][:len(_t_campo) - _l]
+        _campo_desplazado[(_campo, _l)] = _Y
         if _l == 1:      # comprobación del cambio de año: enero de 2000 queda con diciembre de 1999
             _k = PERIODOS.get_loc(pd.Period("2000-01", "M"))
             assert np.array_equal(_Y[_k], _anom_campo[_campo][PERIODOS.get_loc(pd.Period("1999-12", "M"))], equal_nan=True)
@@ -3237,15 +3239,141 @@ _n34 = corr_nino34[("PL", 0)][:12]
 assert min(_n34) < -0.4                                   # algún mes con relación inversa clara con Niño 3.4
 assert corr_nino34[("PL", 1)][12] < 0 and corr_nino34[("PL", 0)][12] < 0
 
+# ---------------------------------------------------------------- robustez de los mapas de correlación (Punto 5.3)
+# Con unos 25 años por mes, una correlación pequeña puede salir por azar, y cada mapa tiene miles de cajas. Tres pasos:
+# (1) Significancia local. Prueba t de la correlación, t = r·√((n − 2)/(1 − r²)) con n − 2 grados de libertad, a dos
+#     colas, con el n de cada caja. Supone años independientes: con un mes fijo, dos datos seguidos están separados
+#     12 meses. Para Spearman se usa la misma aproximación.
+# (2) Pruebas múltiples. Con p < CORR_ALFA_LOCAL, cerca del 5 % de las cajas de un mapa saldrían significativas aunque
+#     no hubiera ninguna relación. Se controla la tasa de falsos descubrimientos (FDR) con Benjamini y Hochberg (1995),
+#     la misma función de las tendencias. Decisiones del usuario (2026-10-09): la familia de pruebas es cada panel (una
+#     combinación y un mes), con sus cajas dibujables (n mínimo, 60° S-60° N); y CORR_Q_FDR = 0.10, más laxo que el de
+#     las tendencias porque las cajas vecinas están correlacionadas entre sí y con 0.05 la corrección pierde potencia.
+#     Un panel es significativo como campo si al menos una caja sobrevive al FDR.
+#     En «todos los meses juntos» (índice 12) p y q se calculan igual, pero NO son válidos: la prueba supone datos
+#     independientes, y las anomalías de meses seguidos se parecen (persistencia), así que el n efectivo es mucho menor
+#     que los ~300 pares. No se usan en el informe ni en los mapas.
+# (3) Peso de los años extremos (El Niño y La Niña). Se repite Pearson quitando un año a la vez (jackknife, decisión
+#     del usuario: no exige definir qué es un año fuerte), solo en los 12 meses (no en «todos los meses juntos»). Para
+#     cada panel: cuánto se mueve la correlación media de Niño 3.4 y qué año la mueve más, y cuántas de las cajas que
+#     sobreviven al FDR siguen sobreviviendo (con el FDR repetido) en las 25 versiones sin un año.
+CORR_ALFA_LOCAL = 0.05
+CORR_Q_FDR = 0.10
+CORR_LAT_MAX = 60                  # el dominio de los mapas
+NOMBRE_METODO_CORR = {"p": "Pearson", "s": "Spearman"}
+
+
+def _p_correlacion(r, n):
+    """p-valor a dos colas de la prueba t de una correlación r con n pares (NaN si n < 3)."""
+    with np.errstate(invalid="ignore", divide="ignore"):
+        t = r * np.sqrt((n - 2) / (1 - r ** 2))
+        return np.where(n >= 3, 2 * stats.t.sf(np.abs(t), n - 2), np.nan)
+
+
+def _pearson_enmascarado(x, Y):
+    """Pearson de x (años) contra cada columna de Y, con los pares válidos de cada columna; más rápido que
+    _correlacion porque no calcula Spearman. Devuelve r y n."""
+    ok = np.isfinite(x)[:, None] & np.isfinite(Y)
+    n = ok.sum(axis=0)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        mx = np.where(ok, x[:, None], 0.0).sum(axis=0) / n
+        my = np.where(ok, Y, 0.0).sum(axis=0) / n
+        xc = np.where(ok, x[:, None] - mx, 0.0)
+        yc = np.where(ok, Y - my, 0.0)
+        r = (xc * yc).sum(axis=0) / np.sqrt((xc ** 2).sum(axis=0) * (yc ** 2).sum(axis=0))
+    return np.where(n >= 3, r, np.nan), n
+
+
+def _fdr_panel(p, dibujable):
+    """Benjamini-Hochberg sobre las cajas dibujables de un panel con p definido; q es NaN en las demás. El p puede
+    faltar en una caja dibujable cuando, al quitar un año, el campo queda constante (el hielo marino en la SST): un
+    solo NaN dentro de _benjamini_hochberg volvería NaN todo el panel."""
+    q = np.full(p.shape, np.nan)
+    validas = dibujable & np.isfinite(p)
+    if validas.any():
+        q[validas] = _benjamini_hochberg(p[validas])
+    return q
+
+
+_en_dominio = (np.abs(_lat_c) <= CORR_LAT_MAX)[:, None] & np.ones(_forma, dtype=bool)
+corr_significancia = []
+for (_v, _campo, _l), _d in corr_resultados.items():
+    _dib = (_d["n"] >= CORR_N_MINIMO) & _en_dominio[None] & np.isfinite(_d["r_p"])
+    _d["dibujable"] = _dib
+    for _m in ("p", "s"):
+        _d[f"p_{_m}"] = _p_correlacion(_d[f"r_{_m}"], _d["n"])
+        _d[f"q_{_m}"] = np.stack([_fdr_panel(_d[f"p_{_m}"][k], _dib[k]) for k in range(13)])
+        for k in range(13):
+            _sobrevive = _d[f"q_{_m}"][k] < CORR_Q_FDR
+            corr_significancia.append({
+                "cuenca": _v, "campo": _campo, "rezago": _l, "metodo": NOMBRE_METODO_CORR[_m], "mes": k + 1,
+                "cajas": int(_dib[k].sum()),
+                "pct_p_local": float((_d[f"p_{_m}"][k][_dib[k]] < CORR_ALFA_LOCAL).mean() * 100),
+                "cajas_fdr": int(_sobrevive.sum()),
+                "r_abs_min_fdr": float(np.abs(_d[f"r_{_m}"][k][_sobrevive]).min()) if _sobrevive.any() else np.nan})
+corr_significancia = pd.DataFrame(corr_significancia)
+# comprobación: la versión rápida de Pearson da lo mismo que _correlacion
+_chk = corr_resultados[("Q", "sst", 0)]
+_sel = PERIODOS.month.to_numpy() == 1
+_r_chk, _n_chk = _pearson_enmascarado(_anom_cuenca["Q"][_sel], _campo_desplazado[("sst", 0)][_sel])
+assert np.allclose(_r_chk, _chk["r_p"][0].ravel(), equal_nan=True, atol=1e-9)
+assert np.array_equal(_n_chk, _chk["n"][0].ravel())
+# comprobación del FDR: ninguna caja sobrevive con un p mayor que el umbral sin corregir
+assert all((_d["p_p"][_d["q_p"] < CORR_Q_FDR] < CORR_Q_FDR).all() for _d in corr_resultados.values())
+
+# (3) quitar un año a la vez
+_anios_mes = PERIODOS.year.to_numpy()
+_w34_plano = _w34.ravel()
+corr_jackknife = []
+for (_v, _campo, _l), _d in corr_resultados.items():
+    _d["robusta"] = np.zeros((13, *_forma), dtype=bool)          # solo los 12 meses; el índice 12 queda en falso
+    for _j in range(1, 13):
+        _sel = PERIODOS.month.to_numpy() == _j
+        _x, _Y, _anios = _anom_cuenca[_v][_sel], _campo_desplazado[(_campo, _l)][_sel], _anios_mes[_sel]
+        _dib = _d["dibujable"][_j - 1].ravel()
+        _fdr = (_d["q_p"][_j - 1] < CORR_Q_FDR).ravel()
+        _sigue = _fdr.copy()                       # sigue sobreviviendo al FDR en todas las versiones sin un año
+        _n34, _pierde = [], []
+        for _a in _anios:
+            _x_sin = np.where(_anios == _a, np.nan, _x)
+            _r, _n = _pearson_enmascarado(_x_sin, _Y)
+            _n34.append(float(np.nansum(_r * _w34_plano) / _w34_plano.sum()))
+            _q = _fdr_panel(_p_correlacion(_r, _n), _dib)
+            _sobrevive = (_q < CORR_Q_FDR) & (np.sign(_r) == np.sign(_d["r_p"][_j - 1].ravel()))
+            _pierde.append(int((_fdr & ~_sobrevive).sum()))
+            if not np.isfinite(_x[_anios == _a]).any():      # quitar un año sin dato de la cuenca no cambia nada
+                assert _pierde[-1] == 0
+            _sigue &= _sobrevive
+        _d["robusta"][_j - 1] = _sigue.reshape(_forma)
+        _n34_todos = corr_nino34[(_v, _l)][_j - 1] if _campo == "sst" else np.nan
+        _k_n34 = int(np.argmax(np.abs(np.array(_n34) - _n34_todos))) if _campo == "sst" else None
+        corr_jackknife.append({
+            "cuenca": _v, "campo": _campo, "rezago": _l, "mes": _j,
+            "nino34_r": _n34_todos,
+            "nino34_r_min": min(_n34) if _campo == "sst" else np.nan,
+            "nino34_r_max": max(_n34) if _campo == "sst" else np.nan,
+            "nino34_anio_mas_influyente": int(_anios[_k_n34]) if _campo == "sst" else np.nan,
+            "cajas_fdr": int(_fdr.sum()), "cajas_fdr_robustas": int(_sigue.sum()),
+            "anio_que_mas_quita": int(_anios[int(np.argmax(_pierde))]) if _fdr.any() else np.nan,
+            "cajas_que_quita": max(_pierde) if _fdr.any() else 0})
+corr_jackknife = pd.DataFrame(corr_jackknife)
+# ¿algún panel de Niño 3.4 cambia de signo al quitar un año?
+corr_jackknife["nino34_cambia_signo"] = np.sign(corr_jackknife.nino34_r_min) != np.sign(corr_jackknife.nino34_r_max)
+corr_significancia.to_csv("out/correlaciones_campos_significancia.csv", index=False, float_format="%.4f")
+corr_jackknife.to_csv("out/correlaciones_campos_jackknife.csv", index=False, float_format="%.4f")
+
 # se guardan para los mapas (scripts/21_mapas_correlacion.py)
 _vars = {}
 for (_v, _campo, _l), _d in corr_resultados.items():
     for _k, _a in _d.items():
-        _vars[f"{_k}__{_v}__{_campo}__l{_l}"] = (("mes", "lat", "lon"), _a.astype("float32"))
+        if _k != "dibujable":
+            _vars[f"{_k}__{_v}__{_campo}__l{_l}"] = (("mes", "lat", "lon"), _a.astype("float32"))
 _salida = xr.Dataset(_vars, coords={"mes": np.arange(1, 14), "lat": _cc.lat.values, "lon": _cc.lon.values})
 _salida.attrs = {"descripcion": "Correlación, a través de los años, de la anomalía de la cuenca en el mes j con la "
                  "anomalía del campo ℓ meses antes; mes 13 = todos los meses juntos. r_p: Pearson; r_s: Spearman; "
-                 "n: pares válidos. Anomalías respecto a la media de cada mes en 1998-2022.",
-                 "n_minimo": CORR_N_MINIMO, "generado_por": "scripts/18_calculos_informe.py"}
+                 "n: pares válidos; p_p, p_s: p-valor local (prueba t); q_p, q_s: q-valor de Benjamini-Hochberg por panel; "
+                 "robusta: 1 si la caja sobrevive al FDR (Pearson) en las 25 versiones sin un año. Anomalías respecto a "
+                 "la media de cada mes en 1998-2022.",
+                 "n_minimo": CORR_N_MINIMO, "q_fdr": CORR_Q_FDR, "generado_por": "scripts/18_calculos_informe.py"}
 _salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
 _cc.close()

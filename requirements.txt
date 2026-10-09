@@ -24,3 +24,5 @@ pysheds==0.5        # 15_cauce_desde_dem.py: direcciones de flujo y acumulación
 requests==2.32.3    # descargas
 truststore==0.10.4  # descargas: usa los certificados del sistema operativo
 earthengine-api==1.7.45   # 06_era5land_temperatura.py (necesita cuenta de Google Earth Engine)
+xarray==2026.9.0    # 18, 19, 20 y 21: los campos climáticos y las correlaciones en NetCDF (faltaba en la lista)
+netCDF4==1.7.4      # lectura y escritura de los .nc con compresión (faltaba en la lista)

@@ -1,0 +1,13 @@
+codigo,clase,grupo,area_km2,porcentaje
+21,Mosaico de agricultura o pasto,Área agropecuaria,1082.6890,51.5852
+3,Bosque,Formación boscosa,758.9853,36.1622
+81,Herbazales o arbustales andinos,Formación natural no boscosa,207.9691,9.9088
+13,Otra formación natural no forestal,Formación natural no boscosa,40.5856,1.9337
+33,"Río, lago u océano",Cuerpo de agua,2.4647,0.1174
+9,Silvicultura,Área agropecuaria,1.8451,0.0879
+24,Infraestructura urbana,Área sin vegetación,1.8446,0.0879
+25,Otra área sin vegetación,Área sin vegetación,1.4697,0.0700
+82,Herbazales o arbustales andinos inundables,Formación natural no boscosa,0.7016,0.0334
+30,Minería,Área sin vegetación,0.1884,0.0090
+23,"Playas, dunas y bancos de arena",Área sin vegetación,0.0533,0.0025
+11,Formación natural no forestal inundable,Formación natural no boscosa,0.0409,0.0019

@@ -23,6 +23,7 @@ Los DOI y versiones se verificaron contra la fuente autoritativa (API de Zenodo,
 | Copernicus DEM GLO-90 (relieve del mapa de ubicacion) | no verificado (ver seccion) | no verificada (ver seccion) | 2026-10-09, copia publica en Amazon S3 |
 | Natural Earth 1:10 m, limites de paises y departamentos (v5.1.1) | sin DOI | no verificada (ver seccion) | 2026-10-09, copia oficial en Amazon S3 |
 | Mapa Geologico de Colombia 2023, escala 1:1 500 000 (SGC) | sin DOI | no verificada (ver seccion) | 2026-10-09, sitio del SGC |
+| MapBiomas Colombia coleccion 3, cobertura 2022 | sin DOI | publica con cita de la fuente (ver seccion) | 2026-10-09, copia publica en Google Cloud Storage |
 
 ---
 
@@ -897,6 +898,30 @@ propios (ver la seccion siguiente).
   "plutonic_rock_perc" es el area sedimentaria del SGC), y su columna volcanoclastica repite la volcanica en las
   346 cuencas del archivo. `scripts/18_calculos_informe.py` comprueba esa correspondencia con `assert`.
 - **Uso:** la geologia del informe (tabla y Figura 5).
+
+
+## MapBiomas Colombia, coleccion 3: cobertura y uso del suelo 2022
+
+- **Producto:** mapa anual de cobertura y uso del suelo de MapBiomas Colombia, coleccion 3.0, ano 2022. GeoTIFF
+  en EPSG:4326 con celdas de 0.000269° (unos 30 m), organizado en bloques de 512 x 512, valor 0 = sin dato.
+- **Fuente:** copia publica en Google Cloud Storage, sin cuenta:
+  `https://storage.googleapis.com/mapbiomas-public/initiatives/colombia/collection_3/coverage/colombia_coverage_2022.tif`
+  (114 MB el pais entero; se lee solo la ventana de la cuenca).
+- **Leyenda:** los codigos de las clases se copiaron de la hoja "LEYENDA" de
+  `statistics_for_website_mb_colombia_transision_col3.xlsx` (misma copia publica,
+  `.../collection_3/statistics/`). El encabezado de esa hoja dice "coleccion 2", pero el archivo es de la
+  coleccion 3 e incluye las clases andinas (81 y 82) que aparecen en la cuenca. Algunos colores de la leyenda vienen
+  con codigos hexadecimales incompletos; en el mapa se reemplazaron por colores parecidos.
+- **Licencia y cita:** segun la hoja "READ_ME" del archivo de estadisticas, los datos son publicos y gratuitos con
+  la cita: "Fundacion Gaia Amazonas (2025). Proyecto MapBiomas Colombia Coleccion 3.0 - Mapeo Anual de Cobertura y
+  Uso del Suelo, recuperado en [FECHA] a traves del enlace [LINK]".
+- **Descargado:** 2026-10-09, con `scripts/03d_coberturas_mapbiomas.py` (lee la ventana solo si no existe en `data/`).
+- **Destino local:** `data/mapbiomas/colombia_coverage_2022_fonce.tif` (en git), la ventana tal como se lee.
+- **SHA-256:** `colombia_coverage_2022_fonce.tif`: `22957c058c523283b40fbc14526b1758e5804dbb45e62ad00c4bd11e7508e58f`
+- **Transformaciones:** una celda entra si su centro cae en el poligono de San Gil del proyecto; area de cada celda
+  en el elipsoide WGS84. Productos: `out/coberturas_mapbiomas_fonce_2022.csv` y `reporte/figuras/mapa_coberturas.png`.
+- **Uso:** las coberturas del informe (tabla y Figura 6). CAMELS-COL usa la coleccion 2 sobre su propio poligono;
+  el informe compara las dos por grupo.
 
 ## Area de la cuenca (decidido el 2026-09-27)
 

@@ -206,10 +206,17 @@ def _atributos_san_gil(archivo, nombres):
     fila = tabla[tabla.gauge_id == 24027010].iloc[0]   # en el archivo 11 el código viene como 24027010.00
     return pd.Series({nombre: float(fila[col]) for col, nombre in nombres.items()})
 
-coberturas = _atributos_san_gil("06_CAMELS_COL_Land_cover_characteristics.csv", {
+# Las coberturas del informe NO son estas: son las de MapBiomas 2022 recortadas por el proyecto (más abajo).
+# Las de CAMELS-COL se leen solo para compararlas, por grupo.
+coberturas_camels = _atributos_san_gil("06_CAMELS_COL_Land_cover_characteristics.csv", {
     "agricul_livestock_perc": "Agropecuario", "forest_perc": "Bosque",
     "nat_non_forest_form_perc": "Formación natural no boscosa", "non_vegeted_perc": "Área sin vegetación",
     "water_bodies_perc": "Cuerpos de agua", "non_identi_land_perc": "No identificada"})
+# los grupos de nivel 1 de MapBiomas con que se compara cada columna de CAMELS-COL
+COBERTURA_CAMELS_A_GRUPO = {"Agropecuario": "Área agropecuaria", "Bosque": "Formación boscosa",
+                            "Formación natural no boscosa": "Formación natural no boscosa",
+                            "Área sin vegetación": "Área sin vegetación", "Cuerpos de agua": "Cuerpo de agua",
+                            "No identificada": "No observado"}
 suelos = _atributos_san_gil("07_CAMELS_COL_Soil_characteristics.csv", {
     "inceptisols_perc": "Inceptisoles", "andisols_perc": "Andisoles", "entisols_perc": "Entisoles",
     "mollisols_perc": "Molisoles", "alfisols_perc": "Alfisoles", "rocky_misce_perc": "Misceláneo rocoso",
@@ -227,14 +234,31 @@ capacidad_uso = _atributos_san_gil("11_CAMELS_COL_Land_use_capability.csv", {
 sg_area_camels = float(_atributos_san_gil("10_CAMELS_COL_Physiograpic_characteristics.csv", {"area": "área"}).iloc[0])
 
 # Cada grupo debe cubrir la cuenca entera (100 % con tolerancia de redondeo)
-for _nombre, _serie in {"coberturas": coberturas, "suelos": suelos, "capacidad de uso": capacidad_uso}.items():
+for _nombre, _serie in {"coberturas de CAMELS-COL": coberturas_camels, "suelos": suelos,
+                        "capacidad de uso": capacidad_uso}.items():
     assert abs(_serie.sum() - 100) < 0.1, f"{_nombre} de San Gil no suma 100 %: {_serie.sum():.2f}"
 # Solo se muestran las categorías presentes en San Gil, de mayor a menor
-coberturas, suelos, capacidad_uso = (s[s > 0].sort_values(ascending=False)
-                                     for s in (coberturas, suelos, capacidad_uso))
+suelos, capacidad_uso = (s[s > 0].sort_values(ascending=False) for s in (suelos, capacidad_uso))
 # Para el texto: la parte de la cuenca en las dos clases de capacidad de uso con más limitaciones (7 y 8)
 uso_clases_7_8 = float(capacidad_uso[["Clase 7", "Clase 8"]].sum())
 assert uso_clases_7_8 > 50      # el texto dice que son la mayor parte de la cuenca
+
+# ---------------------------------------------------------------- coberturas (MapBiomas 2022, recortadas por el proyecto)
+# scripts/03d_coberturas_mapbiomas.py lee MapBiomas Colombia colección 3, año 2022 (decisión del usuario: un solo
+# año), cuenta las celdas de 30 m cuyo centro cae en el polígono del proyecto y mide su área en el elipsoide.
+coberturas = pd.read_csv("out/coberturas_mapbiomas_fonce_2022.csv")
+assert abs(coberturas.porcentaje.sum() - 100) < 0.01
+cob_grupos = coberturas.groupby("grupo")["porcentaje"].sum().sort_values(ascending=False)
+cob_agro, cob_bosque = float(cob_grupos["Área agropecuaria"]), float(cob_grupos["Formación boscosa"])
+cob_natural = float(cob_grupos["Formación natural no boscosa"])
+assert cob_grupos.index[0] == "Área agropecuaria"      # el texto dice que es la cobertura más extendida
+# y que las formaciones naturales no boscosas son sobre todo herbazales y arbustales andinos
+assert float(coberturas.set_index("clase").loc["Herbazales o arbustales andinos", "porcentaje"]) > cob_natural / 2
+# comparación por grupo con lo que publica CAMELS-COL (colección 2, su polígono)
+cob_comparacion = pd.DataFrame({"camels": coberturas_camels.rename(COBERTURA_CAMELS_A_GRUPO)})
+cob_comparacion["proyecto"] = cob_grupos.reindex(cob_comparacion.index).fillna(0)
+cob_comparacion = cob_comparacion[(cob_comparacion.camels > 0) | (cob_comparacion.proyecto > 0)]
+cob_dif_max = float((cob_comparacion.proyecto - cob_comparacion.camels).abs().max())
 
 # ---------------------------------------------------------------- geología (SGC, recortada por el proyecto)
 # scripts/03c_geologia_sgc.py recorta el Mapa Geológico de Colombia 2023 (SGC, 1:1 500 000) con el polígono

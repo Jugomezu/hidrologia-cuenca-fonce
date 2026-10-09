@@ -126,7 +126,16 @@ def _filas_superficie(grupo, serie):
     return "\n".join(f"<tr>{c}</tr>" for c in celdas)
 
 filas_superficie = "\n".join(_filas_superficie(g, s) for g, s in [
-    ("Coberturas", coberturas), ("Suelos (órdenes)", suelos), ("Capacidad de uso", capacidad_uso)])
+    ("Suelos (órdenes)", suelos), ("Capacidad de uso", capacidad_uso)])
+# coberturas de MapBiomas 2022: una fila por clase, con su grupo; las menores de 0.01 % se marcan así
+filas_coberturas = "\n".join(
+    f"<tr><td>{html.escape(c.grupo)}</td><td>{html.escape(c.clase)}</td>"
+    f"<td class='num'>{c.porcentaje:.2f}</td></tr>" if c.porcentaje >= 0.005 else
+    f"<tr><td>{html.escape(c.grupo)}</td><td>{html.escape(c.clase)}</td><td class='num'>&lt; 0.01</td></tr>"
+    for c in coberturas.itertuples())
+filas_cob_camels = "\n".join(
+    f"<tr><td>{html.escape(g)}</td><td class='num'>{f.proyecto:.2f}</td><td class='num'>{f.camels:.2f}</td></tr>"
+    for g, f in cob_comparacion.iterrows())
 # geología del SGC: una fila por unidad, con su grupo litológico
 filas_geologia = "\n".join(
     f"<tr><td class='cod'>{html.escape(u.simbolo)}</td><td>{html.escape(u.grupo)}</td>"
@@ -1799,9 +1808,45 @@ a {{ color: var(--acento); }}
   </table>
   </div>
 
-  <h3>Coberturas y suelos</h3>
-  <p>Para las coberturas, los suelos y la capacidad de uso, el proyecto todavía no tiene mapas propios: las cifras
-  son los atributos que publica CAMELS-COL para San Gil ({CITA_JIMENEZ}), calculados sobre su polígono de la cuenca.</p>
+  <h3>Coberturas</h3>
+  <p>Las coberturas salen del mapa de 2022 de MapBiomas Colombia (colección 3), recortado con el polígono del
+  proyecto. La más extendida es el área agropecuaria ({cob_agro:.1f} %, casi toda «mosaico de agricultura o
+  pasto»), seguida del bosque ({cob_bosque:.1f} %) y de las formaciones naturales no boscosas ({cob_natural:.1f} %),
+  sobre todo herbazales y arbustales andinos.</p>
+  <figure>
+    <div class="placa"><img src="{img('mapa_coberturas.png')}" alt="Mapa de coberturas de 2022 de la cuenca del Fonce hasta San Gil, con el mosaico de agricultura o pasto, el bosque, los herbazales andinos y las demás clases de MapBiomas" width="1800" height="1520"></div>
+    <figcaption>
+      <h3>Figura 6 · Coberturas de la cuenca en 2022</h3>
+      <p>Cada color es una clase de MapBiomas; la leyenda da el porcentaje de la cuenca que ocupa.</p>
+      <dl class="lista-datos">
+        <dt>Fuente</dt><dd>MapBiomas Colombia, colección 3, año 2022: clasificación de imágenes Landsat, celdas de 30 m</dd>
+        <dt>Recorte</dt><dd>celdas cuyo centro cae dentro del polígono del proyecto</dd>
+        <dt>Áreas</dt><dd>de cada celda, medida en el elipsoide WGS84</dd>
+      </dl>
+    </figcaption>
+  </figure>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Grupo</th><th>Clase</th><th class="num">% del área</th></tr></thead>
+    <tbody>
+{filas_coberturas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">CAMELS-COL publica las coberturas de la colección 2, sobre su polígono. Por grupo, la diferencia
+  mayor con el cálculo del proyecto es de {cob_dif_max:.1f} puntos:</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Grupo</th><th class="num">Proyecto, colección 3 (%)</th><th class="num">CAMELS-COL, colección 2 (%)</th></tr></thead>
+    <tbody>
+{filas_cob_camels}
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Suelos y capacidad de uso</h3>
+  <p>Para los suelos y la capacidad de uso, el proyecto no tiene mapas propios: las cifras son los atributos que
+  publica CAMELS-COL para San Gil ({CITA_JIMENEZ}), calculados sobre su polígono de la cuenca.</p>
   <div class="tabla-caja">
   <table>
     <thead><tr><th>Grupo</th><th>Categoría</th><th class="num">% del área</th></tr></thead>
@@ -1811,7 +1856,6 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   <dl class="lista-datos">
-    <dt>Coberturas</dt><dd>MapBiomas Colombia, colección 2, año 2022: clasificación de mosaicos Landsat, celdas de 30 m</dd>
     <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
     <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
   </dl>
@@ -1826,13 +1870,14 @@ a {{ color: var(--acento); }}
     {suelos[["Inceptisoles", "Andisoles", "Entisoles"]].sum():.1f} % de la cuenca, y el {uso_clases_7_8:.1f} % está en
     las clases 7 y 8 de capacidad de uso, las de mayores limitaciones. Los mapas no dicen cuánta agua retiene cada
     suelo, así que no permiten medir el almacenamiento: solo lo describen.</li>
-    <li><b>La cobertura.</b> El {coberturas["Agropecuario"]:.1f} % de la cuenca es agropecuario y el
-    {coberturas["Bosque"]:.1f} %, bosque. Es una foto de 2022: no dice cómo era la cuenca en 1998 ni si cambió, así que
+    <li><b>La cobertura.</b> El {cob_agro:.1f} % de la cuenca es agropecuario y el {cob_bosque:.1f} %, bosque. Es
+    una foto de 2022: no dice cómo era la cuenca en 1998 ni si cambió, así que
     no sirve para poner a prueba los «cambios de cobertura» que podrían refutar la hipótesis H.</li>
   </ul>
   <p class="nota">Limitaciones. El mapa geológico, a escala 1:1 500 000, solo distingue unidades grandes. Las
-  coberturas y los suelos se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²), no sobre el del
-  proyecto ({n(sg['area'], 2)} km²), y las coberturas son de un solo año.</p>
+  coberturas son de un solo año y salen de una clasificación automática de imágenes. Los suelos y la capacidad de
+  uso se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²), no sobre el del proyecto
+  ({n(sg['area'], 2)} km²).</p>
 </section>
 
 <section>

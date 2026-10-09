@@ -13,6 +13,7 @@ Las figuras fijas de reporte/figuras/ las hacen 08, 09, 10 y 14.
 """
 import geopandas as gpd
 from pyproj import Geod
+from itertools import combinations
 from pathlib import Path
 from scipy import stats
 from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
@@ -2524,8 +2525,11 @@ inc_fdr72_pierden = {v: sorted(set(inc_fdr[v]["ols"]) - set(inc_fdr[v]["ols72"])
 TEND_VENTANA_MIN_ANIOS = 20
 
 
-def _pend_ventana(v, anio_ini, anio_fin):
+def _pend_ventana(v, anio_ini, anio_fin, anio_fuera=None):
+    """Pendiente OLS de X por década entre dos años; con anio_fuera, sin los meses de ese año (ver (1c))."""
     x = largo[v].loc[f"{anio_ini}-01":f"{anio_fin}-12"].dropna()
+    if anio_fuera is not None:
+        x = x[x.index.year != anio_fuera]
     t = _t_decimal(x.index)
     ind = (np.asarray(x.index.month)[:, None] == np.arange(1, 13)[None, :]).astype(float)
     b, _, se_hac, p_hac, _ = _ols_completo(x.to_numpy(), np.column_stack([t, ind]))
@@ -2554,6 +2558,42 @@ for _v in LARGO_VARS:
 # significativos en ninguna y cambian de signo según la ventana
 assert all(not tend_ventanas[t]["cambia_signo"] and tend_ventanas[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
 assert all(tend_ventanas[v]["n_sig"] == 0 and tend_ventanas[v]["cambia_signo"] for v in ("PL*", "Q"))
+
+# (1c) Sensibilidad a años extremos (decidido por el usuario el 2026-10-09). Con el mismo método de la tabla resumen,
+# sobre el registro completo de cada variable, se quita un año calendario completo a la vez (sus 12 meses) y se
+# recalcula la pendiente. Se informa el rango de pendientes, cuántas versiones son significativas, si alguna cambia
+# de signo y qué año mueve más la pendiente: el de mayor cambio absoluto frente a la del registro completo. Para ese
+# año se cuentan sus meses en El Niño y en La Niña según el ONI (scripts/17), como en «Anomalías»; no se clasifica
+# el año con un umbral.
+_fase_largo = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_fase_largo = _fase_largo.set_index(pd.PeriodIndex(_fase_largo.periodo, freq="M"))["fase"]
+tend_sin_anio = {}
+for _v in LARGO_VARS:
+    _a0, _a1 = tend_ventanas[_v]["a0"], tend_ventanas[_v]["a1"]
+    _pend = tend_ventanas[_v]["pend"]
+    _anios = sorted(set(largo[_v].dropna().index.year))          # solo los años que tienen algún mes con dato
+    _d = pd.DataFrame([_pend_ventana(_v, _a0, _a1, anio_fuera=a) | {"fuera": a} for a in _anios])
+    _d["cambio"] = _d.pend - _pend
+    _top = _d.loc[_d.cambio.abs().idxmax()]
+    _fases = _fase_largo[_fase_largo.index.year == int(_top.fuera)].value_counts()
+    tend_sin_anio[_v] = {
+        "tabla": _d, "a0": _a0, "a1": _a1, "n": len(_d), "pend": _pend,
+        "min": float(_d.pend.min()), "max": float(_d.pend.max()), "n_sig": int((_d.p < TEND_ALFA).sum()),
+        "p_min": float(_d.p.min()), "anio_p_min": int(_d.loc[_d.p.idxmin(), "fuera"]),
+        "cambia_signo": bool((_d.pend > 0).any() and (_d.pend < 0).any()),
+        "anio": int(_top.fuera), "cambio": float(_top.cambio), "p_anio": float(_top.p),
+        "nino": int(_fases.get("El Niño", 0)), "nina": int(_fases.get("La Niña", 0)),
+        "meses_anio": int(largo[_v][largo.index.year == int(_top.fuera)].notna().sum()),
+    }
+# lo que dice el texto: ningún año por sí solo cambia la conclusión. La temperatura sube y es significativa en
+# todas las versiones; en la lluvia y el caudal ninguna versión es significativa y ninguna cambia de signo
+assert all(tend_sin_anio[t]["n_sig"] == tend_sin_anio[t]["n"] and tend_sin_anio[t]["min"] > 0 for t in ("T mín", "T media", "T máx"))
+assert all(tend_sin_anio[v]["n_sig"] == 0 and not tend_sin_anio[v]["cambia_signo"] for v in ("PL*", "PI", "Q"))
+# y en las tres, quitar el año que más pesa cambia la pendiente en más de la mitad de su valor
+assert all(abs(tend_sin_anio[v]["cambio"]) > 0.5 * abs(tend_sin_anio[v]["pend"]) for v in ("PL*", "PI", "Q"))
+# el año que más mueve la pendiente de la lluvia y el caudal, si es el mismo para las tres (el texto lo nombra)
+_anios_lluvia = {tend_sin_anio[v]["anio"] for v in ("PL*", "PI", "Q")}
+tend_sin_anio_comun = _anios_lluvia.pop() if len(_anios_lluvia) == 1 else None
 
 
 # (2) Banda de 95 % de la recta OLS (error de Newey-West) para la gráfica de series: var(ŷ) = x'Vx en cada punto.
@@ -2625,6 +2665,105 @@ for _m in inc_fdr["PL*"]["ols"]:
 assert set(inc_fdr["PL*"]["ols"]) == {3} and not inc_fdr["PI"]["ols"] and not inc_fdr["Q"]["ols"]
 assert all(r["p_jk"] < TEND_ALFA and r["suben"] == r["estaciones"] and r["pi"]["ols"] > 0 and r["q_mes"]["p"] >= TEND_ALFA
            for r in inc_lluvia_fdr.values())
+
+
+# (4) Síntesis de consistencia (decidido por el usuario el 2026-10-09). No calcula tendencias nuevas: junta las de toda
+# la serie (met_global) y dice, para cada variable, si coinciden entre métodos (OLS, Mann-Kendall, LOESS), entre
+# representaciones (X, a, z), entre fuentes (PL* frente a PI, en 1998-2022, la única ventana en que existen las dos) y
+# entre períodos (registro completo frente a 1998-2022). Dos resultados «coinciden» si tienen el mismo signo y el mismo
+# veredicto con TEND_ALFA. LOESS no da p: con LOESS solo se compara el signo de su cambio de principio a fin.
+CONS_METODOS = ("OLS", "Mann-Kendall", "LOESS")
+CONS_REPS = ("X", "a", "z")
+CONS_COMUN = "1998–2022"
+
+
+def _cons_resultado(f, metodo, rep):
+    """(signo, significativo) de la tendencia de toda la serie; en LOESS, significativo es None."""
+    if metodo == "OLS":
+        r = f["ols_Xmes"] if rep == "X" else f[f"ols_{rep}"]       # en X, la de la tabla resumen
+        return int(np.sign(r["pend"])), bool(r["p_hac"] < TEND_ALFA)
+    if metodo == "Mann-Kendall":
+        r = f[f"mk_{rep}"]
+        return int(np.sign(r["pend"])), bool(r["p"] < TEND_ALFA)
+    return int(np.sign(f[f"loess_{rep}"]["cambio"])), None
+
+
+def _cons_coinciden(r1, r2):
+    return r1[0] == r2[0] and (r1[1] is None or r2[1] is None or r1[1] == r2[1])
+
+
+def _cons_fila(v):
+    """Las discrepancias de una variable en cada eje; None si el eje no aplica."""
+    periodos = [per for per in TEND_PERIODOS if (v, per) in met_global]
+    res = {(per, m, k): _cons_resultado(met_global[(v, per)], m, k)
+           for per in periodos for m in CONS_METODOS for k in CONS_REPS}
+    fila = {"metodos": [(per, m1, m2, k) for per in periodos for k in CONS_REPS
+                        for m1, m2 in combinations(CONS_METODOS, 2)
+                        if not _cons_coinciden(res[(per, m1, k)], res[(per, m2, k)])],
+            "representaciones": [(per, m, k1, k2) for per in periodos for m in CONS_METODOS
+                                 for k1, k2 in combinations(CONS_REPS, 2)
+                                 if not _cons_coinciden(res[(per, m, k1)], res[(per, m, k2)])],
+            "periodos": None, "fuentes": None, "res": res}
+    if len(periodos) == 2:
+        fila["periodos"] = [(m, k) for m in CONS_METODOS for k in CONS_REPS
+                            if not _cons_coinciden(res[("completo", m, k)], res[(CONS_COMUN, m, k)])]
+    if v in ("PL*", "PI"):
+        # PI solo existe en 1998-2022 (su «registro completo»); PL* se toma en la misma ventana
+        pl, pi = met_global[("PL*", CONS_COMUN)], met_global[("PI", "completo")]
+        fila["fuentes"] = [(m, k) for m in CONS_METODOS for k in CONS_REPS
+                           if not _cons_coinciden(_cons_resultado(pl, m, k), _cons_resultado(pi, m, k))]
+    return fila
+
+
+def _cons_ventana_corta(v, per):
+    """¿La comparación es en 1998-2022? (para PI, su registro completo es esa misma ventana)"""
+    return met_global[(v, per)]["inicio"].year == int(CONS_COMUN[:4])
+
+
+tend_consistencia = {v: _cons_fila(v) for v in LARGO_VARS}
+# las tres representaciones nunca discrepan: en la serie de meses X y a dan casi la misma pendiente, y z es a
+# dividida por la desviación estándar de cada mes
+assert all(not f["representaciones"] for f in tend_consistencia.values())
+# Lo que explica el texto. (a) LOESS frente a la recta: cuando discrepan, LOESS sube y OLS baja, y el año 2022, al
+# final de la ventana, queda sobre lo normal (anomalía a media positiva) y levanta el final de la curva.
+cons_loess = sorted({(v, per) for v, f in tend_consistencia.items() for per, m1, m2, k in f["metodos"]
+                     if "LOESS" in (m1, m2)})
+cons_anomalia_2022 = {v: float(anz_a[v][anz_a.index.year == 2022].mean()) for v, _ in cons_loess}
+assert all(tend_consistencia[v]["res"][(per, "LOESS", "a")][0] > 0 > tend_consistencia[v]["res"][(per, "OLS", "a")][0]
+           and cons_anomalia_2022[v] > 0 for v, per in cons_loess)
+# (b) Entre OLS y Mann-Kendall: dónde uno da significancia y el otro no
+cons_ols_mk = sorted({(v, per) for v, f in tend_consistencia.items() for per, m1, m2, k in f["metodos"]
+                      if (m1, m2) == ("OLS", "Mann-Kendall")})
+# (c) Entre períodos: en la temperatura el signo se mantiene y lo que cambia es el veredicto, porque con 25 años el
+# intervalo es más ancho; en la lluvia y el caudal ninguna versión es significativa
+cons_periodos_t = [v for v in ("T mín", "T media", "T máx") if tend_consistencia[v]["periodos"]]
+assert all(met_global[(v, CONS_COMUN)]["ols_Xmes"]["pend"] > 0 and
+           met_global[(v, CONS_COMUN)]["ols_Xmes"]["ic_hac"] > met_global[(v, "completo")]["ols_Xmes"]["ic_hac"]
+           for v in cons_periodos_t)
+assert all(not _cons_resultado(met_global[(v, per)], m, k)[1] for v in ("PL*", "PI", "Q")
+           for per in TEND_PERIODOS if (v, per) in met_global for m in ("OLS", "Mann-Kendall") for k in CONS_REPS)
+# (d) Mann-Kendall sobre a: dónde la corrección de Hamed y Rao por autocorrelación le quita la significancia
+cons_hamed_rao = [(v, per) for (v, per), f in met_global.items() if f["mk_a"]["p_sin"] < TEND_ALFA <= f["mk_a"]["p"]]
+# (e) Mes a mes: meses que resisten la FDR con OLS y con Mann-Kendall (inc_fdr), y la fuente: marzo de PL* resiste y el
+# de PI no (inc_lluvia_fdr). La PL de la red completa da Sen significativo en 1998-2022 y PL* no (tend_pl_sens).
+cons_fdr_distinto = [v for v in LARGO_VARS if inc_fdr[v]["ols"] != inc_fdr[v]["mk"]]
+# (f) Lo que se concluye: en el registro completo la temperatura sube y es significativa con los tres métodos y las tres
+# representaciones, y ninguna discrepancia enfrenta dos resultados significativos de signo contrario
+assert all(r[0] > 0 and r[1] is not False for v in ("T mín", "T media", "T máx")
+           for (per, m, k), r in tend_consistencia[v]["res"].items() if per == "completo")
+assert not any(r1[1] and r2[1] and r1[0] != r2[0] for f in tend_consistencia.values()
+               for r1 in f["res"].values() for r2 in f["res"].values())
+# con la corrección de Hamed y Rao, Mann-Kendall sobre a coincide con la OLS (ninguno significativo); el texto lo explica
+# con la persistencia de la temperatura, así que solo vale si son temperaturas
+assert all(met_global[c]["ols_a"]["p_hac"] >= TEND_ALFA and c[0].startswith("T") for c in cons_hamed_rao)
+# donde OLS y Mann-Kendall discrepan, los dos dan una subida
+assert all(met_global[c]["ols_Xmes"]["pend"] > 0 and met_global[c]["mk_X"]["pend"] > 0 for c in cons_ols_mk)
+# las diferencias son de signo entre resultados no significativos, o de veredicto con la ventana corta de por medio
+for _v, _f in tend_consistencia.items():
+    _pares = [(_f["res"][(per, m1, k)], _f["res"][(per, m2, k)], per) for per, m1, m2, k in _f["metodos"]]
+    _pares += [(_f["res"][("completo", m, k)], _f["res"][(CONS_COMUN, m, k)], CONS_COMUN) for m, k in _f["periodos"] or []]
+    for _r1, _r2, _per in _pares:
+        assert (not _r1[1] and not _r2[1]) if _r1[0] != _r2[0] else _cons_ventana_corta(_v, _per)
 
 
 # ---------------------------------------------------------------- frecuencias: análisis de Fourier

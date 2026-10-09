@@ -2154,6 +2154,37 @@ section, section h3 { scroll-margin-top: 20px; }
   caudal, en cambio, el signo depende de dónde se corte el registro</b>, y ninguna ventana es significativa: la falta de
   tendencia en el registro completo no es un efecto de las fechas elegidas.</p>
 
+  <h3>Sensibilidad a años extremos</h3>
+  <p>Un solo año muy húmedo, muy seco o muy cálido puede crear o esconder una tendencia. Para medirlo se repite el ajuste
+  de la tabla resumen (OLS con una constante por mes, error de Newey-West) sobre el registro completo de cada variable,
+  <b>quitando un año completo a la vez</b> (sus 12 meses). Hay una versión por cada año con dato. El año que más mueve la
+  pendiente es el de mayor cambio absoluto frente a la del registro completo; de ese año se cuentan los meses en El Niño
+  y en La Niña según el ONI.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Registro</th><th class="num">Versiones</th><th class="num">Pendiente, registro completo</th>
+    <th class="num">Rango de pendientes sin un año</th><th class="num">Versiones con p &lt; 0.05</th>
+    <th class="num">Año que más la mueve: cambio</th><th>Meses de ese año en El Niño o La Niña</th><th>Lectura</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b> <small>(mm/mes por década)</small></td><td>1981–2022</td><td class='num'>42</td><td class='num'>+1.7</td><td class='num'>+0.1 a +3.2</td><td class='num'>0</td><td class='num'>2022: -1.6 <small>(p 0.973)</small></td><td>12 en La Niña</td><td>ninguna versión significativa; el signo no cambia</td></tr>
+<tr><td><b>PI</b> <small>(mm/mes por década)</small></td><td>1998–2022</td><td class='num'>25</td><td class='num'>-2.3</td><td class='num'>-6.8 a -0.2</td><td class='num'>0</td><td class='num'>2022: -4.5 <small>(p 0.085)</small></td><td>12 en La Niña</td><td>ninguna versión significativa; el signo no cambia</td></tr>
+<tr><td><b>Q</b> <small>(m³/s por década)</small></td><td>1981–2022</td><td class='num'>42</td><td class='num'>-0.76</td><td class='num'>-1.74 a -0.05</td><td class='num'>0</td><td class='num'>2022: -0.98 <small>(p 0.390)</small></td><td>12 en La Niña</td><td>ninguna versión significativa; el signo no cambia</td></tr>
+<tr><td><b>T mín</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>42</td><td class='num'>+0.14</td><td class='num'>+0.12 a +0.15</td><td class='num'>42</td><td class='num'>1984: -0.02 <small>(p &lt; 0.001)</small></td><td>5 en La Niña</td><td>sube y es significativa sin importar qué año se quite</td></tr>
+<tr><td><b>T media</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>42</td><td class='num'>+0.14</td><td class='num'>+0.12 a +0.16</td><td class='num'>42</td><td class='num'>1983: +0.02 <small>(p &lt; 0.001)</small></td><td>6 en El Niño y 3 en La Niña</td><td>sube y es significativa sin importar qué año se quite</td></tr>
+<tr><td><b>T máx</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>42</td><td class='num'>+0.15</td><td class='num'>+0.14 a +0.18</td><td class='num'>42</td><td class='num'>2022: +0.02 <small>(p &lt; 0.001)</small></td><td>12 en La Niña</td><td>sube y es significativa sin importar qué año se quite</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendientes de la serie original X por década, en las unidades de la variable (en la lluvia, del acumulado
+  mensual). «Cambio»: pendiente sin ese año menos la del registro completo; la p es la de la versión sin ese año.</p>
+  <p><b>La subida de la temperatura no depende de ningún año</b>: es significativa en todas las versiones, con pendientes de
+  +0.12 a
+  +0.18 °C/década. <b>En la lluvia y en el caudal ningún año
+  crea ni esconde una tendencia</b>: ninguna versión es significativa y ninguna cambia el signo de la pendiente del registro
+  completo; la p más baja es 0.085 (PI sin
+  2022). En las tres, el año que más mueve la pendiente es <b>2022</b>, que según el ONI tuvo 12 meses en La Niña; sin ese año la pendiente baja en PL* (+1.7 → +0.1); baja en PI (-2.3 → -6.8); baja en Q (-0.76 → -1.74). Que quitar un solo año cambie la pendiente en más de la mitad
+  de su valor es otra forma de ver por qué su intervalo es tan ancho.</p>
+
   <h3>¿Tendencia gradual o salto?</h3>
   <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt (<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>) sí marca uno</b>
   (T mín después de 2009, T media después de 2001, T máx después de 2000), pero <b>es la misma subida gradual vista de
@@ -2262,6 +2293,41 @@ section, section h3 { scroll-margin-top: 20px; }
   orden con las pendientes por década del punto medio de la temperatura (+0.15 °C) y de la amplitud diaria
   (+0.02 °C). La ETP anual es la media de 1998–2022. Los mm/mes de la lluvia se pasan a
   mm/año multiplicando por 12.</p>
+
+  <h3>Consistencia entre métodos, representaciones, fuentes y períodos</h3>
+  <p>Esta tabla junta lo anterior. Para cada variable dice si la tendencia de toda la serie coincide entre los tres métodos (OLS,
+  Mann-Kendall con la pendiente de Sen y LOESS), entre las tres representaciones (X, a y z), entre las dos fuentes de lluvia (PL*
+  frente a PI, en 1998–2022, la única ventana en que existen las dos) y entre los dos períodos (registro completo frente a
+  1998–2022). Dos resultados <b>coinciden</b> si tienen el mismo signo y el mismo veredicto con α = 0.05. LOESS no da p:
+  con LOESS solo se compara el signo de su cambio de principio a fin. Las dos últimas columnas cuentan los meses que resisten la
+  FDR en cada método.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Métodos</th><th>Representaciones</th><th>Fuentes (PL* frente a PI)</th>
+    <th>Períodos (completo frente a 1998–2022)</th><th class="num">Meses con FDR, OLS</th>
+    <th class="num">Meses con FDR, Mann-Kendall</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td>coincide</td><td><b>no coincide</b><br><small>OLS, en X, a y z; Mann-Kendall, en X, a y z</small></td><td class='num'>1 <small>(mar)</small></td><td class='num'>1 <small>(mar)</small></td></tr>
+<tr><td><b>PI</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr><td><b>Q</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>LOESS, en X, a y z</small></td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr><td><b>T mín</b></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td>coincide</td><td class='num'>7 <small>(may, jun, jul, ago, sep, oct, nov)</small></td><td class='num'>7 <small>(may, jun, jul, ago, sep, oct, nov)</small></td></tr>
+<tr><td><b>T media</b></td><td><b>no coincide</b><br><small>OLS frente a Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>OLS, en X, a y z</small></td><td class='num'>9 <small>(feb, may, jun, jul, ago, sep, oct, nov, dic)</small></td><td class='num'>11 <small>(ene, feb, abr, may, jun, jul, ago, sep, oct, nov, dic)</small></td></tr>
+<tr><td><b>T máx</b></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>OLS, en X, a y z; Mann-Kendall, en X, a y z</small></td><td class='num'>3 <small>(may, sep, oct)</small></td><td class='num'>2 <small>(sep, oct)</small></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">«No aplica»: PI solo existe en 1998–2022, así que no tiene otro período, y Q y la temperatura tienen una sola
+  fuente. En OLS sobre X, la pendiente es la de la tabla resumen, con una constante por mes; en Mann-Kendall sobre X, la versión
+  estacional. Debajo de cada «no coincide», qué métodos o representaciones discrepan y en qué ventana.</p>
+  <p><b>Lo que es consistente.</b> En el registro completo, la temperatura sube y es significativa con los tres métodos y las
+  tres representaciones. En toda la serie, PL*, PI y Q no son significativos con ningún método, representación ni período. Las
+  representaciones X, a y z nunca discrepan, y ninguna discrepancia enfrenta dos resultados significativos de signo contrario.
+  Las diferencias son de signo entre resultados que no son significativos, o de veredicto en la ventana corta.</p>
+<p><b>LOESS frente a la recta.</b> En PI (1998–2022), PL* (1998–2022) y Q (1998–2022), OLS y Mann-Kendall bajan y LOESS sube. Ninguna de las dos lecturas es significativa. LOESS mide el cambio entre el comienzo y el final de una curva local, y el final lo levanta 2022, que en las tres quedó por encima de lo normal (anomalía media de +38.9 mm/mes en PI, +43.6 mm/mes en PL* y +32.9 m³/s en Q). 2022 es también el año que más mueve la recta en el registro completo de PL*, PI y Q (ver «Sensibilidad a años extremos»). La recta usa toda la ventana; LOESS, en los bordes, solo los años cercanos.</p>
+<p><b>OLS frente a Mann-Kendall.</b> En T media, 1998–2022, Mann-Kendall da la tendencia significativa y OLS no (sobre X: OLS con Newey-West, p 0.137; Mann-Kendall estacional, p 0.045). Las dos pruebas tratan distinto la dependencia entre meses: la OLS corrige su error con Newey-West y Mann-Kendall permuta años completos. Las dos dan una subida.</p><p><b>La corrección por autocorrelación.</b> En T máx, 1998–2022, la pendiente de Sen sobre a da p 0.038 sin corregir y p 0.343 con la corrección de Hamed y Rao. Sin la corrección parecería significativa; con ella coincide con la OLS (p 0.373), porque un mes cálido suele seguir a otro y los meses no son observaciones independientes.</p>
+<p><b>PL* frente a PI.</b> En 1998–2022 las dos fuentes coinciden en toda la serie con los tres métodos y las tres representaciones: OLS sobre X da -4.6 mm/mes por década con PL* y -2.3 con PI, ninguna significativa. Mes a mes sí discrepan: marzo de PL* sube +33.1 mm/mes por década y resiste la FDR, y el de PI también sube (+29.8), pero no resiste la FDR (p 0.012 sin corregir, q 0.148). Con la PL de la red completa, Mann-Kendall da significativa la serie de 1998–2022 (p 0.014) y con PL* no (p 0.238). Como se explicó arriba, esa diferencia viene de los cambios en la composición de la red.</p>
+<p><b>Registro completo frente a 1998–2022.</b> En la temperatura el signo no cambia, cambia el veredicto: T media (+0.138 ± 0.077 en 1981–2022 y +0.150 ± 0.198 °C/década en 1998–2022; deja de ser significativa con OLS) y T máx (+0.153 ± 0.096 en 1981–2022 y +0.105 ± 0.230 °C/década en 1998–2022; deja de ser significativa con OLS y Mann-Kendall). Con 25 años en lugar de 42 el intervalo es más ancho, como se vio en «Sensibilidad a la fecha inicial y final». En PL* cambia el signo: +1.7 mm/mes por década en 1981–2022 y -4.6 en 1998–2022, ninguna significativa; su signo depende de la ventana. En Q solo cambia el signo de LOESS, por el efecto de 2022 al final de la ventana corta.</p>
+<p><b>Mes a mes.</b> Los dos métodos no siempre dejan pasar los mismos meses por la FDR: en T media, 9 meses con OLS y 11 con Mann-Kendall (solo Mann-Kendall: enero y abril) y en T máx, 3 meses con OLS y 2 con Mann-Kendall (solo OLS: mayo). En las demás variables, los dos métodos dejan pasar los mismos meses.</p>
 </section>
 
 <section>
@@ -2993,7 +3059,16 @@ section, section h3 { scroll-margin-top: 20px; }
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según <a class="cita" href="#ref-poveda2004">Poveda, 2004</a>,
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
-  Colombia», y «durante La Niña ocurren anomalías contrarias». Los datos lo apoyan sin probarlo:</p>
+  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
+  <p><b>Por qué El Niño trae menos lluvia.</b> Según <a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>, cuando se calienta el Pacífico ecuatorial el aire
+  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
+  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
+  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
+  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los 6 meses en que la relación con el
+  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), 5 caen en esas dos temporadas; fuera de
+  ellas queda marzo con Q (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).</p>
+  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
   <ul>
     <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
     en 1998–2022 (0.65), y con PL y Q solo en el registro largo (PL*
@@ -3192,7 +3267,23 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>Interpretación física de los patrones</h2>
-  <p><i>Hasta el momento no hemos llegado a esta parte.</i></p>
+  <div>
+  <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
+  pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
+  junio con PL, en enero y marzo con Q y en junio, agosto y diciembre con PI. El mecanismo que la explica
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los 6 meses robustos,
+  5 caen en las dos temporadas en que <a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a> hallan la mayor disminución de la lluvia
+  (diciembre a febrero y junio a agosto).</p>
+  <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
+  coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
+  marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
+  10 meses, frente a 7 sin rezago, y que el río vaya unos 17 días detrás de PL
+  (ver «Desfase estacional»). No lo prueba: el almacenamiento se infiere del atraso; no se mide.</p>
+  <p><b>¿El ENSO explica las tendencias?</b> No se puede afirmar. En la lluvia y en el caudal no hay una tendencia que
+  explicar: quitando un año a la vez, ninguna versión es significativa (ver «Sensibilidad a años extremos» en «Tendencias de
+  largo plazo»). El año que más mueve las pendientes de PL*, PI y Q es 2022, con 12 meses de La Niña y 0 de El Niño según el ONI: un año del ENSO pesa sobre la pendiente, pero sin él tampoco aparece una tendencia significativa. La subida de la temperatura no depende de ningún año.</p>
+  </div>
 </section>
 
 <section>
@@ -3210,6 +3301,10 @@ section, section h3 { scroll-margin-top: 20px; }
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
+    <li id="ref-cordoba2015">Córdoba-Machado, S., Palomino-Lemus, R., Gámiz-Fortis, S. R., Castro-Díez, Y., y
+    Esteban-Parra, M. J. (2015). Assessing the impact of El Niño Modoki on seasonal precipitation in Colombia.
+    <i>Global and Planetary Change</i>, 124, 41–61.
+    <a href="https://doi.org/10.1016/j.gloplacha.2014.11.003">https://doi.org/10.1016/j.gloplacha.2014.11.003</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
@@ -3348,7 +3443,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 206 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 222 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

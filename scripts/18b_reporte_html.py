@@ -195,6 +195,7 @@ UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C"
 
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
+CITA_CORDOBA = '<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
 CITA_HARGREAVES = '<a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a>'
 CITA_PETTITT = '<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>'
@@ -881,6 +882,187 @@ ventanas_filas = "\n".join(
     for v, d in tend_ventanas.items())
 
 
+# tendencias: sensibilidad a años extremos (quitar un año completo a la vez; cálculos en tend_sin_anio de 18)
+def _sin_anio_lectura(d):
+    if d["n_sig"] == d["n"]:
+        return ("sube" if d["min"] > 0 else "baja") + " y es significativa sin importar qué año se quite"
+    if d["n_sig"] == 0:
+        return "ninguna versión significativa" + ("; el signo cambia" if d["cambia_signo"] else "; el signo no cambia")
+    return f"significativa en {d['n_sig']} de {d['n']} versiones"
+
+
+def _fases_anio(d, unidad=""):
+    partes = [f"{d['nino']}{unidad} en El Niño" if d["nino"] else "", f"{d['nina']}{unidad} en La Niña" if d["nina"] else ""]
+    partes = [x for x in partes if x]
+    return " y ".join(partes) if partes else "ningún mes en El Niño ni en La Niña"
+
+
+# en Q la pendiente sin algunos años queda cerca de cero: con un decimal se leería «-0.0»
+_dec_sin_anio = lambda v: 1 if v in ("PL*", "PI") else 2
+
+
+sin_anio_filas = "\n".join(
+    f"<tr><td><b>{v}</b> <small>({RES_UNIDAD_DECADA[v]})</small></td><td>{d['a0']}–{d['a1']}</td><td class='num'>{d['n']}</td>"
+    f"<td class='num'>{d['pend']:+.{_dec_sin_anio(v)}f}</td>"
+    f"<td class='num'>{d['min']:+.{_dec_sin_anio(v)}f} a {d['max']:+.{_dec_sin_anio(v)}f}</td>"
+    f"<td class='num'>{d['n_sig']}</td><td class='num'>{d['anio']}: {d['cambio']:+.{_dec_sin_anio(v)}f} "
+    f"<small>(p {_p_txt(d['p_anio'])})</small></td><td>{_fases_anio(d)}</td><td>{_sin_anio_lectura(d)}</td></tr>"
+    for v, d in tend_sin_anio.items())
+# tendencias: síntesis de consistencia (las discrepancias salen de tend_consistencia y cons_* de 18)
+def _cons_ventana(v, per):
+    f = met_global[(v, per)]
+    return f"{f['inicio'].year}–{f['fin'].year}"
+
+
+def _cons_y(lista):
+    lista = list(dict.fromkeys(lista))
+    return lista[0] if len(lista) == 1 else ", ".join(lista[:-1]) + " y " + lista[-1]
+
+
+def _cons_reps(reps):
+    return "en X, a y z" if set(reps) == set(CONS_REPS) else "en " + _cons_y(reps)
+
+
+def _cons_celda(v, eje):
+    f = tend_consistencia[v]
+    d = f[eje]
+    if d is None:
+        return "<td><small>no aplica</small></td>"
+    if not d:
+        return "<td>coincide</td>"
+    if eje == "metodos":
+        grupos = {}
+        for per, m1, m2, k in d:
+            grupos.setdefault(per, {}).setdefault((m1, m2), []).append(k)
+        partes = []
+        for per, pares in grupos.items():
+            if set(pares) == {("OLS", "LOESS"), ("Mann-Kendall", "LOESS")}:
+                txt = "LOESS frente a OLS y Mann-Kendall"
+            else:
+                txt = "; ".join(f"{a} frente a {b}" for a, b in pares)
+            reps = [k for ks in pares.values() for k in ks]
+            partes.append(f"{txt}, {_cons_reps(reps)} ({_cons_ventana(v, per)})")
+        detalle = "; ".join(partes)
+    elif eje == "periodos":
+        metodos = {}
+        for m, k in d:
+            metodos.setdefault(m, []).append(k)
+        detalle = "; ".join(f"{m}, {_cons_reps(ks)}" for m, ks in metodos.items())
+    else:
+        metodos = {}
+        for m, k in d:
+            metodos.setdefault(m, []).append(k)
+        detalle = "; ".join(f"{m}, {_cons_reps(ks)}" for m, ks in metodos.items())
+    return f"<td><b>no coincide</b><br><small>{detalle}</small></td>"
+
+
+def _cons_meses(lista):
+    return f"{len(lista)}" + (f" <small>({', '.join(MESES_ES[m - 1] for m in lista)})</small>" if lista else "")
+
+
+cons_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td>{_cons_celda(v, 'metodos')}{_cons_celda(v, 'representaciones')}"
+    f"{_cons_celda(v, 'fuentes')}{_cons_celda(v, 'periodos')}"
+    f"<td class='num'>{_cons_meses(inc_fdr[v]['ols'])}</td><td class='num'>{_cons_meses(inc_fdr[v]['mk'])}</td></tr>"
+    for v in LARGO_VARS)
+# los textos de cada discrepancia
+_cl_vars = [v for v, _ in cons_loess]
+cons_txt_loess = ""
+if cons_loess:
+    cons_txt_loess = (
+        f"<p><b>LOESS frente a la recta.</b> En {_cons_y([f'{v} ({_cons_ventana(v, per)})' for v, per in cons_loess])}, OLS y "
+        f"Mann-Kendall bajan y LOESS sube. Ninguna de las dos lecturas es significativa. LOESS mide el cambio entre el comienzo y el "
+        f"final de una curva local, y el final lo levanta 2022, que en las tres quedó por encima de lo normal (anomalía media de "
+        + _cons_y([f"{cons_anomalia_2022[v]:+.1f} {LARGO_UNIDADES[v]} en {v}" for v in _cl_vars]) + ")"
+        + (f". 2022 es también el año que más mueve la recta en el registro completo de PL*, PI y Q (ver «Sensibilidad a "
+           f"años extremos»)"
+           if tend_sin_anio_comun == 2022 and all(v in ("PL*", "PI", "Q") for v in _cl_vars) else "")
+        + ". La recta usa toda la ventana; LOESS, en los bordes, solo los años cercanos.</p>")
+cons_txt_metodos = ""
+for _v, _per in cons_ols_mk:
+    _f = met_global[(_v, _per)]
+    _sig_mk = _f["mk_X"]["p"] < TEND_ALFA
+    cons_txt_metodos += (
+        f"<p><b>OLS frente a Mann-Kendall.</b> En {_v}, {_cons_ventana(_v, _per)}, "
+        f"{'Mann-Kendall' if _sig_mk else 'OLS'} da la tendencia significativa y {'OLS' if _sig_mk else 'Mann-Kendall'} no "
+        f"(sobre X: OLS con Newey-West, p {_p_txt(_f['ols_Xmes']['p_hac'])}; Mann-Kendall estacional, p {_p_txt(_f['mk_X']['p'])}). "
+        f"Las dos pruebas tratan distinto la dependencia entre meses: la OLS corrige su error con Newey-West y Mann-Kendall "
+        f"permuta años completos. Las dos dan una subida.</p>")
+for _v, _per in cons_hamed_rao:
+    _f = met_global[(_v, _per)]
+    cons_txt_metodos += (
+        f"<p><b>La corrección por autocorrelación.</b> En {_v}, {_cons_ventana(_v, _per)}, la pendiente de Sen sobre a da "
+        f"p {_p_txt(_f['mk_a']['p_sin'])} sin corregir y p {_p_txt(_f['mk_a']['p'])} con la corrección de Hamed y Rao. "
+        f"Sin la corrección parecería significativa; con ella coincide con la OLS (p {_p_txt(_f['ols_a']['p_hac'])}), porque un mes "
+        f"cálido suele seguir a otro y los meses no son observaciones independientes.</p>")
+_pl9822, _pi9822 = met_global[("PL*", CONS_COMUN)], met_global[("PI", "completo")]
+_marzo = inc_lluvia_fdr.get(3)
+cons_txt_fuentes = (
+    (f"<p><b>PL* frente a PI.</b> En {CONS_COMUN} las dos fuentes coinciden en toda la serie con los tres métodos y las tres "
+     f"representaciones: OLS sobre X da {_pl9822['ols_Xmes']['pend']:+.1f} mm/mes por década con PL* y "
+     f"{_pi9822['ols_Xmes']['pend']:+.1f} con PI, ninguna significativa."
+     if not tend_consistencia["PL*"]["fuentes"] else
+     f"<p><b>PL* frente a PI.</b> En {CONS_COMUN} las dos fuentes no coinciden en toda la serie.")
+    + (f" Mes a mes sí discrepan: marzo de PL* sube {_marzo['pend']:+.1f} mm/mes por década y resiste la FDR, y el de PI también "
+       f"sube ({_marzo['pi']['ols']:+.1f}), pero no resiste la FDR (p {_p_txt(_marzo['pi']['p'])} sin corregir, "
+       f"q {_p_txt(_marzo['pi']['q'])})." if _marzo else "")
+    + f" Con la PL de la red completa, Mann-Kendall da significativa la serie de {CONS_COMUN} (p "
+      f"{_p_txt(tend_pl_sens['red_9822']['p_mk'])}) y con PL* no (p {_p_txt(tend_pl_sens['estrella_9822']['p_mk'])}). Como se "
+      f"explicó arriba, esa diferencia viene de los cambios en la composición de la red.</p>")
+cons_txt_periodos = ""
+if cons_periodos_t:
+    _partes = []
+    for _v in cons_periodos_t:
+        _c, _r = met_global[(_v, "completo")]["ols_Xmes"], met_global[(_v, CONS_COMUN)]["ols_Xmes"]
+        _metodos = list(dict.fromkeys(m for m, k in tend_consistencia[_v]["periodos"]))
+        _partes.append(f"{_v} ({_c['pend']:+.3f} ± {_c['ic_hac']:.3f} en {_cons_ventana(_v, 'completo')} y "
+                       f"{_r['pend']:+.3f} ± {_r['ic_hac']:.3f} °C/década en {CONS_COMUN}; deja de ser significativa con "
+                       f"{_cons_y(_metodos)})")
+    cons_txt_periodos = (f"<p><b>Registro completo frente a {CONS_COMUN}.</b> En la temperatura el signo no cambia, cambia el "
+                         f"veredicto: {_cons_y(_partes)}. Con 25 años en lugar de 42 el intervalo es más ancho, como se vio en "
+                         f"«Sensibilidad a la fecha inicial y final».")
+if tend_consistencia["PL*"]["periodos"]:
+    cons_txt_periodos += (
+        (" " if cons_txt_periodos else f"<p><b>Registro completo frente a {CONS_COMUN}.</b> ")
+        + f"En PL* cambia el signo: {met_global[('PL*', 'completo')]['ols_Xmes']['pend']:+.1f} mm/mes por década en "
+          f"{_cons_ventana('PL*', 'completo')} y {_pl9822['ols_Xmes']['pend']:+.1f} en {CONS_COMUN}, ninguna significativa; "
+          f"su signo depende de la ventana.")
+if tend_consistencia["Q"]["periodos"] and all(m == "LOESS" for m, k in tend_consistencia["Q"]["periodos"]):
+    cons_txt_periodos += " En Q solo cambia el signo de LOESS, por el efecto de 2022 al final de la ventana corta."
+cons_txt_periodos += "</p>" if cons_txt_periodos else ""
+cons_txt_mes = ""
+if cons_fdr_distinto:
+    _partes = []
+    for _v in cons_fdr_distinto:
+        _solo_mk = [MESES_LARGOS_ES[m - 1] for m in inc_fdr[_v]["mk"] if m not in inc_fdr[_v]["ols"]]
+        _solo_ols = [MESES_LARGOS_ES[m - 1] for m in inc_fdr[_v]["ols"] if m not in inc_fdr[_v]["mk"]]
+        _txt = f"en {_v}, {len(inc_fdr[_v]['ols'])} meses con OLS y {len(inc_fdr[_v]['mk'])} con Mann-Kendall"
+        if _solo_mk:
+            _txt += f" (solo Mann-Kendall: {_cons_y(_solo_mk)})"
+        if _solo_ols:
+            _txt += f" (solo OLS: {_cons_y(_solo_ols)})"
+        _partes.append(_txt)
+    cons_txt_mes = (f"<p><b>Mes a mes.</b> Los dos métodos no siempre dejan pasar los mismos meses por la FDR: {_cons_y(_partes)}. "
+                    f"En las demás variables, los dos métodos dejan pasar los mismos meses.</p>")
+
+
+# la lluvia y el caudal: el año que más mueve las tres pendientes, si es el mismo, y hacia dónde las mueve
+_lluvia_q = ("PL*", "PI", "Q")
+_p_min_lluvia = min(_lluvia_q, key=lambda v: tend_sin_anio[v]["p_min"])
+if tend_sin_anio_comun is not None:
+    _sentido = {v: "baja" if tend_sin_anio[v]["pend"] + tend_sin_anio[v]["cambio"] < tend_sin_anio[v]["pend"]
+                else "sube" for v in _lluvia_q}
+    _d0 = tend_sin_anio[_lluvia_q[0]]
+    sin_anio_comun_txt = (
+        f" En las tres, el año que más mueve la pendiente es <b>{tend_sin_anio_comun}</b>, que según el ONI tuvo "
+        f"{_fases_anio(_d0, ' meses')}; sin ese año la pendiente "
+        + "; ".join(f"{_sentido[v]} en {v} ({tend_sin_anio[v]['pend']:+.{_dec_sin_anio(v)}f} → "
+                    f"{tend_sin_anio[v]['pend'] + tend_sin_anio[v]['cambio']:+.{_dec_sin_anio(v)}f})" for v in _lluvia_q) + ".")
+else:
+    sin_anio_comun_txt = (" El año que más mueve la pendiente no es el mismo en las tres: "
+                          + ", ".join(f"{tend_sin_anio[v]['anio']} en {v}" for v in _lluvia_q) + ".")
+
+
 def _res_fila(v):
     f = met_global[(v, "completo")]
     x, z = f["ols_Xmes"], f["ols_z"]
@@ -1438,6 +1620,28 @@ n34_fdr_l = {l: int(_n34[(_n34.rezago == l) & (_n34.cuenca == "Q")].sobrevive_fd
 assert (_n34[_n34.sobrevive_fdr].r < 0).all()                                    # todas las que pasan son negativas
 assert set(_n34_0[_n34_0.sobrevive_fdr].mes) <= {12, 1, 2, 3, 6, 7, 8, 9}       # mitad de año y diciembre a marzo
 assert not _n34_0[_n34_0.mes.isin([4, 5])].sobrevive_fdr.any()                  # abril y mayo: ninguna
+# meses robustos frente a las dos temporadas en que Córdoba-Machado et al. (2015) hallan la mayor disminución
+# de la lluvia con El Niño: diciembre a febrero y junio a agosto
+N34_TEMPORADAS_CORDOBA = {12, 1, 2, 6, 7, 8}
+_n34_rob = _n34_0[_n34_0.robusto]
+n34_rob_en_temporadas = int(_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA).sum())
+n34_rob_total = len(_n34_rob)
+n34_rob_fuera = "; ".join(f"{_lista_meses(sorted(g.mes))} con {v}"
+                          for v, g in _n34_rob[~_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA)].groupby("cuenca"))
+assert n34_rob_en_temporadas > n34_rob_total / 2                                # el texto dice «la mayoría»
+# lo que afirma la interpretación física: marzo es robusto con Q y queda fuera de las dos temporadas, y Q pasa
+# la corrección en más meses con el índice un mes antes
+assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
+assert n34_fdr_l[1] > n34_fdr_l[0]
+# para «¿El ENSO explica las tendencias?»: remite a «Sensibilidad a años extremos», sin recalcular
+assert all(tend_sin_anio[v]["n_sig"] == 0 for v in ("PL*", "PI", "Q"))         # «ninguna versión es significativa»
+if tend_sin_anio_comun is not None:
+    _f = tend_sin_anio["PL*"]
+    interp_anio_comun_txt = (f" El año que más mueve las pendientes de PL*, PI y Q es {tend_sin_anio_comun}, con"
+                             f" {_f['nina']} meses de La Niña y {_f['nino']} de El Niño según el ONI: un año del ENSO pesa"
+                             f" sobre la pendiente, pero sin él tampoco aparece una tendencia significativa.")
+else:
+    interp_anio_comun_txt = ""
 assert all(n34_robustos[v] != "ningún mes" for v in ("PL", "Q", "PI"))
 assert n34_fdr_l[1] >= n34_fdr_l[0]                                              # Q pasa en más meses con ℓ = 1
 _rob = corr_jackknife[corr_jackknife.cajas_fdr > 0]
@@ -3200,6 +3404,32 @@ a {{ color: var(--acento); }}
   caudal, en cambio, el signo depende de dónde se corte el registro</b>, y ninguna ventana es significativa: la falta de
   tendencia en el registro completo no es un efecto de las fechas elegidas.</p>
 
+  <h3>Sensibilidad a años extremos</h3>
+  <p>Un solo año muy húmedo, muy seco o muy cálido puede crear o esconder una tendencia. Para medirlo se repite el ajuste
+  de la tabla resumen (OLS con una constante por mes, error de Newey-West) sobre el registro completo de cada variable,
+  <b>quitando un año completo a la vez</b> (sus 12 meses). Hay una versión por cada año con dato. El año que más mueve la
+  pendiente es el de mayor cambio absoluto frente a la del registro completo; de ese año se cuentan los meses en El Niño
+  y en La Niña según el ONI.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Registro</th><th class="num">Versiones</th><th class="num">Pendiente, registro completo</th>
+    <th class="num">Rango de pendientes sin un año</th><th class="num">Versiones con p &lt; {TEND_ALFA}</th>
+    <th class="num">Año que más la mueve: cambio</th><th>Meses de ese año en El Niño o La Niña</th><th>Lectura</th></tr></thead>
+    <tbody>
+{sin_anio_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendientes de la serie original X por década, en las unidades de la variable (en la lluvia, del acumulado
+  mensual). «Cambio»: pendiente sin ese año menos la del registro completo; la p es la de la versión sin ese año.</p>
+  <p><b>La subida de la temperatura no depende de ningún año</b>: es significativa en todas las versiones, con pendientes de
+  {min(tend_sin_anio[t]["min"] for t in ("T mín", "T media", "T máx")):+.2f} a
+  {max(tend_sin_anio[t]["max"] for t in ("T mín", "T media", "T máx")):+.2f} °C/década. <b>En la lluvia y en el caudal ningún año
+  crea ni esconde una tendencia</b>: ninguna versión es significativa y ninguna cambia el signo de la pendiente del registro
+  completo; la p más baja es {tend_sin_anio[_p_min_lluvia]["p_min"]:.3f} ({_p_min_lluvia} sin
+  {tend_sin_anio[_p_min_lluvia]["anio_p_min"]}).{sin_anio_comun_txt} Que quitar un solo año cambie la pendiente en más de la mitad
+  de su valor es otra forma de ver por qué su intervalo es tan ancho.</p>
+
   <h3>¿Tendencia gradual o salto?</h3>
   <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt ({CITA_PETTITT}) sí marca uno</b>
   ({", ".join(f"{v} después de {salto[v]['anio_corte']}" for v in salto_con_corte)}), pero <b>es la misma subida gradual vista de
@@ -3287,6 +3517,36 @@ a {{ color: var(--acento); }}
   orden con las pendientes por década del punto medio de la temperatura ({inc_etp["d_tm"]:+.2f} °C) y de la amplitud diaria
   ({inc_etp["d_td"]:+.2f} °C). La ETP anual es la media de {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Los mm/mes de la lluvia se pasan a
   mm/año multiplicando por 12.</p>
+
+  <h3>Consistencia entre métodos, representaciones, fuentes y períodos</h3>
+  <p>Esta tabla junta lo anterior. Para cada variable dice si la tendencia de toda la serie coincide entre los tres métodos (OLS,
+  Mann-Kendall con la pendiente de Sen y LOESS), entre las tres representaciones (X, a y z), entre las dos fuentes de lluvia (PL*
+  frente a PI, en {CONS_COMUN}, la única ventana en que existen las dos) y entre los dos períodos (registro completo frente a
+  {CONS_COMUN}). Dos resultados <b>coinciden</b> si tienen el mismo signo y el mismo veredicto con α = {TEND_ALFA}. LOESS no da p:
+  con LOESS solo se compara el signo de su cambio de principio a fin. Las dos últimas columnas cuentan los meses que resisten la
+  FDR en cada método.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Métodos</th><th>Representaciones</th><th>Fuentes (PL* frente a PI)</th>
+    <th>Períodos (completo frente a {CONS_COMUN})</th><th class="num">Meses con FDR, OLS</th>
+    <th class="num">Meses con FDR, Mann-Kendall</th></tr></thead>
+    <tbody>
+{cons_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">«No aplica»: PI solo existe en {CONS_COMUN}, así que no tiene otro período, y Q y la temperatura tienen una sola
+  fuente. En OLS sobre X, la pendiente es la de la tabla resumen, con una constante por mes; en Mann-Kendall sobre X, la versión
+  estacional. Debajo de cada «no coincide», qué métodos o representaciones discrepan y en qué ventana.</p>
+  <p><b>Lo que es consistente.</b> En el registro completo, la temperatura sube y es significativa con los tres métodos y las
+  tres representaciones. En toda la serie, PL*, PI y Q no son significativos con ningún método, representación ni período. Las
+  representaciones X, a y z nunca discrepan, y ninguna discrepancia enfrenta dos resultados significativos de signo contrario.
+  Las diferencias son de signo entre resultados que no son significativos, o de veredicto en la ventana corta.</p>
+{cons_txt_loess}
+{cons_txt_metodos}
+{cons_txt_fuentes}
+{cons_txt_periodos}
+{cons_txt_mes}
 </section>
 
 <section>
@@ -3878,7 +4138,16 @@ a {{ color: var(--acento); }}
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
-  Colombia», y «durante La Niña ocurren anomalías contrarias». Los datos lo apoyan sin probarlo:</p>
+  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
+  <p><b>Por qué El Niño trae menos lluvia.</b> Según {CITA_CORDOBA}, cuando se calienta el Pacífico ecuatorial el aire
+  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
+  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
+  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
+  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los {n34_rob_total} meses en que la relación con el
+  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), {n34_rob_en_temporadas} caen en esas dos temporadas; fuera de
+  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).</p>
+  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
   <ul>
     <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
     en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
@@ -4070,7 +4339,23 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Interpretación física de los patrones</h2>
-  <p><i>Hasta el momento no hemos llegado a esta parte.</i></p>
+  <div{revision("sección nueva: interpretación física")}>
+  <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
+  pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
+  {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {n34_rob_total} meses robustos,
+  {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
+  (diciembre a febrero y junio a agosto).</p>
+  <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
+  coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
+  marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
+  {n34_fdr_l[1]} meses, frente a {n34_fdr_l[0]} sin rezago, y que el río vaya unos {desfase["Q_PL"]:.0f} días detrás de PL
+  (ver «Desfase estacional»). No lo prueba: el almacenamiento se infiere del atraso; no se mide.</p>
+  <p><b>¿El ENSO explica las tendencias?</b> No se puede afirmar. En la lluvia y en el caudal no hay una tendencia que
+  explicar: quitando un año a la vez, ninguna versión es significativa (ver «Sensibilidad a años extremos» en «Tendencias de
+  largo plazo»).{interp_anio_comun_txt} La subida de la temperatura no depende de ningún año.</p>
+  </div>
 </section>
 
 <section>
@@ -4088,6 +4373,10 @@ a {{ color: var(--acento); }}
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
+    <li id="ref-cordoba2015">Córdoba-Machado, S., Palomino-Lemus, R., Gámiz-Fortis, S. R., Castro-Díez, Y., y
+    Esteban-Parra, M. J. (2015). Assessing the impact of El Niño Modoki on seasonal precipitation in Colombia.
+    <i>Global and Planetary Change</i>, 124, 41–61.
+    <a href="https://doi.org/10.1016/j.gloplacha.2014.11.003">https://doi.org/10.1016/j.gloplacha.2014.11.003</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>

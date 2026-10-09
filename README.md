@@ -59,6 +59,9 @@ estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis
 (registro completo desde 1981 cuando existe: Q, temperatura y PL*, la red fija de pluviómetros; OLS con Newey-West,
 Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); **modelos lluvia–caudal** (`scripts/16b_modelos_lluvia_caudal.py`: diagnóstico, cinco modelos de la
 climatología a ln Q con la lluvia del mes y del anterior, validación cruzada con 5 bloques de 5 años; elegido M4);
+**la cuenca frente a los campos climáticos** (mapas de correlación con la SST, el viento y la humedad a 850 hPa, con
+significancia local, FDR por panel y la prueba de quitar un año: los mapas no son concluyentes; la relación inversa
+con el índice Niño 3.4 sí lo es en varios meses);
 y **frecuencias** (Fourier: Lomb-Scargle y
 FFT, bandas, ruido rojo AR(1)), que viene de la rama `punto-4` de angomezma-cyber, integrada a los scripts el 2026-10-08.
 La ampliación del Punto 2 de esa rama no se integró: lo que ya estaba en `main` se consideró suficiente (decisión del

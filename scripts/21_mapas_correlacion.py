@@ -6,8 +6,11 @@ variable de la cuenca, campo y rezago, doce paneles comparables, uno por mes del
   - en gris: la tierra en la SST, 850 hPa bajo el terreno y las cajas con menos pares que el mínimo;
   - la cuenca marcada; dominio de 60° S a 60° N (decisión del usuario);
   - en los mapas del viento, flechas con la dirección del viento medio de ese mes a 850 hPa;
-  - en cada panel, el rango de pares (n) de las cajas dibujadas, y el rezago en el título.
-Además, un mapa por combinación con todos los meses juntos (anomalías).
+  - en cada panel, el rango de pares (n) de las cajas dibujadas, y el rezago en el título;
+  - puntos negros en las cajas que sobreviven a la corrección por pruebas múltiples (FDR de Benjamini-Hochberg por
+    panel, con el q que guarda out/correlaciones_campos.nc; el color no se oculta en las demás).
+No se dibuja el mapa de todos los meses juntos (decisión del usuario, 2026-10-09): sus meses seguidos no son
+independientes y su significancia no se puede probar con la prueba t.
 
 Uso:  python scripts/21_mapas_correlacion.py            (todas las figuras)
       python scripts/21_mapas_correlacion.py PL sst 0   (una sola combinación)
@@ -59,6 +62,13 @@ COMBINACIONES += [(v, "sst", 1, "r_p") for v in ("PL", "Q", "PI")]
 COMBINACIONES += [("Q", "sst", 0, "r_s")]
 
 
+def puntear(ax, lat, lon, q, q_fdr):
+    """Un punto en el centro de cada caja que sobrevive al FDR (q < q_fdr)."""
+    LON, LAT = np.meshgrid(lon, lat)
+    sobrevive = np.isfinite(q) & (q < q_fdr)
+    ax.scatter(LON[sobrevive], LAT[sobrevive], s=0.6, c="black", marker=".", linewidths=0)
+
+
 def guardar(fig, nombre):
     """Guarda la figura y la reduce a 256 colores (paleta indexada): las figuras van incrustadas en el informe y, a
     todo color, cada una pesa cerca de 1 MB; con la escala continua de los mapas la diferencia no se ve."""
@@ -77,6 +87,8 @@ def figura(v, campo, l, metodo, corr, campos, tierra, n_minimo):
     lat, lon = corr.lat.values, corr.lon.values
     r = corr[f"{metodo}__{v}__{campo}__l{l}"].values
     n = corr[f"n__{v}__{campo}__l{l}"].values
+    q = corr[f"q_{metodo[-1]}__{v}__{campo}__l{l}"].values          # r_p -> q_p, r_s -> q_s
+    q_fdr = float(corr.attrs["q_fdr"])
     fig, ejes = plt.subplots(4, 3, figsize=(16, 10.5), constrained_layout=True)
     if campo == "viento850":
         LON, LAT = np.meshgrid(lon, lat)
@@ -88,6 +100,7 @@ def figura(v, campo, l, metodo, corr, campos, tierra, n_minimo):
         n_txt = texto_n(n[k], dentro)
         m = mapas.dibujar_correlacion(ax, lat, lon, r[k], n[k], n_minimo, tierra, f"{MESES[k]}  ({n_txt})",
                                       extension=DOMINIO, pasos=(60, 30), tam_titulo=10)
+        puntear(ax, lat, lon, q[k], q_fdr)
         if campo == "viento850":
             # dirección del viento medio del mes (flechas de largo fijo: solo indican hacia dónde sopla)
             uu, vv = u_mes[k][sel], v_mes[k][sel]
@@ -101,29 +114,9 @@ def figura(v, campo, l, metodo, corr, campos, tierra, n_minimo):
     rez = "sin rezago (ℓ = 0)" if l == 0 else f"rezago ℓ = {l}: el campo, {l} mes{'es' if l > 1 else ''} antes"
     extra = "; flechas: dirección del viento medio del mes" if campo == "viento850" else ""
     fig.suptitle(f"{NOMBRE_CUENCA[v]} contra {NOMBRE_CAMPO[campo]}, cada mes del calendario de la cuenca, 1998–2022, "
-                 f"{rez}. Gris: sin dato o menos de {n_minimo} pares{extra}", fontsize=11.5, x=0.01, ha="left")
+                 f"{rez}. Gris: sin dato o menos de {n_minimo} pares; puntos: sobreviven al FDR (q < {q_fdr:.2f})"
+                 f"{extra}", fontsize=11.5, x=0.01, ha="left")
     guardar(fig, nombre_figura(v, campo, l, metodo))
-
-
-def figura_todos(corr, tierra, n_minimo):
-    """Un panel por combinación base (ℓ = 0, Pearson) con todos los meses juntos (anomalías)."""
-    base = [(v, c) for v in ("PL", "Q", "PI") for c in ("sst", "viento850", "q850")]
-    lat, lon = corr.lat.values, corr.lon.values
-    fig, ejes = plt.subplots(3, 3, figsize=(16, 8.2), constrained_layout=True)
-    for (v, c), ax in zip(base, ejes.flat):
-        r = corr[f"r_p__{v}__{c}__l0"].values[12]
-        n = corr[f"n__{v}__{c}__l0"].values[12]
-        dentro = n >= n_minimo
-        m = mapas.dibujar_correlacion(ax, lat, lon, r, n, n_minimo, tierra,
-                                      f"{v} contra {NOMBRE_CORTO[c]}  "
-                                      f"({texto_n(n, dentro)})",
-                                      extension=DOMINIO, pasos=(60, 30), tam_titulo=10)
-    barra = fig.colorbar(m, ax=ejes, orientation="horizontal", fraction=0.04, pad=0.01, aspect=60,
-                         ticks=np.linspace(-1, 1, 9))
-    barra.set_label("correlación de Pearson entre las anomalías (escala común de −1 a 1)", fontsize=10)
-    fig.suptitle("Todos los meses juntos (anomalías respecto a cada mes del calendario), 1998–2022, sin rezago. "
-                 f"Gris: sin dato o menos de {n_minimo} pares", fontsize=11.5, x=0.01, ha="left")
-    guardar(fig, "corr_todos_los_meses.png")
 
 
 def main():
@@ -139,9 +132,6 @@ def main():
     for v, c, l, metodo in pedidas:
         figura(v, c, l, metodo, corr, campos, tierra, n_minimo)
         print("listo", nombre_figura(v, c, l, metodo), flush=True)
-    if len(sys.argv) != 4:
-        figura_todos(corr, tierra, n_minimo)
-        print("listo corr_todos_los_meses.png")
 
 
 if __name__ == "__main__":

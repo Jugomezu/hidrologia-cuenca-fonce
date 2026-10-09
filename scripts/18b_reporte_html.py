@@ -767,28 +767,63 @@ marzo_html = "".join(
     for m, r in inc_lluvia_fdr.items())
 
 # frecuencias (Fourier): tablas y datos de la gráfica
-FOU_NOMBRE = {"original": "original", "anomalía": "anomalía", "anomalía sin tendencia": "anomalía sin tendencia"}
+
+
+def _fou_fila_de(nombre, e, ar1):
+    b = e["bandas"]
+    dec = 1 if e["dT"] < 1 else 0
+    return (f"<tr><td>{nombre}</td><td class='num'>{e['N']}</td><td class='num'>{e['n']}</td>"
+            f"<td class='num'>{e['pico']:.{dec}f} ± {e['dT']:.{dec}f}</td><td class='num'>{e['ciclos']:.1f}</td>"
+            f"<td class='num'>{b['anual']:.1f}&nbsp;%</td><td class='num'>{b['semianual']:.1f}&nbsp;%</td>"
+            f"<td class='num'>{b['interanual']:.1f}&nbsp;%</td><td class='num'>{b['alta']:.1f}&nbsp;%</td>{ar1}</tr>")
 
 
 def _fou_fila(ven, v, tipo):
     e = fou[(ven, v, tipo)]
-    b = e["bandas"]
-    dec = 1 if e["dT"] < 1 else 0
-    ar1 = f"{_p_txt(e['ar1_p'])}" if "ar1_p" in e else "—"
-    return (f"<tr><td><b>{v}</b></td><td>{FOU_NOMBRE[tipo]}</td><td class='num'>{e['N']}</td><td class='num'>{e['n']}</td>"
-            f"<td class='num'>{e['pico']:.{dec}f} ± {e['dT']:.{dec}f}</td><td class='num'>{e['ciclos']:.1f}</td>"
-            f"<td class='num'>{b['anual']:.1f} %</td><td class='num'>{b['semianual']:.1f} %</td>"
-            f"<td class='num'>{b['interanual']:.1f} %</td><td class='num'>{b['alta']:.1f} %</td><td class='num'>{ar1}</td></tr>")
+    ar1 = f"<td class='num'>{_p_txt(e['ar1_p'])}</td>" if "ar1_p" in e else ""
+    return _fou_fila_de(f"<b>{v}</b>", e, ar1)
 
 
-fou_filas = "\n".join(_fou_fila("común 1998–2022", v, t) for v in FOU_VENTANAS["común 1998–2022"] for t in FOU_TRANSFORMACIONES)
-fou_filas_ext = "\n".join(_fou_fila("extendida 1981–2022", v, t) for v in FOU_VENTANAS["extendida 1981–2022"]
-                          for t in FOU_TRANSFORMACIONES)
-fou_json = json.dumps({
+def _fou_fila_oni(ven, tipo):
+    """El ONI, de referencia: la misma fila en las tres pestañas, porque el ONI ya es una anomalía."""
+    ar1 = "<td class='num'>—</td>" if tipo == "anomalía sin tendencia" else ""
+    return _fou_fila_de("<b>ONI</b> <small>(referencia)</small>", fou_oni[ven], ar1)
+
+
+def _fou_tablas(ven):
+    """Una tabla por versión de la serie; las pestañas de arriba muestran una y esconden las otras. La columna del ruido
+    rojo solo existe en «anomalía sin tendencia», la única versión en que se calcula."""
+    bloques = []
+    for i, tipo in enumerate(FOU_TRANSFORMACIONES):
+        ar1 = '<th class="num">Pico contra ruido rojo (p)</th>' if tipo == "anomalía sin tendencia" else ""
+        filas = "\n".join([_fou_fila(ven, v, tipo) for v in FOU_VENTANAS[ven]] + [_fou_fila_oni(ven, tipo)])
+        bloques.append(
+            f'  <div class="tabla-caja fou-tabla" data-tipo="{i}" role="tabpanel" aria-labelledby="pestana-foutab-{i}"'
+            f'{"" if i == 0 else " hidden"}>\n'
+            '  <table class="sin-destacar">\n'
+            '    <thead><tr><th>Variable</th><th class="num">N (meses)</th><th class="num">Con dato</th>'
+            '<th class="num">Pico ± ΔT (meses)</th>\n    <th class="num">Ciclos observados</th><th class="num">Anual</th>'
+            '<th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>\n'
+            f'    <th class="num">Alta (&lt; 6 meses)</th>{ar1}</tr></thead>\n'
+            f"    <tbody>\n{filas}\n    </tbody>\n  </table>\n  </div>")
+    return "\n".join(bloques)
+
+
+fou_tablas = _fou_tablas("común 1998–2022")
+fou_tablas_ext = _fou_tablas("extendida 1981–2022")
+fou_botones_tabla = "\n".join(
+    f'    <button type="button" role="tab" id="pestana-foutab-{i}" '
+    f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{t}</button>'
+    for i, t in enumerate(FOU_TRANSFORMACIONES))
+_fou_datos = {
     ven: {v: {t: {"f": [round(float(x), 5) for x in fou[(ven, v, t)]["f"]],
                   "p": [round(float(x), 4) for x in fou[(ven, v, t)]["p"]]}
               for t in FOU_TRANSFORMACIONES} for v in series}
-    for ven, series in FOU_VENTANAS.items()}, ensure_ascii=False)
+    for ven, series in FOU_VENTANAS.items()}
+for _ven in _fou_datos:
+    _fou_datos[_ven]["ONI"] = {t: {"f": [round(float(x), 5) for x in fou_oni[_ven]["f"]],
+                                   "p": [round(float(x), 4) for x in fou_oni[_ven]["p"]]} for t in FOU_TRANSFORMACIONES}
+fou_json = json.dumps(_fou_datos, ensure_ascii=False)
 fou_botones_tipo = "\n".join(
     f'    <button type="button" role="tab" id="pestana-fou-t{i}" aria-controls="panel-fou" '
     f'aria-selected="{"true" if i == 0 else "false"}"{"" if i == 0 else ' tabindex="-1"'}>{t}</button>'
@@ -862,6 +897,54 @@ fou_vacios_txt = (
        + f". Así que los vacíos no mueven los picos de Q, pero sus porcentajes por banda pueden estar corridos en unos "
          f"{max(_fv[k]['puntos'] for k in _fv_bandas):.0f} puntos por los vacíos.")
     + " Es una prueba indirecta: supone que los vacíos afectarían al caudal como afectan a la lluvia.")
+# ¿cuadra con el ENSO?: tabla de coherencia y fase, y textos (cada afirmación protegida en 18 o redactada según el dato)
+def _fou_rezago_txt(r):
+    return f"{r['rezago']:.1f}" if r["lectura"] == "en fase" else "—"
+
+
+fou_coh_filas = "\n".join(
+    f"<tr><td><b>{a}–{b}</b></td><td>{ven}</td><td class='num'>{r['coh']:.2f}</td><td class='num'>{r['umbral']:.2f}</td>"
+    f"<td>{'sí' if r['signif'] else 'no'}</td><td class='num'>{r['fase']:+.0f}°</td><td>{r['lectura']}</td>"
+    f"<td class='num'>{_fou_rezago_txt(r)}</td></tr>"
+    for (ven, a, b), r in fou_coh.items())
+_fou_cq = [(ven, a, r) for (ven, a, b), r in fou_coh.items() if b == "Q"]
+fou_coh_q_txt = "; ".join(f"{r['coh']:.2f} entre {a} y Q (ventana {ven})" for ven, a, r in _fou_cq)
+fou_coh_q_rezago = (min(r["rezago"] for _, _, r in _fou_cq), max(r["rezago"] for _, _, r in _fou_cq))
+
+
+def _fou_signif_oni_txt(ven):
+    pares = [(a, r) for (v, a, b), r in fou_coh.items() if v == ven and b == "ONI"]
+    si = [f"{a}–ONI {r['coh']:.2f} contra un umbral de {r['umbral']:.2f}" for a, r in pares if r["signif"]]
+    no = [f"{a}–ONI {r['coh']:.2f} contra {r['umbral']:.2f}" for a, r in pares if not r["signif"]]
+    if not no:
+        return f"En la ventana {ven} la coherencia con el ONI es significativa en todos los pares ({'; '.join(si)})."
+    if not si:
+        return f"En la ventana {ven} no es significativa en ningún par ({'; '.join(no)})."
+    return f"En la ventana {ven} solo es significativa en {'; '.join(si)}; queda por debajo en {'; '.join(no)}."
+
+
+_fou_ext_signif = all(r["signif"] for (v, a, b), r in fou_coh.items() if v == "extendida 1981–2022" and b == "ONI")
+_fou_com_signif = all(r["signif"] for (v, a, b), r in fou_coh.items() if v == "común 1998–2022" and b == "ONI")
+fou_coh_oni_txt = (_fou_signif_oni_txt("extendida 1981–2022") + " " + _fou_signif_oni_txt("común 1998–2022")
+                   + (" Esa es la evidencia que el pico solo no daba: en el registro largo, la variabilidad interanual de la cuenca"
+                      " va con el ENSO, aunque su período no sea fijo." if _fou_ext_signif else "")
+                   + ("" if _fou_com_signif else " Con 25 años la señal no alcanza a separarse del ruido en todas las series."))
+def _fou_rezago_oni(r):
+    k = r["rezago"]
+    return "en el mismo mes" if k == 0 else f"{k} {'mes' if k == 1 else 'meses'} después"
+
+
+fou_corr_oni_txt = "; ".join(
+    f"en la ventana {ven}, " + ", ".join(
+        f"{v} {_fou_rezago_oni(r)} (r = {r['r']:.2f})" for (v2, v), r in fou_corr_oni.items() if v2 == ven)
+    for ven in ("común 1998–2022", "extendida 1981–2022"))
+fou_pico_corto_txt = (
+    f"PL tiene un máximo en {fou_pico_corto['periodo']:.1f} meses con el {fou_pico_corto['PL']:.1f} % de la varianza de su anomalía. "
+    f"Pero en espectros de ruido blanco con los mismos {fou[(_fc, 'PL', 'anomalía')]['N']} meses ({FOU_SIMULACIONES} simulaciones), "
+    f"el pico más alto tiene en promedio el {fou_pico_corto['blanco_medio']:.1f} % (el 95 % de las veces, hasta el "
+    f"{fou_pico_corto['blanco_95']:.1f} %): no se distingue del azar. En la misma frecuencia, PI tiene el {fou_pico_corto['PI']:.1f} %, "
+    f"Q el {fou_pico_corto['Q']:.1f} % y T el {fou_pico_corto['T']:.1f} %.")
+
 # ventana extendida: en las originales no mueve el pico (protegido en 18); en las anomalías, se nombra dónde lo mueve
 fou_extendida_txt = (
     "En las anomalías sí cambia el pico de " + "; ".join(
@@ -2534,7 +2617,8 @@ a {{ color: var(--acento); }}
     interanual es el {fou_interanual["T"]:.0f} % de la anomalía de T, el {fou_interanual["Q"]:.0f} % de la de Q y apenas el
     {fou_interanual["PL"]:.0f} y {fou_interanual["PI"]:.0f} % de la de PL y PI.</li>
     <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)).{"".join(f" Solo {v} ({ven}) supera el ruido rojo, con su pico en {fou[(ven, v, 'anomalía sin tendencia')]['pico']:.0f} meses (p = {fou[(ven, v, 'anomalía sin tendencia')]['ar1_p']:.2f}), pero ese período cabe apenas {c:.1f} veces en el registro y es una de {sum(1 for k in fou if k[2] == 'anomalía sin tendencia')} pruebas: no alcanza para hablar de un ciclo." for (ven, v), c in fou_signif_ciclos.items())} La variabilidad
-    interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.</li>
+    interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.
+    Si la cuenca varía junto con el ENSO lo dice la coherencia (ver «¿Cuadra con el ENSO?»).</li>
     <li{_cambio('Corregido · antes decía que no cambiaba ningún pico')}><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: {", ".join(f"{v} {b:.0f} meses" for v, (a, b) in fou_extendida.items())},
     los mismos que en la ventana común (PL* frente a PL). {fou_extendida_txt}</li>
   </ul>
@@ -2550,36 +2634,23 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Periodograma de Lomb-Scargle ({CITA_LOMB}; {CITA_SCARGLE}) normalizado para que el área sea 1 (el 100 % de la
   varianza): compara la forma del espectro entre variables con unidades distintas; la altura no es variabilidad absoluta. Eje
-  inferior en ciclos por mes; arriba, el período. Franjas: las bandas de 12 y 6 meses (±Δf), y la banda interanual de 3 a 7 años.</p>
+  inferior en ciclos por mes; arriba, el período. Franjas: las bandas de 12 y 6 meses (±Δf), y la banda interanual de 3 a 7 años. La curva punteada
+  es el ONI, de referencia: es la misma en las tres versiones, porque el ONI ya es una anomalía.</p>
 
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Variable</th><th>Versión</th><th class="num">N (meses)</th><th class="num">Con dato</th><th class="num">Pico ± ΔT (meses)</th>
-    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
-    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
-    <tbody>
-{fou_filas}
-    </tbody>
-  </table>
+  <div class="pestanas" role="tablist" aria-label="Qué versión de la serie, en las tablas">
+{fou_botones_tabla}
   </div>
+{fou_tablas}
   <p class="nota">Ventana común {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. N: meses de la ventana, del primero al último con dato;
   «Con dato»: los observados (Q tiene vacíos). Porcentajes: fracción de la varianza en cada banda. La resolución
   es Δf = 1/N ciclos por mes y, en período, ΔT = T²·Δf: los decimales del pico no dicen más que eso. «Ciclos observados»:
-  cuántas veces cabe el período en el registro; con pocos ciclos el pico es incierto. Ruido rojo: el pico más alto de la anomalía
-  sin tendencia contra el de {FOU_SIMULACIONES} series AR(1) con la misma autocorrelación y las mismas fechas observadas (al comparar
+  cuántas veces cabe el período en el registro; con pocos ciclos el pico es incierto. Ruido rojo (solo en la pestaña de la anomalía sin
+  tendencia): su pico más alto contra el de {FOU_SIMULACIONES} series AR(1) con la misma autocorrelación y las mismas fechas observadas (al comparar
   el máximo se corrige que se buscó en todas las frecuencias a la vez).</p>
 
   <details class="plegable-mini"><summary><b>Ventana extendida 1981–2022</b> <small>(PL*, Q y T)</small></summary>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Variable</th><th>Versión</th><th class="num">N (meses)</th><th class="num">Con dato</th><th class="num">Pico ± ΔT (meses)</th>
-    <th class="num">Ciclos observados</th><th class="num">Anual</th><th class="num">Semianual</th><th class="num">Interanual (3–7 años)</th>
-    <th class="num">Alta (&lt; 6 meses)</th><th class="num">Pico contra ruido rojo (p)</th></tr></thead>
-    <tbody>
-{fou_filas_ext}
-    </tbody>
-  </table>
-  </div>
+  <p class="nota">Se muestra la misma versión elegida en las pestañas de la tabla de arriba.</p>
+{fou_tablas_ext}
   </details>
 
   <div{_cambio('Nuevo · el método (y las columnas N y «Con dato» de las tablas)')}>
@@ -2617,8 +2688,49 @@ a {{ color: var(--acento); }}
   <p>{fou_tendencia_txt}</p>
   <p>{fou_vacios_txt}</p>
   </div>
+
+  <div{_cambio('Nuevo · coherencia y fase con el ONI')}>
+  <h3>¿Cuadra con el ENSO? Coherencia y fase con el ONI</h3>
+  <p>El ONI de la NOAA ({CITA_ONI}) es la anomalía de la temperatura del mar en el Pacífico central (región Niño 3.4):
+  positivo en El Niño, negativo en La Niña. En el registro largo, el pico más alto de su espectro está en
+  {fou_oni["extendida 1981–2022"]["pico"]:.0f} ± {fou_oni["extendida 1981–2022"]["dT"]:.0f} meses, el mismo que el de la anomalía de
+  PL* ({fou_plx_ext["pico"]:.0f} ± {fou_plx_ext["dT"]:.0f}). En la ventana común queda en {fou_oni["común 1998–2022"]["pico"]:.0f} ±
+  {fou_oni["común 1998–2022"]["dT"]:.0f} meses: con 25 años, el ENSO no alcanza a definir un período.</p>
+  <p>Que dos espectros tengan un pico en el mismo período no dice que las series varíen juntas. Eso lo mide la
+  <b>coherencia</b> (de 0, nada en común, a 1, la misma señal desplazada), y la <b>fase</b> dice cuál va adelante.
+  <b>La lluvia y el caudal varían juntos, y en fase</b>: en la banda de 3 a 7 años la coherencia es {fou_coh_q_txt}, por encima
+  del umbral en todos los casos, y Q va entre {fou_coh_q_rezago[0]:.1f} y {fou_coh_q_rezago[1]:.1f} meses detrás de la lluvia.
+  <b>Con el ONI van en oposición</b> (fase cerca de ±180°): cuando el Pacífico central se calienta, llueve menos y baja el caudal.
+  {fou_coh_oni_txt}</p>
+  <p>La correlación simple con el ONI de unos meses antes dice lo mismo. El rezago en que es más negativa es: {fou_corr_oni_txt}.
+  El almacenamiento atrasa al río también en la escala del ENSO.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Par</th><th>Ventana</th><th class="num">Coherencia (3–7 años)</th><th class="num">Umbral 95 %</th>
+    <th>¿Significativa?</th><th class="num">Fase</th><th>Lectura</th><th class="num">El segundo va detrás (meses)</th></tr></thead>
+    <tbody>
+{fou_coh_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Cómo se calcula: anomalías sin tendencia de cada serie (también del ONI), espectro cruzado con segmentos de
+  {FOU_WELCH_SEGMENTO} meses, ventana de Hann y traslape de la mitad; la banda de 3 a 7 años queda en las frecuencias de
+  {fou_coh[next(iter(fou_coh))]["periodos"][0]:.0f} y {fou_coh[next(iter(fou_coh))]["periodos"][1]:.0f} meses. Umbral: el percentil 95 de la
+  coherencia de {FOU_SIMULACIONES} pares de series AR(1) independientes, con la autocorrelación de cada serie y sus mismos vacíos.
+  Fase: el ángulo del espectro cruzado; negativa, el segundo de la pareja va detrás. Se lee «en fase» por debajo de
+  {FOU_EN_FASE_GRADOS:.0f}° y «en oposición» por encima de {FOU_OPOSICION_GRADOS:.0f}°; solo en fase tiene sentido pasarla a meses.
+  <b>Vacíos:</b> la coherencia necesita meses seguidos, así que solo aquí los meses vacíos de Q se toman como anomalía cero (un mes
+  normal). Con PL, eso baja la coherencia con el ONI de {fou_coh_vacios["común 1998–2022"][0]:.2f} a {fou_coh_vacios["común 1998–2022"][1]:.2f}
+  en la ventana común y de {fou_coh_vacios["extendida 1981–2022"][0]:.2f} a {fou_coh_vacios["extendida 1981–2022"][1]:.2f} en la extendida: el
+  relleno juega en contra de encontrar coherencia, no a favor.</p>
+  </div>
+
+  <div{_cambio('Nuevo · el pico de 2.2 meses')}>
+  <p><b>¿Y el pico corto de la lluvia?</b> {fou_pico_corto_txt}</p>
+  </div>
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
-  y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual»). La FFT con Hann se calcula en el tramo
+  y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual») y, en la escala interanual, con el
+  espectro cruzado (ver «¿Cuadra con el ENSO?»). La FFT con Hann se calcula en el tramo
   continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
 </section>
 
@@ -3516,14 +3628,15 @@ a {{ color: var(--acento); }}
   const FOU = {fou_json};
   let fouTipo = 0, fouVen = 0;
   const FOU_TIPOS = ["original", "anomalía", "anomalía sin tendencia"];
-  const FOU_COLOR = {{ ...COLOR_VAR, "T": COLOR_VAR["T media"] }};   // Fourier llama T a la T media
+  // Fourier llama T a la T media; el ONI es una referencia, no una variable de la cuenca: gris y punteado
+  const FOU_COLOR = {{ ...COLOR_VAR, "T": COLOR_VAR["T media"], "ONI": "#8A8A8A" }};
 
   function dibujarFourier() {{
     if (!window.Plotly) return;
     const ven = Object.keys(FOU)[fouVen], tipo = FOU_TIPOS[fouTipo];
     const trazas = Object.entries(FOU[ven]).map(([v, d]) => ({{
       type: "scatter", mode: "lines", name: v, x: d[tipo].f, y: d[tipo].p,
-      line: {{ color: FOU_COLOR[v], width: 1.6 }},
+      line: {{ color: FOU_COLOR[v], width: 1.6, dash: v === "ONI" ? "dot" : "solid" }},
       hovertemplate: "f = %{{x:.4f}} ciclos/mes (T = %{{customdata:.1f}} meses)<br>%{{y:.2f}}<extra>" + v + "</extra>",
       customdata: d[tipo].f.map(f => 1 / f) }}));
     const d = base();
@@ -3545,7 +3658,8 @@ a {{ color: var(--acento); }}
     Plotly.react("g-fou", trazas, d, CONF);
   }}
 
-  [["pestana-fou-t", 3, i => {{ fouTipo = i; dibujarFourier(); }}],
+  [["pestana-foutab-", 3, i => document.querySelectorAll(".fou-tabla").forEach(d => {{ d.hidden = d.dataset.tipo !== String(i); }})],
+   ["pestana-fou-t", 3, i => {{ fouTipo = i; dibujarFourier(); }}],
    ["pestana-fou-v", Object.keys(FOU).length, i => {{ fouVen = i; dibujarFourier(); }}]].forEach(([prefijo, cuantos, accion]) => {{
     const botones = Array.from({{ length: cuantos }}, (_, i) => document.getElementById(prefijo + i));
     if (botones.some(b => !b)) return;

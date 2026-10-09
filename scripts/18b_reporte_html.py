@@ -166,6 +166,7 @@ UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C"
 
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
+CITA_CORDOBA = '<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
 CITA_HARGREAVES = '<a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a>'
 CITA_PETTITT = '<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>'
@@ -1384,6 +1385,15 @@ n34_fdr_l = {l: int(_n34[(_n34.rezago == l) & (_n34.cuenca == "Q")].sobrevive_fd
 assert (_n34[_n34.sobrevive_fdr].r < 0).all()                                    # todas las que pasan son negativas
 assert set(_n34_0[_n34_0.sobrevive_fdr].mes) <= {12, 1, 2, 3, 6, 7, 8, 9}       # mitad de año y diciembre a marzo
 assert not _n34_0[_n34_0.mes.isin([4, 5])].sobrevive_fdr.any()                  # abril y mayo: ninguna
+# meses robustos frente a las dos temporadas en que Córdoba-Machado et al. (2015) hallan la mayor disminución
+# de la lluvia con El Niño: diciembre a febrero y junio a agosto
+N34_TEMPORADAS_CORDOBA = {12, 1, 2, 6, 7, 8}
+_n34_rob = _n34_0[_n34_0.robusto]
+n34_rob_en_temporadas = int(_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA).sum())
+n34_rob_total = len(_n34_rob)
+n34_rob_fuera = "; ".join(f"{_lista_meses(sorted(g.mes))} con {v}"
+                          for v, g in _n34_rob[~_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA)].groupby("cuenca"))
+assert n34_rob_en_temporadas > n34_rob_total / 2                                # el texto dice «la mayoría»
 assert all(n34_robustos[v] != "ningún mes" for v in ("PL", "Q", "PI"))
 assert n34_fdr_l[1] >= n34_fdr_l[0]                                              # Q pasa en más meses con ℓ = 1
 _rob = corr_jackknife[corr_jackknife.cajas_fdr > 0]
@@ -3667,7 +3677,16 @@ a {{ color: var(--acento); }}
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
-  Colombia», y «durante La Niña ocurren anomalías contrarias». Los datos lo apoyan sin probarlo:</p>
+  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
+  <p><b>Por qué El Niño trae menos lluvia.</b> Según {CITA_CORDOBA}, cuando se calienta el Pacífico ecuatorial el aire
+  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
+  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
+  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
+  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los {n34_rob_total} meses en que la relación con el
+  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), {n34_rob_en_temporadas} caen en esas dos temporadas; fuera de
+  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).</p>
+  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
   <ul>
     <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
     en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
@@ -3877,6 +3896,10 @@ a {{ color: var(--acento); }}
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
+    <li id="ref-cordoba2015">Córdoba-Machado, S., Palomino-Lemus, R., Gámiz-Fortis, S. R., Castro-Díez, Y., y
+    Esteban-Parra, M. J. (2015). Assessing the impact of El Niño Modoki on seasonal precipitation in Colombia.
+    <i>Global and Planetary Change</i>, 124, 41–61.
+    <a href="https://doi.org/10.1016/j.gloplacha.2014.11.003">https://doi.org/10.1016/j.gloplacha.2014.11.003</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>

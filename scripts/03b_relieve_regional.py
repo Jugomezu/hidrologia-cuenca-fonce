@@ -12,8 +12,9 @@ recorte que usa el mapa (decisiones del usuario del 2026-10-09):
      Natural Earth en Amazon S3: https://naturalearth.s3.amazonaws.com/10m_cultural/...zip. El sitio
      naturalearthdata.com no se pudo usar desde el entorno donde se corrió (la red lo bloqueaba).
 
-Recuadro: 73.5° O a 71.5° O y 4.5° N a 8° N (decidido por el usuario). Alcanza para ver el valle del Magdalena
-al occidente, la cordillera Oriental y el borde de los Llanos al oriente.
+Recuadro: 75.5° O a 71.5° O y 4.5° N a 8° N (decidido por el usuario). Alcanza para ver el flanco de la
+cordillera Central y el valle del Magdalena al occidente, la cordillera Oriental y el borde de los Llanos al
+oriente. Primero se probó 73.5° O, recomendado por el agente: el valle del Magdalena apenas asomaba en el borde.
 
 TRANSFORMACIONES
   - DEM: se unen los archivos, se recorta al recuadro y se promedia por bloques de PASO_DEM_CELDAS x PASO_DEM_CELDAS
@@ -22,7 +23,7 @@ TRANSFORMACIONES
   - Límites: se recortan al recuadro, ampliado en MARGEN_LIMITES_GRADOS para que las líneas lleguen al borde.
 
 SALIDAS
-  data/dem/copernicus_glo90/*.tif     los archivos del DEM tal como se descargan (fuera de git, ~60 MB)
+  data/dem/copernicus_glo90/*.tif     los archivos del DEM tal como se descargan (fuera de git, ~100 MB)
   data/natural_earth/*.zip            los límites tal como se descargan (fuera de git, ~20 MB)
   out/relieve_region_copernicus.tif   el relieve del recuadro, promediado (elevación en m; EPSG:4326)
   out/limites_region.gpkg             capas «paises» y «departamentos», recortadas al recuadro
@@ -50,7 +51,7 @@ DIR_NE = RAIZ / "data/natural_earth"
 SALIDA_DEM = RAIZ / "out/relieve_region_copernicus.tif"
 SALIDA_LIMITES = RAIZ / "out/limites_region.gpkg"
 
-RECUADRO = {"oeste": -73.5, "este": -71.5, "sur": 4.5, "norte": 8.0}     # grados (decidido por el usuario)
+RECUADRO = {"oeste": -75.5, "este": -71.5, "sur": 4.5, "norte": 8.0}     # grados (decidido por el usuario)
 URL_DEM = "https://copernicus-dem-90m.s3.amazonaws.com"
 CELDAS_POR_GRADO = 1200            # GLO-90 entre 0° y 50° de latitud: 3" = 1/1200 de grado
 PASO_DEM_CELDAS = 6                # promedio de 6 x 6 celdas: de 3" a 18" (~550 m)

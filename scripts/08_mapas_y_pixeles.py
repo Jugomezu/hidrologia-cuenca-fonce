@@ -234,7 +234,7 @@ sombra_r = LightSource(azdeg=315, altdeg=45).hillshade(
 paises = gpd.read_file(LIMITES, layer="paises")
 deptos = gpd.read_file(LIMITES, layer="departamentos")
 
-fig, ax = plt.subplots(figsize=(6.4, 9.2), constrained_layout=True)
+fig, ax = plt.subplots(figsize=(9.0, 7.2), constrained_layout=True)
 ax.imshow(sombra_r, cmap="gray", extent=ext_r, vmin=0, vmax=1)
 im = ax.imshow(zr, cmap=TERRENO, extent=ext_r, alpha=0.6, vmin=0, vmax=np.nanmax(zr))
 deptos.boundary.plot(ax=ax, color="0.25", lw=0.6, linestyle=(0, (4, 2)))

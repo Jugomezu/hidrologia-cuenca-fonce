@@ -20,6 +20,8 @@ Los DOI y versiones se verificaron contra la fuente autoritativa (API de Zenodo,
 | MSWX - Multi-Source Weather | `10.1175/BAMS-D-21-0145.1` | CC-BY-4.0 (requiere registro | descargado |
 | ERA5-Land: temperatura 2 m, agregados diarios (0.1 grados; se prefirio sobre ERA5 por resolucion) | `10.24381/cds.e2161bac` | Licencia Copernicus para pro | 2026-09-24, via Google Earth Engine |
 | DEM ALOS PALSAR 12.5 m (recorte de la zona) | sin DOI registrado (ver seccion) | sin registrar (ver seccion) | recorte en `data/dem/`, 2026-09-27 |
+| Copernicus DEM GLO-90 (relieve del mapa de ubicacion) | no verificado (ver seccion) | no verificada (ver seccion) | 2026-10-09, copia publica en Amazon S3 |
+| Natural Earth 1:10 m, limites de paises y departamentos (v5.1.1) | sin DOI | no verificada (ver seccion) | 2026-10-09, copia oficial en Amazon S3 |
 
 ---
 
@@ -804,6 +806,68 @@ propios (ver la seccion siguiente).
   UTM 19N, el area sale 0.42 % mas grande y las longitudes 0.21 % mas largas. Por eso el DEM se usa solo
   para alturas, y las areas y longitudes se miden en el elipsoide o en MAGNA-SIRGAS / Colombia Bogota
   (EPSG:3116).
+
+
+## Copernicus DEM GLO-90 (relieve de la region, para el mapa de ubicacion)
+
+- **Producto:** Copernicus DEM GLO-90, modelo digital de superficie global de la Agencia Espacial Europea (ESA),
+  programa Copernicus, con celdas de 3" (unos 90 m). Archivos de 1° x 1° en GeoTIFF optimizado para la nube (COG).
+- **Fuente:** la copia publica en Amazon S3 (Registry of Open Data on AWS), sin cuenta:
+  `https://copernicus-dem-90m.s3.amazonaws.com/Copernicus_DSM_COG_30_<norte>_<oeste>_DEM/<mismo nombre>.tif`.
+  Segun su `readme.html`, la copia quita la fila y la columna que cada archivo original comparte con su vecino, asi
+  que cada archivo tiene 1 200 x 1 200 celdas con su centro en los grados enteros.
+- **Licencia y DOI:** **no verificados.** El `readme.html` de la copia remite a la pagina de licencias de Copernicus
+  (https://spacedata.copernicus.eu/en/web/guest/collections/copernicus-digital-elevation-model/), que no se pudo
+  abrir desde el entorno donde se descargo (la red la bloqueaba). Hay que comprobarlos ahi antes de entregar.
+- **Descargado:** 2026-10-09, con `scripts/03b_relieve_regional.py` (se baja solo si no existe en `data/`).
+- **Recuadro:** 75.5° O a 71.5° O y 4.5° N a 8° N (decision del usuario; primero se probo 73.5° O, recomendado
+  por el agente, y el valle del Magdalena apenas asomaba): 20 archivos, de N04 a N07 y de W076 a W072.
+- **Destino local:** `data/dem/copernicus_glo90/`, **fuera de git** (~100 MB); se vuelve a bajar con el script.
+- **SHA-256 de cada archivo:**
+  - `Copernicus_DSM_COG_30_N04_00_W072_00_DEM.tif`: `e0301928c97cdc4b7413c3917b278f7885677a84bcd620bd773339ce64ce7266`
+  - `Copernicus_DSM_COG_30_N04_00_W073_00_DEM.tif`: `dd0a27d07d9b5fa90b2d560cdaf4d670b66f049072437380e37f3b567b5a365b`
+  - `Copernicus_DSM_COG_30_N04_00_W074_00_DEM.tif`: `b27f06c1f2db31fc3a8e8317a4b05925a30022e1a089d1c508d14bd6b91eb39f`
+  - `Copernicus_DSM_COG_30_N04_00_W075_00_DEM.tif`: `5d0338d7f675bb07deef9942c23ef7e5895330a4b09fcd1b3cf6fe01af7008ea`
+  - `Copernicus_DSM_COG_30_N04_00_W076_00_DEM.tif`: `70a480b92be0a58da1a65d2c727ffed8a54f60940c3f0a3a5149a1f877e23f8e`
+  - `Copernicus_DSM_COG_30_N05_00_W072_00_DEM.tif`: `3605d5147516cf8a8615abb5c7e650b3e81c644c026853a5d6a42898d7dadbd8`
+  - `Copernicus_DSM_COG_30_N05_00_W073_00_DEM.tif`: `b162778727c30c1089e563c0ed8f6051e49a69931748664e665cec209094d191`
+  - `Copernicus_DSM_COG_30_N05_00_W074_00_DEM.tif`: `7dc10127c2acac5b7ef8d6781e276cac4a97d26e37e927f71c1ca8475f9e493f`
+  - `Copernicus_DSM_COG_30_N05_00_W075_00_DEM.tif`: `969bd0c8d69d031dbe052b60525be0d79f7818564323d67f64767fd516d745f9`
+  - `Copernicus_DSM_COG_30_N05_00_W076_00_DEM.tif`: `447d1a3c079fcf78c77eb442a2571c24d22f481a4dcc123584ea20a53d558caf`
+  - `Copernicus_DSM_COG_30_N06_00_W072_00_DEM.tif`: `eab54b28dceb8a8a01abc719fcec43a1bfa7f91784b0f2d4489e8a2afc12e883`
+  - `Copernicus_DSM_COG_30_N06_00_W073_00_DEM.tif`: `208e2e8558d625c4c5c2b92ccfed0f36fb3a8066a29845e24407bafc0626c301`
+  - `Copernicus_DSM_COG_30_N06_00_W074_00_DEM.tif`: `fbcb42a96b8eedec8fc05d152930819805c4e82c772148b37220b1ef9b1a82eb`
+  - `Copernicus_DSM_COG_30_N06_00_W075_00_DEM.tif`: `c65169ebd73a6f41505cf3a4c53ca8efe53c99282882825965003e30b663ce5f`
+  - `Copernicus_DSM_COG_30_N06_00_W076_00_DEM.tif`: `bea0bd2e5f41bac8560ef89ffa19411786396b4c1b6a8d993f1dce282d54945e`
+  - `Copernicus_DSM_COG_30_N07_00_W072_00_DEM.tif`: `ce2e78778c97fcf3b1bb036c79aabc308d2416eec0182630ea0a504e2e8ac807`
+  - `Copernicus_DSM_COG_30_N07_00_W073_00_DEM.tif`: `e54ce251a431f38f112cc479f91fc02c30c10f02e7eb4b0f51cafb7819c13b1d`
+  - `Copernicus_DSM_COG_30_N07_00_W074_00_DEM.tif`: `90d38b41fc1c846f23993d8fe6d5c0d881a576c44b4edc7102639fcbf83e06aa`
+  - `Copernicus_DSM_COG_30_N07_00_W075_00_DEM.tif`: `33d6cf95ddf87cbdd34a551a8cd715672aad03b6097732da78d21c33b48b3ff2`
+  - `Copernicus_DSM_COG_30_N07_00_W076_00_DEM.tif`: `ea1b1719323992405c6f88a8eaf60d9a467627574f3eb3fdb434760a2c6acc01`
+- **Transformaciones:** mosaico en la malla propia del DEM (sin remuestrear), recorte por indices al recuadro y
+  promedio por bloques de 6 x 6 celdas (de 3" a 18", unos 550 m). Producto: `out/relieve_region_copernicus.tif`.
+- **Uso:** solo la Figura 1 del informe (ubicacion). Ninguna cifra del analisis sale de este DEM; la elevacion de
+  la cuenca sigue siendo la del ALOS PALSAR.
+
+
+## Natural Earth 1:10 m: limites de paises y de departamentos (mapa de ubicacion)
+
+- **Producto:** Natural Earth, escala 1:10 m, version 5.1.1 (archivo `*.VERSION.txt` de cada zip):
+  `ne_10m_admin_0_countries` (paises) y `ne_10m_admin_1_states_provinces` (departamentos y estados).
+- **Fuente:** la copia oficial de Natural Earth en Amazon S3: `https://naturalearth.s3.amazonaws.com/10m_cultural/`.
+  El sitio `naturalearthdata.com` no se pudo abrir desde el entorno donde se descargo (la red lo bloqueaba).
+- **Licencia:** **no verificada** desde el entorno: el README que trae cada zip no la menciona. Natural Earth
+  declara sus datos de dominio publico en `https://www.naturalearthdata.com/about/terms-of-use/`; hay que
+  comprobarlo ahi.
+- **Descargado:** 2026-10-09, con `scripts/03b_relieve_regional.py`.
+- **Destino local:** `data/natural_earth/`, **fuera de git** (~20 MB).
+- **SHA-256:**
+  - `ne_10m_admin_0_countries.zip`: `ce1ac7036499a0edd641fbc093cd209a98f96a49d2eca8480aaacad35138a7f6`
+  - `ne_10m_admin_1_states_provinces.zip`: `efc59726337323058f9446210adc96673179cd344e053666ee3d28cb58ba2b05`
+- **Transformaciones:** recorte al recuadro del mapa ampliado en 0.5°; columnas `nombre` y `codigo_pais`.
+  Producto: `out/limites_region.gpkg` (capas `paises` y `departamentos`).
+- **Uso:** solo la Figura 1 del informe. Los limites estan generalizados para la escala 1:10 m: sirven para ubicar,
+  no para medir.
 
 
 ## Area de la cuenca (decidido el 2026-09-27)

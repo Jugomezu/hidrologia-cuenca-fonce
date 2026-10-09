@@ -7,7 +7,7 @@ data/camels_col/04_hydromet.zip
 data/noaa/ersst_v5/
 data/era5_campos/
 
-# Mapa de ubicación: celdas del Copernicus DEM GLO-90 (~60 MB) y límites de Natural Earth (~20 MB). Los baja
+# Mapa de ubicación: celdas del Copernicus DEM GLO-90 (~100 MB) y límites de Natural Earth (~20 MB). Los baja
 # scripts/03b_relieve_regional.py; sus SHA-256 están en DATOS_FUENTES.md. Los recortes (out/) sí se versionan.
 data/dem/copernicus_glo90/
 data/natural_earth/

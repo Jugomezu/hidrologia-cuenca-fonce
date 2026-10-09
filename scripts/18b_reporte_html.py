@@ -48,11 +48,18 @@ def _md_en_linea(texto):
     return "".join(f"<code>{p}</code>" if i % 2 else p for i, p in enumerate(partes))
 
 
-ia_rechazos = []
+ia_rechazos, _ia_fechas, ia_registro_desde = [], [], None
 for _linea in DECISIONES.read_text(encoding="utf-8").splitlines():
     _celdas = [c.strip() for c in _linea.strip().strip("|").split("|")]
-    if len(_celdas) == 5 and "Contradice al agente" in _celdas[4]:
-        ia_rechazos.append(_celdas)
+    if len(_celdas) == 5 and _celdas[0][:4].isdigit():
+        _ia_fechas.append(_celdas[0])
+        if _celdas[1] == "Registro de decisiones":      # la fila que dice desde cuándo se lleva el archivo
+            ia_registro_desde = _celdas[0]
+        if "Contradice al agente" in _celdas[4]:
+            ia_rechazos.append(_celdas)
+ia_fila_mas_antigua = min(_ia_fechas)
+# el texto dice que el registro se empezó a llevar tarde y que las filas anteriores se reconstruyeron
+assert ia_registro_desde and ia_fila_mas_antigua < ia_registro_desde
 assert ia_rechazos, "el registro de decisiones no tiene propuestas rechazadas: revisar el anexo de uso de IA"
 ia_filas_rechazos = "\n".join(
     "<tr>" + "".join(f"<td>{_md_en_linea(c)}</td>" for c in fila) + "</tr>" for fila in ia_rechazos)
@@ -3425,8 +3432,8 @@ a {{ color: var(--acento); }}
     <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
     particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
     el equipo los leyera antes de entrar al informe.</li>
-    <li><b>Bibliografía:</b> búsqueda de fuentes y lectura de las disponibles para comprobar que digan lo que el informe
-    les atribuye.</li>
+    <li><b>Bibliografía:</b> la búsqueda, la lectura y la verificación de las fuentes las hizo sobre todo el equipo. La
+    IA buscó algunas fuentes y comprobó citas puntuales contra el texto de la fuente.</li>
     <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
 
@@ -3445,8 +3452,8 @@ a {{ color: var(--acento); }}
     <li><b>Recálculos independientes:</b> algunas cifras se recalcularon fuera del script, directamente desde los CSV de
     <code>out/</code>, antes de aceptarlas; por ejemplo, el índice P/ETP anual, sus años extremos y los valores de
     enero.</li>
-    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente. Una fuente
-    propuesta se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
+    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente; la mayor
+    parte de esa lectura la hizo el equipo. Una fuente que propuso la IA se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
     de los Andes, no a los valles interandinos.</li>
     <li><b>Cada cambio:</b> antes de entrar a la rama principal, el análisis corre sin errores desde la raíz, el
     JavaScript de la página pasa <code>node --check</code>, la página abre en un navegador sin errores de consola en los
@@ -3455,8 +3462,11 @@ a {{ color: var(--acento); }}
   </ul>
 
   <h3>Propuestas rechazadas o corregidas</h3>
-  <p>El registro <code>DECISIONES.md</code> anota cada decisión del equipo junto con lo que recomendó la IA. En
-  {len(ia_rechazos)} el equipo decidió distinto; están en el anexo. Además, la IA corrigió propuestas suyas al
+  <p>El registro <code>DECISIONES.md</code> anota las decisiones del equipo junto con lo que recomendó la IA. En
+  {len(ia_rechazos)} el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
+  llevar el {ia_registro_desde}, cuando el trabajo ya estaba avanzado. Las filas anteriores a esa fecha se
+  reconstruyeron después (la más antigua es del {ia_fila_mas_antigua}), y de lo decidido antes no queda registro. El
+  anexo muestra, entonces, las propuestas rechazadas que quedaron anotadas, no todas. Además, la IA corrigió propuestas suyas al
   verificarlas: un umbral escogido a mano para describir un P/ETP «prácticamente en el límite» se quitó a pedido del
   equipo, y una fuente se descartó al leerla (ver «Citas», arriba).</p>
   <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores, que deben poder
@@ -3470,7 +3480,7 @@ a {{ color: var(--acento); }}
     </tbody>
   </table></div>
   <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al
-  agente».</p>
+  agente». Incompleto antes del {ia_registro_desde} (ver arriba).</p>
   </div>
 </section>
 

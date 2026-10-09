@@ -2737,8 +2737,8 @@ section, section h3 { scroll-margin-top: 20px; }
     <li><b>Textos:</b> borradores de las secciones del informe, que el equipo revisó, corrigió o descartó; en
     particular, la explicación física y la síntesis del ciclo anual se escribieron primero como borrador aparte para que
     el equipo los leyera antes de entrar al informe.</li>
-    <li><b>Bibliografía:</b> búsqueda de fuentes y lectura de las disponibles para comprobar que digan lo que el informe
-    les atribuye.</li>
+    <li><b>Bibliografía:</b> la búsqueda, la lectura y la verificación de las fuentes las hizo sobre todo el equipo. La
+    IA buscó algunas fuentes y comprobó citas puntuales contra el texto de la fuente.</li>
     <li><b>Verificación:</b> correr el análisis de principio a fin y revisar la página después de cada cambio.</li>
   </ul>
 
@@ -2746,7 +2746,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 137 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 138 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
@@ -2757,8 +2757,8 @@ section, section h3 { scroll-margin-top: 20px; }
     <li><b>Recálculos independientes:</b> algunas cifras se recalcularon fuera del script, directamente desde los CSV de
     <code>out/</code>, antes de aceptarlas; por ejemplo, el índice P/ETP anual, sus años extremos y los valores de
     enero.</li>
-    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente. Una fuente
-    propuesta se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
+    <li><b>Citas:</b> las frases entre comillas atribuidas a una fuente se copiaron del texto de esa fuente; la mayor
+    parte de esa lectura la hizo el equipo. Una fuente que propuso la IA se descartó al leerla: el rango de altura de máxima lluvia que citaba se refería a la vertiente amazónica
     de los Andes, no a los valles interandinos.</li>
     <li><b>Cada cambio:</b> antes de entrar a la rama principal, el análisis corre sin errores desde la raíz, el
     JavaScript de la página pasa <code>node --check</code>, la página abre en un navegador sin errores de consola en los
@@ -2767,8 +2767,11 @@ section, section h3 { scroll-margin-top: 20px; }
   </ul>
 
   <h3>Propuestas rechazadas o corregidas</h3>
-  <p>El registro <code>DECISIONES.md</code> anota cada decisión del equipo junto con lo que recomendó la IA. En
-  18 el equipo decidió distinto; están en el anexo. Además, la IA corrigió propuestas suyas al
+  <p>El registro <code>DECISIONES.md</code> anota las decisiones del equipo junto con lo que recomendó la IA. En
+  18 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
+  llevar el 2026-10-08, cuando el trabajo ya estaba avanzado. Las filas anteriores a esa fecha se
+  reconstruyeron después (la más antigua es del 2026-10-04), y de lo decidido antes no queda registro. El
+  anexo muestra, entonces, las propuestas rechazadas que quedaron anotadas, no todas. Además, la IA corrigió propuestas suyas al
   verificarlas: un umbral escogido a mano para describir un P/ETP «prácticamente en el límite» se quitó a pedido del
   equipo, y una fuente se descartó al leerla (ver «Citas», arriba).</p>
   <p>Un modelo de lenguaje puede equivocarse. La responsabilidad del contenido es de los autores, que deben poder
@@ -2799,7 +2802,7 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table></div>
   <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al
-  agente».</p>
+  agente». Incompleto antes del 2026-10-08 (ver arriba).</p>
   </div>
 </section>
 

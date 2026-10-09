@@ -1810,6 +1810,8 @@ assert anz_ancho_rel["Q"].max() == anz_ancho_rel.max().max()
 # - Mes a mes: OLS y Mann-Kendall en cada subserie anual (12 a 42 años), sin corrección de autocorrelación.
 # Período de cada prueba: el registro completo de cada variable (la pregunta de largo plazo) y, aparte,
 # 1998-2022 (el período común, para comparar fuentes). Para PI los dos coinciden.
+# Nivel de significancia de todas las pruebas de tendencia, fijado antes de mirar los resultados (decidido por el
+# usuario el 2026-10-09): 5 %. Un p menor que TEND_ALFA es «significativo»; nada se reporta solo por tener p pequeño.
 TEND_ALFA = 0.05
 TEND_REZAGOS = 12
 
@@ -2369,6 +2371,21 @@ for _v in LARGO_VARS:
                    "ols": [m for m in range(1, 13) if met_mes[(_v, m)]["q"] < INC_Q_FDR],
                    "mk": [m for m in range(1, 13) if met_mes[(_v, m)]["q_mk"] < INC_Q_FDR]}
 inc_fdr_sobreviven = [v for v in LARGO_VARS if inc_fdr[v]["ols"]]
+
+# Robustez de la familia (decidido por el usuario el 2026-10-09): la familia principal es la de cada variable (12
+# pruebas: «¿en qué meses cambia esta variable?»). Como contraste, la misma corrección con las 72 subseries juntas
+# (6 variables x 12 meses), más exigente: se informa qué meses dejarían de ser significativos.
+_claves72 = [(v, m) for v in LARGO_VARS for m in range(1, 13)]
+_q72 = _benjamini_hochberg([met_mes[k]["p"] for k in _claves72])
+_q72_mk = _benjamini_hochberg([met_mes[k]["p_mk"] for k in _claves72])
+for _k, _q1, _q2 in zip(_claves72, _q72, _q72_mk):
+    met_mes[_k]["q72"], met_mes[_k]["q72_mk"] = float(_q1), float(_q2)
+for _v in LARGO_VARS:
+    inc_fdr[_v]["ols72"] = [m for m in range(1, 13) if met_mes[(_v, m)]["q72"] < INC_Q_FDR]
+    inc_fdr[_v]["mk72"] = [m for m in range(1, 13) if met_mes[(_v, m)]["q72_mk"] < INC_Q_FDR]
+    # con más pruebas en la familia, la corrección solo puede quitar meses, nunca agregar
+    assert set(inc_fdr[_v]["ols72"]) <= set(inc_fdr[_v]["ols"])
+inc_fdr72_pierden = {v: sorted(set(inc_fdr[v]["ols"]) - set(inc_fdr[v]["ols72"])) for v in LARGO_VARS}
 
 
 # (2) Banda de 95 % de la recta OLS (error de Newey-West) para la gráfica de series: var(ŷ) = x'Vx en cada punto.

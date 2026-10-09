@@ -882,7 +882,15 @@ pend_botones = "\n".join(
 _mes_lista = lambda ms: ", ".join(MESES_LARGOS_ES[m - 1] for m in ms) if ms else "ninguno"
 fdr_filas = "\n".join(
     f"<tr><td><b>{v}</b></td><td>{len(inc_fdr[v]['sin'])}</td><td><b>{len(inc_fdr[v]['ols'])}</b> "
-    f"<small>({_mes_lista(inc_fdr[v]['ols'])})</small></td><td>{len(inc_fdr[v]['mk'])}</td></tr>" for v in LARGO_VARS)
+    f"<small>({_mes_lista(inc_fdr[v]['ols'])})</small></td><td>{len(inc_fdr[v]['mk'])}</td>"
+    f"<td>{len(inc_fdr[v]['ols72'])} / {len(inc_fdr[v]['mk72'])}</td></tr>" for v in LARGO_VARS)
+_pierden = {v: ms for v, ms in inc_fdr72_pierden.items() if ms}
+fdr72_txt = ("Con las 72 juntas no cambia ningún resultado: los mismos meses resisten la corrección."
+             if not _pierden else
+             "Con las 72 juntas dejarían de ser significativos (OLS): "
+             + "; ".join(f"{v}, {_mes_lista(ms)}" for v, ms in _pierden.items()) + ". "
+             + ("Marzo de la lluvia sigue resistiendo." if 3 in inc_fdr["PL*"]["ols72"] else
+                "Marzo de la lluvia tampoco resistiría."))
 
 marzo_html = "".join(
     f"  <p><b>{MESES_LARGOS_ES[m - 1].capitalize()} es el único mes de la lluvia que resiste la corrección</b>: con PL*, "
@@ -2825,6 +2833,10 @@ a {{ color: var(--acento); }}
   <p>Todas las pendientes van <b>por década</b>, en las unidades de la variable (°C/década, m³/s por década, desviaciones
   estándar por década en z). En la lluvia son el cambio del <b>acumulado mensual</b> (mm/mes por década), no del total
   anual.</p>
+  <p><b>Nivel de significancia.</b> Todas las pruebas de esta sección usan α = {TEND_ALFA}, fijado antes de mirar los
+  resultados: «significativo» quiere decir p &lt; {TEND_ALFA}. Cuando se prueban varios meses a la vez, la familia de pruebas
+  son las 12 subseries de cada variable, y se corrige con la tasa de falsos descubrimientos (ver «Mes a mes: las doce
+  subseries»). Se reportan todos los meses y todos los métodos, no solo los que salen con p pequeño.</p>
 
   <h3>Todos los datos: la secuencia de meses</h3>
   <p><b>Diagnóstico de los residuos.</b> En las {len([1 for (v, per) in met_global if per == "completo"])} variables, los residuos del
@@ -2959,11 +2971,13 @@ a {{ color: var(--acento); }}
   <p><b>Corrigiendo por comparaciones múltiples, la temperatura sigue subiendo en muchos meses del año y la lluvia solo
   en marzo.</b> Con doce pruebas por variable, algún mes saldría significativo solo por azar; por eso se controla la tasa de
   falsos descubrimientos con Benjamini y Hochberg ({CITA_BH}), tomando como familia las 12 subseries de cada variable
-  (q &lt; {INC_Q_FDR}).</p>
+  (q &lt; {INC_Q_FDR}). La pregunta de cada familia es «¿en qué meses cambia esta variable?». Como prueba de robustez se
+  repite con las {len(LARGO_VARS) * 12} subseries juntas ({len(LARGO_VARS)} variables por 12 meses), una familia más
+  exigente. {fdr72_txt}</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Meses con p &lt; {TEND_ALFA} (sin corregir)</th><th>Con FDR (OLS)</th>
-    <th>Con FDR (Mann-Kendall)</th></tr></thead>
+    <th>Con FDR (Mann-Kendall)</th><th>Con FDR, las {len(LARGO_VARS) * 12} juntas (OLS / Mann-Kendall)</th></tr></thead>
     <tbody>
 {fdr_filas}
     </tbody>

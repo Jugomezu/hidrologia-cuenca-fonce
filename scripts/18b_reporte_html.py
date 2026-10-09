@@ -1652,6 +1652,87 @@ _cajas = corr_significancia[corr_significancia.mes <= 12].cajas
 rob_cajas = (int(_cajas.min()), int(_cajas.max()))
 assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 
+# ---------------------------------------------------------------- síntesis física: la tabla
+# Una fila por resultado principal del informe: qué se observó, el mecanismo que se propone, la evidencia propia que lo
+# apoya, la fuente consultada y la limitación o explicación alternativa. Las cifras son las mismas de las secciones a
+# las que remite cada fila; aquí solo se protege lo que la tabla afirma y esas secciones no comprueban.
+assert fou_alta_q < fou_alta_lluvia                                              # «el río atenúa lo rápido»
+assert fou_phi["Q"] > max(fou_phi["PL"], fou_phi["PI"])                          # «y tiene más memoria»
+assert all(tend_sin_anio[t]["n_sig"] == tend_sin_anio[t]["n"] for t in ("T mín", "T media", "T máx"))
+assert pe_mes.loc[1, "pi"] < 1 <= pe_mes.loc[1, "pl"]                               # «con PI, enero tiene déficit»
+assert desfase_ic["Q_PL"][0] > 0 and desfase_ic["Q_PI"][0] > 0                  # el atraso no incluye el cero
+_sint_q_global = met_global[("Q", "completo")]["ols_Xmes"]
+SINT_FILAS = [
+    ("Dos temporadas de lluvia y dos de caudal al año",
+     f"Picos en {pico_pl[0]} y {pico_pl[1]} con PL, {pico_pi[0]} y {pico_pi[1]} con PI, {pico_q[0]} y {pico_q[1]} con Q. "
+     f"El ciclo de 6 meses tiene el {fou_fuentes['PL']['semianual']:.0f} % de la varianza de PL y el "
+     f"{fou_fuentes['PI']['semianual']:.0f} % de la de PI.",
+     "El doble paso de la ZCIT sobre el centro del país.",
+     f"Los dos picos aparecen en {est_anual['PL']['los_dos']} de {est_anual['PL']['anios']} años con PL, y caen dentro de "
+     "las dos temporadas lluviosas que da la fuente («El ciclo anual»; «Frecuencias: análisis de Fourier»).",
+     f"{CITA_POVEDA}; {CITA_MESA}",
+     f"Las fuentes difieren en la banda de 12 meses: {fou_fuentes['PI']['anual']:.1f} % de la varianza con PI y "
+     f"{fou_fuentes['PL']['anual']:.1f} % con PL, y no hay forma de saber cuál tiene la razón."),
+    ("Llueve menos arriba",
+     f"{aj_imerg['por_1000m']:+.0f} mm/año por cada 1 000 m con IMERG ({aj_imerg['n']} celdas) y "
+     f"{aj_plu['por_1000m']:+.0f} con los pluviómetros ({aj_plu['n']} estaciones).",
+     f"Óptimo pluviográfico: por encima de unos {n(ALTURA_OPTIMO_M)} m, el aire que sube ya se quedó sin vapor que condensar.",
+     f"El {frac_sobre_optimo * 100:.0f} % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca "
+     "llueve menos arriba»).",
+     CITA_MESA_P90,
+     f"Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la "
+     "cuenca: arriba, la pendiente depende solo del satélite."),
+    ("Cuenca húmeda",
+     f"P/ETP anual de {pe_indice['pl']['ie']:.2f} con PL y {pe_indice['pi']['ie']:.2f} con PI; enero, el mes de menor P/ETP, "
+     f"queda en {pe_mes.loc[1, 'pl']:.2f} con PL y {pe_mes.loc[1, 'pi']:.2f} con PI.",
+     "La lluvia supera a la demanda de evaporación, que casi no cambia en el año: el ciclo lo pone la lluvia.",
+     f"La ETP varía un {fis_ciclo_rango['etp']['pct']:.0f} % de su media a lo largo del año; la lluvia, un "
+     f"{fis_ciclo_rango['pl']['pct']:.0f} % con PL y un {fis_ciclo_rango['pi']['pct']:.0f} % con PI («¿Húmeda o árida? La "
+     "lluvia contra la ETP»).",
+     f"{CITA_UNEP}; {CITA_HARGREAVES}",
+     "La fuente cambia el borde: con PI, enero tiene déficit, y con PL no. La ETP es potencial y de Hargreaves; las "
+     "clases de UNEP se definieron con Thornthwaite. No hay una medida de la evapotranspiración real."),
+    ("El río va atrasado y suavizado respecto a la lluvia",
+     f"Q llega {desfase['Q_PL']:.0f} días después que PL (IC 95 %: {desfase_ic['Q_PL'][0]:.0f} a "
+     f"{desfase_ic['Q_PL'][1]:.0f}) y {desfase['Q_PI']:.0f} después que PI.",
+     "Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.",
+     f"El atraso es mucho mayor que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas); la lluvia del "
+     f"mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el {fou_alta_lluvia:.0f} % de la varianza de "
+     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).",
+     "Ninguna todavía: el informe no cita una fuente sobre el almacenamiento en esta cuenca.",
+     "El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones "
+     "de agua, que también podrían cambiar la respuesta del río."),
+    ("Los años con El Niño son más secos",
+     f"Correlación negativa y robusta con el índice Niño 3.4 en {n34_robustos['PL']} con PL, {n34_robustos['PI']} con PI y "
+     f"{n34_robustos['Q']} con Q.",
+     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección.",
+     f"De los {n34_rob_total} meses robustos, {n34_rob_en_temporadas} caen en las temporadas que señala la fuente; Q pasa la "
+     f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
+     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño («La cuenca frente a los campos climáticos»).",
+     f"{CITA_CORDOBA}; {CITA_POVEDA}",
+     f"Son {pe_n_anios} años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la "
+     "coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo."),
+    ("La temperatura sube",
+     f"{fis_t_decada:+.2f} °C por década en la temperatura media (ERA5-Land, registro completo), significativa sin importar "
+     "qué año se quite.",
+     "El calentamiento global.",
+     "Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).",
+     "Ninguna todavía.",
+     "Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia "
+     "podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa."),
+    ("La lluvia y el caudal no tienen tendencia",
+     f"Q: {_sint_q_global['pend']:+.1f} m³/s por década (p = {_p_txt(_sint_q_global['p_hac'])}). PL* y PI no son "
+     "significativas con ningún método, representación ni período.",
+     "Sin un cambio de la lluvia, el río no tiene por qué cambiar; el calentamiento sube la ETP muy poco.",
+     f"Quitando un año a la vez, ninguna versión es significativa; la ETP sube solo un {inc_etp['rel_pct']:.2f} % por década "
+     "(«Sensibilidad a años extremos»; «Significativo no es lo mismo que importante»).",
+     "No aplica: es la ausencia de un cambio.",
+     f"Que no sea significativa no prueba que no haya cambio. La lluvia de marzo sube ({fis_marzo['pend']:+.0f} mm/mes por "
+     "década con PL*) y el caudal de marzo no la sigue."),
+]
+sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>" for c in fila[1:]) + "</tr>"
+                       for fila in SINT_FILAS)
+
 
 pagina = f"""<!doctype html>
 <html lang="es">
@@ -4355,6 +4436,23 @@ a {{ color: var(--acento); }}
   <p><b>¿El ENSO explica las tendencias?</b> No se puede afirmar. En la lluvia y en el caudal no hay una tendencia que
   explicar: quitando un año a la vez, ninguna versión es significativa (ver «Sensibilidad a años extremos» en «Tendencias de
   largo plazo»).{interp_anio_comun_txt} La subida de la temperatura no depende de ningún año.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Síntesis física y conclusiones</h2>
+  <p>Esta sección junta los resultados principales del informe y, para cada uno, separa lo que muestran los datos del
+  mecanismo que se propone para explicarlo. La evidencia propia son cifras del proyecto, de las secciones que se citan
+  entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene todavía una fuente ni
+  un mecanismo, la tabla lo dice.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Resultado</th><th>Lo que muestran los datos</th><th>Mecanismo propuesto</th><th>Evidencia propia</th>
+    <th>Fuente consultada</th><th>Limitación o explicación alternativa</th></tr></thead>
+    <tbody>
+{sint_filas}
+    </tbody>
+  </table>
   </div>
 </section>
 

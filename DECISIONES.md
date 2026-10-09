@@ -81,3 +81,5 @@ reglas permanentes están en `CLAUDE.md`; aquí queda el rastro de cómo se lleg
 | 2026-10-09 | Modelos lluvia–caudal: caudal del mes anterior como predictor | No: exige conocer el caudal que se quiere estimar, y Q tiene 38 meses vacíos | Lo mismo | Sí |
 | 2026-10-09 | Modelos lluvia–caudal: dónde va el código | Un script nuevo, `scripts/22_modelos_lluvia_caudal.py`, que escribe a `out/` y que lee 18 | Lo mismo | Sí |
 | 2026-10-09 | Modelos lluvia–caudal: bloques de la validación cruzada | 5 bloques de 5 años seguidos (1998–2002 … 2018–2022) | Lo mismo; la otra opción era dejar fuera un año a la vez | Sí |
+| 2026-10-09 | Modelos lluvia–caudal: modelo elegido | M4, ln Q = a + b0·ln P(t) + b1·ln P(t−1), con PL y PI en paralelo, «porque elimina la posibilidad de caudales negativos» | M4: el mismo error que M2 fuera del ajuste, pero cumple sus supuestos y no da caudales negativos | Sí |
+| 2026-10-09 | Modelos lluvia–caudal: lluvia de hace dos meses | No se agrega; la memoria más larga de la cuenca queda declarada como límite del modelo | Lo mismo | Sí |

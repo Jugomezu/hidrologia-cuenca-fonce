@@ -39,6 +39,11 @@ Cómo se comparan (decidido por el usuario el 2026-10-09):
     con un modelo ajustado con los otros 20 años.
 Todos los modelos usan la misma muestra: los meses con Q desde 1998-02 (enero de 1998 no tiene mes anterior).
 
+El elegido es M4 (decidido por el usuario el 2026-10-09): fuera del ajuste yerra lo mismo que M2, pero cumple
+sus supuestos (error proporcional al caudal, residuos simétricos) y no puede dar caudales negativos; M2 sí,
+con poca lluvia en dos meses seguidos. No se agrega la lluvia de hace dos meses (también decidido por el
+usuario): la memoria más larga de la cuenca queda declarada como límite del modelo.
+
 Unidades: P y Q en mm/mes; Q como lámina sobre el área de la cuenca (decidido el 2026-10-09), así la
 pendiente de la escala lineal se lee en mm de caudal por mm de lluvia. En la escala logarítmica, la
 pendiente es una elasticidad: el % que cambia Q cuando P cambia 1 %.
@@ -55,6 +60,7 @@ Salidas:
   out/modelos_parametros.csv                parámetros de M1 a M4 con todos los meses, con su intervalo de 95 %
   out/modelos_ajuste.csv                    R², BIC y diagnóstico de los residuos de cada modelo
   out/modelos_evaluacion.csv                errores fuera del ajuste: partición, validación cruzada y cada bloque
+  out/modelos_ficha.csv                     la ficha del modelo elegido, M4: una fila por fuente de lluvia
 """
 from pathlib import Path
 
@@ -74,6 +80,8 @@ NIVEL_IC = 0.95                 # nivel de los intervalos de los parámetros
 # los modelos: nombre -> (escala, ¿usa la lluvia del mes anterior?)
 MODELOS = {"M1": ("lineal", False), "M2": ("lineal", True),
            "M3": ("logarítmica", False), "M4": ("logarítmica", True)}
+ELEGIDO = "M4"                   # el modelo de la ficha (decidido por el usuario el 2026-10-09)
+COMPETIDOR = "M2"                # el otro con el mismo error, contra el que se justifica la elección
 REFERENCIA = "M0"                # la climatología mensual de Q
 PARTICION = {"ajuste": ("1998-01", "2014-12"), "evaluacion": ("2015-01", "2022-12")}
 BLOQUES_VC = [(1998, 2002), (2003, 2007), (2008, 2012), (2013, 2017), (2018, 2022)]   # 5 bloques de 5 años
@@ -101,6 +109,9 @@ lluvia = pd.DataFrame({
     "PL": pluvio.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO].mean(axis=1),
 }).reindex(PERIODOS)
 
+# área del polígono de San Gil (geodésica), medida por 02_shp_cuencas_estaciones.py: la única fuente del área
+AREA_KM2 = float(pd.read_csv(OUT / "shp_fonce/areas_cuencas.csv").set_index("gauge_id").loc[ID_PRINCIPAL, "area_km2"])
+
 assert lluvia.notna().all().all(), "PI y PL deberían tener los 300 meses"
 # en los meses comunes, la lluvia es la misma de la tabla de variables de 16
 assert np.allclose(lluvia.loc[variables.index, ["PI", "PL"]], variables[["PI", "PL"]])
@@ -118,8 +129,8 @@ def recta(x, y):
     return beta, residuo, r2
 
 
-def ols_hac(y, X, rezagos):
-    """OLS con error estándar de Newey-West (núcleo de Bartlett), como en 18_calculos_informe.py.
+def ols_hac_cov(y, X, rezagos):
+    """OLS con la matriz de covarianza de Newey-West (núcleo de Bartlett), como en 18_calculos_informe.py.
 
     Los residuos de meses vecinos se parecen; con el error estándar usual las pruebas saldrían demasiado
     seguras. Aquí los meses con Q se toman en orden, como si fueran consecutivos aunque haya vacíos entre
@@ -133,7 +144,13 @@ def ols_hac(y, X, rezagos):
     for l in range(1, rezagos + 1):
         g = u[l:].T @ u[:-l]
         s += (1 - l / (rezagos + 1)) * (g + g.T)
-    se = np.sqrt(np.diag(xtx_inv @ s @ xtx_inv))
+    return beta, xtx_inv @ s @ xtx_inv
+
+
+def ols_hac(y, X, rezagos):
+    """Coeficientes, error estándar de Newey-West y p (aproximación normal)."""
+    beta, cov = ols_hac_cov(y, X, rezagos)
+    se = np.sqrt(np.diag(cov))
     return beta, se, 2 * stats.norm.sf(np.abs(beta / se))
 
 
@@ -313,7 +330,59 @@ for fuente in FUENTES:
                                  **metricas(caudal.loc[MUESTRA], estimado)})
 evaluacion = pd.DataFrame(filas_evaluacion)
 
+# ------------------------------------------------------------------ la ficha del modelo elegido
+# Q̂ = D · e^a · P(t)^b0 · P(t−1)^b1, en mm/mes. Todo lo que dice la ficha sale de las tablas de arriba o de
+# los datos de la muestra; los textos de los supuestos se escriben en el informe a partir de estas cifras.
+_ev_vc = evaluacion[evaluacion.esquema == "validación cruzada"].set_index(["fuente", "modelo"])
+_ev_bl = evaluacion[evaluacion.esquema.str.startswith("bloque")].set_index(["fuente", "modelo"])
+filas_ficha = []
+for fuente in FUENTES:
+    X = matriz(fuente, ELEGIDO, MUESTRA)
+    y = transformar(caudal.loc[MUESTRA], "logarítmica").to_numpy()
+    beta, cov = ols_hac_cov(y, X, REZAGOS_HAC)
+    a, b0, b1 = beta
+    # b0 + b1: cuánto cambia Q, en %, si la lluvia de los dos meses cambia 1 %; 1 sería proporcionalidad
+    suma, se_suma = b0 + b1, float(np.sqrt(cov[1, 1] + cov[2, 2] + 2 * cov[1, 2]))
+    fila_aj = ajustes.set_index(["fuente", "modelo"]).loc[(fuente, ELEGIDO)]
+    residuo = pd.Series(ajustar(fuente, ELEGIDO, MUESTRA)["residuo"], index=MUESTRA)
+    ajustado = y - residuo.to_numpy()
+    # M2 da caudal negativo cuando a + (b0 + b1)·P < 0 con la misma lluvia P en los dos meses
+    a2, b0_2, b1_2 = parametros.query("fuente == @fuente and modelo == @COMPETIDOR").valor.to_numpy()
+    filas_ficha.append({
+        "fuente": fuente, "modelo": ELEGIDO, "n_meses": len(MUESTRA),
+        "a": a, "b0": b0, "b1": b1, "factor_duan": fila_aj.factor_duan,
+        "coeficiente_C": fila_aj.factor_duan * np.exp(a),           # Q̂ = C · P(t)^b0 · P(t−1)^b1
+        "b0_mas_b1": suma, "b0_mas_b1_ic95_inferior": suma - z * se_suma, "b0_mas_b1_ic95_superior": suma + z * se_suma,
+        # rango de aplicación: lo que vio el ajuste
+        "lluvia_mes_min": lluvia[fuente].loc[MUESTRA].min(), "lluvia_mes_max": lluvia[fuente].loc[MUESTRA].max(),
+        "lluvia_mes_anterior_min": lluvia[fuente].shift(1).loc[MUESTRA].min(),
+        "lluvia_mes_anterior_max": lluvia[fuente].shift(1).loc[MUESTRA].max(),
+        "caudal_min": caudal.loc[MUESTRA].min(), "caudal_max": caudal.loc[MUESTRA].max(),
+        "area_km2": AREA_KM2,
+        # supuestos
+        "cuadratico_p_hac": fila_aj.cuadratico_p_hac,
+        "autocorr_residuo_1_mes": fila_aj.autocorr_residuo_1_mes,
+        "varianza_tercio_lluvioso_sobre_seco": fila_aj.varianza_tercio_lluvioso_sobre_seco,
+        "spearman_abs_residuo_ajustado_p": stats.spearmanr(np.abs(residuo), ajustado)[1],
+        "shapiro_residuo_p": fila_aj.shapiro_residuo_p, "asimetria_residuo": stats.skew(residuo),
+        "kruskal_residuo_por_mes_p": fila_aj.kruskal_residuo_por_mes_p,
+        "pluviometros_min_por_mes": int(pluvio.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO]
+                                        .reindex(MUESTRA).notna().sum(axis=1).min()) if fuente == "PL" else np.nan,
+        # por qué se eligió: mismo error que M2, y la lluvia con que M2 se vuelve negativo
+        "rmse_vc": _ev_vc.loc[(fuente, ELEGIDO), "rmse"], "rmse_vc_competidor": _ev_vc.loc[(fuente, COMPETIDOR), "rmse"],
+        "rmse_bloques_min": _ev_bl.loc[(fuente, ELEGIDO), "rmse"].min(),
+        "rmse_bloques_max": _ev_bl.loc[(fuente, ELEGIDO), "rmse"].max(),
+        "nse_vc": _ev_vc.loc[(fuente, ELEGIDO), "nse"], "nse_vc_climatologia": _ev_vc.loc[(fuente, REFERENCIA), "nse"],
+        "lluvia_q_cero_competidor": -a2 / (b0_2 + b1_2) if a2 < 0 else np.nan,
+    })
+ficha = pd.DataFrame(filas_ficha)
+# lo que la ficha afirma: el elegido nunca da negativos, y la diferencia de error con M2 es menor que lo que
+# cambia el error de M4 de un bloque a otro
+assert (ajustes.query("modelo == @ELEGIDO").estimados_negativos == 0).all()
+assert all(abs(f.rmse_vc - f.rmse_vc_competidor) < f.rmse_bloques_max - f.rmse_bloques_min for f in ficha.itertuples())
+
 parametros.round(6).to_csv(OUT / "modelos_parametros.csv", index=False)
+ficha.round(6).to_csv(OUT / "modelos_ficha.csv", index=False)
 ajustes.round(6).to_csv(OUT / "modelos_ajuste.csv", index=False)
 evaluacion.round(4).to_csv(OUT / "modelos_evaluacion.csv", index=False)
 
@@ -333,3 +402,6 @@ print(resumen.pivot_table(index=["fuente", "modelo"], columns="esquema", values=
 print("\nRMSE por bloque de la validación cruzada (mm/mes)")
 print(evaluacion[evaluacion.esquema.str.startswith("bloque")].pivot_table(
     index=["fuente", "modelo"], columns="esquema", values="rmse").round(1).to_string())
+
+print(f"\nFicha de {ELEGIDO}: Q̂ = C · P(t)^b0 · P(t−1)^b1, en mm/mes")
+print(ficha.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))

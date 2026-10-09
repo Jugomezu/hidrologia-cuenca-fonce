@@ -191,6 +191,65 @@ frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fra
 # el texto dice que la cuenca empieza por debajo de esa altura y que la mayor parte queda por encima
 assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
 
+# ---------------------------------------------------------------- coberturas, suelos y geología (CAMELS-COL)
+# Porcentajes del área de San Gil que publica CAMELS-COL (Jiménez et al., 2025, secciones 3.2.3 a 3.2.5).
+# CAMELS-COL los calcula cruzando cada mapa con SU polígono (2 124 km²), no con el del proyecto
+# (2 098.85 km²); la diferencia de borde es del 1.2 % del área y se declara como limitación en el informe.
+#   - coberturas: MapBiomas Colombia 2022 (colección 2), derivado de mosaicos Landsat;
+#   - suelos: mapas de suelos del IGAC, escala 1:100 000 (órdenes de la taxonomía de suelos);
+#   - capacidad de uso: clases 1 a 8 del IGAC (2014);
+#   - geología: Mapa Geológico de Colombia 2023 del SGC, escala 1:1 500 000, agrupado en siete litologías.
+# Las columnas de los archivos se conservan en inglés, como las publica CAMELS-COL; aquí se traducen.
+def _atributos_san_gil(archivo, nombres):
+    """Fila de San Gil de un archivo de atributos de CAMELS-COL, con las columnas traducidas."""
+    tabla = pd.read_csv(f"data/camels_col/{archivo}", sep=";")
+    fila = tabla[tabla.gauge_id == 24027010].iloc[0]   # en el archivo 11 el código viene como 24027010.00
+    return pd.Series({nombre: float(fila[col]) for col, nombre in nombres.items()})
+
+coberturas = _atributos_san_gil("06_CAMELS_COL_Land_cover_characteristics.csv", {
+    "agricul_livestock_perc": "Agropecuario", "forest_perc": "Bosque",
+    "nat_non_forest_form_perc": "Formación natural no boscosa", "non_vegeted_perc": "Área sin vegetación",
+    "water_bodies_perc": "Cuerpos de agua", "non_identi_land_perc": "No identificada"})
+suelos = _atributos_san_gil("07_CAMELS_COL_Soil_characteristics.csv", {
+    "inceptisols_perc": "Inceptisoles", "andisols_perc": "Andisoles", "entisols_perc": "Entisoles",
+    "mollisols_perc": "Molisoles", "alfisols_perc": "Alfisoles", "rocky_misce_perc": "Misceláneo rocoso",
+    "water_bodies_perc": "Cuerpos de agua", "urban_perc": "Zona urbana",
+    # órdenes que CAMELS-COL incluye y que en San Gil valen 0 se leen igual, para comprobar la suma
+    "vertisols_perc": "Vertisoles", "aridisols_perc": "Aridisoles", "ultisols_perc": "Ultisoles",
+    "spodosols_perc": "Espodosoles", "coal_mine_pit_perc": "Mina de carbón", "histosols_perc": "Histosoles",
+    "oxisols_perc": "Oxisoles", "eroded_misce_perc": "Misceláneo erosionado",
+    "perpetual_snow_perc": "Nieve perpetua"})
+capacidad_uso = _atributos_san_gil("11_CAMELS_COL_Land_use_capability.csv", {
+    **{f"class_{k}": f"Clase {k}" for k in range(1, 9)}, "Urban_area": "Zona urbana",
+    "No_classified": "Sin clasificar"})
+
+# Geología: en el archivo de CAMELS-COL la columna «volcaniclastic_rock_perc» repite «volcanic_rock_perc»
+# en todas las cuencas, y por eso las sumas por cuenca no dan 100 %. Decisión de Juan (2026-10-09): se usa
+# la geología de CAMELS-COL tratando las dos columnas como un solo grupo, «Volcánicas y volcanoclásticas»,
+# contado una sola vez. El assert comprueba que el defecto existe, para que la decisión siga teniendo
+# sentido si alguna vez se descarga una versión corregida del archivo.
+_geo_cuencas = pd.read_csv("data/camels_col/05_CAMELS_COL_Geologic_characteristics.csv", sep=";")
+geo_n_cuencas = len(_geo_cuencas)
+geo_n_duplicadas = int(((_geo_cuencas.volcanic_rock_perc - _geo_cuencas.volcaniclastic_rock_perc).abs()
+                        < 0.01).sum())
+assert geo_n_duplicadas == geo_n_cuencas, "la columna volcanoclástica ya no repite a la volcánica: revisar"
+geo_suma_publicada = float(_geo_cuencas[_geo_cuencas.gauge_id == 24027010]
+                           .drop(columns="gauge_id").sum(axis=1).iloc[0])
+geologia = _atributos_san_gil("05_CAMELS_COL_Geologic_characteristics.csv", {
+    "plutonic_rock_perc": "Rocas plutónicas", "hypabyssal_rock_perc": "Rocas hipoabisales",
+    "metamor_rock_perc": "Rocas metamórficas", "volcanic_rock_perc": "Volcánicas y volcanoclásticas",
+    "sedimen_rock_perc": "Rocas sedimentarias", "unconso_depo_perc": "Depósitos no consolidados"})
+
+# Cada grupo debe cubrir la cuenca entera (100 % con tolerancia de redondeo); con la geología eso solo
+# se cumple contando una vez el grupo volcánico.
+for _nombre, _serie in {"coberturas": coberturas, "suelos": suelos, "capacidad de uso": capacidad_uso,
+                        "geología": geologia}.items():
+    assert abs(_serie.sum() - 100) < 0.1, f"{_nombre} de San Gil no suma 100 %: {_serie.sum():.2f}"
+assert geo_suma_publicada > 100.1      # tal como viene publicada, sí se pasa de 100 %
+# Solo se muestran las categorías presentes en San Gil, de mayor a menor
+coberturas, suelos, capacidad_uso, geologia = (s[s > 0].sort_values(ascending=False)
+                                               for s in (coberturas, suelos, capacidad_uso, geologia))
+
 # Encino con su tramo 2016-2018: solo para explicar por qué se excluyó, así que se lee la serie CRUDA
 pm_crudo = pd.read_csv("out/pluviometros_fonce_mensual_1998_2022.csv", parse_dates=["fecha"])
 enc = pm_crudo[pm_crudo.codigo == 24020040].set_index("fecha")["precipitacion_mm"]

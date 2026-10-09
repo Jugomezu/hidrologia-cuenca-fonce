@@ -18,6 +18,7 @@ from scipy import stats
 from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 
 ESTACIONES = {
@@ -919,6 +920,11 @@ def picos(serie):
 
 
 pico_pl, pico_q = picos(ciclo_lq.PL), picos(ciclo_lq.Q)
+pico_pi = picos(ciclo_lq.PI)
+# ZCIT: según Mesa et al. (1997), pasa por el interior de Colombia en septiembre, octubre y noviembre (SON).
+# El texto dice que el segundo pico de PL, PI y Q cae en esa temporada
+MESES_SON = ("septiembre", "octubre", "noviembre")
+assert all(p[1] in MESES_SON for p in (pico_pl, pico_pi, pico_q))
 _c = ajuste_lq.loc[("PL", "mes_y_anterior")]
 peso_mes_pl = _c.coef_mes / (_c.coef_mes + _c.coef_mes_anterior)      # parte que viene del mismo mes
 
@@ -2744,3 +2750,48 @@ assert all(fou_sens[v]["hann_welch_estable"] for v in ("PL", "PI", "Q"))
 assert not fou_vacios["original"]["mueve"]
 # el texto dice que el pico corto de PL no se distingue del ruido blanco
 assert fou_pico_corto["PL"] < fou_pico_corto["blanco_95"]
+
+
+# ---------------------------------------------------------------- campos climáticos globales (Punto 5)
+# Los campos los arma scripts/19_campos_climaticos.py (ERSST v5 y ERA5 a 850 hPa en la malla de 2° de ERSST); los mapas,
+# scripts/20_mapas_campos.py. Aquí solo se cuentan lo que el texto del informe dice de ellos.
+_cc = xr.open_dataset("out/campos_climaticos_2deg_1998_2022.nc")
+_pesos = np.cos(np.deg2rad(_cc.lat.values))[:, None] * np.ones(_cc.sizes["lon"])[None, :]
+_tierra = _cc.sst.isnull().all("tiempo").values
+_n850 = _cc.q850.notnull().sum("tiempo").values
+_cam_meses = _cc.sizes["tiempo"]
+cam_n_meses = int(_cam_meses)
+cam_malla = (int(_cc.sizes["lat"]), int(_cc.sizes["lon"]))
+cam_anios = (int(_cc.tiempo.dt.year.min()), int(_cc.tiempo.dt.year.max()))
+cam_cajas_oceano = int((~_tierra).sum())
+cam_area_oceano_pct = float(_pesos[~_tierra].sum() / _pesos.sum() * 100)
+cam_850_completas_pct = float(_pesos[_n850 == _cam_meses].sum() / _pesos.sum() * 100)      # % del área con los 300 meses
+cam_850_nunca_pct = float(_pesos[_n850 == 0].sum() / _pesos.sum() * 100)               # % del área siempre bajo tierra
+cam_850_parcial = int(((_n850 > 0) & (_n850 < _cam_meses)).sum())                          # cajas que pierden algunos meses
+# la caja de 2° que contiene la cuenca (su centroide)
+_cg = gpd.read_file("out/shp_fonce/cuencas_fonce.shp").to_crs(4326)
+_cent = _cg.loc[_cg.gauge_id.astype(str) == "24027010"].geometry.iloc[0].centroid
+_i = int(np.abs(_cc.lat.values - _cent.y).argmin())
+_j = int(np.abs(_cc.lon.values - (_cent.x % 360)).argmin())
+cam_caja_cuenca = {"lat": float(_cc.lat.values[_i]), "lon": float(_cc.lon.values[_j]), "n850": int(_n850[_i, _j]),
+                   "bajo_tierra": float(_cc.fraccion_bajo_tierra_850.isel(lat=_i, lon=_j).mean())}
+# en la latitud de la cuenca, las cajas más cercanas al oriente y al occidente que sí tienen los 300 meses a 850 hPa
+_cam_fila = _n850[_i]
+_este = next(k for k in range(_j + 1, _cc.sizes["lon"]) if _cam_fila[k] == _cam_meses)
+_oeste = next(k for k in range(_j - 1, -1, -1) if _cam_fila[k] == _cam_meses)
+cam_caja_cuenca["lon_este"] = float(_cc.lon.values[_este])
+cam_caja_cuenca["lon_oeste"] = float(_cc.lon.values[_oeste])
+cam_caja_cuenca["vecinas_sin_850"] = int(sum(_n850[_i + di, _j + dj] == 0 for di in (-1, 0, 1) for dj in (-1, 0, 1)
+                                             if (di, dj) != (0, 0)))
+# control de calidad de ERSST contra el ONI (scripts/19)
+_oni = pd.read_csv("out/ersst_nino34_contra_oni.csv")
+cam_oni = {"r": float(_oni.nino34_ersst_C.corr(_oni.oni_total_C)),
+           "dif_media": float((_oni.nino34_ersst_C - _oni.oni_total_C).mean()),
+           "dif_max": float((_oni.nino34_ersst_C - _oni.oni_total_C).abs().max()), "n": int(len(_oni))}
+# rangos de los campos (para describir los mapas)
+cam_rango = {k: (float(_cc[k].mean("tiempo").min()), float(_cc[k].mean("tiempo").max())) for k in ("sst", "q850")}
+# lo que el texto afirma
+assert cam_n_meses == 12 * (cam_anios[1] - cam_anios[0] + 1) and cam_malla == (89, 180)
+assert cam_oni["r"] > 0.99 and cam_oni["dif_max"] < 0.5
+assert cam_caja_cuenca["n850"] == 0          # con la máscara estricta, la caja de la cuenca no tiene 850 hPa
+_cc.close()

@@ -2,6 +2,11 @@
 # data/camels_col/hydromet/. Cómo bajarlo de Zenodo está en DATOS_FUENTES.md.
 data/camels_col/04_hydromet.zip
 
+# Campos climáticos del Punto 5: los crudos pasan de 100 MB (ERSST) o suman varios GB (ERA5 a 0.25°). Los baja
+# scripts/19_campos_climaticos.py; sus SHA-256 están en DATOS_FUENTES.md. El producto a 2° (out/) sí se versiona.
+data/noaa/ersst_v5/
+data/era5_campos/
+
 # restos de una etapa anterior, sin uso
 out/_lint/
 out/_nesting.log

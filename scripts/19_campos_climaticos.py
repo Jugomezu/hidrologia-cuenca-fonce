@@ -15,9 +15,12 @@ QUÉ SE BAJA Y POR QUÉ (decisiones del usuario del 2026-10-08, ver DECISIONES.m
 FUENTES
   - ERSST v5, NOAA PSL: https://downloads.psl.noaa.gov/Datasets/noaa.ersst.v5/sst.mnmean.nc (NetCDF, °C, 2° x 2°,
     de 1854 a la fecha; la tierra viene vacía).
-  - ERA5 «monthly averaged reanalysis» en niveles de presión (reanalysis-era5-pressure-levels-monthly-means) y en un
-    solo nivel (reanalysis-era5-single-levels-monthly-means), del Copernicus Climate Data Store, por la API cdsapi
-    (requiere una cuenta y el archivo ~/.cdsapirc). Malla de 0.25°.
+  - ERA5 monthly means (ECMWF), copia del NSF NCAR Geoscience Data Exchange (GDEX), dataset d633001 «ERA5
+    Reanalysis Monthly Means»: https://data.gdex.ucar.edu/d633001/ . Es el mismo producto mensual de ECMWF que
+    distribuye el Copernicus Climate Data Store; se usó GDEX porque la cola del CDS tenía los pedidos horas sin
+    empezar (decisión del usuario del 2026-10-08). Acceso por HTTPS, sin cuenta. Malla de 0.25°. Cada archivo de GDEX
+    trae un año de una variable: en niveles de presión, con los 37 niveles (e5.moda.an.pl, ~600 MB); en superficie,
+    la presión superficial (e5.moda.an.sfc). Se lee por HTTPS y se guarda solo el nivel de 850 hPa.
 
 TRANSFORMACIONES
   1. Período 1998-2022 (decisión del usuario).
@@ -33,7 +36,8 @@ TRANSFORMACIONES
 
 SALIDAS
   data/noaa/ersst_v5/sst.mnmean.nc              ERSST v5 tal como se descarga (fuera de git: pasa de 100 MB)
-  data/era5_campos/<variable>_<años>.nc           ERA5 tal como se descarga, por variable y bloque de años (fuera de git)
+  data/era5_campos/<variable>_<año>.nc            ERA5 de GDEX, un año por archivo: 850 hPa (u, v, q) o la presión
+                                                  superficial (sp), sin otro cambio que quitar los demás niveles (fuera de git)
   out/campos_climaticos_2deg_1998_2022.nc         los campos en la malla de 2°, con unidades y descripción
   out/ersst_nino34_contra_oni.csv                 control de calidad de ERSST: Niño 3.4 calculado aquí contra el ONI
 
@@ -51,8 +55,10 @@ Uso:  python scripts/19_campos_climaticos.py            (descarga lo que falte y
 import argparse
 import hashlib
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import fsspec
 import numpy as np
 import pandas as pd
 import truststore
@@ -71,12 +77,18 @@ SALIDA_NINO34 = RAIZ / "out/ersst_nino34_contra_oni.csv"
 NINO34 = {"lat": (-5, 5), "lon": (190, 240)}                 # región Niño 3.4: 5° S-5° N, 170° O-120° O
 
 ANIO_INICIO, ANIO_FIN = 1998, 2022        # período de estudio (decisión del usuario)
-BLOQUES_ANIOS = [(a, min(a + 4, ANIO_FIN)) for a in range(ANIO_INICIO, ANIO_FIN + 1, 5)]   # peticiones de 5 años
 NIVEL_HPA = 850
 PA_POR_HPA = 100.0
 G_POR_KG = 1000.0
-ERA5_NIVELES = {"u_component_of_wind": "u", "v_component_of_wind": "v", "specific_humidity": "q"}
-ERA5_SUPERFICIE = {"surface_pressure": "sp"}
+URL_GDEX = "https://data.gdex.ucar.edu/d633001"
+# variable -> (carpeta de GDEX, nombre del archivo con {a} para el año, nombre de la variable dentro del archivo)
+ERA5_GDEX = {
+    "u": ("e5.moda.an.pl", "e5.moda.an.pl.128_131_u.ll025uv.{a}010100_{a}120100.nc", "U"),
+    "v": ("e5.moda.an.pl", "e5.moda.an.pl.128_132_v.ll025uv.{a}010100_{a}120100.nc", "V"),
+    "q": ("e5.moda.an.pl", "e5.moda.an.pl.128_133_q.ll025sc.{a}010100_{a}120100.nc", "Q"),
+    "sp": ("e5.moda.an.sfc", "e5.moda.an.sfc.128_134_sp.ll025sc.{a}010100_{a}120100.nc", "SP"),
+}
+DESCARGAS_SIMULTANEAS = 4                 # archivos de GDEX leídos a la vez
 
 
 def sha256(ruta):
@@ -96,24 +108,35 @@ def bajar_ersst():
     print(f"{ERSST.relative_to(RAIZ)}: {ERSST.stat().st_size / 1e6:.1f} MB, SHA-256 {sha256(ERSST)}")
 
 
+def bajar_un_anio(corto, anio):
+    """Lee por HTTPS el archivo anual de GDEX y guarda solo 850 hPa (o la presión superficial). Se escribe primero a
+    .part y se renombra al terminar, para que un corte no deje un archivo a medias que se dé por bueno."""
+    destino = DIR_ERA5 / f"{corto}_{anio}.nc"
+    if destino.exists():
+        return
+    carpeta, archivo, nombre = ERA5_GDEX[corto]
+    url = f"{URL_GDEX}/{carpeta}/{anio}/{archivo.format(a=anio)}"
+    with fsspec.open(url, "rb", block_size=8 * 2**20, cache_type="bytes") as f:
+        ds = xr.open_dataset(f, engine="h5netcdf")
+        da = ds[nombre]
+        if "level" in da.dims:
+            da = da.sel(level=NIVEL_HPA)
+        da = da.load()
+    da = da.rename(time="tiempo", latitude="lat", longitude="lon").rename(corto)
+    da = da.drop_vars([c for c in da.coords if c not in ("tiempo", "lat", "lon")])
+    da.attrs["fuente"] = url
+    parcial = destino.with_suffix(".nc.part")
+    da.to_netcdf(parcial, encoding={corto: {"zlib": True, "complevel": 4}})
+    parcial.replace(destino)
+    print(f"listo {destino.name}", flush=True)
+
+
 def bajar_era5():
-    import cdsapi                          # solo hace falta para descargar
-    cliente = cdsapi.Client(quiet=True)
     DIR_ERA5.mkdir(parents=True, exist_ok=True)
-    pedidos = [("reanalysis-era5-pressure-levels-monthly-means", nombre, corto, True) for nombre, corto in ERA5_NIVELES.items()]
-    pedidos += [("reanalysis-era5-single-levels-monthly-means", nombre, corto, False) for nombre, corto in ERA5_SUPERFICIE.items()]
-    for coleccion, nombre, corto, en_niveles in pedidos:
-        for a0, a1 in BLOQUES_ANIOS:
-            destino = DIR_ERA5 / f"{corto}_{a0}_{a1}.nc"
-            if destino.exists():
-                continue
-            pedido = {"product_type": ["monthly_averaged_reanalysis"], "variable": [nombre],
-                      "year": [str(a) for a in range(a0, a1 + 1)], "month": [f"{m:02d}" for m in range(1, 13)],
-                      "time": ["00:00"], "data_format": "netcdf", "download_format": "unarchived"}
-            if en_niveles:
-                pedido["pressure_level"] = [str(NIVEL_HPA)]
-            print(f"pidiendo {coleccion} · {nombre} · {a0}-{a1} ...")
-            cliente.retrieve(coleccion, pedido).download(str(destino))
+    tareas = [(c, a) for c in ERA5_GDEX for a in range(ANIO_INICIO, ANIO_FIN + 1)]
+    with ThreadPoolExecutor(max_workers=DESCARGAS_SIMULTANEAS) as grupo:
+        for futuro in [grupo.submit(bajar_un_anio, *t) for t in tareas]:
+            futuro.result()                # si una lectura falla, el error se ve aquí
     for ruta in sorted(DIR_ERA5.glob("*.nc")):
         print(f"{ruta.relative_to(RAIZ)}: {ruta.stat().st_size / 1e6:.1f} MB, SHA-256 {sha256(ruta)}")
 
@@ -150,12 +173,8 @@ def controlar_ersst():
 
 # ====================================================================== procesamiento
 def abrir_era5(corto):
-    """Une los bloques de años de una variable de ERA5 en un solo DataArray (tiempo, latitud, longitud)."""
-    partes = [xr.open_dataset(r) for r in sorted(DIR_ERA5.glob(f"{corto}_*.nc"))]
-    da = xr.concat([p[corto] for p in partes], dim="valid_time").rename(valid_time="tiempo", latitude="lat", longitude="lon")
-    if "pressure_level" in da.dims:
-        da = da.sel(pressure_level=NIVEL_HPA).drop_vars("pressure_level")
-    da = da.drop_vars([c for c in da.coords if c not in ("tiempo", "lat", "lon")])
+    """Une los años de una variable de ERA5 en un solo DataArray (tiempo, latitud, longitud)."""
+    da = xr.open_mfdataset(sorted(DIR_ERA5.glob(f"{corto}_*.nc")), combine="by_coords")[corto]
     da["tiempo"] = pd.to_datetime(da.tiempo.values).to_period("M").to_timestamp()
     return da.sortby("tiempo").sel(tiempo=slice(f"{ANIO_INICIO}-01", f"{ANIO_FIN}-12"))
 
@@ -231,7 +250,7 @@ def procesar():
         salida[k].attrs = {"unidades": unidad, "descripcion": descripcion}
     salida.attrs = {
         "titulo": "Campos climáticos mensuales 1998-2022 en la malla de 2° de ERSST v5",
-        "fuentes": "ERSST v5 (NOAA PSL); ERA5 monthly averaged reanalysis en niveles de presión y en un solo nivel (C3S/ECMWF)",
+        "fuentes": "ERSST v5 (NOAA PSL); ERA5 monthly means (ECMWF), copia de NSF NCAR GDEX d633001",
         "remuestreo": "ERA5 0.25° -> 2°: promedio por bloques ponderado por cos(latitud), cajas centradas en los puntos de ERSST",
         "mascara_850": "caja vacía si alguna celda de 0.25° tiene presión superficial < 850 hPa ese mes",
         "generado_por": "scripts/19_campos_climaticos.py",

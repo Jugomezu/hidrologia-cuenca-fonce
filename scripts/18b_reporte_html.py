@@ -1715,11 +1715,11 @@ SINT_FILAS = [
     ("La temperatura sube",
      f"{fis_t_decada:+.2f} °C por década en la temperatura media (ERA5-Land, registro completo), significativa sin importar "
      "qué año se quite.",
-     "El informe no propone un mecanismo.",
+     "El calentamiento global.",
      "Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).",
      "Ninguna todavía.",
      "Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia "
-     "podría venir del producto. Una tendencia sola no permite atribuirle una causa."),
+     "podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa."),
     ("La lluvia y el caudal no tienen tendencia",
      f"Q: {_sint_q_global['pend']:+.1f} m³/s por década (p = {_p_txt(_sint_q_global['p_hac'])}). PL* y PI no son "
      "significativas con ningún método, representación ni período.",
@@ -1729,15 +1729,6 @@ SINT_FILAS = [
      "No aplica: es la ausencia de un cambio.",
      f"Que no sea significativa no prueba que no haya cambio. La lluvia de marzo sube ({fis_marzo['pend']:+.0f} mm/mes por "
      "década con PL*) y el caudal de marzo no la sigue."),
-    ("Coberturas y geología",
-     f"El {geo_sedimentaria:.1f} % de la cuenca es roca sedimentaria (SGC); el {cob_agro:.1f} % es agropecuario y el "
-     f"{cob_bosque:.1f} %, bosque (MapBiomas, 2022).",
-     "No explican ningún resultado del informe.",
-     "El mapa geológico no dice qué roca es permeable, y la cobertura es una sola foto de 2022, que no sirve para "
-     "contrastar cambios en el tiempo («Coberturas, suelos y geología»).",
-     "Ninguna: no se encontró una fuente que conecte la roca o la cobertura de esta cuenca con su respuesta.",
-     "Compararlas entre subcuencas no las aísla: de una subcuenca a otra cambian también el área, la lluvia, la altura y "
-     "el uso del suelo."),
 ]
 sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>" for c in fila[1:]) + "</tr>"
                        for fila in SINT_FILAS)

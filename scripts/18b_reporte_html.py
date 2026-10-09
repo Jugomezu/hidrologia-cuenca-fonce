@@ -2973,6 +2973,73 @@ a {{ color: var(--acento); }}
 
 
 <section>
+  <h2>La cuenca frente a los campos climáticos</h2>
+  <div class="revision" data-etiqueta="Revisión · correlaciones con los campos">
+  <p>En cada caja de 2° y para cada mes del calendario se correlacionan, <b>a través de los años</b>, la anomalía de la
+  cuenca en ese mes con la anomalía del campo en esa caja: por ejemplo, los {cam_anios[1] - cam_anios[0] + 1} eneros de PL con los
+  {cam_anios[1] - cam_anios[0] + 1} eneros de la SST de la caja. No es una correlación entre cajas ni con un solo enero. Con un
+  <b>rezago ℓ</b>, el campo se toma ℓ meses antes que la cuenca (ℓ &gt; 0: el campo va primero); con ℓ = 1, enero se empareja
+  con diciembre del año anterior, y el código lo comprueba. Las anomalías son, para la cuenca y para cada caja, el valor
+  menos la media de su mes en {cam_anios[0]}–{cam_anios[1]}. Pearson es la referencia; Spearman, que usa rangos, se calcula en
+  todas las cajas para ver dónde los extremos cambian la lectura. El viento entra como su rapidez,
+  √(u² + v²), con las flechas de la dirección del viento medio de cada mes.</p>
+  <p class="nota">Todos los mapas usan la misma escala, de −1 a 1 y centrada en cero, y el dominio de 60° S a 60° N. En gris
+  queda la tierra en la SST, 850 hPa bajo el terreno y toda caja con menos de <b>{CORR_N_MINIMO} pares</b> (el 80 % de los
+  años). Cada panel dice cuántos pares tienen sus cajas: con PL y PI son {corr_n_rango[("PL", "sst", 0)][1]} en la SST; con Q,
+  entre {corr_n_rango[("Q", "sst", 0)][0]} y {corr_n_rango[("Q", "sst", 0)][1]}, porque al caudal le faltan meses; en 850 hPa, algunas
+  cajas pierden años cuando el nivel quedó bajo el terreno. Para un mes fijo y la misma muestra, centrar o estandarizar
+  no cambia Pearson (el código lo comprueba con las anomalías estandarizadas): los mapas con anomalías o con anomalías
+  estandarizadas no serían evidencias distintas.</p>
+
+  <h3>Un resumen: la región Niño 3.4</h3>
+  <p>La correlación media de las cajas de la región Niño 3.4 (5° S–5° N, 170° O–120° O), mes por mes:</p>
+  <div class="tabla-caja"><table>
+    <thead><tr><th></th>{"".join(f"<th>{m}</th>" for m in MESES_ES)}<th>todos</th></tr></thead>
+    <tbody>
+    {"".join(f"<tr><td>{v}{' (ℓ = 1)' if l else ''}</td>" + "".join(f"<td>{x:+.2f}</td>" for x in corr_nino34[(v, l)]) + "</tr>" for l in (0, 1) for v in ("PL", "Q", "PI"))}
+    </tbody>
+  </table></div>
+  <p>Es negativa en {sum(x < 0 for x in corr_nino34[("PL", 0)][:12])} de los 12 meses con PL: los años con el Pacífico central más
+  caliente que lo normal traen menos lluvia a la cuenca. Con PL es más fuerte en
+  {MESES_LARGOS_ES[int(np.argmin(corr_nino34[("PL", 0)][:12]))]} ({min(corr_nino34[("PL", 0)][:12]):+.2f}) y casi nula en
+  {MESES_LARGOS_ES[int(np.argmax(corr_nino34[("PL", 0)][:12]))]} ({max(corr_nino34[("PL", 0)][:12]):+.2f}); con Q, más fuerte en
+  {MESES_LARGOS_ES[int(np.argmin(corr_nino34[("Q", 0)][:12]))]} ({min(corr_nino34[("Q", 0)][:12]):+.2f}). Con el campo un mes
+  antes (ℓ = 1), la correlación cambia poco en general (mediana de los cambios: {corr_cambio_rezago["mediana"]:.2f});
+  el mayor cambio es en {corr_cambio_rezago["var"]} de {MESES_LARGOS_ES[corr_cambio_rezago["mes"] - 1]}
+  ({corr_nino34[(corr_cambio_rezago["var"], 0)][corr_cambio_rezago["mes"] - 1]:+.2f} sin rezago y
+  {corr_nino34[(corr_cambio_rezago["var"], 1)][corr_cambio_rezago["mes"] - 1]:+.2f} con él). Spearman difiere de Pearson en más de 0.2 en el
+  {corr_spearman_q["dif_02_pct"]:.1f} % de las cajas de Q contra la SST, y cambia de signo con una correlación mayor que 0.3 en el
+  {corr_spearman_q["signo_pct"]:.2f} %: los extremos del caudal no cambian el patrón.</p>
+
+  <h3>Los mapas</h3>
+  <div class="placa"><img src="{img('corr_PL_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la SST"></div>
+  <div class="placa"><img src="{img('corr_Q_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la SST"></div>
+  <div class="placa"><img src="{img('corr_PL_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
+  <div class="placa"><img src="{img('corr_Q_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
+  <div class="placa"><img src="{img('corr_PL_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la humedad específica a 850 hPa"></div>
+  <div class="placa"><img src="{img('corr_Q_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la humedad específica a 850 hPa"></div>
+  <div class="placa"><img src="{img('corr_todos_los_meses.png')}" alt="Nueve mapas del mundo con la correlación de todos los meses juntos entre PL, Q y PI y la SST, el viento y la humedad a 850 hPa"></div>
+  <details class="plegable-mini"><summary><b>Contraste con PI (IMERG)</b></summary>
+  <div class="placa"><img src="{img('corr_PI_sst_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST"></div>
+  <div class="placa"><img src="{img('corr_PI_q850_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la humedad específica a 850 hPa"></div>
+  </details>
+  <details class="plegable-mini"><summary><b>Con la SST un mes antes (ℓ = 1)</b></summary>
+  <div class="placa"><img src="{img('corr_PL_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre PL y la SST del mes anterior"></div>
+  <div class="placa"><img src="{img('corr_Q_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre Q y la SST del mes anterior"></div>
+  <div class="placa"><img src="{img('corr_PI_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST del mes anterior"></div>
+  </details>
+  <details class="plegable-mini"><summary><b>Spearman: Q contra la SST</b></summary>
+  <div class="placa"><img src="{img('corr_Q_sst_l0_spearman.png')}" alt="Doce mapas del mundo con la correlación de Spearman entre Q y la SST"></div>
+  </details>
+  </div>
+</section>
+
+<section>
+  <h2>Interpretación física de los patrones</h2>
+  <p><i>Hasta el momento no hemos llegado a esta parte.</i></p>
+</section>
+
+<section>
   <h2>Bibliografía</h2>
   <ol class="bibliografia">
     <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:

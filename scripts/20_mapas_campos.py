@@ -96,14 +96,14 @@ def dibujar_campo(ax, lat, lon, valores, tierra, titulo, cmap, vmin, vmax, unida
     return m
 
 
-def dibujar_correlacion(ax, lat, lon, r, n, n_minimo, tierra, titulo):
+def dibujar_correlacion(ax, lat, lon, r, n, n_minimo, tierra, titulo, **marco_opciones):
     """Mapa de correlación con la escala divergente común de -1 a 1 centrada en cero. Las cajas con menos de
     `n_minimo` pares válidos (o sin valor) quedan en gris. Devuelve el objeto de la escala para una barra común."""
     ax.set_facecolor(GRIS_SIN_DATO)
     r = np.where((n >= n_minimo) & np.isfinite(r), r, np.nan)
     m = ax.pcolormesh(bordes(lon), bordes(lat), np.ma.masked_invalid(r), cmap="RdBu_r",
                       norm=TwoSlopeNorm(vcenter=0.0, vmin=-1.0, vmax=1.0), shading="flat")
-    marco(ax, lat, lon, tierra, titulo)
+    marco(ax, lat, lon, tierra, titulo, **marco_opciones)
     return m
 
 

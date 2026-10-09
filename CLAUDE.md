@@ -141,10 +141,11 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
       herramienta. Sus textos van en español.
 
 20. **Todo pull request lleva descripción**: qué cambia, por qué, qué decisiones de método se tomaron y cómo
-    se verificó. Quien lo abre tiene que poder explicarlo (regla 17). **Nadie fusiona su propio PR.**
+    se verificó. Quien lo abre tiene que poder explicarlo (regla 17). Desde el 2026-10-08 el proyecto es
+    individual y el dueño puede fusionar sus propios PR (antes, nadie fusionaba el suyo).
 
 21. **Nada entra a `main` sin verificar antes que cumple las reglas, sin excepciones** (decidido el
-    2026-10-03; aplica a todos, también al dueño del repositorio y a su agente). Antes de fusionar un PR o de
+    2026-10-03; aplica también al dueño del repositorio y a su agente). Antes de fusionar un PR o de
     hacer push a `main` se comprueba, y se deja constancia en el PR o en el mensaje de commit:
     - los scripts que cambiaron corren sin errores desde la raíz;
     - si cambió algo que lee el informe, se regenera con `python scripts/18b_reporte_html.py`, su JavaScript pasa

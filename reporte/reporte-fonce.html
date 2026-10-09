@@ -1821,6 +1821,10 @@ section, section h3 { scroll-margin-top: 20px; }
   <p>Todas las pendientes van <b>por década</b>, en las unidades de la variable (°C/década, m³/s por década, desviaciones
   estándar por década en z). En la lluvia son el cambio del <b>acumulado mensual</b> (mm/mes por década), no del total
   anual.</p>
+  <p><b>Nivel de significancia.</b> Todas las pruebas de esta sección usan α = 0.05, fijado antes de mirar los
+  resultados: «significativo» quiere decir p &lt; 0.05. Cuando se prueban varios meses a la vez, la familia de pruebas
+  son las 12 subseries de cada variable, y se corrige con la tasa de falsos descubrimientos (ver «Mes a mes: las doce
+  subseries»). Se reportan todos los meses y todos los métodos, no solo los que salen con p pequeño.</p>
 
   <h3>Todos los datos: la secuencia de meses</h3>
   <p><b>Diagnóstico de los residuos.</b> En las 6 variables, los residuos del
@@ -1945,6 +1949,34 @@ section, section h3 { scroll-margin-top: 20px; }
   <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
   Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
 
+  <h3>Sensibilidad a la fecha inicial y final</h3>
+  <p>Una pendiente puede depender de dónde empieza o termina el registro, sobre todo si cerca de un borde hay años
+  extremos. Para medirlo se repite el ajuste de la tabla resumen (OLS con una constante por mes, error de Newey-West)
+  <b>moviendo el año inicial</b> de uno en uno con el final fijo, y después <b>el año final</b> con el inicio fijo. Cada
+  ventana tiene al menos 20 años; con menos, el intervalo es tan ancho que la pendiente no dice nada.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Registro</th><th class="num">Ventanas</th><th class="num">Pendiente, registro completo</th>
+    <th class="num">Rango de pendientes</th><th class="num">Ventanas con p &lt; 0.05</th><th>Lectura</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b> <small>(mm/mes por década)</small></td><td>1981–2022</td><td class='num'>45</td><td class='num'>+1.7</td><td class='num'>-4.7 a +7.4</td><td class='num'>0</td><td>ninguna significativa; el signo cambia según la ventana</td></tr>
+<tr><td><b>PI</b> <small>(mm/mes por década)</small></td><td>1998–2022</td><td class='num'>11</td><td class='num'>-2.3</td><td class='num'>-10.4 a +4.4</td><td class='num'>1</td><td>significativa en 1 de 11, y el signo cambia según la ventana</td></tr>
+<tr><td><b>Q</b> <small>(m³/s por década)</small></td><td>1981–2022</td><td class='num'>45</td><td class='num'>-0.8</td><td class='num'>-5.0 a +2.5</td><td class='num'>0</td><td>ninguna significativa; el signo cambia según la ventana</td></tr>
+<tr><td><b>T mín</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>45</td><td class='num'>+0.14</td><td class='num'>+0.04 a +0.31</td><td class='num'>31</td><td>sube en todas; significativa en 31 de 45</td></tr>
+<tr><td><b>T media</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>45</td><td class='num'>+0.14</td><td class='num'>+0.08 a +0.23</td><td class='num'>23</td><td>sube en todas; significativa en 23 de 45</td></tr>
+<tr><td><b>T máx</b> <small>(°C/década)</small></td><td>1981–2022</td><td class='num'>45</td><td class='num'>+0.15</td><td class='num'>+0.03 a +0.24</td><td class='num'>23</td><td>sube en todas; significativa en 23 de 45</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">Pendientes de la serie original X por década, en las unidades de la variable (en la lluvia, del
+  acumulado mensual). Las ventanas incluyen el registro completo; las demás empiezan más tarde o terminan más temprano.</p>
+  <p><b>La subida de la temperatura no depende de las fechas</b>: es positiva en todas las ventanas, de
+  +0.03 a
+  +0.31 °C/década. Donde no es significativa es porque
+  el intervalo se abre (menos años), no porque la pendiente cambie de signo. <b>En la lluvia de la red fija y en el
+  caudal, en cambio, el signo depende de dónde se corte el registro</b>, y ninguna ventana es significativa: la falta de
+  tendencia en el registro completo no es un efecto de las fechas elegidas.</p>
+
   <h3>¿Tendencia gradual o salto?</h3>
   <p><b>En la lluvia y en el caudal no hay saltos de nivel.</b> <b>En la temperatura, la prueba de Pettitt (<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>) sí marca uno</b>
   (T mín después de 2009, T media después de 2001, T máx después de 2000), pero <b>es la misma subida gradual vista de
@@ -1993,18 +2025,20 @@ section, section h3 { scroll-margin-top: 20px; }
   <p><b>Corrigiendo por comparaciones múltiples, la temperatura sigue subiendo en muchos meses del año y la lluvia solo
   en marzo.</b> Con doce pruebas por variable, algún mes saldría significativo solo por azar; por eso se controla la tasa de
   falsos descubrimientos con Benjamini y Hochberg (<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>), tomando como familia las 12 subseries de cada variable
-  (q &lt; 0.05).</p>
+  (q &lt; 0.05). La pregunta de cada familia es «¿en qué meses cambia esta variable?». Como prueba de robustez se
+  repite con las 72 subseries juntas (6 variables por 12 meses), una familia más
+  exigente. Con las 72 juntas dejarían de ser significativos (OLS): T mín, mayo, junio; T media, febrero, junio, agosto, diciembre. Marzo de la lluvia sigue resistiendo.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Meses con p &lt; 0.05 (sin corregir)</th><th>Con FDR (OLS)</th>
-    <th>Con FDR (Mann-Kendall)</th></tr></thead>
+    <th>Con FDR (Mann-Kendall)</th><th>Con FDR, las 72 juntas (OLS / Mann-Kendall)</th></tr></thead>
     <tbody>
-<tr><td><b>PL*</b></td><td>1</td><td><b>1</b> <small>(marzo)</small></td><td>1</td></tr>
-<tr><td><b>PI</b></td><td>2</td><td><b>0</b> <small>(ninguno)</small></td><td>0</td></tr>
-<tr><td><b>Q</b></td><td>0</td><td><b>0</b> <small>(ninguno)</small></td><td>0</td></tr>
-<tr><td><b>T mín</b></td><td>7</td><td><b>7</b> <small>(mayo, junio, julio, agosto, septiembre, octubre, noviembre)</small></td><td>7</td></tr>
-<tr><td><b>T media</b></td><td>9</td><td><b>9</b> <small>(febrero, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre)</small></td><td>11</td></tr>
-<tr><td><b>T máx</b></td><td>7</td><td><b>3</b> <small>(mayo, septiembre, octubre)</small></td><td>2</td></tr>
+<tr><td><b>PL*</b></td><td>1</td><td><b>1</b> <small>(marzo)</small></td><td>1</td><td>1 / 1</td></tr>
+<tr><td><b>PI</b></td><td>2</td><td><b>0</b> <small>(ninguno)</small></td><td>0</td><td>0 / 0</td></tr>
+<tr><td><b>Q</b></td><td>0</td><td><b>0</b> <small>(ninguno)</small></td><td>0</td><td>0 / 0</td></tr>
+<tr><td><b>T mín</b></td><td>7</td><td><b>7</b> <small>(mayo, junio, julio, agosto, septiembre, octubre, noviembre)</small></td><td>7</td><td>5 / 5</td></tr>
+<tr><td><b>T media</b></td><td>9</td><td><b>9</b> <small>(febrero, mayo, junio, julio, agosto, septiembre, octubre, noviembre, diciembre)</small></td><td>11</td><td>5 / 5</td></tr>
+<tr><td><b>T máx</b></td><td>7</td><td><b>3</b> <small>(mayo, septiembre, octubre)</small></td><td>2</td><td>3 / 2</td></tr>
     </tbody>
   </table>
   </div>
@@ -3137,7 +3171,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 192 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 196 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

@@ -879,6 +879,144 @@ sin_anio_filas = "\n".join(
     f"<td class='num'>{d['n_sig']}</td><td class='num'>{d['anio']}: {d['cambio']:+.{_dec_sin_anio(v)}f} "
     f"<small>(p {_p_txt(d['p_anio'])})</small></td><td>{_fases_anio(d)}</td><td>{_sin_anio_lectura(d)}</td></tr>"
     for v, d in tend_sin_anio.items())
+# tendencias: síntesis de consistencia (las discrepancias salen de tend_consistencia y cons_* de 18)
+def _cons_ventana(v, per):
+    f = met_global[(v, per)]
+    return f"{f['inicio'].year}–{f['fin'].year}"
+
+
+def _cons_y(lista):
+    lista = list(dict.fromkeys(lista))
+    return lista[0] if len(lista) == 1 else ", ".join(lista[:-1]) + " y " + lista[-1]
+
+
+def _cons_reps(reps):
+    return "en X, a y z" if set(reps) == set(CONS_REPS) else "en " + _cons_y(reps)
+
+
+def _cons_celda(v, eje):
+    f = tend_consistencia[v]
+    d = f[eje]
+    if d is None:
+        return "<td><small>no aplica</small></td>"
+    if not d:
+        return "<td>coincide</td>"
+    if eje == "metodos":
+        grupos = {}
+        for per, m1, m2, k in d:
+            grupos.setdefault(per, {}).setdefault((m1, m2), []).append(k)
+        partes = []
+        for per, pares in grupos.items():
+            if set(pares) == {("OLS", "LOESS"), ("Mann-Kendall", "LOESS")}:
+                txt = "LOESS frente a OLS y Mann-Kendall"
+            else:
+                txt = "; ".join(f"{a} frente a {b}" for a, b in pares)
+            reps = [k for ks in pares.values() for k in ks]
+            partes.append(f"{txt}, {_cons_reps(reps)} ({_cons_ventana(v, per)})")
+        detalle = "; ".join(partes)
+    elif eje == "periodos":
+        metodos = {}
+        for m, k in d:
+            metodos.setdefault(m, []).append(k)
+        detalle = "; ".join(f"{m}, {_cons_reps(ks)}" for m, ks in metodos.items())
+    else:
+        metodos = {}
+        for m, k in d:
+            metodos.setdefault(m, []).append(k)
+        detalle = "; ".join(f"{m}, {_cons_reps(ks)}" for m, ks in metodos.items())
+    return f"<td><b>no coincide</b><br><small>{detalle}</small></td>"
+
+
+def _cons_meses(lista):
+    return f"{len(lista)}" + (f" <small>({', '.join(MESES_ES[m - 1] for m in lista)})</small>" if lista else "")
+
+
+cons_filas = "\n".join(
+    f"<tr><td><b>{v}</b></td>{_cons_celda(v, 'metodos')}{_cons_celda(v, 'representaciones')}"
+    f"{_cons_celda(v, 'fuentes')}{_cons_celda(v, 'periodos')}"
+    f"<td class='num'>{_cons_meses(inc_fdr[v]['ols'])}</td><td class='num'>{_cons_meses(inc_fdr[v]['mk'])}</td></tr>"
+    for v in LARGO_VARS)
+# los textos de cada discrepancia
+_cl_vars = [v for v, _ in cons_loess]
+cons_txt_loess = ""
+if cons_loess:
+    cons_txt_loess = (
+        f"<p><b>LOESS frente a la recta.</b> En {_cons_y([f'{v} ({_cons_ventana(v, per)})' for v, per in cons_loess])}, OLS y "
+        f"Mann-Kendall bajan y LOESS sube. Ninguna de las dos lecturas es significativa. LOESS mide el cambio entre el comienzo y el "
+        f"final de una curva local, y el final lo levanta 2022, que en las tres quedó por encima de lo normal (anomalía media de "
+        + _cons_y([f"{cons_anomalia_2022[v]:+.1f} {LARGO_UNIDADES[v]} en {v}" for v in _cl_vars]) + ")"
+        + (f". 2022 es también el año que más mueve la recta en el registro completo de PL*, PI y Q (ver «Sensibilidad a "
+           f"años extremos»)"
+           if tend_sin_anio_comun == 2022 and all(v in ("PL*", "PI", "Q") for v in _cl_vars) else "")
+        + ". La recta usa toda la ventana; LOESS, en los bordes, solo los años cercanos.</p>")
+cons_txt_metodos = ""
+for _v, _per in cons_ols_mk:
+    _f = met_global[(_v, _per)]
+    _sig_mk = _f["mk_X"]["p"] < TEND_ALFA
+    cons_txt_metodos += (
+        f"<p><b>OLS frente a Mann-Kendall.</b> En {_v}, {_cons_ventana(_v, _per)}, "
+        f"{'Mann-Kendall' if _sig_mk else 'OLS'} da la tendencia significativa y {'OLS' if _sig_mk else 'Mann-Kendall'} no "
+        f"(sobre X: OLS con Newey-West, p {_p_txt(_f['ols_Xmes']['p_hac'])}; Mann-Kendall estacional, p {_p_txt(_f['mk_X']['p'])}). "
+        f"Las dos pruebas tratan distinto la dependencia entre meses: la OLS corrige su error con Newey-West y Mann-Kendall "
+        f"permuta años completos. Las dos dan una subida.</p>")
+for _v, _per in cons_hamed_rao:
+    _f = met_global[(_v, _per)]
+    cons_txt_metodos += (
+        f"<p><b>La corrección por autocorrelación.</b> En {_v}, {_cons_ventana(_v, _per)}, la pendiente de Sen sobre a da "
+        f"p {_p_txt(_f['mk_a']['p_sin'])} sin corregir y p {_p_txt(_f['mk_a']['p'])} con la corrección de Hamed y Rao. "
+        f"Sin la corrección parecería significativa; con ella coincide con la OLS (p {_p_txt(_f['ols_a']['p_hac'])}), porque un mes "
+        f"cálido suele seguir a otro y los meses no son observaciones independientes.</p>")
+_pl9822, _pi9822 = met_global[("PL*", CONS_COMUN)], met_global[("PI", "completo")]
+_marzo = inc_lluvia_fdr.get(3)
+cons_txt_fuentes = (
+    (f"<p><b>PL* frente a PI.</b> En {CONS_COMUN} las dos fuentes coinciden en toda la serie con los tres métodos y las tres "
+     f"representaciones: OLS sobre X da {_pl9822['ols_Xmes']['pend']:+.1f} mm/mes por década con PL* y "
+     f"{_pi9822['ols_Xmes']['pend']:+.1f} con PI, ninguna significativa."
+     if not tend_consistencia["PL*"]["fuentes"] else
+     f"<p><b>PL* frente a PI.</b> En {CONS_COMUN} las dos fuentes no coinciden en toda la serie.")
+    + (f" Mes a mes sí discrepan: marzo de PL* sube {_marzo['pend']:+.1f} mm/mes por década y resiste la FDR, y el de PI también "
+       f"sube ({_marzo['pi']['ols']:+.1f}), pero no resiste la FDR (p {_p_txt(_marzo['pi']['p'])} sin corregir, "
+       f"q {_p_txt(_marzo['pi']['q'])})." if _marzo else "")
+    + f" Con la PL de la red completa, Mann-Kendall da significativa la serie de {CONS_COMUN} (p "
+      f"{_p_txt(tend_pl_sens['red_9822']['p_mk'])}) y con PL* no (p {_p_txt(tend_pl_sens['estrella_9822']['p_mk'])}). Como se "
+      f"explicó arriba, esa diferencia viene de los cambios en la composición de la red.</p>")
+cons_txt_periodos = ""
+if cons_periodos_t:
+    _partes = []
+    for _v in cons_periodos_t:
+        _c, _r = met_global[(_v, "completo")]["ols_Xmes"], met_global[(_v, CONS_COMUN)]["ols_Xmes"]
+        _metodos = list(dict.fromkeys(m for m, k in tend_consistencia[_v]["periodos"]))
+        _partes.append(f"{_v} ({_c['pend']:+.3f} ± {_c['ic_hac']:.3f} en {_cons_ventana(_v, 'completo')} y "
+                       f"{_r['pend']:+.3f} ± {_r['ic_hac']:.3f} °C/década en {CONS_COMUN}; deja de ser significativa con "
+                       f"{_cons_y(_metodos)})")
+    cons_txt_periodos = (f"<p><b>Registro completo frente a {CONS_COMUN}.</b> En la temperatura el signo no cambia, cambia el "
+                         f"veredicto: {_cons_y(_partes)}. Con 25 años en lugar de 42 el intervalo es más ancho, como se vio en "
+                         f"«Sensibilidad a la fecha inicial y final».")
+if tend_consistencia["PL*"]["periodos"]:
+    cons_txt_periodos += (
+        (" " if cons_txt_periodos else f"<p><b>Registro completo frente a {CONS_COMUN}.</b> ")
+        + f"En PL* cambia el signo: {met_global[('PL*', 'completo')]['ols_Xmes']['pend']:+.1f} mm/mes por década en "
+          f"{_cons_ventana('PL*', 'completo')} y {_pl9822['ols_Xmes']['pend']:+.1f} en {CONS_COMUN}, ninguna significativa; "
+          f"su signo depende de la ventana.")
+if tend_consistencia["Q"]["periodos"] and all(m == "LOESS" for m, k in tend_consistencia["Q"]["periodos"]):
+    cons_txt_periodos += " En Q solo cambia el signo de LOESS, por el efecto de 2022 al final de la ventana corta."
+cons_txt_periodos += "</p>" if cons_txt_periodos else ""
+cons_txt_mes = ""
+if cons_fdr_distinto:
+    _partes = []
+    for _v in cons_fdr_distinto:
+        _solo_mk = [MESES_LARGOS_ES[m - 1] for m in inc_fdr[_v]["mk"] if m not in inc_fdr[_v]["ols"]]
+        _solo_ols = [MESES_LARGOS_ES[m - 1] for m in inc_fdr[_v]["ols"] if m not in inc_fdr[_v]["mk"]]
+        _txt = f"en {_v}, {len(inc_fdr[_v]['ols'])} meses con OLS y {len(inc_fdr[_v]['mk'])} con Mann-Kendall"
+        if _solo_mk:
+            _txt += f" (solo Mann-Kendall: {_cons_y(_solo_mk)})"
+        if _solo_ols:
+            _txt += f" (solo OLS: {_cons_y(_solo_ols)})"
+        _partes.append(_txt)
+    cons_txt_mes = (f"<p><b>Mes a mes.</b> Los dos métodos no siempre dejan pasar los mismos meses por la FDR: {_cons_y(_partes)}. "
+                    f"En las demás variables, los dos métodos dejan pasar los mismos meses.</p>")
+
+
 # la lluvia y el caudal: el año que más mueve las tres pendientes, si es el mismo, y hacia dónde las mueve
 _lluvia_q = ("PL*", "PI", "Q")
 _p_min_lluvia = min(_lluvia_q, key=lambda v: tend_sin_anio[v]["p_min"])
@@ -3222,6 +3360,36 @@ a {{ color: var(--acento); }}
   orden con las pendientes por década del punto medio de la temperatura ({inc_etp["d_tm"]:+.2f} °C) y de la amplitud diaria
   ({inc_etp["d_td"]:+.2f} °C). La ETP anual es la media de {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}. Los mm/mes de la lluvia se pasan a
   mm/año multiplicando por 12.</p>
+
+  <h3>Consistencia entre métodos, representaciones, fuentes y períodos</h3>
+  <p>Esta tabla junta lo anterior. Para cada variable dice si la tendencia de toda la serie coincide entre los tres métodos (OLS,
+  Mann-Kendall con la pendiente de Sen y LOESS), entre las tres representaciones (X, a y z), entre las dos fuentes de lluvia (PL*
+  frente a PI, en {CONS_COMUN}, la única ventana en que existen las dos) y entre los dos períodos (registro completo frente a
+  {CONS_COMUN}). Dos resultados <b>coinciden</b> si tienen el mismo signo y el mismo veredicto con α = {TEND_ALFA}. LOESS no da p:
+  con LOESS solo se compara el signo de su cambio de principio a fin. Las dos últimas columnas cuentan los meses que resisten la
+  FDR en cada método.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Métodos</th><th>Representaciones</th><th>Fuentes (PL* frente a PI)</th>
+    <th>Períodos (completo frente a {CONS_COMUN})</th><th class="num">Meses con FDR, OLS</th>
+    <th class="num">Meses con FDR, Mann-Kendall</th></tr></thead>
+    <tbody>
+{cons_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">«No aplica»: PI solo existe en {CONS_COMUN}, así que no tiene otro período, y Q y la temperatura tienen una sola
+  fuente. En OLS sobre X, la pendiente es la de la tabla resumen, con una constante por mes; en Mann-Kendall sobre X, la versión
+  estacional. Debajo de cada «no coincide», qué métodos o representaciones discrepan y en qué ventana.</p>
+  <p><b>Lo que es consistente.</b> En el registro completo, la temperatura sube y es significativa con los tres métodos y las
+  tres representaciones. En toda la serie, PL*, PI y Q no son significativos con ningún método, representación ni período. Las
+  representaciones X, a y z nunca discrepan, y ninguna discrepancia enfrenta dos resultados significativos de signo contrario.
+  Las diferencias son de signo entre resultados que no son significativos, o de veredicto en la ventana corta.</p>
+{cons_txt_loess}
+{cons_txt_metodos}
+{cons_txt_fuentes}
+{cons_txt_periodos}
+{cons_txt_mes}
 </section>
 
 <section>

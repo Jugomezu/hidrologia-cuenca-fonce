@@ -2116,6 +2116,41 @@ section, section h3 { scroll-margin-top: 20px; }
   orden con las pendientes por década del punto medio de la temperatura (+0.15 °C) y de la amplitud diaria
   (+0.02 °C). La ETP anual es la media de 1998–2022. Los mm/mes de la lluvia se pasan a
   mm/año multiplicando por 12.</p>
+
+  <h3>Consistencia entre métodos, representaciones, fuentes y períodos</h3>
+  <p>Esta tabla junta lo anterior. Para cada variable dice si la tendencia de toda la serie coincide entre los tres métodos (OLS,
+  Mann-Kendall con la pendiente de Sen y LOESS), entre las tres representaciones (X, a y z), entre las dos fuentes de lluvia (PL*
+  frente a PI, en 1998–2022, la única ventana en que existen las dos) y entre los dos períodos (registro completo frente a
+  1998–2022). Dos resultados <b>coinciden</b> si tienen el mismo signo y el mismo veredicto con α = 0.05. LOESS no da p:
+  con LOESS solo se compara el signo de su cambio de principio a fin. Las dos últimas columnas cuentan los meses que resisten la
+  FDR en cada método.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Variable</th><th>Métodos</th><th>Representaciones</th><th>Fuentes (PL* frente a PI)</th>
+    <th>Períodos (completo frente a 1998–2022)</th><th class="num">Meses con FDR, OLS</th>
+    <th class="num">Meses con FDR, Mann-Kendall</th></tr></thead>
+    <tbody>
+<tr><td><b>PL*</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td>coincide</td><td><b>no coincide</b><br><small>OLS, en X, a y z; Mann-Kendall, en X, a y z</small></td><td class='num'>1 <small>(mar)</small></td><td class='num'>1 <small>(mar)</small></td></tr>
+<tr><td><b>PI</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr><td><b>Q</b></td><td><b>no coincide</b><br><small>LOESS frente a OLS y Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>LOESS, en X, a y z</small></td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr><td><b>T mín</b></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td>coincide</td><td class='num'>7 <small>(may, jun, jul, ago, sep, oct, nov)</small></td><td class='num'>7 <small>(may, jun, jul, ago, sep, oct, nov)</small></td></tr>
+<tr><td><b>T media</b></td><td><b>no coincide</b><br><small>OLS frente a Mann-Kendall, en X, a y z (1998–2022)</small></td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>OLS, en X, a y z</small></td><td class='num'>9 <small>(feb, may, jun, jul, ago, sep, oct, nov, dic)</small></td><td class='num'>11 <small>(ene, feb, abr, may, jun, jul, ago, sep, oct, nov, dic)</small></td></tr>
+<tr><td><b>T máx</b></td><td>coincide</td><td>coincide</td><td><small>no aplica</small></td><td><b>no coincide</b><br><small>OLS, en X, a y z; Mann-Kendall, en X, a y z</small></td><td class='num'>3 <small>(may, sep, oct)</small></td><td class='num'>2 <small>(sep, oct)</small></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">«No aplica»: PI solo existe en 1998–2022, así que no tiene otro período, y Q y la temperatura tienen una sola
+  fuente. En OLS sobre X, la pendiente es la de la tabla resumen, con una constante por mes; en Mann-Kendall sobre X, la versión
+  estacional. Debajo de cada «no coincide», qué métodos o representaciones discrepan y en qué ventana.</p>
+  <p><b>Lo que es consistente.</b> En el registro completo, la temperatura sube y es significativa con los tres métodos y las
+  tres representaciones. En toda la serie, PL*, PI y Q no son significativos con ningún método, representación ni período. Las
+  representaciones X, a y z nunca discrepan, y ninguna discrepancia enfrenta dos resultados significativos de signo contrario.
+  Las diferencias son de signo entre resultados que no son significativos, o de veredicto en la ventana corta.</p>
+<p><b>LOESS frente a la recta.</b> En PI (1998–2022), PL* (1998–2022) y Q (1998–2022), OLS y Mann-Kendall bajan y LOESS sube. Ninguna de las dos lecturas es significativa. LOESS mide el cambio entre el comienzo y el final de una curva local, y el final lo levanta 2022, que en las tres quedó por encima de lo normal (anomalía media de +38.9 mm/mes en PI, +43.6 mm/mes en PL* y +32.9 m³/s en Q). 2022 es también el año que más mueve la recta en el registro completo de PL*, PI y Q (ver «Sensibilidad a años extremos»). La recta usa toda la ventana; LOESS, en los bordes, solo los años cercanos.</p>
+<p><b>OLS frente a Mann-Kendall.</b> En T media, 1998–2022, Mann-Kendall da la tendencia significativa y OLS no (sobre X: OLS con Newey-West, p 0.137; Mann-Kendall estacional, p 0.045). Las dos pruebas tratan distinto la dependencia entre meses: la OLS corrige su error con Newey-West y Mann-Kendall permuta años completos. Las dos dan una subida.</p><p><b>La corrección por autocorrelación.</b> En T máx, 1998–2022, la pendiente de Sen sobre a da p 0.038 sin corregir y p 0.343 con la corrección de Hamed y Rao. Sin la corrección parecería significativa; con ella coincide con la OLS (p 0.373), porque un mes cálido suele seguir a otro y los meses no son observaciones independientes.</p>
+<p><b>PL* frente a PI.</b> En 1998–2022 las dos fuentes coinciden en toda la serie con los tres métodos y las tres representaciones: OLS sobre X da -4.6 mm/mes por década con PL* y -2.3 con PI, ninguna significativa. Mes a mes sí discrepan: marzo de PL* sube +33.1 mm/mes por década y resiste la FDR, y el de PI también sube (+29.8), pero no resiste la FDR (p 0.012 sin corregir, q 0.148). Con la PL de la red completa, Mann-Kendall da significativa la serie de 1998–2022 (p 0.014) y con PL* no (p 0.238). Como se explicó arriba, esa diferencia viene de los cambios en la composición de la red.</p>
+<p><b>Registro completo frente a 1998–2022.</b> En la temperatura el signo no cambia, cambia el veredicto: T media (+0.138 ± 0.077 en 1981–2022 y +0.150 ± 0.198 °C/década en 1998–2022; deja de ser significativa con OLS) y T máx (+0.153 ± 0.096 en 1981–2022 y +0.105 ± 0.230 °C/década en 1998–2022; deja de ser significativa con OLS y Mann-Kendall). Con 25 años en lugar de 42 el intervalo es más ancho, como se vio en «Sensibilidad a la fecha inicial y final». En PL* cambia el signo: +1.7 mm/mes por década en 1981–2022 y -4.6 en 1998–2022, ninguna significativa; su signo depende de la ventana. En Q solo cambia el signo de LOESS, por el efecto de 2022 al final de la ventana corta.</p>
+<p><b>Mes a mes.</b> Los dos métodos no siempre dejan pasar los mismos meses por la FDR: en T media, 9 meses con OLS y 11 con Mann-Kendall (solo Mann-Kendall: enero y abril) y en T máx, 3 meses con OLS y 2 con Mann-Kendall (solo OLS: mayo). En las demás variables, los dos métodos dejan pasar los mismos meses.</p>
 </section>
 
 <section>
@@ -3231,7 +3266,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 203 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 212 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

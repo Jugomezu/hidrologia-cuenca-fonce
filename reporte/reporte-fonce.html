@@ -18,7 +18,7 @@
 <style>
 :root {
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #FFF4C2; --revision-borde: #8A6500;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #FFF4C2; --revision-borde: #8A6500; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -26,12 +26,12 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
   }
 }
 :root[data-theme="dark"] {
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
 }
 * { box-sizing: border-box; }
 body { background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }
@@ -78,6 +78,12 @@ tbody tr:first-child td { background: var(--acento-suave); font-weight: 500; }
 .revision > p:last-child { margin-bottom: 0; }
 .revision::before { content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }
+.cambio { background: var(--cambio); border-left: 4px solid var(--cambio-borde); padding: 10px 14px;
+  margin: 14px 0; border-radius: 0 4px 4px 0; }
+.cambio > p { margin: 0 0 8px; }
+.cambio > p:last-child { margin-bottom: 0; }
+.cambio::before { content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--cambio-borde); margin-bottom: 6px; }
 .formula { font: 500 16px/1.5 var(--f-dato); margin: 4px 0 12px; overflow-wrap: anywhere; }
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar { background: var(--atip-alto); font-weight: 600; }
 td.res-anotado { background: var(--revision); }
@@ -1908,17 +1914,17 @@ section, section h3 { scroll-margin-top: 20px; }
   alta frecuencia (menos de 6 meses). Se calcula para PL, PI, Q y T en tres versiones: la serie original, su anomalía (sin el
   ciclo anual) y la anomalía sin tendencia.</p>
   <ul>
-    <li><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
+    <li class="cambio" data-etiqueta="Cambio de la revisión · bandas con ±Δf, remisión a «El régimen» y la ZCIT"><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
     su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
     de Colombia, que trae dos temporadas de lluvias al año (<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>; <a class="cita" href="#ref-poveda2004">Poveda, 2004</a>). La banda semianual tiene el
     49 % de la varianza de PL, el 40 % de la de PI
     y el 37 % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
     allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
-    <li><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en 12 meses,
+    <li class="cambio" data-etiqueta="Nuevo · la temperatura"><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en 12 meses,
     pero la banda anual tiene solo el 13 % de su varianza y la interanual, el
     24 %: la temperatura varía más de un año a otro que dentro del año. Coincide
     con «Lo que solo se ve al quitar el ciclo anual», donde el ciclo explica solo el 22 % de la variación de T.</li>
-    <li><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el 37 % de la
+    <li class="cambio" data-etiqueta="Cambio de la revisión · remisión al desfase y persistencia"><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el 37 % de la
     varianza de Q y el 54 % de la lluvia (promedio de PL y PI). Es la misma memoria de la cuenca que
     muestran «Desfase estacional» (el río va 17 días detrás de PL) y la correlación cruzada (sin el ciclo
     anual, la lluvia del mes anterior sigue aportando: correlación parcial de 0.52),
@@ -1931,7 +1937,7 @@ section, section h3 { scroll-margin-top: 20px; }
     10 y 9 % de la de PL y PI.</li>
     <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)). Solo PI (común 1998–2022) supera el ruido rojo, con su pico en 150 meses (p = 0.04), pero ese período cabe apenas 2.0 veces en el registro y es una de 7 pruebas: no alcanza para hablar de un ciclo. La variabilidad
     interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.</li>
-    <li><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: PL* 6 meses, Q 6 meses, T 12 meses,
+    <li class="cambio" data-etiqueta="Corregido · antes decía que no cambiaba ningún pico"><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: PL* 6 meses, Q 6 meses, T 12 meses,
     los mismos que en la ventana común (PL* frente a PL). En las anomalías sí cambia el pico de T (anomalía), de 67 a 44 meses; PL* (anomalía sin tendencia), de 45 a 70 meses; Q (anomalía sin tendencia), de 172 a 70 meses; T (anomalía sin tendencia), de 67 a 44 meses: los picos de baja frecuencia dependen de qué años entran en el registro.</li>
   </ul>
 
@@ -2000,6 +2006,7 @@ section, section h3 { scroll-margin-top: 20px; }
   </div>
   </details>
 
+  <div class="cambio" data-etiqueta="Nuevo · el método (y las columnas N y «Con dato» de las tablas)">
   <h3>Cómo se calcula</h3>
   <p><b>Las series.</b> La secuencia mensual en orden cronológico, no las 12 medias del año típico, con Δt = 1 mes y
   N = 300 meses en la ventana común (504 en la extendida).
@@ -2023,14 +2030,17 @@ section, section h3 { scroll-margin-top: 20px; }
   pierde la mitad de la resolución. Welch (<a class="cita" href="#ref-welch1967">Welch, 1967</a>) promedia segmentos de 120 meses con ventana de Hann y
   traslape de la mitad: el promedio da un espectro menos ruidoso, pero la resolución baja a 1/120 ciclos por mes.
   En Q, Welch se reemplaza por Lomb-Scargle promediado en segmentos del mismo largo, que admite los vacíos.</p>
+  </div>
 
   <h3>Qué tan estables son los picos</h3>
+  <div class="cambio" data-etiqueta="Corregido · la ventana en Q, los atípicos, la tendencia y los vacíos de Q">
   <p>El pico de la serie original con la FFT y ventana de Hann, contra el de Welch (<a class="cita" href="#ref-welch1967">Welch, 1967</a>), con segmentos de
   120 meses: PL: Hann 6.0 y Welch 6.0 meses; PI: Hann 6.0 y Welch 6.0 meses; T: Hann 37.5 y Welch 12.0 meses. Coinciden dentro de la resolución, salvo en T: con Hann el máximo queda en 37.5 meses y con Welch en 12.0, así que ese máximo depende de la ventana y no se lee como un período estable. En Q, cuyo tramo continuo más largo tiene 69 meses (menos que un segmento), Welch se reduciría al mismo periodograma de Hann; en su lugar se promedia el periodograma de Lomb-Scargle de 4 tramos de 120 meses que se traslapan la mitad, sobre toda la serie con sus vacíos (el tramo más incompleto tiene 96 meses con dato): pico en 6.0 meses, contra 6.3 de Hann en el tramo de 69 meses. Coinciden dentro de la resolución.
   Quitar los meses atípicos (los mismos de «Revisión de outliers»: más de 1.5 rangos intercuartiles por fuera
   de los cuartiles de su mes del calendario) no mueve el pico de ninguna anomalía; se quitaron 2 meses de PL, 6 meses de PI, 6 meses de Q y 1 mes de T.</p>
   <p>Quitar la tendencia casi no cambia el reparto de la varianza por bandas: como mucho 2.1 puntos porcentuales (T, ventana extendida 1981–2022). Sí mueve el pico más alto de la anomalía en PI (ventana común 1998–2022), de 71 a 150 meses; Q (ventana común 1998–2022), de 71 a 172 meses; PL* (ventana extendida 1981–2022), de 44 a 70 meses: son picos de muy baja frecuencia, con pocos ciclos en el registro, justo donde una tendencia pesa más, así que no se leen como períodos. El pico de PI que supera el ruido rojo es uno de ellos: solo aparece al quitar la tendencia.</p>
   <p>¿Distorsionan el espectro los 38 meses vacíos de Q? Se calcula el de PL dejando vacíos esos mismos meses y se compara con el de PL completa. El pico no se mueve, ni en la serie original ni en la anomalía. Las bandas sí cambian: en la original, la semianual pasa de 48.5 a 42.2 %; en la anomalía, la alta pasa de 55.6 a 59.9 %. Así que los vacíos no mueven los picos de Q, pero sus porcentajes por banda pueden estar corridos en unos 6 puntos por los vacíos. Es una prueba indirecta: supone que los vacíos afectarían al caudal como afectan a la lluvia.</p>
+  </div>
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
   y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual»). La FFT con Hann se calcula en el tramo
   continuo más largo de cada serie (69 meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
@@ -2138,7 +2148,7 @@ section, section h3 { scroll-margin-top: 20px; }
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
-    <li id="ref-mesa1997">Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
+    <li id="ref-mesa1997" class="cambio" data-etiqueta="Nuevo">Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.

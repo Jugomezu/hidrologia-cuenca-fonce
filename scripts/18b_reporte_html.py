@@ -89,6 +89,15 @@ CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
 
+# Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
+# cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
+RESALTAR_CAMBIOS = True
+
+
+def _cambio(etiqueta):
+    """Atributos HTML que marcan un bloque como cambiado en la revisión (o nada, si el resaltado está apagado)."""
+    return f' class="cambio" data-etiqueta="{html.escape(etiqueta)}"' if RESALTAR_CAMBIOS else ""
+
 NOMBRE_MES_CORTO = {1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun", 7: "jul", 8: "ago",
                     9: "sep", 10: "oct", 11: "nov", 12: "dic"}
 fmt_mes = lambda p: f"{NOMBRE_MES_CORTO[p.month]} {p.year}"
@@ -820,7 +829,7 @@ pagina = f"""<!doctype html>
 <style>
 :root {{
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #FFF4C2; --revision-borde: #8A6500;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #FFF4C2; --revision-borde: #8A6500; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -828,12 +837,12 @@ pagina = f"""<!doctype html>
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
   }}
 }}
 :root[data-theme="dark"] {{
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #37300F; --revision-borde: #E0B84A; --cambio: #16301B; --cambio-borde: #7BC67F;
 }}
 * {{ box-sizing: border-box; }}
 body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }}
@@ -880,6 +889,12 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .revision > p:last-child {{ margin-bottom: 0; }}
 .revision::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }}
+.cambio {{ background: var(--cambio); border-left: 4px solid var(--cambio-borde); padding: 10px 14px;
+  margin: 14px 0; border-radius: 0 4px 4px 0; }}
+.cambio > p {{ margin: 0 0 8px; }}
+.cambio > p:last-child {{ margin-bottom: 0; }}
+.cambio::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--cambio-borde); margin-bottom: 6px; }}
 .formula {{ font: 500 16px/1.5 var(--f-dato); margin: 4px 0 12px; overflow-wrap: anywhere; }}
 td.res-revisar, .sin-destacar tbody tr:first-child td.res-revisar {{ background: var(--atip-alto); font-weight: 600; }}
 td.res-anotado {{ background: var(--revision); }}
@@ -2360,17 +2375,17 @@ a {{ color: var(--acento); }}
   alta frecuencia (menos de 6 meses). Se calcula para PL, PI, Q y T en tres versiones: la serie original, su anomalía (sin el
   ciclo anual) y la anomalía sin tendencia.</p>
   <ul>
-    <li><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
+    <li{_cambio('Cambio de la revisión · bandas con ±Δf, remisión a «El régimen» y la ZCIT')}><b>El espectro confirma el régimen bimodal</b> (ver «El régimen» en «El ciclo anual»): la lluvia y el caudal tienen
     su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
     de Colombia, que trae dos temporadas de lluvias al año ({CITA_MESA}; {CITA_POVEDA}). La banda semianual tiene el
     {fou[(_fc, "PL", "original")]["bandas"]["semianual"]:.0f} % de la varianza de PL, el {fou[(_fc, "PI", "original")]["bandas"]["semianual"]:.0f} % de la de PI
     y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
     allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
-    <li><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en {fou[(_fc, "T", "original")]["pico"]:.0f} meses,
+    <li{_cambio('Nuevo · la temperatura')}><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en {fou[(_fc, "T", "original")]["pico"]:.0f} meses,
     pero la banda anual tiene solo el {fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} % de su varianza y la interanual, el
     {fou[(_fc, "T", "original")]["bandas"]["interanual"]:.0f} %: la temperatura varía más de un año a otro que dentro del año. Coincide
     con «Lo que solo se ve al quitar el ciclo anual», donde el ciclo explica solo el {corr_peso_ciclo['T ERA5']:.0f} % de la variación de T.</li>
-    <li><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el {fou_alta_q:.0f} % de la
+    <li{_cambio('Cambio de la revisión · remisión al desfase y persistencia')}><b>El caudal es más suave que la lluvia</b>: en las anomalías, la alta frecuencia es el {fou_alta_q:.0f} % de la
     varianza de Q y el {fou_alta_lluvia:.0f} % de la lluvia (promedio de PL y PI). Es la misma memoria de la cuenca que
     muestran «Desfase estacional» (el río va {desfase["Q_PL"]:.0f} días detrás de PL) y la correlación cruzada (sin el ciclo
     anual, la lluvia del mes anterior sigue aportando: correlación parcial de {memoria.loc['PL', 'parcial_mes_anterior']:.2f}),
@@ -2383,7 +2398,7 @@ a {{ color: var(--acento); }}
     {fou_interanual["PL"]:.0f} y {fou_interanual["PI"]:.0f} % de la de PL y PI.</li>
     <li><b>Ningún pico de las anomalías es una periodicidad clara</b> (prueba contra ruido rojo AR(1)).{"".join(f" Solo {v} ({ven}) supera el ruido rojo, con su pico en {fou[(ven, v, 'anomalía sin tendencia')]['pico']:.0f} meses (p = {fou[(ven, v, 'anomalía sin tendencia')]['ar1_p']:.2f}), pero ese período cabe apenas {c:.1f} veces en el registro y es una de {sum(1 for k in fou if k[2] == 'anomalía sin tendencia')} pruebas: no alcanza para hablar de un ciclo." for (ven, v), c in fou_signif_ciclos.items())} La variabilidad
     interanual existe, pero no tiene un período fijo: el ENSO es casi periódico, y con 25 o 42 años el espectro no puede atribuirle un pico.</li>
-    <li><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: {", ".join(f"{v} {b:.0f} meses" for v, (a, b) in fou_extendida.items())},
+    <li{_cambio('Corregido · antes decía que no cambiaba ningún pico')}><b>El registro extendido (1981–2022) no cambia los picos de las series originales</b>: {", ".join(f"{v} {b:.0f} meses" for v, (a, b) in fou_extendida.items())},
     los mismos que en la ventana común (PL* frente a PL). {fou_extendida_txt}</li>
   </ul>
 
@@ -2430,6 +2445,7 @@ a {{ color: var(--acento); }}
   </div>
   </details>
 
+  <div{_cambio('Nuevo · el método (y las columnas N y «Con dato» de las tablas)')}>
   <h3>Cómo se calcula</h3>
   <p><b>Las series.</b> La secuencia mensual en orden cronológico, no las 12 medias del año típico, con Δt = 1 mes y
   N = {fou[(_fc, "PL", "original")]["N"]} meses en la ventana común ({fou[("extendida 1981–2022", "PL*", "original")]["N"]} en la extendida).
@@ -2453,14 +2469,17 @@ a {{ color: var(--acento); }}
   pierde la mitad de la resolución. Welch ({CITA_WELCH}) promedia segmentos de {FOU_WELCH_SEGMENTO} meses con ventana de Hann y
   traslape de la mitad: el promedio da un espectro menos ruidoso, pero la resolución baja a 1/{FOU_WELCH_SEGMENTO} ciclos por mes.
   En Q, Welch se reemplaza por Lomb-Scargle promediado en segmentos del mismo largo, que admite los vacíos.</p>
+  </div>
 
   <h3>Qué tan estables son los picos</h3>
+  <div{_cambio('Corregido · la ventana en Q, los atípicos, la tendencia y los vacíos de Q')}>
   <p>El pico de la serie original con la FFT y ventana de Hann, contra el de Welch ({CITA_WELCH}), con segmentos de
   {FOU_WELCH_SEGMENTO} meses: {fou_sens_txt}. {fou_ventana_txt}
   Quitar los meses atípicos (los mismos de «Revisión de outliers»: más de {FACTOR_ATIPICO:.1f} rangos intercuartiles por fuera
   de los cuartiles de su mes del calendario) {fou_extremos_efecto}; se quitaron {fou_extremos_txt}.{fou_extremos_nada}</p>
   <p>{fou_tendencia_txt}</p>
   <p>{fou_vacios_txt}</p>
+  </div>
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
   y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual»). La FFT con Hann se calcula en el tramo
   continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
@@ -2564,7 +2583,7 @@ a {{ color: var(--acento); }}
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
-    <li id="ref-mesa1997">Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
+    <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.

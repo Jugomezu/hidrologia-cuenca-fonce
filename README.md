@@ -53,10 +53,14 @@ todo lo nuevo va a los scripts y al informe. Lo que tiene, por punto del taller:
 El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
 (2026-10-04).
 
-Después de congelar el notebook, lo nuevo está solo en el informe: años contrastantes y anomalías respecto al
-ciclo anual; **anomalías y anomalías estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis
-variables); y **tendencias de largo plazo** (registro completo de cada variable desde 1981 cuando existe: Q y
-temperatura; secuencia de meses y mes a mes, en X, a y z). Pendiente: la PL de 1981–1997 (descarga de DHIME).
+Después de congelar el notebook, **todo el análisis nuevo está solo en los scripts y el informe** (el notebook no hace
+falta para reproducirlo): años contrastantes y anomalías respecto al ciclo anual; **anomalías y anomalías
+estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis variables); **tendencias de largo plazo**
+(registro completo desde 1981 cuando existe: Q, temperatura y PL*, la red fija de pluviómetros; OLS con Newey-West,
+Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); y **frecuencias** (Fourier: Lomb-Scargle y
+FFT, bandas, ruido rojo AR(1)), que viene de la rama `punto-4` de angomezma-cyber, integrada a los scripts el 2026-10-08.
+La ampliación del Punto 2 de esa rama no se integró: lo que ya estaba en `main` se consideró suficiente (decisión del
+usuario, 2026-10-08).
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
 `scripts/18b_reporte_html.py`, con los cálculos de `scripts/18_calculos_informe.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
@@ -142,6 +146,29 @@ Decisiones que ya están tomadas y no se reabren sin consultar (detalle y fecha 
 - **Temperatura:** la de **ERA5-Land**. MSWX, que viene en CAMELS-COL, solo sirve para comparar.
 - **ETP:** la de **Hargreaves calculada por el proyecto con ERA5-Land** (`scripts/06b_etp_hargreaves.py`).
   La ETP que publica CAMELS-COL sale unas 2.75 veces más alta que su propia fórmula y no se usa.
+- **Frecuencias (Fourier), estabilidad de Q frente a la ventana** (2026-10-08): el tramo continuo más largo de Q
+  tiene 69 meses, menos que un segmento de Welch (120), así que Welch se reduciría a Hann. En su lugar se promedia
+  Lomb-Scargle sobre tramos de 120 meses con traslape de la mitad, sobre toda la serie con sus vacíos. Lo decidió el
+  usuario, con la recomendación del agente; se descartaron Welch con segmentos de 36 meses (solo 2 segmentos) y no
+  probarlo.
+- **Frecuencias (Fourier), ancho de las bandas anual y semianual** (2026-10-08): ±Δf (Δf = 1/N) alrededor de 1/12 y
+  1/6 ciclos/mes, el lóbulo principal del pico; la banda alta empieza donde termina la semianual. Con ±Δf/2, la versión
+  original, la semianual de PL daba 32 % cuando el ciclo medio predice ~50 %; con ±Δf da 49 %. Lo decidió el usuario,
+  con la recomendación del agente; se descartaron ±2Δf y dejar ±Δf/2 declarándolo.
+- **Frecuencias (Fourier), meses extremos en la prueba de sensibilidad** (2026-10-08): se quitan los mismos atípicos de
+  «Revisión de outliers» (1.5 RIC por fuera de los cuartiles de su mes del calendario), para que el informe tenga un
+  solo criterio de extremos. Lo decidió el usuario, **distinto de lo que recomendó el agente**: el agente proponía
+  quitar el 2 % más extremo de cada variable (6 meses en todas, para que la prueba fuera comparable entre variables);
+  el usuario prefirió la consistencia con el resto del informe. Se descartó también el criterio del PR original (3 RIC
+  desde la mediana de todas las anomalías), que no aparece en otra parte y en PL y PI no quitaba ningún mes. Con los
+  atípicos del proyecto, ningún pico de las anomalías se mueve.
+- **Frecuencias (Fourier), coherencia y fase con el ONI** (2026-10-08): espectro cruzado de las anomalías sin
+  tendencia con segmentos de 120 meses (Hann, traslape de la mitad); la banda de 3 a 7 años queda en 60 y 40 meses. El
+  umbral de significancia es el percentil 95 de 300 pares de series AR(1) independientes con la autocorrelación y los
+  vacíos de cada serie. **Solo para la coherencia**, los meses vacíos de Q se toman como anomalía cero; con PL, eso
+  baja la coherencia con el ONI, así que juega en contra de encontrarla. El ONI entra a la sección como referencia (fila
+  y curva). Lo decidió el usuario, con la recomendación del agente; se descartaron segmentos de 96 y 180 meses, dejar a
+  Q fuera de la coherencia y la fórmula analítica del umbral.
 
 ## 6. Estructura del repositorio
 
@@ -178,8 +205,9 @@ pip install -r requirements.txt
 ## 8. Cómo trabajar en paralelo sin pisarse
 
 - **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`, **con
-  descripción** (qué, por qué, cómo se verificó). Nadie fusiona su propio PR, y **nada entra a `main` sin
-  verificar antes que cumple las reglas** (reglas 20 y 21 de `CLAUDE.md`, sin excepciones).
+  descripción** (qué, por qué, cómo se verificó), y **nada entra a `main` sin verificar antes que cumple las
+  reglas** (reglas 20 y 21 de `CLAUDE.md`, sin excepciones). Desde el 2026-10-08 el proyecto es individual:
+  el dueño fusiona sus propios PR.
 - **El notebook no se toca** (regla 18): está congelado.
 - **Scripts nuevos:** se numeran según dónde caen en la tubería (se usaron sufijos como `06b`, `07b` y `07c`
   para no renumerar). Se registran en `scripts/README.md`.

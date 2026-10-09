@@ -304,7 +304,6 @@ etp_json = json.dumps({"meses": MESES_ES, **{k: _etp_ciclo[k].round(1).tolist() 
 
 # índice P/ETP: tablas, datos de la figura y textos (las cifras salen de pe_* en 18_calculos_informe.py)
 PE_FUENTE = {"pl": "PL", "pi": "PI"}
-PE_CASI_LIMITE = 0.05      # un P/ETP a menos de esto de 1 se describe como «prácticamente en el límite»
 pe_filas_anual = "\n".join(
     f"<tr><td><b>{PE_FUENTE[f]}</b></td><td class='num'>{n(r['p'])}</td><td class='num'>{n(pe_etp_anual)}</td>"
     f"<td class='num'><b>{r['ie']:.2f}</b></td><td>{r['clase']}</td>"
@@ -353,10 +352,7 @@ if not pe_deficit_igual:
         f" <b>Las dos fuentes no coinciden</b>: "
         + "; ".join(f"{MESES_LARGOS_ES[m - 1]} tiene déficit con {'PI' if m in pe_solo_pi else 'PL'} "
                     f"({pe_mes.loc[m, 'pi' if m in pe_solo_pi else 'pl']:.2f}) y no con {'PL' if m in pe_solo_pi else 'PI'} "
-                    f"({pe_mes.loc[m, 'pl' if m in pe_solo_pi else 'pi']:.2f}"
-                    # si la otra fuente queda a menos de PE_CASI_LIMITE de 1, se dice
-                    + (", prácticamente en el límite" if abs(pe_mes.loc[m, 'pl' if m in pe_solo_pi else 'pi'] - 1) < PE_CASI_LIMITE else "")
-                    + ")" for m in _pe_dif) + ".")
+                    f"({pe_mes.loc[m, 'pl' if m in pe_solo_pi else 'pi']:.2f})" for m in _pe_dif) + ".")
 # año por año: meses en que P < ETP en más de la mitad de los años con alguna fuente, y meses sin déficit nunca
 _pe_frecuentes = [m for m in range(1, 13) if pe_mes_deficit_anios.loc[m].max() > pe_n_anios / 2]
 _pe_nunca = [m for m in range(1, 13) if pe_mes_deficit_anios.loc[m].max() == 0]

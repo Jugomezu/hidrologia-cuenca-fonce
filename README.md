@@ -57,10 +57,10 @@ Después de congelar el notebook, **todo el análisis nuevo está solo en los sc
 falta para reproducirlo): años contrastantes y anomalías respecto al ciclo anual; **anomalías y anomalías
 estandarizadas** (a = X − µ, z = a / s, referencia fija 1998–2022, las seis variables); **tendencias de largo plazo**
 (registro completo desde 1981 cuando existe: Q, temperatura y PL*, la red fija de pluviómetros; OLS con Newey-West,
-Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); **frecuencias** (Fourier: Lomb-Scargle y FFT,
-bandas, ruido rojo AR(1)); y el **Punto 2 ampliado** (modelos con la lluvia del mes y del anterior, ecuaciones con unidades,
-modelo en anomalías, rezagos de −3 a +3). Fourier y el Punto 2 ampliado vienen de la rama `punto-4` de angomezma-cyber,
-integrados a los scripts el 2026-10-08.
+Mann-Kendall/Sen, LOESS, Pettitt, FDR, significancia contra relevancia); y **frecuencias** (Fourier: Lomb-Scargle y
+FFT, bandas, ruido rojo AR(1)), que viene de la rama `punto-4` de angomezma-cyber, integrada a los scripts el 2026-10-08.
+La ampliación del Punto 2 de esa rama no se integró: lo que ya estaba en `main` se consideró suficiente (decisión del
+usuario, 2026-10-08).
 
 El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo genera
 `scripts/18b_reporte_html.py`, con los cálculos de `scripts/18_calculos_informe.py`. Es un solo archivo que se abre en cualquier navegador, **sin internet**: las
@@ -146,6 +146,22 @@ Decisiones que ya están tomadas y no se reabren sin consultar (detalle y fecha 
 - **Temperatura:** la de **ERA5-Land**. MSWX, que viene en CAMELS-COL, solo sirve para comparar.
 - **ETP:** la de **Hargreaves calculada por el proyecto con ERA5-Land** (`scripts/06b_etp_hargreaves.py`).
   La ETP que publica CAMELS-COL sale unas 2.75 veces más alta que su propia fórmula y no se usa.
+- **Frecuencias (Fourier), estabilidad de Q frente a la ventana** (2026-10-08): el tramo continuo más largo de Q
+  tiene 69 meses, menos que un segmento de Welch (120), así que Welch se reduciría a Hann. En su lugar se promedia
+  Lomb-Scargle sobre tramos de 120 meses con traslape de la mitad, sobre toda la serie con sus vacíos. Lo decidió el
+  usuario, con la recomendación del agente; se descartaron Welch con segmentos de 36 meses (solo 2 segmentos) y no
+  probarlo.
+- **Frecuencias (Fourier), ancho de las bandas anual y semianual** (2026-10-08): ±Δf (Δf = 1/N) alrededor de 1/12 y
+  1/6 ciclos/mes, el lóbulo principal del pico; la banda alta empieza donde termina la semianual. Con ±Δf/2, la versión
+  original, la semianual de PL daba 32 % cuando el ciclo medio predice ~50 %; con ±Δf da 49 %. Lo decidió el usuario,
+  con la recomendación del agente; se descartaron ±2Δf y dejar ±Δf/2 declarándolo.
+- **Frecuencias (Fourier), meses extremos en la prueba de sensibilidad** (2026-10-08): se quitan los mismos atípicos de
+  «Revisión de outliers» (1.5 RIC por fuera de los cuartiles de su mes del calendario), para que el informe tenga un
+  solo criterio de extremos. Lo decidió el usuario, **distinto de lo que recomendó el agente**: el agente proponía
+  quitar el 2 % más extremo de cada variable (6 meses en todas, para que la prueba fuera comparable entre variables);
+  el usuario prefirió la consistencia con el resto del informe. Se descartó también el criterio del PR original (3 RIC
+  desde la mediana de todas las anomalías), que no aparece en otra parte y en PL y PI no quitaba ningún mes. Con los
+  atípicos del proyecto, ningún pico de las anomalías se mueve.
 
 ## 6. Estructura del repositorio
 

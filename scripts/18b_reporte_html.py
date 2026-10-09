@@ -2904,13 +2904,26 @@ a {{ color: var(--acento); }}
   está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
   {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
   y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
-  <div class="placa"><img src="{img('campos_meses_validos_850.png')}" alt="Mapa del mundo con el número de meses válidos a 850 hPa en cada caja de 2°; los Andes, el Tíbet, la Antártida y otras zonas altas quedan en gris"></div>
 
   <h3>Los campos</h3>
   <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
   850 hPa, de {cam_rango["q850"][0]:.1f} a {cam_rango["q850"][1]:.1f} g/kg. La cuenca va marcada en fucsia.</p>
   <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
   <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
+
+  <h3>El transporte de humedad, mes a mes</h3>
+  <p>Cerca de la cuenca el transporte cambia mucho a lo largo del año, y distinto a cada lado de la cordillera. <b>Al
+  oriente</b> ({360 - cam_caja_cuenca["lon_este"]:.0f}° O, sobre los llanos) es máximo en
+  {MESES_LARGOS_ES[cam_transporte["este"]["mes_max"] - 1]}, con {cam_transporte["este"]["mag"].max():.0f} (g/kg)·(m/s) hacia
+  {cam_transporte["este"]["rumbo_max"]}, y casi desaparece en {MESES_LARGOS_ES[cam_transporte["este"]["mes_min"] - 1]}
+  ({cam_transporte["este"]["mag"].min():.0f}). <b>Al occidente</b> ({360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, del lado del
+  Pacífico) el transporte entra hacia el continente, hacia el este, de
+  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][0] - 1]} a
+  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][-1] - 1]}, y el resto del año va hacia el oeste.</p>
+  <div class="placa"><img src="{img('campos_transporte_mensual.png')}" alt="Doce mapas del norte de Sudamérica, el Caribe y el Pacífico oriental, uno por mes, con la humedad específica a 850 hPa en colores y flechas del transporte de humedad; la cordillera de los Andes en gris"></div>
+  <p class="nota">Cada panel es la media de los {cam_anios[1] - cam_anios[0] + 1} años de ese mes. Una caja queda en gris si
+  850 hPa estuvo bajo el terreno en alguno de esos meses. Los mapas describen el promedio; cómo se relacionan con la
+  lluvia y el caudal de la cuenca, año a año, es otra pregunta.</p>
   <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
   que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
   {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>

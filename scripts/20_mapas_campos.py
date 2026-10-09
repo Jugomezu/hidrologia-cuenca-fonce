@@ -3,8 +3,8 @@
 Lee los campos en la malla de 2° que produce scripts/19_campos_climaticos.py y dibuja:
   - campos_sst_media.png           SST media 1998-2022 (ERSST v5).
   - campos_humedad_transporte.png  humedad específica media a 850 hPa y el transporte medio de humedad q·V (ERA5).
-  - campos_meses_validos_850.png   cuántos de los 300 meses tiene cada caja a 850 hPa (las demás quedaron bajo el
-                                   terreno con la máscara estricta).
+  - campos_transporte_mensual.png  humedad específica y transporte de humedad a 850 hPa de cada mes del calendario
+                                   (media de los 25 años), en el norte de Sudamérica, el Caribe y el Pacífico oriental.
 
 Las funciones `dibujar_campo` y `dibujar_correlacion` son las mismas que usarán los mapas de correlación del Punto 5,
 para que todos compartan las mismas convenciones:
@@ -40,6 +40,8 @@ GRIS_SIN_DATO = "#d9d9d9"
 COSTA = "#3a3a3a"
 CUENCA = "#e6007e"
 PASO_FLECHAS = 3              # se dibuja una flecha cada 3 cajas (6°) para que el campo se lea
+PASO_FLECHAS_REGION = 2       # en el mapa regional, una flecha cada 2 cajas (4°)
+REGION = (240, 330, -30, 30)  # longitud de 120° O a 30° O y latitud de 30° S a 30° N (0-360 °E)
 DPI = 160
 
 
@@ -64,20 +66,23 @@ def bordes(centros):
     return np.concatenate([[c[0] - (medio[0] - c[0])], medio, [c[-1] + (c[-1] - medio[-1])]])
 
 
-def marco(ax, lat, lon, tierra, titulo):
-    """Costa, cuenca, ejes y título comunes a todos los mapas."""
+def marco(ax, lat, lon, tierra, titulo, extension=(0, 360, -80, 80), pasos=(60, 30), tam_titulo=10.5):
+    """Costa, cuenca, ejes y título comunes a todos los mapas. `extension` = (lon0, lon1, lat0, lat1) en 0-360 °E."""
     ax.contour(lon, lat, tierra.astype(float), levels=[0.5], colors=COSTA, linewidths=0.6)
     x, y, (cx, cy) = cuenca_san_gil()
     ax.fill(x, y, color=CUENCA, lw=0)
     ax.plot(cx, cy, "o", ms=9, mfc="none", mec=CUENCA, mew=1.6)
-    ax.set_xlim(0, 360)
-    ax.set_ylim(-80, 80)
+    lon0, lon1, lat0, lat1 = extension
+    ax.set_xlim(lon0, lon1)
+    ax.set_ylim(lat0, lat1)
     ax.set_aspect("equal")
-    ax.set_xticks(range(0, 361, 60))
-    ax.set_xticklabels([f"{v}°E" if v <= 180 else f"{360 - v}°O" for v in range(0, 361, 60)], fontsize=8)
-    ax.set_yticks(range(-60, 61, 30))
-    ax.set_yticklabels([f"{abs(v)}°{'N' if v > 0 else 'S' if v < 0 else ''}" for v in range(-60, 61, 30)], fontsize=8)
-    ax.set_title(titulo, fontsize=10.5, loc="left")
+    xs = range(int(np.ceil(lon0 / pasos[0]) * pasos[0]), int(lon1) + 1, pasos[0])
+    ys = [v for v in range(-90, 91, pasos[1]) if lat0 < v < lat1 or (lat0 == -80 and abs(v) <= 60)]
+    ax.set_xticks(list(xs))
+    ax.set_xticklabels([f"{v}°E" if v <= 180 else f"{360 - v}°O" for v in xs], fontsize=8)
+    ax.set_yticks(ys)
+    ax.set_yticklabels([f"{abs(v)}°{'N' if v > 0 else 'S' if v < 0 else ''}" for v in ys], fontsize=8)
+    ax.set_title(titulo, fontsize=tam_titulo, loc="left")
 
 
 def dibujar_campo(ax, lat, lon, valores, tierra, titulo, cmap, vmin, vmax, unidad):
@@ -135,14 +140,31 @@ def main():
     fig.savefig(FIGURAS / "campos_humedad_transporte.png", dpi=DPI, bbox_inches="tight")
     plt.close(fig)
 
-    # 3) meses válidos a 850 hPa: el tamaño de muestra varía en el espacio
-    n = ds.q850.notnull().sum("tiempo").values.astype(float)
-    n = np.where(n > 0, n, np.nan)
-    fig, ax = plt.subplots(figsize=(11, 5.2))
-    dibujar_campo(ax, lat, lon, n, tierra,
-                  f"Meses con dato a 850 hPa en cada caja de 2°, de {ds.sizes['tiempo']} (en gris, ninguno)",
-                  "viridis", 0, ds.sizes["tiempo"], "meses válidos")
-    fig.savefig(FIGURAS / "campos_meses_validos_850.png", dpi=DPI, bbox_inches="tight")
+    # 3) transporte de humedad por mes del calendario, en la región de la cuenca. Cada panel es la media de los 25
+    #    años de ese mes; una caja queda en gris si 850 hPa estuvo bajo tierra en alguno de esos 25 meses.
+    q_mes = ds.q850.groupby("tiempo.month").mean("tiempo", skipna=False)
+    qu_mes = ds.qu850.groupby("tiempo.month").mean("tiempo", skipna=False)
+    qv_mes = ds.qv850.groupby("tiempo.month").mean("tiempo", skipna=False)
+    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
+             "noviembre", "diciembre"]
+    cmap_q = ListedColormap(plt.get_cmap("YlGnBu")(np.linspace(0.08, 1, 256)))
+    fig, ejes = plt.subplots(4, 3, figsize=(13, 13.5), constrained_layout=True)
+    LON, LAT = np.meshgrid(lon, lat)
+    sel = (slice(None, None, PASO_FLECHAS_REGION), slice(None, None, PASO_FLECHAS_REGION))
+    for k, ax in enumerate(ejes.flat):
+        ax.set_facecolor(GRIS_SIN_DATO)
+        m = ax.pcolormesh(bordes(lon), bordes(lat), np.ma.masked_invalid(q_mes.isel(month=k).values), cmap=cmap_q,
+                          vmin=0, vmax=18, shading="flat")
+        marco(ax, lat, lon, tierra, meses[k], extension=REGION, pasos=(30, 15), tam_titulo=11)
+        flechas = ax.quiver(LON[sel], LAT[sel], qu_mes.isel(month=k).values[sel], qv_mes.isel(month=k).values[sel],
+                            color="#222222", scale=1800, width=0.004, headwidth=3.5)
+    ax.quiverkey(flechas, 0.62, 0.06, 100, "100 (g/kg)·(m/s)", labelpos="E", coordinates="axes",
+                 fontproperties={"size": 8})
+    barra = fig.colorbar(m, ax=ejes, orientation="horizontal", fraction=0.025, pad=0.01, aspect=50)
+    barra.set_label("humedad específica a 850 hPa (g/kg); flechas: transporte de humedad q·V a 850 hPa", fontsize=10)
+    fig.suptitle(f"Humedad y transporte de humedad a 850 hPa, cada mes del calendario (media {anios}, ERA5). "
+                 "Gris: 850 hPa bajo el terreno", fontsize=12, x=0.01, ha="left")
+    fig.savefig(FIGURAS / "campos_transporte_mensual.png", dpi=DPI, bbox_inches="tight")
     plt.close(fig)
     print("figuras en", FIGURAS.relative_to(RAIZ))
 

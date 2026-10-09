@@ -2783,6 +2783,25 @@ cam_caja_cuenca["lon_este"] = float(_cc.lon.values[_este])
 cam_caja_cuenca["lon_oeste"] = float(_cc.lon.values[_oeste])
 cam_caja_cuenca["vecinas_sin_850"] = int(sum(_n850[_i + di, _j + dj] == 0 for di in (-1, 0, 1) for dj in (-1, 0, 1)
                                              if (di, dj) != (0, 0)))
+# transporte de humedad a 850 hPa mes a mes en esas dos cajas (la del oriente y la del occidente de la cuenca): media
+# de los 25 años de cada mes del calendario. Dirección en 8 rumbos, hacia donde va el transporte.
+def _rumbo(u, v):
+    nombres = ["el este", "el noreste", "el norte", "el noroeste", "el oeste", "el suroeste", "el sur", "el sureste"]
+    return nombres[int(np.round(np.degrees(np.arctan2(v, u)) / 45)) % 8]
+cam_transporte = {}
+for _lado, _k in (("este", _este), ("oeste", _oeste)):
+    _caja = _cc.isel(lat=_i, lon=_k)
+    _qu = _caja.qu850.groupby("tiempo.month").mean().values
+    _qv = _caja.qv850.groupby("tiempo.month").mean().values
+    _mag = np.hypot(_qu, _qv)
+    cam_transporte[_lado] = {"qu": _qu, "qv": _qv, "mag": _mag,
+                             "mes_max": int(_mag.argmax()) + 1, "mes_min": int(_mag.argmin()) + 1,
+                             "rumbo_max": _rumbo(_qu[_mag.argmax()], _qv[_mag.argmax()]),
+                             "meses_hacia_este": [m + 1 for m in range(12) if _qu[m] > 0]}
+# al occidente, los meses en que el transporte entra hacia el continente (hacia el este) forman un solo tramo
+_me = cam_transporte["oeste"]["meses_hacia_este"]
+assert _me and _me == list(range(_me[0], _me[-1] + 1))
+assert all(_qu < 0 for _qu in cam_transporte["este"]["qu"][[m - 1 for m in (12, 1, 2)]])   # al oriente, hacia el oeste en DEF
 # control de calidad de ERSST contra el ONI (scripts/19)
 _oni = pd.read_csv("out/ersst_nino34_contra_oni.csv")
 cam_oni = {"r": float(_oni.nino34_ersst_C.corr(_oni.oni_total_C)),

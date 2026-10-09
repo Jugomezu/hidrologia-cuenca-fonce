@@ -22,6 +22,7 @@ Los DOI y versiones se verificaron contra la fuente autoritativa (API de Zenodo,
 | DEM ALOS PALSAR 12.5 m (recorte de la zona) | sin DOI registrado (ver seccion) | sin registrar (ver seccion) | recorte en `data/dem/`, 2026-09-27 |
 | Copernicus DEM GLO-90 (relieve del mapa de ubicacion) | no verificado (ver seccion) | no verificada (ver seccion) | 2026-10-09, copia publica en Amazon S3 |
 | Natural Earth 1:10 m, limites de paises y departamentos (v5.1.1) | sin DOI | no verificada (ver seccion) | 2026-10-09, copia oficial en Amazon S3 |
+| Mapa Geologico de Colombia 2023, escala 1:1 500 000 (SGC) | sin DOI | no verificada (ver seccion) | 2026-10-09, sitio del SGC |
 
 ---
 
@@ -869,6 +870,33 @@ propios (ver la seccion siguiente).
 - **Uso:** solo la Figura 1 del informe. Los limites estan generalizados para la escala 1:10 m: sirven para ubicar,
   no para medir.
 
+
+
+## Mapa Geologico de Colombia 2023, escala 1:1 500 000 (Servicio Geologico Colombiano)
+
+- **Producto:** Mapa Geologico de Colombia 2023 del Servicio Geologico Colombiano (SGC), escala 1:1 500 000, en
+  geodatabase de ArcGIS. CAMELS-COL lo cita como Gomez et al. (2023) y saca de el sus siete litologias.
+- **Fuente:** https://www2.sgc.gov.co/MGC/Paginas/mgc_1_5M2023.aspx, archivo
+  `https://www2.sgc.gov.co/MGC/Documents/MGC_2023/mgc2023.gdb.zip` (7.2 MB; el servidor lo marca como modificado
+  el 2023-10-19).
+- **Licencia:** **no verificada.** La pagina de descarga es publica y sin registro; hay que confirmar los terminos
+  de uso del SGC antes de entregar.
+- **Descargado:** 2026-10-09, con `scripts/03c_geologia_sgc.py` (se baja solo si no existe en `data/`; la descarga
+  sigue desde el ultimo byte si la conexion se corta).
+- **Destino local:** `data/sgc/mgc2023.gdb.zip` (en git). La geodatabase descomprimida, `data/sgc/mgc2023.gdb/`
+  (~26 MB), queda fuera de git y la rehace el script.
+- **SHA-256:** `mgc2023.gdb.zip`: `e7b0e9733dc92a72d33e1578d92717774e2a43d6bc67f23e9ad567931db39167`
+- **Capas usadas:** `UC` (unidades cronoestratigraficas: simbolo, descripcion, edad) y `Fallas` (solo para el mapa).
+  Sistema de referencia del archivo: EPSG:4686 (MAGNA-SIRGAS geograficas).
+- **Transformaciones:** recorte de las unidades con el poligono de San Gil del proyecto; area de cada pedazo en
+  EPSG:3116; cada unidad se asigna a un grupo litologico por la letra de su simbolo despues del guion (S, M, P, H,
+  V, VC; minuscula = deposito cuaternario). Productos: `out/geologia_sgc_fonce_unidades.csv`,
+  `out/geologia_sgc_fonce.csv` y `reporte/figuras/mapa_geologico.png`.
+- **Por que no se usa la geologia de CAMELS-COL:** comparada con este recorte, sus columnas de rocas plutonicas,
+  hipoabisales, metamorficas y sedimentarias traen el porcentaje de otro grupo (por ejemplo, su 63.72 % de
+  "plutonic_rock_perc" es el area sedimentaria del SGC), y su columna volcanoclastica repite la volcanica en las
+  346 cuencas del archivo. `scripts/18_calculos_informe.py` comprueba esa correspondencia con `assert`.
+- **Uso:** la geologia del informe (tabla y Figura 5).
 
 ## Area de la cuenca (decidido el 2026-09-27)
 

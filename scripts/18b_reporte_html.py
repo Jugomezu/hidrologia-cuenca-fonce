@@ -126,8 +126,18 @@ def _filas_superficie(grupo, serie):
     return "\n".join(f"<tr>{c}</tr>" for c in celdas)
 
 filas_superficie = "\n".join(_filas_superficie(g, s) for g, s in [
-    ("Coberturas", coberturas), ("Suelos (órdenes)", suelos), ("Capacidad de uso", capacidad_uso),
-    ("Geología (litología)", geologia)])
+    ("Coberturas", coberturas), ("Suelos (órdenes)", suelos), ("Capacidad de uso", capacidad_uso)])
+# geología del SGC: una fila por unidad, con su grupo litológico
+filas_geologia = "\n".join(
+    f"<tr><td class='cod'>{html.escape(u.simbolo)}</td><td>{html.escape(u.grupo)}</td>"
+    f"<td>{html.escape(u.descripcion)}</td><td>{html.escape(u.edad)}</td>"
+    f"<td class='num'>{u.porcentaje:.2f}</td></tr>" for u in geo_unidades.itertuples())
+filas_geo_grupos = "\n".join(f"<tr><td>{html.escape(g)}</td><td class='num'>{p:.2f}</td></tr>"
+                              for g, p in geo_grupos.items())
+filas_geo_camels = "\n".join(
+    f"<tr><td class='cod'>{c.columna}</td><td class='num'>{c.camels:.2f}</td>"
+    f"<td class='num'>{c.sgc_mismo_nombre:.2f}</td><td>{c.grupo_sgc_igual} ({c.sgc_igual:.2f})</td></tr>"
+    for c in geo_comparacion.itertuples())
 
 cmp_json = json.dumps(cmp_datos, ensure_ascii=False)
 filas_cmp = "\n".join(
@@ -1736,11 +1746,62 @@ a {{ color: var(--acento); }}
 <section>
   <h2>Coberturas, suelos y geología</h2>
   <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
-  guarda. El proyecto no tiene mapas propios de ninguno de los tres: las cifras son los atributos que publica
-  CAMELS-COL para San Gil ({CITA_JIMENEZ}), que los calculó cruzando cada mapa con su polígono de la cuenca. Aquí solo se
-  usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca transforma la
-  lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una hipótesis para las
-  relaciones y las tendencias»).</p>
+  guarda. Aquí solo se usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca
+  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una
+  hipótesis para las relaciones y las tendencias»).</p>
+
+  <h3>Geología</h3>
+  <p>La geología sale del Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano (SGC), recortado con el
+  polígono del proyecto. Dentro de la cuenca hay {geo_n_unidades} unidades. El <b>{geo_sedimentaria:.1f} %</b> de la
+  cuenca es roca sedimentaria, según las descripciones del SGC: shales, cuarzoarenitas y capas rojas. El resto es
+  roca metamórfica, plutónica, volcánica y volcanoclástica (tabla y figura de abajo).</p>
+  <figure>
+    <div class="placa"><img src="{img('mapa_geologico.png')}" alt="Mapa geológico de la cuenca del Fonce hasta San Gil con las unidades del SGC coloreadas por grupo litológico (sedimentaria, metamórfica, plutónica, volcánica y volcanoclástica) y las fallas" width="1800" height="1520"></div>
+    <figcaption>
+      <h3>Figura 5 · Geología de la cuenca</h3>
+      <p>Cada color es un grupo litológico; las líneas finas separan las unidades del mapa, rotuladas con su símbolo
+      cuando ocupan más del 2 % de la cuenca, y las gruesas son fallas.</p>
+      <dl class="lista-datos">
+        <dt>Fuente</dt><dd>Mapa Geológico de Colombia 2023, SGC, escala 1:1 500 000 (capas de unidades y de fallas)</dd>
+        <dt>Grupos</dt><dd>por la letra del símbolo de cada unidad (S sedimentaria, M metamórfica, P plutónica, V
+        volcánica, VC volcanoclástica; minúscula, depósito cuaternario)</dd>
+        <dt>Áreas</dt><dd>medidas en EPSG:3116</dd>
+      </dl>
+    </figcaption>
+  </figure>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Símbolo</th><th>Grupo</th><th>Descripción (SGC)</th><th>Edad</th><th class="num">% del área</th></tr></thead>
+    <tbody>
+{filas_geologia}
+    </tbody>
+  </table>
+  </div>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Grupo litológico</th><th class="num">% del área</th></tr></thead>
+    <tbody>
+{filas_geo_grupos}
+    </tbody>
+  </table>
+  </div>
+  <p class="aviso"><b>Por qué no se usa la geología de CAMELS-COL.</b> CAMELS-COL publica los porcentajes de las mismas
+  litologías, sacados del mismo mapa, pero con las etiquetas corridas: sus columnas de rocas plutónicas, hipoabisales,
+  metamórficas y sedimentarias traen el valor de <i>otro</i> grupo del recorte del SGC (tabla de abajo). Además, su columna de rocas volcanoclásticas repite la de rocas volcánicas en
+  las {geo_n_cuencas} cuencas del archivo, y por eso en San Gil la suma da {geo_suma_publicada:.2f} %.</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Columna de CAMELS-COL</th><th class="num">Valor (%)</th><th class="num">SGC, mismo grupo (%)</th>
+    <th>Grupo del SGC con ese valor</th></tr></thead>
+    <tbody>
+{filas_geo_camels}
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Coberturas y suelos</h3>
+  <p>Para las coberturas, los suelos y la capacidad de uso, el proyecto todavía no tiene mapas propios: las cifras
+  son los atributos que publica CAMELS-COL para San Gil ({CITA_JIMENEZ}), calculados sobre su polígono de la cuenca.</p>
   <div class="tabla-caja">
   <table>
     <thead><tr><th>Grupo</th><th>Categoría</th><th class="num">% del área</th></tr></thead>
@@ -1753,20 +1814,14 @@ a {{ color: var(--acento); }}
     <dt>Coberturas</dt><dd>MapBiomas Colombia, colección 2, año 2022: clasificación de mosaicos Landsat, celdas de 30 m</dd>
     <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
     <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
-    <dt>Geología</dt><dd>Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano, escala 1:1 500 000,
-    agrupado por CAMELS-COL en siete litologías</dd>
   </dl>
-  <p class="aviso"><b>Una columna repetida.</b> En el archivo de geología de CAMELS-COL la columna de rocas
-  volcanoclásticas es igual a la de rocas volcánicas en las {geo_n_cuencas} cuencas, y por eso la geología de San Gil, tal
-  como viene, suma {geo_suma_publicada:.2f} %. Aquí las dos se cuentan una sola vez, como «Volcánicas y
-  volcanoclásticas», y la suma queda en 100 %.</p>
-  <p><b>Qué dicen para los resultados.</b></p>
+
+  <h3>Qué dicen para los resultados</h3>
   <ul>
-    <li><b>La roca.</b> El {geo_cristalinas:.1f} % de la cuenca es roca cristalina (plutónica, hipoabisal o
-    metamórfica) y solo el {geo_sedimentarias_y_depositos:.1f} % es roca sedimentaria o depósito no consolidado. Si el
-    almacenamiento que atrasa el caudal está en el subsuelo, lo más probable es que esté en el suelo y en la roca
-    meteorizada o fracturada, no en un acuífero sedimentario extenso. Es una hipótesis: el proyecto no tiene datos de
-    acuíferos.</li>
+    <li><b>La roca.</b> La mayor parte de la cuenca es roca sedimentaria ({geo_sedimentaria:.1f} %) y casi nada son
+    depósitos sueltos ({geo_grupos.get("Depósito no consolidado", 0):.2f} %). El mapa dice qué roca hay, no si es
+    porosa o está fracturada, así que no permite decir dónde se guarda el agua que atrasa el caudal. El proyecto no
+    tiene datos de acuíferos.</li>
     <li><b>Los suelos y el uso.</b> Inceptisoles, andisoles y entisoles cubren el
     {suelos[["Inceptisoles", "Andisoles", "Entisoles"]].sum():.1f} % de la cuenca, y el {uso_clases_7_8:.1f} % está en
     las clases 7 y 8 de capacidad de uso, las de mayores limitaciones. Los mapas no dicen cuánta agua retiene cada
@@ -1775,9 +1830,9 @@ a {{ color: var(--acento); }}
     {coberturas["Bosque"]:.1f} %, bosque. Es una foto de 2022: no dice cómo era la cuenca en 1998 ni si cambió, así que
     no sirve para poner a prueba los «cambios de cobertura» que podrían refutar la hipótesis H.</li>
   </ul>
-  <p class="nota">Limitaciones. Los porcentajes se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²),
-  no sobre el del proyecto ({n(sg['area'], 2)} km²); la diferencia es de borde. La geología a escala 1:1 500 000 solo
-  distingue unidades grandes. Las coberturas son de un solo año.</p>
+  <p class="nota">Limitaciones. El mapa geológico, a escala 1:1 500 000, solo distingue unidades grandes. Las
+  coberturas y los suelos se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²), no sobre el del
+  proyecto ({n(sg['area'], 2)} km²), y las coberturas son de un solo año.</p>
 </section>
 
 <section>

@@ -2842,3 +2842,171 @@ assert cam_n_meses == 12 * (cam_anios[1] - cam_anios[0] + 1) and cam_malla == (8
 assert cam_oni["r"] > 0.99 and cam_oni["dif_max"] < 0.5
 assert cam_caja_cuenca["n850"] == 0          # con la máscara estricta, la caja de la cuenca no tiene 850 hPa
 _cc.close()
+
+# ---------------------------------------------------------------- explicaciones físicas: cómo la cuenca transforma la lluvia
+# La sección «Explicaciones físicas» reúne lo que ya calcularon los bloques anteriores (régimen, desfase, P/ETP,
+# ENSO, tendencias). Aquí se agrega lo que faltaba: el ciclo anual de la ETP frente al de la lluvia, el coeficiente
+# de escorrentía con las dos fuentes y la clasificación hidroclimática de los meses. Período 1998–2022.
+
+# 1) La energía casi no cambia en el año. Ciclo mensual de la ETP, de PL y de PI con la misma medida: las 12 medias
+#    de cada mes del calendario (los 300 meses), y su rango (máximo menos mínimo) como % del promedio de las 12.
+_fis_ciclo = pe.groupby(pe.index.month).mean()
+fis_ciclo_rango = {c: {"min": float(_fis_ciclo[c].min()), "max": float(_fis_ciclo[c].max()),
+                       "pct": float((_fis_ciclo[c].max() - _fis_ciclo[c].min()) / _fis_ciclo[c].mean() * 100)}
+                   for c in ("pl", "pi", "etp")}
+# el texto dice que la ETP varía mucho menos que la lluvia a lo largo del año (menos de la tercera parte, con las dos)
+assert all(fis_ciclo_rango["etp"]["pct"] < fis_ciclo_rango[f]["pct"] / 3 for f in ("pl", "pi"))
+# y que la temperatura cambia más de un extremo al otro de la cuenca que del mes más cálido al más frío
+assert t_max_mitad - t_min_mitad > 5 * mapa_t_amplitud_anual
+
+# 2) Coeficiente de escorrentía del período con las dos fuentes: suma de Q sobre suma de P en los meses con los dos
+#    datos (con PI es el de «Lo que le cae a la cuenca y lo que sale por el río»).
+fis_coef = {"pl": float(_bal_pl.q.sum() / _bal_pl.p.sum()), "pi": float(coef_periodo)}
+
+# 3) Clasificación hidroclimática mensual. Se hace con PL, que manda (regla 11), y con PI como contraste, con
+#    criterios declarados aquí:
+#    - «húmedo»: un mes de una temporada húmeda del régimen (su mediana supera al mes típico, ver «El régimen») que
+#      además tiene P/ETP >= CLAS_PE_HUMEDO (cociente de las medias del mes, como en el índice P/ETP) y P < ETP en no
+#      más de CLAS_MAX_ANIOS_DEFICIT de los 25 años;
+#    - «seco»: los meses de la temporada seca que contiene el mes de menor lluvia (la menor mediana);
+#    - «seco relativo»: los de la otra temporada seca.
+#    Un mes de temporada húmeda que no cumple los dos umbrales queda «sin clase»: la clasificación no se fuerza.
+#    CLAS_MAX_ANIOS_DEFICIT = 0 (ningún año) es el criterio más estricto; con 1 la clasificación con PL no cambia.
+CLAS_PE_HUMEDO = 2.0
+CLAS_MAX_ANIOS_DEFICIT = 0
+CLAS_ORDEN = ["húmedo", "seco relativo", "seco"]
+
+
+def temporadas_del_regimen(fuente):
+    """Temporadas del régimen de `fuente` (PL, PI o Q): [(meses 1-12, ¿húmeda?)], en el orden del calendario."""
+    r = regimen[fuente]
+    return [([(m + i) % 12 + 1 for i in range(d)], h) for m, d, h in _reg_rachas(r["medianas"] > r["tipico"])]
+
+
+def nombre_meses(meses):
+    """«marzo a mayo y octubre a noviembre»: los meses agrupados en tramos seguidos (diciembre sigue a enero)."""
+    dentro = np.array([m in meses for m in range(1, 13)])
+    tramos = sorted((m, d) for m, d, h in _reg_rachas(dentro) if h)
+    return " y ".join(MESES_LARGOS_ES[m] if d == 1 else f"{MESES_LARGOS_ES[m]} a {MESES_LARGOS_ES[(m + d - 1) % 12]}"
+                      for m, d in tramos)
+
+
+def clasificar_meses(fuente, max_anios_deficit=CLAS_MAX_ANIOS_DEFICIT):
+    """Clase de cada mes del calendario (1-12) con la lluvia `fuente` (PL o PI), según los criterios de arriba."""
+    f = fuente.lower()
+    temporadas = temporadas_del_regimen(fuente)
+    mes_minimo = int(np.argmin(regimen[fuente]["medianas"])) + 1
+    assert sum(not h for _, h in temporadas) == 2          # régimen bimodal: dos temporadas secas
+    clase = {}
+    for meses, humeda in temporadas:
+        for mes in meses:
+            if humeda:
+                cumple = (pe_mes.loc[mes, f] >= CLAS_PE_HUMEDO
+                          and pe_mes_deficit_anios.loc[mes, f] <= max_anios_deficit)
+                clase[mes] = "húmedo" if cumple else "sin clase"
+            else:
+                clase[mes] = "seco" if mes_minimo in meses else "seco relativo"
+    return pd.Series(clase).sort_index()
+
+
+clas = {f: clasificar_meses(f) for f in ("PL", "PI")}
+# con PL, la que manda, cada mes del calendario tiene una de las tres clases (si deja de ser así, hay que revisar
+# los criterios con el usuario, no forzar el resultado)
+assert set(clas["PL"]) == set(CLAS_ORDEN)
+# con 1 año de déficit admitido, la clasificación con PL sería la misma (lo que dice el comentario de arriba)
+assert clasificar_meses("PL", max_anios_deficit=1).equals(clas["PL"])
+clas_pi_sin_clase = [m for m in range(1, 13) if clas["PI"][m] == "sin clase"]
+
+# la tabla de la síntesis: una fila por clase, con PL (y PI en paralelo) y el caudal del régimen de Q
+_q_temporadas = temporadas_del_regimen("Q")
+_q_mes_minimo = int(np.argmin(regimen["Q"]["medianas"])) + 1
+clas_tabla = []
+for _clase in CLAS_ORDEN:
+    _meses = [m for m in range(1, 13) if clas["PL"][m] == _clase]
+    _humeda = _clase == "húmedo"
+    # temporadas de Q del mismo tipo (húmeda o seca) que se cruzan con los meses de la clase
+    _q_meses = sorted({m for meses, h in _q_temporadas if h == _humeda and set(meses) & set(_meses) for m in meses})
+    clas_tabla.append({
+        "clase": _clase, "meses": _meses, "nombre": nombre_meses(_meses),
+        "mediana_pl": (float(min(regimen["PL"]["medianas"][m - 1] for m in _meses)),
+                       float(max(regimen["PL"]["medianas"][m - 1] for m in _meses))),
+        "pe": {f: (float(pe_mes.loc[_meses, f].min()), float(pe_mes.loc[_meses, f].max())) for f in ("pl", "pi")},
+        "deficit_max": {f: int(pe_mes_deficit_anios.loc[_meses, f].max()) for f in ("pl", "pi")},
+        "mes_mas_deficit": {f: int(pe_mes_deficit_anios.loc[_meses, f].idxmax()) for f in ("pl", "pi")},
+        "q_meses": _q_meses, "q_nombre": nombre_meses(_q_meses), "q_minimo": _q_mes_minimo in _q_meses,
+    })
+clas_fila = {r["clase"]: r for r in clas_tabla}
+# meses con déficit frecuente (P < ETP en más de la mitad de los años, el mismo criterio del índice P/ETP)
+clas_deficit_frecuente = {f: [m for m in range(1, 13) if pe_mes_deficit_anios.loc[m, f] > pe_n_anios / 2]
+                          for f in ("pl", "pi")}
+
+# lo que afirman la tabla y la frase de síntesis
+assert all(r["ie"] >= UNEP_HUMEDO and not r["bajo_humedo"] for r in pe_indice.values())   # húmeda con las dos y en todos los años
+assert all(r["clase"] == "bimodal" for r in regimen.values())
+assert clas_deficit_frecuente["pl"] == clas_deficit_frecuente["pi"] == [1]                # «sin déficit sostenido salvo enero»
+assert regimen["PL"]["min"] == "enero" and 1 in clas_fila["seco"]["meses"]
+assert clas_fila["seco"]["q_minimo"]                                                       # el mínimo de Q cae en la clase «seco»
+assert all(r["q_meses"] for r in clas_tabla)
+
+# las alternativas: qué cambia con PI
+clas_pi_humedas = sorted({m for meses, h in temporadas_del_regimen("PI") if h for m in meses})
+clas_pl_humedas = sorted({m for meses, h in temporadas_del_regimen("PL") if h for m in meses})
+clas_solo_pi_humedas = [m for m in clas_pi_humedas if m not in clas_pl_humedas]
+clas_solo_pl_humedas = [m for m in clas_pl_humedas if m not in clas_pi_humedas]
+# el texto dice: con PI, junio y septiembre caen en temporada húmeda (con PL no), y enero tiene déficit con PI y no con PL
+assert clas_solo_pi_humedas == [6, 9] and not clas_solo_pl_humedas
+assert pe_solo_pi == [1] and not pe_meses_deficit["pl"]
+# y que el año más seco, con cualquiera de las dos fuentes, sigue a más del doble del umbral de «húmedo» de UNEP
+fis_anio_mas_seco = min(pe_indice.values(), key=lambda r: r["min"])
+assert fis_anio_mas_seco["min"] > 2 * UNEP_HUMEDO
+
+# los meses en que salió más agua de la que cayó (con PL) son todos de las temporadas secas
+fis_sobre1_meses = list(_bal_pl_coef.index[_bal_pl_coef > 1])
+fis_sobre1_en_secos = all(clas["PL"][p.month] != "húmedo" for p in fis_sobre1_meses)
+
+# 4) La hipótesis y sus predicciones, con las cifras de hoy
+#    a) los picos de Q caen un mes después de los de PL
+_mes_num = {nombre: i + 1 for i, nombre in enumerate(MESES_LARGOS_ES)}
+fis_atraso_picos = [(_mes_num[q] - _mes_num[p]) % 12 for p, q in zip(regimen["PL"]["picos"], regimen["Q"]["picos"])]
+assert fis_atraso_picos == [1, 1]
+#    b) la tendencia de marzo: PL* sube y Q no tiene tendencia significativa ese mes
+fis_marzo = inc_lluvia_fdr[3]
+assert inc_fdr["PL*"]["ols"] == [3] and fis_marzo["q_mes"]["p"] >= TEND_ALFA
+#    c) el calentamiento y la ETP; Q sin tendencia en el registro completo
+fis_t_decada = float(met_global[("T media", "completo")]["ols_Xmes"]["pend"])
+fis_q_global = met_global[("Q", "completo")]["ols_Xmes"]
+assert fis_t_decada > 0 and fis_q_global["p_hac"] >= TEND_ALFA and not inc_fdr["Q"]["ols"]
+#    d) fuera del período de ajuste, la lluvia del mismo mes ya supera a la climatología, mejor con PL que con PI
+assert (ev_tabla["PL del mismo mes"]["validacion"]["rmse"] < ev_tabla["PI del mismo mes"]["validacion"]["rmse"]
+        < ev_rmse_clima)
+
+#    e) lo que dicen los textos de la ZCIT y del ENSO
+# Poveda (2004): temporadas lluviosas en abril-mayo y octubre-noviembre. El primer pico de PL, PI y Q cae en la
+# primera y el segundo en la segunda.
+POVEDA_LLUVIOSAS = (("abril", "mayo"), ("octubre", "noviembre"))
+assert all(p[0] in POVEDA_LLUVIOSAS[0] and p[1] in POVEDA_LLUVIOSAS[1] for p in (pico_pl, pico_pi, pico_q))
+# enero es el mes de menor P/ETP con las dos fuentes, y la temporada «seco relativo» tiene excedente todos los meses
+assert all(int(pe_mes[f].idxmin()) == 1 for f in ("pl", "pi"))
+assert all(clas_fila["seco relativo"]["pe"][f][0] > 1 for f in ("pl", "pi"))
+# el ciclo de P/ETP lo pone la lluvia: sus 12 valores van con las 12 medias de la lluvia
+fis_rho_pe_lluvia = {f: float(stats.spearmanr(pe_mes[f], _fis_ciclo[f])[0]) for f in ("pl", "pi")}
+assert all(r > 0.95 for r in fis_rho_pe_lluvia.values())
+# ENSO: en la banda de 3 a 7 años, todo va en oposición al ONI; en 1998-2022 solo PI es significativa, en el registro
+# largo PL* y Q sí lo son; Q tiene su correlación más negativa con el ONI dos meses antes, en las dos ventanas
+_fis_com, _fis_ext = "común 1998–2022", "extendida 1981–2022"
+fis_coh_oni = {(ven, v): fou_coh[(ven, v, "ONI")] for (ven, v, b) in fou_coh if b == "ONI"}
+assert all(r["lectura"] == "en oposición" for r in fis_coh_oni.values())
+assert fis_coh_oni[(_fis_com, "PI")]["signif"] and not fis_coh_oni[(_fis_com, "PL")]["signif"]
+assert fis_coh_oni[(_fis_ext, "PL*")]["signif"] and fis_coh_oni[(_fis_ext, "Q")]["signif"]
+fis_q_rezago_oni = fou_corr_oni[(_fis_com, "Q")]["rezago"]
+assert fou_corr_oni[(_fis_ext, "Q")]["rezago"] == fis_q_rezago_oni > 0
+# el año más seco es el mismo con PL y con PI, y el año de La Niña está entre los dos más húmedos
+fis_anio_seco = int(anom_anual.PL.idxmin())
+assert int(anom_anual.PI.idxmin()) == fis_anio_seco == anom_secos[0]
+fis_anio_humedo = anom_humedos[0]
+assert anom_anios[fis_anio_seco]["nino"] > anom_anios[fis_anio_seco]["nina"] == 0
+assert anom_anios[fis_anio_humedo]["nina"] > anom_anios[fis_anio_humedo]["nino"]
+# convección: con T máx atípicamente baja, PL estuvo sobre lo normal; con T máx atípicamente alta, bajo lo normal
+fis_pl_tmax = {"baja": _media_z(t_max_baja, "PL"), "alta": _media_z(t_max_alta, "PL")}
+assert fis_pl_tmax["baja"] > 0 > fis_pl_tmax["alta"]
+assert aj_imerg["por_1000m"] < 0

@@ -1066,6 +1066,51 @@ anom_json = json.dumps({
     "meses": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"],
 }, ensure_ascii=False)
 
+# «Explicaciones físicas»: la tabla de la clasificación mensual y las frases que dependen del dato (las afirmaciones
+# están protegidas con assert en el bloque «explicaciones físicas» de 18)
+def _rango_txt(a, b, dec=2):
+    """«1.40–1.91», o un solo número si los dos extremos se escriben igual."""
+    return f"{a:.{dec}f}" if f"{a:.{dec}f}" == f"{b:.{dec}f}" else f"{a:.{dec}f}–{b:.{dec}f}"
+
+
+_mes_minimo_pl = MESES_LARGOS_ES.index(regimen["PL"]["min"]) + 1
+clas_filas = "\n".join(
+    f"<tr><td><b>{r['clase'].capitalize()}</b></td><td>{r['nombre']}</td>"
+    f"<td>{'sobre' if r['clase'] == 'húmedo' else 'bajo'} el mes típico"
+    f"{'; el mínimo es ' + regimen['PL']['min'] if _mes_minimo_pl in r['meses'] else ''}"
+    f" ({n(r['mediana_pl'][0])}–{n(r['mediana_pl'][1])})</td>"
+    f"<td class='num'>{_rango_txt(*r['pe']['pl'])} / {_rango_txt(*r['pe']['pi'])}</td>"
+    f"<td class='num'>{r['deficit_max']['pl']} / {r['deficit_max']['pi']}</td>"
+    f"<td>{'sobre' if r['clase'] == 'húmedo' else 'bajo'} su mes típico en {r['q_nombre']}"
+    f"{'; mínimo en ' + regimen['Q']['min'] if r['q_minimo'] else ''}</td></tr>"
+    for r in clas_tabla)
+# la temporada «seco relativo»: el mes de menor mediana de PL, para compararlo con el mínimo del año
+_sr = clas_fila["seco relativo"]
+fis_sr_mes_min = MESES_LARGOS_ES[min(_sr["meses"], key=lambda m: regimen["PL"]["medianas"][m - 1]) - 1]
+# los meses en que P − Q supera a la ETP (con PL), con el nombre completo
+fis_meses_guarda = nombre_meses([MESES_ES.index(m) + 1 for m in pq_meses_guarda])
+# los meses de temporada húmeda que PI deja sin clase, y por qué
+_razones_pi = {m: [x for x, c in ((f"P/ETP {pe_mes.loc[m, 'pi']:.2f}", pe_mes.loc[m, "pi"] < CLAS_PE_HUMEDO),
+                                  (f"déficit en {pe_mes_deficit_anios.loc[m, 'pi']} "
+                                   f"{'año' if pe_mes_deficit_anios.loc[m, 'pi'] == 1 else 'años'}",
+                                   pe_mes_deficit_anios.loc[m, "pi"] > CLAS_MAX_ANIOS_DEFICIT)) if c]
+               for m in clas_pi_sin_clase}
+clas_pi_sin_clase_txt = (
+    (f" Con los mismos criterios, PI deja sin clase a {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_pi_sin_clase])}, "
+     f"meses de su temporada húmeda que no cumplen los umbrales ("
+     + "; ".join(f"{MESES_LARGOS_ES[m - 1]}: {' y '.join(r)}" for m, r in _razones_pi.items()) + ").")
+    if clas_pi_sin_clase else " Con los mismos criterios, PI clasifica todos los meses.")
+fis_coef_txt = (f"entre el {min(fis_coef.values()) * 100:.0f} % ({'PL' if fis_coef['pl'] < fis_coef['pi'] else 'PI'}) "
+                f"y el {max(fis_coef.values()) * 100:.0f} % ({'PI' if fis_coef['pl'] < fis_coef['pi'] else 'PL'})")
+fis_sobre1_txt = (f"en {len(fis_sobre1_meses)} meses, {'todos de las temporadas secas' if fis_sobre1_en_secos else 'no todos de las temporadas secas'}, "
+                  "sale por el río más agua de la que cae")
+# abril, el mes siguiente a marzo, en Q
+_q_abril = met_mes[("Q", 4)]
+fis_q_abril_txt = (f"En abril, el mes siguiente, Q tampoco tiene tendencia significativa ({_q_abril['ols']:+.1f} m³/s por década, "
+                   f"p = {_p_txt(_q_abril['p'])})." if _q_abril["p"] >= TEND_ALFA else
+                   f"En abril, el mes siguiente, Q sí tiene tendencia ({_q_abril['ols']:+.1f} m³/s por década, p = {_p_txt(_q_abril['p'])}).")
+_ev_pl, _ev_pi = ev_tabla["PL del mismo mes"]["validacion"]["rmse"], ev_tabla["PI del mismo mes"]["validacion"]["rmse"]
+
 # Cabecera estándar: sin el charset, algunos navegadores leen mal las tildes al abrir el archivo directamente;
 # sin el viewport, el celular dibuja la página a ancho de computador y la muestra diminuta.
 pagina = f"""<!doctype html>
@@ -3025,15 +3070,26 @@ a {{ color: var(--acento); }}
   <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
   literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
   cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
+  <p{revision("lo que agrega la sección")}>Después de los mecanismos, la sección resume cómo la cuenca transforma la
+  lluvia que recibe, clasifica los meses del año y propone una hipótesis para contrastar con las relaciones entre variables
+  y con las tendencias.</p>
 
+  <div{revision("la ZCIT según Poveda (2004)")}>
   <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
   <p>La lluvia y el caudal de la cuenca tienen dos picos al año (ver «El régimen» en «El ciclo anual» y el pico de 6 meses
   en «Frecuencias: análisis de Fourier»). La explicación está en la <b>Zona de Convergencia Intertropical (ZCIT)</b>, la
-  franja de lluvias que migra de norte a sur a lo largo del año. Según {CITA_MESA}, pasa por el interior de Colombia en
-  <b>septiembre, octubre y noviembre</b>.</p>
-  <p>El segundo pico cae en esa temporada: PL en {pico_pl[1]}, PI en {pico_pi[1]} y Q en {pico_q[1]}. El primero cae
-  en {pico_pl[0]} (PL), {pico_pi[0]} (PI) y {pico_q[0]} (Q). Correspondería al otro paso de la ZCIT, pero la fuente
-  consultada solo precisa la temporada de septiembre a noviembre.</p>
+  franja de lluvias que migra de norte a sur a lo largo del año. Según {CITA_POVEDA}, esa oscilación «constituye el
+  mecanismo físico de mayor importancia para explicar el ciclo anual (o semi-anual) de la hidro-climatología de Colombia»:
+  sobre el centro del país «se presentan dos temporadas lluviosas (abril-mayo y octubre-noviembre), y dos temporadas secas
+  (diciembre-febrero y junio-agosto), como resultado del doble paso de la ZCIT sobre el territorio». En las estaciones de
+  los Andes tropicales el ciclo es bimodal, «con valores máximos en los períodos abril-mayo y octubre-noviembre». Según
+  {CITA_MESA}, el paso de la segunda mitad del año ocurre en <b>septiembre, octubre y noviembre</b>.</p>
+  <p>La cuenca lo reproduce. El primer pico cae en {pico_pl[0]} (PL), {pico_pi[0]} (PI) y {pico_q[0]} (Q), y el segundo en
+  {pico_pl[1]}, {pico_pi[1]} y {pico_q[1]}: dentro de las dos temporadas lluviosas que da Poveda. El régimen es
+  {" y ".join(reg_clases)} en las tres series (Kruskal-Wallis: <i>p</i> ≤ {reg_kw_max:.0e}; A₂/A₁ = {regimen["PL"]["a2a1"]:.2f}
+  con PL), y los dos picos aparecen en {est_anual["PL"]["los_dos"]} de {est_anual["PL"]["anios"]} años con PL
+  ({est_anual["PL"]["simple"]} con el método simple de «¿Se repite cada año? ¿Es estable?»).</p>
+  </div>
 
   <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
   <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
@@ -3059,6 +3115,147 @@ a {{ color: var(--acento); }}
   PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
   y {ene05["z_q_feb"]:+.1f} (ver «Revisión de outliers»). El documento no nombra la cuenca del Fonce, así que no se
   puede confirmar que sean las mismas lluvias. Es un episodio de un bimestre, no un rasgo del clima de la cuenca.</p>
+
+  <div{revision("subsección nueva: cómo la cuenca transforma la lluvia")}>
+  <h3>Cómo la cuenca transforma la lluvia</h3>
+  <p><b>Las dos temporadas secas no son iguales.</b> La de {clas_fila["seco"]["nombre"]} es la más profunda: con PL,
+  {regimen["PL"]["min"]} tiene una mediana de {n(regimen["PL"]["medianas"][_mes_minimo_pl - 1])} mm, contra
+  {n(_sr["mediana_pl"][0])} mm en {fis_sr_mes_min}, y es el mes de menor P/ETP: {pe_mes.loc[1, "pl"]:.2f} con PL y
+  {pe_mes.loc[1, "pi"]:.2f} con PI (ver «¿Húmeda o árida? La lluvia contra la ETP»). La de {_sr["nombre"]} es un descenso
+  entre los dos picos, con excedente todos los meses (P/ETP {_rango_txt(*_sr["pe"]["pl"])} con PL y
+  {_rango_txt(*_sr["pe"]["pi"])} con PI).</p>
+  <p><b>La humedad de la Amazonía.</b> Según {CITA_POVEDA}, «los vientos alisios del sureste transportan gran cantidad de
+  humedad hacia los Andes» desde la cuenca Amazónica. Con los datos del proyecto no se puede contrastar a escala de la
+  cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver «850 hPa queda bajo los Andes»
+  en «Campos climáticos globales»). Queda como contexto, no como resultado.</p>
+  <p><b>Convección y relieve.</b> Según {CITA_POVEDA}, en la región Andina «el valle del Río Magdalena y el Norte de
+  Antioquia presentan la mayor cantidad» de sistemas convectivos de mesoescala, y la cuenca está en el flanco de la
+  cordillera que mira a ese valle (ver «Contexto geográfico»). Dos rasgos de los datos son coherentes con una lluvia de
+  origen convectivo:</p>
+  <ul>
+    <li>un mes más lluvioso de lo normal es más fresco de día: en los {len(t_max_baja)} meses con T máx atípicamente baja,
+    PL estuvo en promedio {fis_pl_tmax["baja"]:+.1f} rangos intercuartiles sobre lo normal, y en los {len(t_max_alta)} con
+    T máx atípicamente alta, {fis_pl_tmax["alta"]:+.1f} (ver «Revisión de outliers»);</li>
+    <li>la lluvia disminuye con la altura ({aj_imerg["por_1000m"]:+.0f} mm/año por cada 1 000 m con IMERG), la rama alta del
+    óptimo pluviográfico de arriba.</li>
+  </ul>
+  <p><b>Lo que no se usa.</b> Los monzones no entran en la explicación: el ciclo se entiende con la ZCIT. Los frentes fríos
+  no controlan el ciclo; aparecen como episodios aislados, como el de 2005. La nieve y los glaciares no aparecen en ningún
+  dato del proyecto.</p>
+  <p><b>La energía casi no cambia en el año.</b> La temperatura media de la cuenca varía {mapa_t_amplitud_anual:.1f} °C
+  entre el mes más cálido y el más frío, y {t_max_mitad - t_min_mitad:.1f} °C de un extremo al otro de la cuenca (ver
+  «Mapas de la cuenca»): la manda la altura, no el calendario. La ETP de Hargreaves va de
+  {n(fis_ciclo_rango["etp"]["min"])} a {n(fis_ciclo_rango["etp"]["max"])} mm/mes según el mes, un
+  {fis_ciclo_rango["etp"]["pct"]:.0f} % de su media; la lluvia, con la misma medida, un {fis_ciclo_rango["pl"]["pct"]:.0f} %
+  con PL y un {fis_ciclo_rango["pi"]["pct"]:.0f} % con PI. Por eso el ciclo de P/ETP, y con él el del caudal, lo pone la
+  lluvia y no la demanda de evaporación.</p>
+  <p><b>Hay agua de sobra la mayor parte del año.</b> P/ETP anual es {pe_indice["pl"]["ie"]:.2f} con PL y
+  {pe_indice["pi"]["ie"]:.2f} con PI: la cuenca es húmeda con las dos fuentes (UNEP, desde {UNEP_HUMEDO:.2f}) y en los
+  {pe_n_anios} años. Con PL ningún mes tiene déficit en promedio (enero queda en {pe_mes.loc[1, "pl"]:.2f}); con PI, enero
+  baja a {pe_mes.loc[1, "pi"]:.2f}. Sale por el río {fis_coef_txt} de la lluvia.</p>
+  <p><b>El almacenamiento atrasa y suaviza al río.</b> El caudal llega unos {desfase["Q_PL"]:.0f} días después que la lluvia
+  con PL (IC 95 %: {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}) y unos {desfase["Q_PI"]:.0f} con PI (ver
+  «Desfase estacional»). Es mucho más que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas): no es
+  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras tres señales:</p>
+  <ul>
+    <li>los picos de Q caen en {" y ".join(regimen["Q"]["picos"])}, un mes después de los de PL ({" y ".join(regimen["PL"]["picos"])});</li>
+    <li>sin el ciclo anual, la lluvia del mes anterior sigue explicando Q (correlación parcial de
+    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} con PL y {memoria.loc["PI", "parcial_mes_anterior"]:.2f} con PI; ver
+    «Mes a mes: correlación cruzada entre la lluvia y el caudal»);</li>
+    <li>con PL, en {fis_meses_guarda} P − Q supera a la ETP (la cuenca guarda agua), y {fis_sobre1_txt} (ver «Lo que le cae a
+    la cuenca y lo que sale por el río»).</li>
+  </ul>
+  <p><b>Lo que no se sabe.</b> No hay datos de humedad del suelo, del acuífero, de captaciones de agua ni de la operación
+  de obras hidráulicas en la cuenca. El almacenamiento se infiere del desfase; no se mide.</p>
+  <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
+  y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
+  «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
+  Colombia», y «durante La Niña ocurren anomalías contrarias». Los datos lo apoyan sin probarlo:</p>
+  <ul>
+    <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
+    en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
+    {fis_coh_oni[("extendida 1981–2022", "PL*")]["coh"]:.2f} y Q {fis_coh_oni[("extendida 1981–2022", "Q")]["coh"]:.2f}; ver
+    «¿Cuadra con el ENSO? Coherencia y fase con el ONI»);</li>
+    <li>Q va unos {fis_q_rezago_oni} meses detrás del ONI (el rezago en que su correlación es más negativa);</li>
+    <li>el año más seco con las dos fuentes es {fis_anio_seco} ({anom_anios[fis_anio_seco]["nino"]} meses de El Niño), y el
+    más húmedo con las dos juntas, {fis_anio_humedo} ({anom_anios[fis_anio_humedo]["nina"]} meses de La Niña; ver «Los años
+    contrastantes»).</li>
+  </ul>
+  <p>Con {pe_n_anios} años no se puede atribuir la variabilidad entre años solo al ENSO.</p>
+  </div>
+
+  <div{revision("subsección nueva: clasificación hidroclimática mensual")}>
+  <h3>Síntesis: clasificación hidroclimática mensual</h3>
+  <p>Los meses se clasifican con tres criterios, calculados con las series del proyecto en
+  {PERIODOS[0].year}–{PERIODOS[-1].year}, con PL, que manda, y con PI en paralelo:</p>
+  <ul>
+    <li>si la mediana de la lluvia del mes supera al mes típico (las temporadas de «El régimen»);</li>
+    <li>P/ETP del mes y en cuántos años hubo déficit, P &lt; ETP (de «¿Húmeda o árida? La lluvia contra la ETP»);</li>
+    <li>cómo responde el caudal, con su atraso.</li>
+  </ul>
+  <p><b>Húmedo</b>: mes de temporada húmeda con P/ETP ≥ {CLAS_PE_HUMEDO:.1f} y
+  {"sin déficit en ningún año" if CLAS_MAX_ANIOS_DEFICIT == 0 else f"con déficit en no más de {CLAS_MAX_ANIOS_DEFICIT} años"}. <b>Seco</b>: la temporada seca que contiene el mes de menos lluvia. <b>Seco relativo</b>:
+  la otra temporada seca.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Clase</th><th>Meses (PL)</th><th>Lluvia (mediana de PL, mm/mes)</th><th class="num">P/ETP (PL / PI)</th>
+    <th class="num">Años con P &lt; ETP en el peor mes (PL / PI)</th><th>Caudal (régimen de Q)</th></tr></thead>
+    <tbody>
+{clas_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P/ETP: el rango de los meses de la clase. Años con déficit: el mayor número de años con P &lt; ETP entre los
+  meses de la clase, de {pe_n_anios}; en enero son {pe_mes_deficit_anios.loc[1, "pl"]} con PL y
+  {pe_mes_deficit_anios.loc[1, "pi"]} con PI. Caudal: las temporadas de Q que se cruzan con los meses de la clase. Con 1 año
+  de déficit admitido en vez de {CLAS_MAX_ANIOS_DEFICIT}, la clasificación con PL es la misma.</p>
+  <p><b>En una frase:</b> clima húmedo (P/ETP de {pe_indice["pl"]["ie"]:.2f} con PL y {pe_indice["pi"]["ie"]:.2f} con PI),
+  con régimen bimodal por el doble paso de la ZCIT, sin estación con déficit de agua sostenido salvo
+  {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_deficit_frecuente["pl"]])}, y un río que responde con
+  {min(desfase["Q_PL"], desfase["Q_PI"]):.0f} a {max(desfase["Q_PL"], desfase["Q_PI"]):.0f} días de atraso por el
+  almacenamiento.</p>
+  <p><b>Alternativas e incertidumbres.</b></p>
+  <ul>
+    <li><i>La fuente cambia los bordes.</i> Con PI, {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_solo_pi_humedas])} caen
+    en temporada húmeda (con PI, las temporadas húmedas son {nombre_meses(clas_pi_humedas)}), y enero tiene déficit, que con PL no tiene.
+    {clas_pi_sin_clase_txt} La clase de esos meses depende de la fuente.</li>
+    <li><i>Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m</i>, donde está el
+    {mapa_pct_sin_pluvio:.0f} % de la cuenca. Si arriba llueve menos, PL podría sobrestimar la lluvia de la cuenca.</li>
+    <li><i>La ETP es potencial y de Hargreaves.</i> UNEP definió las clases con Thornthwaite, así que el umbral es
+    aproximado. Pero el año más seco queda en {fis_anio_mas_seco["min"]:.2f} ({fis_anio_mas_seco["anio_min"]}), más del doble
+    del umbral de {UNEP_HUMEDO:.2f}: la clase «húmedo» no cambiaría.</li>
+    <li><i>Los límites son convenciones.</i> El mes típico es el promedio de las medianas, y P/ETP ≥ {CLAS_PE_HUMEDO:.1f} es una
+    elección; con otros umbrales, junio o septiembre podrían cambiar de clase.</li>
+    <li><i>No es el atributo de CAMELS-COL:</i> la clasificación sale de estas series y de este período.</li>
+  </ul>
+  </div>
+
+  <div{revision("subsección nueva: la hipótesis")}>
+  <h3>Una hipótesis para las relaciones y las tendencias</h3>
+  <p><b>H:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un almacenamiento del orden de
+  un mes. La evapotranspiración, casi constante en el año, no explica ni su ciclo ni sus diferencias entre años.</p>
+  <p>Si H es cierta, debería cumplirse:</p>
+  <ol>
+    <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
+    anterior agrega información. Hoy: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
+    ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
+    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En años que el ajuste
+    no vio, la lluvia del mismo mes ya supera a la climatología (RMSE de {_ev_pl:.1f} m³/s con PL y {_ev_pi:.1f} con PI,
+    contra {ev_rmse_clima:.1f}; ver «¿Sirve la lluvia para estimar el caudal?»). Falta probar ahí un modelo con la lluvia del
+    mes y la del anterior, que debería mejorar, más con PL que con PI.</li>
+    <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
+    lluvia de marzo sube ({fis_marzo["pend"]:+.0f} mm/mes por década con PL*, la única subserie de la lluvia que resiste la
+    corrección FDR), pero el caudal de marzo no muestra tendencia significativa ({fis_marzo["q_mes"]["ols"]:+.1f} m³/s por
+    década, p = {_p_txt(fis_marzo["q_mes"]["p"])}; ver «Mes a mes: las doce subseries»). {fis_q_abril_txt} O la señal es
+    pequeña frente a la variabilidad del caudal, o el almacenamiento y el resto del año la diluyen.</li>
+    <li><b>En las tendencias</b>, el calentamiento ({fis_t_decada:+.2f} °C por década) no debería mover el caudal, porque
+    sube la ETP solo un {inc_etp["rel_pct"]:.2f} % por década (ver «Significativo no es lo mismo que importante»). Hoy, Q no
+    tiene tendencia, lo que es coherente con H, pero no la prueba.</li>
+  </ol>
+  <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
+  acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con
+  la lluvia conservaran estacionalidad.</p>
+  </div>
 </section>
 
 

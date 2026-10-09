@@ -684,49 +684,108 @@ p2_dispersion = {f: _p2_razon_dispersion(variables_resumen[f], variables_resumen
 assert all(v > P2_RAZON_VARIANZA for v in p2_dispersion.values())   # el texto dice que la dispersión crece
 
 
-# ---------------------------------------------------------------- estimación fuera del período de ajuste (Punto 2)
-# Los modelos se ajustan con 1998-2014 y se evalúan con 2015-2022, en bloques continuos para no mezclar
-# meses vecinos (que se parecen entre sí) entre el ajuste y la evaluación. Q en m³/s. La referencia es la
-# climatología mensual de Q del bloque de ajuste: superarla quiere decir que la lluvia aporta algo más que
-# el calendario. Sesgo = estimado − observado.
+# ---------------------------------------------------------------- ¿corregir PI con una recta contra PL? (Punto 2)
+# El proyecto no corrige PI (regla 11); aquí se mide cuánto ganaría una corrección lineal ajustada con 1998-2014
+# y evaluada con 2015-2022, en bloques continuos, en los meses de la tabla de variables de 16.
 EV_AJUSTE, EV_VALIDACION = ("1998-01", "2014-12"), ("2015-01", "2022-12")
-_ev = pd.read_csv("out/variables_mensuales.csv", index_col=0)[["PI", "PL", "Q"]]
+_ev = pd.read_csv("out/variables_mensuales.csv", index_col=0)[["PI", "PL"]]
 _ev.index = pd.PeriodIndex(_ev.index, freq="M")
 _ev = _ev.reindex(PERIODOS)
-_ev["Q"] = _ev.Q * AREA_SG_KM2 * 1000 / (_ev.index.days_in_month * 86400)        # mm/mes -> m³/s
 _ev_aj, _ev_val = _ev.loc[EV_AJUSTE[0]:EV_AJUSTE[1]], _ev.loc[EV_VALIDACION[0]:EV_VALIDACION[1]]
 
 
 def _ev_metricas(observado, estimado):
     par = pd.concat([observado.rename("o"), estimado.rename("e")], axis=1).dropna()
     err = par.e - par.o
-    return {"n": len(par), "sesgo": err.mean(), "mae": err.abs().mean(), "rmse": float(np.sqrt((err ** 2).mean())),
-            "negativas": int((par.e < 0).sum())}
+    return {"n": len(par), "sesgo": err.mean(), "mae": err.abs().mean(), "rmse": float(np.sqrt((err ** 2).mean()))}
 
 
-def _ev_ols(x, y, rezago=0):
-    muestra = pd.concat([_ev_aj[x].shift(rezago).rename("x"), _ev_aj[y].rename("y")], axis=1).dropna()
-    pendiente, intercepto = np.polyfit(muestra.x, muestra.y, 1)
-    return intercepto + pendiente * _ev[x].shift(rezago), pendiente
-
-
-_ev_clima = _ev_aj.groupby(_ev_aj.index.month).Q.mean()
-ev_estimados = {"climatología mensual de Q": pd.Series([_ev_clima[p.month] for p in _ev.index], index=_ev.index)}
-ev_pendientes = {}
-for _f in ("PL", "PI"):
-    for _r, _nombre in ((0, f"{_f} del mismo mes"), (1, f"{_f} del mes anterior")):
-        ev_estimados[_nombre], ev_pendientes[_nombre] = _ev_ols(_f, "Q", _r)
-ev_tabla = {m: {"ajuste": _ev_metricas(_ev_aj.Q, e.loc[_ev_aj.index]), "validacion": _ev_metricas(_ev_val.Q, e.loc[_ev_val.index])}
-            for m, e in ev_estimados.items()}
-ev_mejor = min((m for m in ev_tabla if m != "climatología mensual de Q"), key=lambda m: ev_tabla[m]["validacion"]["rmse"])
-ev_rmse_clima = ev_tabla["climatología mensual de Q"]["validacion"]["rmse"]
-# ¿sirve corregir PI con una regresión contra PL? (el proyecto decidió no corregirla)
-_ev_pl_ols, _ = _ev_ols("PI", "PL")
-ev_correccion = {"ols": _ev_metricas(_ev_val.PL, _ev_pl_ols.loc[_ev_val.index]),
+_muestra_ev = _ev_aj[["PI", "PL"]].dropna()
+_ev_pend, _ev_int = np.polyfit(_muestra_ev.PI, _muestra_ev.PL, 1)
+ev_correccion = {"ols": _ev_metricas(_ev_val.PL, _ev_int + _ev_pend * _ev_val.PI),
                  "sin": _ev_metricas(_ev_val.PL, _ev_val.PI)}
-assert all(t["validacion"]["negativas"] == 0 for t in ev_tabla.values())   # el texto dice que no hay estimados negativos
 # el texto dice que corregir PI «casi no gana nada»: menos de un 10 % de mejora en el RMSE
 assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
+
+
+# ---------------------------------------------------------------- modelos para estimar Q con la lluvia (Punto 2)
+# Los calcula 16b_modelos_lluvia_caudal.py: el diagnóstico, cinco modelos (M0 a M4), sus errores fuera del ajuste
+# (partición 1998-2014 / 2015-2022 y validación cruzada con 5 bloques de 5 años) y la ficha del elegido, M4. Aquí
+# solo se leen y se comprueba lo que afirman los textos. Lluvia y Q en mm/mes.
+MOD_ALFA = 0.05                                   # el mismo nivel de 16b
+MOD_ELEGIDO, MOD_COMPETIDOR, MOD_REFERENCIA = "M4", "M2", "M0"
+MOD_CON_LLUVIA = ("M1", "M2", "M3", "M4")
+MOD_FUENTES = ("PL", "PI")                     # regla 11: las dos en paralelo; manda PL
+mod_diag = pd.read_csv("out/modelos_diagnostico.csv").set_index(["fuente", "escala"])
+mod_param = pd.read_csv("out/modelos_parametros.csv").set_index(["fuente", "modelo", "parametro"])
+mod_ajuste = pd.read_csv("out/modelos_ajuste.csv").set_index(["fuente", "modelo"])
+mod_eval = pd.read_csv("out/modelos_evaluacion.csv")
+mod_ficha = pd.read_csv("out/modelos_ficha.csv").set_index("fuente")
+mod_est = pd.read_csv("out/modelos_estimados.csv")
+mod_vc = mod_eval[mod_eval.esquema == "validación cruzada"].set_index(["fuente", "modelo"])
+mod_part = mod_eval[mod_eval.esquema == "partición 2015-2022"].set_index(["fuente", "modelo"])
+mod_bloques = mod_eval[mod_eval.esquema.str.startswith("bloque")].pivot_table(
+    index=["fuente", "modelo"], columns="esquema", values="rmse")
+mod_n = int(mod_ajuste.n_meses.iloc[0])
+mod_n_diag = int(mod_diag.n_meses.iloc[0])
+mod_minimos = {"PL": mod_diag.loc[("PL", "lineal"), "minimo_lluvia_mm"], "PI": mod_diag.loc[("PI", "lineal"), "minimo_lluvia_mm"],
+               "Q": mod_diag.loc[("PL", "lineal"), "minimo_caudal_mm"]}
+assert min(mod_minimos.values()) > 0                  # el texto dice que no hay meses en cero
+
+
+def mod_rmse(fuente, modelo, esquema="vc"):
+    return float((mod_vc if esquema == "vc" else mod_part).loc[(fuente, modelo), "rmse"])
+
+
+# lo que dice el diagnóstico (Q contra la lluvia del mismo mes, recta y logaritmos)
+for _f in MOD_FUENTES:
+    _lin, _log = mod_diag.loc[(_f, "lineal")], mod_diag.loc[(_f, "logarítmica")]
+    assert _lin.cuadratico_p_hac < MOD_ALFA                                  # la recta se curva
+    assert _lin.cuadratico_coef > 0                                          # hacia arriba
+    assert _lin.varianza_tercio_lluvioso_sobre_seco > P2_RAZON_VARIANZA      # el error crece con la lluvia
+    assert _log.varianza_tercio_lluvioso_sobre_seco < 1                      # en logaritmos se invierte
+    assert _lin.kruskal_residuo_por_mes_p < MOD_ALFA                         # queda el calendario
+    assert _lin.corr_residuo_lluvia_mes_anterior_p < MOD_ALFA                # la lluvia del mes anterior explica el residuo
+    assert _lin.shapiro_residuo_p < MOD_ALFA and _lin.asimetria_residuo > 0  # residuos de la recta: asimétricos
+assert (mod_diag.loc[("PL", "lineal"), "corr_residuo_lluvia_mes_anterior"]
+        > mod_diag.loc[("PI", "lineal"), "corr_residuo_lluvia_mes_anterior"])
+# el residuo medio de la recta con PL es más alto en diciembre y más bajo en marzo (el texto los nombra)
+assert (mod_diag.loc[("PL", "lineal"), "mes_residuo_medio_max"], mod_diag.loc[("PL", "lineal"), "mes_residuo_medio_min"]) == (12, 3)
+
+# lo que dice la comparación de modelos, en la validación cruzada
+for _f in MOD_FUENTES:
+    # la lluvia del mes anterior mejora, en todos los bloques
+    assert mod_rmse(_f, "M2") < mod_rmse(_f, "M1") and mod_rmse(_f, "M4") < mod_rmse(_f, "M3")
+    assert (mod_bloques.loc[(_f, "M2")] < mod_bloques.loc[(_f, "M1")]).all()
+    # el logaritmo no baja el error
+    assert mod_rmse(_f, "M3") >= mod_rmse(_f, "M1") and mod_rmse(_f, "M4") >= mod_rmse(_f, "M2")
+    # la curvatura sigue con el rezago incluido
+    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "cuadratico_p_hac"] < MOD_ALFA
+    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "kruskal_residuo_por_mes_p"] < MOD_ALFA
+# con PI, cada modelo yerra más que con PL, y el mejor con PI no alcanza a la recta con PL
+assert all(mod_rmse("PI", m) > mod_rmse("PL", m) for m in MOD_CON_LLUVIA)
+assert max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA) < mod_vc.loc[("PL", "M1"), "nse"]
+# qué modelos no superan a la climatología (el texto lo dice según lo que salga)
+mod_no_superan = {f: [m for m in MOD_CON_LLUVIA if mod_rmse(f, m) >= mod_rmse(f, MOD_REFERENCIA)] for f in MOD_FUENTES}
+
+# la ficha de M4: cuánto cambia Q si la lluvia sube un 10 %
+MOD_CAMBIO_EJEMPLO = 0.10
+mod_elasticidad = {f: {"mes": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0"] - 1,
+                       "anterior": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b1"] - 1,
+                       "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1} for f in MOD_FUENTES}
+# la ficha dice qué supuestos se cumplen; aquí se fija que el texto de PL coincide con las pruebas
+assert mod_ficha.loc["PL", "shapiro_residuo_p"] >= MOD_ALFA and mod_ficha.loc["PI", "shapiro_residuo_p"] < MOD_ALFA
+assert mod_ficha.loc["PL", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
+assert mod_ficha.loc["PI", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
+assert (mod_ajuste.loc[(list(MOD_FUENTES), MOD_ELEGIDO), "estimados_negativos"] == 0).all()
+# M2 con PI da caudal negativo dentro del rango de lluvia que ya se observó; con PL, por debajo de ese rango no
+assert mod_ficha.loc["PI", "lluvia_q_cero_competidor"] > mod_ficha.loc["PI", "lluvia_mes_min"]
+# M2 no cumple sus supuestos como M4: su error crece con la lluvia y sus residuos no son normales
+assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_seco"] > P2_RAZON_VARIANZA
+           and mod_ajuste.loc[(f, MOD_COMPETIDOR), "shapiro_residuo_p"] < MOD_ALFA for f in MOD_FUENTES)
+# los residuos de M4 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
+mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
+assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
 
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
@@ -2995,9 +3054,10 @@ assert inc_fdr["PL*"]["ols"] == [3] and fis_marzo["q_mes"]["p"] >= TEND_ALFA
 fis_t_decada = float(met_global[("T media", "completo")]["ols_Xmes"]["pend"])
 fis_q_global = met_global[("Q", "completo")]["ols_Xmes"]
 assert fis_t_decada > 0 and fis_q_global["p_hac"] >= TEND_ALFA and not inc_fdr["Q"]["ols"]
-#    d) fuera del período de ajuste, la lluvia del mismo mes ya supera a la climatología, mejor con PL que con PI
-assert (ev_tabla["PL del mismo mes"]["validacion"]["rmse"] < ev_tabla["PI del mismo mes"]["validacion"]["rmse"]
-        < ev_rmse_clima)
+#    d) fuera del ajuste, la lluvia supera a la climatología, y la del mes anterior mejora la estimación,
+#       más con PL que con PI
+assert all(mod_rmse(f, "M1") < mod_rmse(f, MOD_REFERENCIA) for f in MOD_FUENTES)
+assert mod_rmse("PL", "M1") - mod_rmse("PL", MOD_ELEGIDO) > mod_rmse("PI", "M1") - mod_rmse("PI", MOD_ELEGIDO) > 0
 
 #    e) lo que dicen los textos de la ZCIT y del ENSO
 # Poveda (2004): temporadas lluviosas en abril-mayo y octubre-noviembre. El primer pico de PL, PI y Q cae en la

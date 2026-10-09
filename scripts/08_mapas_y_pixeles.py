@@ -8,6 +8,10 @@
   3. reporte/figuras/era5land_pixeles.png — píxeles de ERA5-Land (0.1°) que tocan la cuenca, coloreados por la
                                          temperatura media del aire a 2 m, 1998–2022. Los datos los baja
                                          scripts/06_era5land_temperatura.py a out/era5land_pixeles_fonce.csv.
+  4. reporte/figuras/ubicacion_cuenca.png — dónde queda la cuenca en la cordillera Oriental: relieve de Copernicus
+                                         DEM GLO-90 promediado a 18", límites de Natural Earth 1:10 m (los prepara
+                                         scripts/03b_relieve_regional.py), la cuenca de San Gil y su aforo. Sin rótulos
+                                         de regiones (decisión del usuario del 2026-10-09): las nombra el texto.
 
 El DEM se lee solo en la ventana de la cuenca (lectura por bloques), no se copia el archivo completo.
 """
@@ -18,7 +22,7 @@ from rasterio.windows import from_bounds
 from rasterio.features import geometry_mask
 from shapely.geometry import box
 import matplotlib.pyplot as plt
-from matplotlib.colors import LightSource
+from matplotlib.colors import LightSource, LinearSegmentedColormap
 from matplotlib.ticker import MultipleLocator
 import matplotlib.patheffects as pe
 
@@ -207,3 +211,54 @@ else:
           f"{(celdas_t.frac_dentro > 0.5).sum()} tienen más de la mitad dentro; "
           f"T media por píxel {celdas_t.t_media.min():.1f}–{celdas_t.t_media.max():.1f} °C; "
           f"promedio ponderado por área {media_ponderada:.2f} °C")
+
+
+# =============================================================== 4. ubicación en la cordillera Oriental
+RELIEVE = Path("out/relieve_region_copernicus.tif")
+LIMITES = Path("out/limites_region.gpkg")
+DEPARTAMENTO_CUENCA = "Santander"              # el departamento de la cuenca, con línea más gruesa
+METROS_POR_GRADO = 111_320                     # longitud de un grado de latitud, solo para el sombreado
+# «terrain» de matplotlib pinta de azul, como agua, el primer 20 % de su escala; aquí no hay mar (las tierras bajas
+# son los Llanos y el valle del Magdalena), así que se usa desde el verde
+TERRENO = LinearSegmentedColormap.from_list("terreno", plt.cm.terrain(np.linspace(0.25, 1, 256)))
+
+with rasterio.open(RELIEVE) as src:
+    zr = src.read(1).astype("float64")
+    tr_r = src.transform
+ext_r = (tr_r.c, tr_r.c + tr_r.a * zr.shape[1], tr_r.f + tr_r.e * zr.shape[0], tr_r.f)
+lat_media = (ext_r[2] + ext_r[3]) / 2
+coseno = np.cos(np.radians(lat_media))
+# el sombreado necesita el tamaño de la celda en metros: un grado de longitud mide coseno(latitud) veces uno de latitud
+sombra_r = LightSource(azdeg=315, altdeg=45).hillshade(
+    zr, vert_exag=2, dx=tr_r.a * METROS_POR_GRADO * coseno, dy=abs(tr_r.e) * METROS_POR_GRADO)
+paises = gpd.read_file(LIMITES, layer="paises")
+deptos = gpd.read_file(LIMITES, layer="departamentos")
+
+fig, ax = plt.subplots(figsize=(6.4, 9.2), constrained_layout=True)
+ax.imshow(sombra_r, cmap="gray", extent=ext_r, vmin=0, vmax=1)
+im = ax.imshow(zr, cmap=TERRENO, extent=ext_r, alpha=0.6, vmin=0, vmax=np.nanmax(zr))
+deptos.boundary.plot(ax=ax, color="0.25", lw=0.6, linestyle=(0, (4, 2)))
+deptos[deptos.nombre == DEPARTAMENTO_CUENCA].boundary.plot(ax=ax, color="0.1", lw=1.6)
+paises.boundary.plot(ax=ax, color="white", lw=3.2)
+paises.boundary.plot(ax=ax, color="#5E3C99", lw=1.6, linestyle=(0, (6, 2)))
+madre.plot(ax=ax, facecolor="none", edgecolor="#B2182B", lw=2.0,
+           path_effects=[pe.withStroke(linewidth=3.6, foreground="white")])
+ax.scatter(aforo_sg.geometry.x, aforo_sg.geometry.y, marker="v", s=85, color="k", edgecolor="white", linewidth=0.8, zorder=5)
+ax.set_xlim(ext_r[0], ext_r[1]); ax.set_ylim(ext_r[2], ext_r[3])
+ax.set_aspect(1 / coseno)                       # para que un km mida lo mismo en las dos direcciones
+leyenda = [plt.Line2D([], [], color="#B2182B", lw=2.0, label="cuenca del Fonce hasta San Gil"),
+           plt.Line2D([], [], marker="v", color="k", markeredgecolor="white", linestyle="none", markersize=8,
+                      label="aforo de San Gil"),
+           plt.Line2D([], [], color="0.1", lw=1.6, label=f"límite de {DEPARTAMENTO_CUENCA}"),
+           plt.Line2D([], [], color="0.25", lw=0.6, linestyle=(0, (4, 2)), label="otros departamentos o estados"),
+           plt.Line2D([], [], color="#5E3C99", lw=1.6, linestyle=(0, (6, 2)), label="límite internacional")]
+ax.legend(handles=leyenda, loc="lower left", fontsize=7.5, framealpha=0.9)
+cb = fig.colorbar(im, ax=ax, shrink=0.55, pad=0.02); cb.set_label("elevación (m s.n.m.)")
+ax.set_xlabel("longitud (°)"); ax.set_ylabel("latitud (°)"); ax.tick_params(labelsize=7)
+ax.xaxis.set_major_locator(MultipleLocator(0.5)); ax.yaxis.set_major_locator(MultipleLocator(0.5))
+ax.set_title("Ubicación de la cuenca en la cordillera Oriental\n"
+             "relieve: Copernicus DEM GLO-90 · límites: Natural Earth 1:10 m", fontsize=11, weight="semibold")
+fig.savefig(OUT / "ubicacion_cuenca.png", dpi=160)
+plt.close(fig)
+print(f"ubicación: relieve {zr.shape[1]}x{zr.shape[0]} celdas, {np.nanmin(zr):.0f}–{np.nanmax(zr):.0f} m; "
+      f"{len(paises)} países y {len(deptos)} departamentos o estados")

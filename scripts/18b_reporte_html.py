@@ -1280,6 +1280,36 @@ mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in
      f"aplana las pendientes."),
 ])
 
+# ¿conserva masa M4?
+_bal = mod_balance
+_bal_ind = [
+    ("Lluvia media (mm/mes)", lambda f, c: f"{_bal.loc[f, 'lluvia_media']:.1f}"),
+    ("Caudal medio (mm/mes)", lambda f, c: f"{_bal.loc[f, f'caudal_{c}_medio']:.1f}"),
+    ("Coeficiente de escorrentía, Q / P", lambda f, c: f"{_bal.loc[f, f'coef_escorrentia_{c}']:.3f}"),
+    ("P − Q (mm/mes)", lambda f, c: f"{_bal.loc[f, f'p_menos_q_{c}']:.1f}"),
+    ("ETP (mm/mes)", lambda f, c: f"{_bal.loc[f, 'etp_media']:.1f}"),
+    ("Meses con Q mayor que P", lambda f, c: f"{_bal.loc[f, f'meses_q_mayor_p_{c}']:.0f}"),
+    ("Meses con Q mayor que P con el mes anterior", lambda f, c: f"{_bal.loc[f, f'meses_q_mayor_p_dos_meses_{c}']:.0f}"),
+    ("Años con P − Q mayor que la ETP", lambda f, c: f"{_bal.loc[f, f'anios_p_menos_q_mayor_etp_{c}']:.0f}"),
+]
+mod_balance_filas = "\n".join(
+    f"<tr><td>{nombre}</td>" + "".join(f"<td class='num'>{fn(f, c)}</td>" for f in MOD_FUENTES
+                                         for c in ("observado", "estimado")) + "</tr>"
+    for nombre, fn in _bal_ind)
+_anios_txt = lambda k: f"{k:.0f} año" + ("" if k == 1 else "s")
+_bal_pl_obs, _bal_pl_est = _bal.loc["PL", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PL", "anios_p_menos_q_mayor_etp_estimado"]
+_bal_pi_obs, _bal_pi_est = _bal.loc["PI", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PI", "anios_p_menos_q_mayor_etp_estimado"]
+_balance_etp_txt = (
+    f"Con PL, P − Q supera a la ETP en {_anios_txt(_bal_pl_obs)} observados de {_bal.loc['PL', 'n_anios_completos']:.0f}, "
+    f"y con M4 en {_anios_txt(_bal_pl_est)}; con PI, "
+    + ("en ningún año, ni observado ni con M4. " if _bal_pi_obs == _bal_pi_est == 0 else
+       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M4. ")
+    + ("Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la "
+       "ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos."
+       if max(_bal_pl_obs, _bal_pl_est) > 0 else
+       "Con ninguna de las dos fuentes el balance anual pide más evaporación de la posible.")
+    + f" Ningún año estimado tiene más caudal que lluvia.")
+
 # la gráfica: 2015-2022 con el modelo ajustado en 1998-2014, con los meses sin Q como vacíos
 _part = mod_est[mod_est.esquema == "partición 2015-2022"].set_index(["fuente", "modelo", "periodo"]).sort_index()
 _meses_ev = [str(p) for p in pd.period_range(EV_VALIDACION[0], EV_VALIDACION[1], freq="M")]
@@ -3310,13 +3340,44 @@ a {{ color: var(--acento); }}
   y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M4 no
   puede dar caudales negativos.</p>
 
+  <h3>¿Conserva masa el modelo?</h3>
+  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
+  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
+  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
+  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los {mod_balance.loc["PL", "n_meses"]:.0f}
+  meses del ajuste.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
+    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
+    <tbody>
+{mod_balance_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
+  anterior»: a la lluvia de los dos meses juntos. Años: los {mod_balance.loc["PL", "n_anios_completos"]:.0f} con los
+  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
+  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
+  <ul>
+    <li><b>En el total, M4 reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL y
+    {mod_balance.loc["PI", "diferencia_volumen_pct"]:+.1f} % con PI) y el coeficiente de escorrentía. No es una prueba de
+    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
+    <li><b>Mes a mes, no representa el almacenamiento.</b> En {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f}
+    meses el río llevó más agua que la lluvia del mes según PL ({mod_balance.loc["PI", "meses_q_mayor_p_observado"]:.0f}
+    según PI): la cuenca soltaba agua guardada de antes. M4 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}
+    con PL y {mod_balance.loc["PI", "meses_q_mayor_p_estimado"]:.0f} con PI. La lluvia del mes anterior le da un mes de
+    memoria, pero no un depósito que se llene y se vacíe.</li>
+    <li><b>Hereda el balance de la fuente de lluvia.</b> {_balance_etp_txt}</li>
+  </ul>
+
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
   <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
-  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Una relación estadística entre la
-  lluvia y el caudal tampoco sustituye un balance hídrico ni garantiza que se conserve la masa. Además, IMERG incorpora
-  datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
+  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
+  independientes.</p>
 </section>
 
 

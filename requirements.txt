@@ -24,3 +24,12 @@ pysheds==0.5        # 15_cauce_desde_dem.py: direcciones de flujo y acumulación
 requests==2.32.3    # descargas
 truststore==0.10.4  # descargas: usa los certificados del sistema operativo
 earthengine-api==1.7.45   # 06_era5land_temperatura.py (necesita cuenta de Google Earth Engine)
+
+# --- lo que faltaba (agregado el 2026-10-09): 18, 19 y 21 los usan y no estaban declarados. Versiones con que
+# se comprobó que corren 16b, 18 y 18b en Linux con Python 3.13; las de arriba son las del equipo original.
+xarray==2026.9.0    # 18_calculos_informe.py, 19 y 21: campos climáticos en NetCDF
+netCDF4==1.7.4      # 18_calculos_informe.py: lee y escribe NetCDF comprimido
+h5netcdf==1.8.1     # 19_campos_climaticos.py: lee los archivos de ERA5 de GDEX
+fsspec==2026.9.0    # 19_campos_climaticos.py: lee por HTTPS los archivos de GDEX sin bajarlos completos
+aiohttp==3.14.4     # lo necesita fsspec para HTTPS
+pillow==12.3.0      # 21_mapas_correlacion.py (también viene con matplotlib)

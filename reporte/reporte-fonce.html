@@ -2512,13 +2512,51 @@ section, section h3 { scroll-margin-top: 20px; }
   y este último valor ya está dentro de lo observado (el mínimo de PI es 14.8). M4 no
   puede dar caudales negativos.</p>
 
+  <h3>¿Conserva masa el modelo?</h3>
+  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
+  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
+  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
+  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los 261
+  meses del ajuste.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
+    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
+    <tbody>
+<tr><td>Lluvia media (mm/mes)</td><td class='num'>210.3</td><td class='num'>210.3</td><td class='num'>183.9</td><td class='num'>183.9</td></tr>
+<tr><td>Caudal medio (mm/mes)</td><td class='num'>111.2</td><td class='num'>110.6</td><td class='num'>111.2</td><td class='num'>110.5</td></tr>
+<tr><td>Coeficiente de escorrentía, Q / P</td><td class='num'>0.529</td><td class='num'>0.526</td><td class='num'>0.605</td><td class='num'>0.601</td></tr>
+<tr><td>P − Q (mm/mes)</td><td class='num'>99.1</td><td class='num'>99.7</td><td class='num'>72.7</td><td class='num'>73.4</td></tr>
+<tr><td>ETP (mm/mes)</td><td class='num'>104.7</td><td class='num'>104.7</td><td class='num'>104.7</td><td class='num'>104.7</td></tr>
+<tr><td>Meses con Q mayor que P</td><td class='num'>7</td><td class='num'>0</td><td class='num'>21</td><td class='num'>6</td></tr>
+<tr><td>Meses con Q mayor que P con el mes anterior</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td></tr>
+<tr><td>Años con P − Q mayor que la ETP</td><td class='num'>3</td><td class='num'>4</td><td class='num'>0</td><td class='num'>0</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
+  anterior»: a la lluvia de los dos meses juntos. Años: los 11 con los
+  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
+  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
+  <ul>
+    <li><b>En el total, M4 reproduce el volumen</b> (-0.5 % con PL y
+    -0.6 % con PI) y el coeficiente de escorrentía. No es una prueba de
+    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
+    <li><b>Mes a mes, no representa el almacenamiento.</b> En 7
+    meses el río llevó más agua que la lluvia del mes según PL (21
+    según PI): la cuenca soltaba agua guardada de antes. M4 estima 0
+    con PL y 6 con PI. La lluvia del mes anterior le da un mes de
+    memoria, pero no un depósito que se llene y se vacíe.</li>
+    <li><b>Hereda el balance de la fuente de lluvia.</b> Con PL, P − Q supera a la ETP en 3 años observados de 11, y con M4 en 4 años; con PI, en ningún año, ni observado ni con M4. Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos. Ningún año estimado tiene más caudal que lluvia.</li>
+  </ul>
+
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
   45.5 mm/mes en la evaluación, contra 47.6 de PI sin
   corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
   <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
-  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Una relación estadística entre la
-  lluvia y el caudal tampoco sustituye un balance hídrico ni garantiza que se conserve la masa. Además, IMERG incorpora
-  datos de pluviómetros, así que PI y PL no son del todo independientes.</p>
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
+  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
+  independientes.</p>
 </section>
 
 
@@ -3010,7 +3048,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 172 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 175 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

@@ -788,6 +788,16 @@ assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_s
 mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
 assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
 
+# ¿conserva masa M4? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
+mod_balance = pd.read_csv("out/modelos_balance.csv").set_index("fuente")
+for _f in MOD_FUENTES:
+    _b = mod_balance.loc[_f]
+    # el texto dice que el volumen total casi coincide (menos de 2 %), que M4 da menos meses con Q > P que los
+    # observados y que ningún año estimado tiene más caudal que lluvia
+    assert abs(_b.diferencia_volumen_pct) < 2
+    assert _b.meses_q_mayor_p_estimado < _b.meses_q_mayor_p_observado
+    assert _b.anios_q_mayor_p_estimado == 0
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()

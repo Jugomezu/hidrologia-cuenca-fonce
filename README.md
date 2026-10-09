@@ -206,8 +206,8 @@ pip install -r requirements.txt
 
 - **Una rama por punto del taller** (por ejemplo `punto-4.4`, `punto-5`) y un pull request a `main`, **con
   descripción** (qué, por qué, cómo se verificó), y **nada entra a `main` sin verificar antes que cumple las
-  reglas** (reglas 20 y 21 de `CLAUDE.md`, sin excepciones). Desde el 2026-10-08 el proyecto es individual:
-  el dueño fusiona sus propios PR.
+  reglas** (reglas 20 y 21 de `CLAUDE.md`, sin excepciones).
+  El dueño fusiona sus propios PR.
 - **El notebook no se toca** (regla 18): está congelado.
 - **Scripts nuevos:** se numeran según dónde caen en la tubería (se usaron sufijos como `06b`, `07b` y `07c`
   para no renumerar). Se registran en `scripts/README.md`.

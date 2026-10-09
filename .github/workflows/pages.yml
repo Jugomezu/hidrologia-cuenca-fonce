@@ -1,0 +1,63 @@
+# Publica el informe en GitHub Pages cada vez que algo entra a main.
+#
+# Solo se publica reporte/reporte-fonce.html, el único informe del proyecto (regla 22): es autocontenido (figuras y
+# Plotly van dentro), así que no necesita otros archivos. Las páginas viejas de reporte/ no se publican.
+# La página de entrada (index.html) que redirige al informe se genera aquí, al publicar; no es un archivo del
+# repositorio. No se usa Jekyll: el archivo se sube tal cual.
+name: Publicar el informe en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "reporte/reporte-fonce.html"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}reporte-fonce.html
+    steps:
+      - name: Traer el repositorio
+        uses: actions/checkout@v4
+
+      - name: Armar el sitio (solo el informe y una entrada que redirige a él)
+        run: |
+          mkdir -p sitio
+          cp reporte/reporte-fonce.html sitio/
+          cat > sitio/index.html <<'HTML'
+          <!doctype html>
+          <html lang="es">
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0; url=reporte-fonce.html">
+            <title>Cuenca del río Fonce</title>
+          </head>
+          <body><p><a href="reporte-fonce.html">Ir al informe de la cuenca del río Fonce</a></p></body>
+          </html>
+          HTML
+          touch sitio/.nojekyll
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir el sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+
+      - name: Publicar
+        id: despliegue
+        uses: actions/deploy-pages@v4

@@ -2847,7 +2847,16 @@ section, section h3 { scroll-margin-top: 20px; }
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según <a class="cita" href="#ref-poveda2004">Poveda, 2004</a>,
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
-  Colombia», y «durante La Niña ocurren anomalías contrarias». Los datos lo apoyan sin probarlo:</p>
+  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
+  <p><b>Por qué El Niño trae menos lluvia.</b> Según <a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>, cuando se calienta el Pacífico ecuatorial el aire
+  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
+  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
+  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
+  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los 6 meses en que la relación con el
+  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), 5 caen en esas dos temporadas; fuera de
+  ellas queda marzo con Q (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).</p>
+  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
   <ul>
     <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
     en 1998–2022 (0.65), y con PL y Q solo en el registro largo (PL*
@@ -3046,7 +3055,23 @@ section, section h3 { scroll-margin-top: 20px; }
 
 <section>
   <h2>Interpretación física de los patrones</h2>
-  <p><i>Hasta el momento no hemos llegado a esta parte.</i></p>
+  <div>
+  <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
+  pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
+  junio con PL, en enero y marzo con Q y en junio, agosto y diciembre con PI. El mecanismo que la explica
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los 6 meses robustos,
+  5 caen en las dos temporadas en que <a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a> hallan la mayor disminución de la lluvia
+  (diciembre a febrero y junio a agosto).</p>
+  <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
+  coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
+  marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
+  10 meses, frente a 7 sin rezago, y que el río vaya unos 17 días detrás de PL
+  (ver «Desfase estacional»). No lo prueba: el almacenamiento se infiere del atraso; no se mide.</p>
+  <p><b>¿El ENSO explica las tendencias?</b> No se puede afirmar. En la lluvia y en el caudal no hay una tendencia que
+  explicar: quitando un año a la vez, ninguna versión es significativa (ver «Sensibilidad a años extremos» en «Tendencias de
+  largo plazo»). El año que más mueve las pendientes de PL*, PI y Q es 2022, con 12 meses de La Niña y 0 de El Niño según el ONI: un año del ENSO pesa sobre la pendiente, pero sin él tampoco aparece una tendencia significativa. La subida de la temperatura no depende de ningún año.</p>
+  </div>
 </section>
 
 <section>
@@ -3064,6 +3089,10 @@ section, section h3 { scroll-margin-top: 20px; }
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
+    <li id="ref-cordoba2015">Córdoba-Machado, S., Palomino-Lemus, R., Gámiz-Fortis, S. R., Castro-Díez, Y., y
+    Esteban-Parra, M. J. (2015). Assessing the impact of El Niño Modoki on seasonal precipitation in Colombia.
+    <i>Global and Planetary Change</i>, 124, 41–61.
+    <a href="https://doi.org/10.1016/j.gloplacha.2014.11.003">https://doi.org/10.1016/j.gloplacha.2014.11.003</a></li>
     <li id="ref-defensoria2005">Defensoría del Pueblo. (2005, 16 de marzo). <i>Resolución Defensorial No. 34:
     Emergencia invernal durante el primer bimestre de 2005</i>.
     <a href="https://www.defensoria.gov.co/documents/20123/1311006/defensorial34.pdf/d9d42d31-7913-c461-c3f5-fae0651d358c?t=1648529830362&amp;download=true">defensoria.gov.co</a></li>
@@ -3202,7 +3231,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 199 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 203 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

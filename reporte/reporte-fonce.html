@@ -3307,6 +3307,29 @@ section, section h3 { scroll-margin-top: 20px; }
     </tbody>
   </table>
   </div>
+
+  <h3>Lo que aprendimos de los datos</h3>
+  <p><b>PI queda por debajo de PL y se conecta peor con el caudal.</b> Con todas las exclusiones, PI está un
+  12.0 % por debajo de PL, y lo está en el 72 % de los 300 meses (ver
+  «Comparando PI con PL»). No es una diferencia uniforme: PI supera a 3 de los
+  7 pluviómetros por separado. Que PI sea más baja no dice cuál de las dos acierta: ningún pluviómetro
+  mide por encima de 2 625 m, y arriba llueve menos. Aparte del nivel, el caudal se lleva mejor con PL que
+  con PI (ρ = 0.82 contra 0.71; ver «Qué dicen»). Con PL, el modelo del caudal tiene un KGE de
+  0.78 fuera del ajuste; con PI, 0.55, por debajo de la climatología
+  (0.57; ver «Validación fuera del ajuste»). Para estimar el caudal, el nivel de la
+  lluvia importa poco, porque el modelo lo absorbe al ajustarse: importa que suba y baje cuando sube y baja el río, y eso lo hace mejor PL. Por
+  eso, cuando hay que escoger, manda PL.</p>
+  <p><b>Dos atributos de CAMELS-COL tienen errores, y por eso se recalcularon.</b> La geología trae las etiquetas corridas: su
+  columna de rocas plutónicas trae el 63.7 % que, según el mapa del SGC, es roca sedimentaria, y la
+  volcanoclástica repite la volcánica en las 346 cuencas del archivo (ver «Coberturas, suelos y geología»). La ETP
+  sale 2.76 veces la de su propia fórmula, 3 422 mm/año, más que la lluvia
+  (2 517 mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
+  del proyecto. Del resto de CAMELS-COL, el caudal pasó el control de calidad del proyecto.</p>
+  <p><b>De los campos climáticos globales solo sirvió El Niño.</b> En los mapas de correlación, solo
+  42 de los 144 paneles mensuales tienen alguna caja que pase la corrección por pruebas
+  múltiples, y en 29 de ellos todas desaparecen al quitar un solo año (ver «¿Y los mapas?»). Con
+  25 años, las manchas de los mapas no se distinguen del azar. Lo único que resistió fue la relación con el índice
+  Niño 3.4, que se resume en una sola serie.</p>
 </section>
 
 <section>
@@ -3466,7 +3489,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 227 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 233 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
@@ -3488,7 +3511,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
   <h3>Propuestas rechazadas o corregidas</h3>
   <p>El registro <code>DECISIONES.md</code> anota las decisiones del equipo junto con lo que recomendó la IA. En
-  27 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
+  29 el equipo decidió distinto; están en el anexo. <b>El registro está incompleto:</b> se empezó a
   llevar el 2026-10-08, cuando el trabajo ya estaba avanzado. Las filas anteriores a esa fecha se
   reconstruyeron después (la más antigua es del 2026-10-04), y de lo decidido antes no queda registro. El
   anexo muestra, entonces, las propuestas rechazadas que quedaron anotadas, no todas. Además, la IA corrigió propuestas suyas al
@@ -3528,6 +3551,8 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td>2026-10-09</td><td>Mapa de ubicación: rótulos</td><td>Sin nombres de regiones en el mapa; las nombra el texto</td><td>Rótulos declarados en el código</td><td><b>Contradice al agente</b></td></tr>
 <tr><td>2026-10-09</td><td>Punto 5.3: mapa de todos los meses juntos</td><td>Quitarlo del informe (y de los scripts): su significancia no se puede probar con la prueba t</td><td>Dejarlo sin puntos y decir por qué; la otra opción era corregir n por la autocorrelación</td><td><b>Contradice al agente</b></td></tr>
 <tr><td>2026-10-09</td><td>Coberturas: años de MapBiomas</td><td>Solo 2022, el mismo año que usa CAMELS-COL</td><td>1998 y 2022, para ver si la cobertura cambió en el período</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Síntesis física: coberturas y geología</td><td>No entran en la síntesis ni en las conclusiones, porque no se concluye nada sobre ellas; tampoco se comparan entre subcuencas, porque de una a otra cambian muchas variables que afectan el caudal y no se pueden controlar</td><td>Una fila de la tabla que dijera que no explican ningún resultado, con el contraste entre subcuencas (BFI de CAMELS-COL) como limitación</td><td><b>Contradice al agente</b></td></tr>
+<tr><td>2026-10-09</td><td>Síntesis física: mecanismo de la subida de la temperatura</td><td>El calentamiento global; la tabla aclara que los datos muestran que sube, no por qué</td><td>Dejar el mecanismo vacío («el informe no propone un mecanismo»)</td><td><b>Contradice al agente</b></td></tr>
     </tbody>
   </table></div>
   <p class="nota">Tomado de <code>DECISIONES.md</code> al generar la página: las filas marcadas «Contradice al

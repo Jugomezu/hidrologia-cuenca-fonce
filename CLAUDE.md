@@ -45,7 +45,9 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
    usan únicamente cuando aportan a esa lectura; ampliarles el análisis es un extra que se hace solo si
    sobra tiempo, nunca por defecto.
 8. **Figuras.** Las imágenes fijas (`reporte/figuras/`) se hacen con matplotlib o seaborn; las gráficas
-   interactivas del informe, con Plotly, que va incrustado en el HTML.
+   interactivas del informe, con Plotly, que va incrustado en el HTML. Los esquemas (cajas y flechas, no datos) van
+   en SVG vectorial, generado por `scripts/18b_reporte_html.py` con las cifras calculadas e incrustado en el HTML
+   (decidido el 2026-10-10).
 9. **Los `import` van al comienzo de cada script.**
 10. **Los datos se leen de `data/` y `out/`**, con rutas relativas a la raíz del repositorio. Ningún script
     depende de haber corrido el notebook.

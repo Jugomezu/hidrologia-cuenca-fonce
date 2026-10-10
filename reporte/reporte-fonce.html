@@ -110,6 +110,7 @@ td.atip-bajo, .sin-destacar tbody tr:first-child td.atip-bajo { background: var(
 .dos-graficos { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 12px; }
 @media (max-width: 860px) { .dos-graficos { grid-template-columns: 1fr; } }
 figure { margin: 24px 0 0; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+figure.esquema { grid-template-columns: 1fr; gap: 16px; }   /* el esquema es ancho: el pie va debajo */
 .placa { background: var(--placa); border: 1px solid var(--linea); border-radius: 6px; padding: 10px; }
 .placa img { display: block; width: 100%; height: auto; }
 figcaption { font-size: 16px; }
@@ -3292,6 +3293,66 @@ section, section h3 { scroll-margin-top: 20px; }
   mecanismo que se propone para explicarlo. La evidencia propia son cifras del proyecto, de las secciones que se citan
   entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene todavía una fuente ni
   un mecanismo, la tabla lo dice.</p>
+  <figure class="esquema">
+    <div class="placa"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 183 94" role="img" aria-label="Esquema conceptual de la cuenca: clima regional, lluvia, suelo y acuífero, caudal y evapotranspiración, con sus escalas de tiempo" style="width:100%; height:auto; background:#FFFFFF"><defs><marker id="esq-punta-clima" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#E69F00"/></marker><marker id="esq-punta-lluvia" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0072B2"/></marker><marker id="esq-punta-almacen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#009E73"/></marker><marker id="esq-punta-etp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#D55E00"/></marker><marker id="esq-punta-horas" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#56B4E9"/></marker><marker id="esq-punta-texto" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#222222"/></marker><marker id="esq-punta-gris" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#666666"/></marker></defs>
+<text x="5.0" y="8.0" font-family="Helvetica, Arial, sans-serif" font-size="2.2" font-weight="normal" fill="#666666" text-anchor="start" font-style="italic">Línea continua: lo que muestran los datos. Punteada: lo que se infiere.</text>
+<rect x="5.0" y="32.0" width="30.0" height="24.0" rx="1.5" fill="#FFFFFF" stroke="#E69F00" stroke-width="0.6"/>
+<text x="20.0" y="37.0" font-family="Helvetica, Arial, sans-serif" font-size="2.9" font-weight="bold" fill="#E69F00" text-anchor="middle">Clima regional</text>
+<text x="20.0" y="41.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">ZCIT: dos pasos al año</text>
+<text x="20.0" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">ENSO: El Niño seca</text>
+<text x="20.0" y="48.7" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">(circulación de Walker)</text>
+<rect x="52.0" y="32.0" width="30.0" height="24.0" rx="1.5" fill="#FFFFFF" stroke="#0072B2" stroke-width="0.6"/>
+<text x="67.0" y="37.0" font-family="Helvetica, Arial, sans-serif" font-size="2.9" font-weight="bold" fill="#0072B2" text-anchor="middle">Lluvia</text>
+<text x="67.0" y="41.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">PL 211 mm/mes</text>
+<text x="67.0" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">PI 185 mm/mes</text>
+<text x="67.0" y="48.7" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">menos lluvia arriba</text>
+<rect x="99.0" y="32.0" width="30.0" height="24.0" rx="1.5" fill="#FFFFFF" stroke="#009E73" stroke-width="0.6" stroke-dasharray="1.5 1"/>
+<text x="114.0" y="37.0" font-family="Helvetica, Arial, sans-serif" font-size="2.9" font-weight="bold" fill="#009E73" text-anchor="middle">Suelo y acuífero</text>
+<text x="114.0" y="41.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">almacenamiento</text>
+<text x="114.0" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">inferido, no medido</text>
+<text x="114.0" y="48.7" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">atrasa y suaviza</text>
+<rect x="146.0" y="32.0" width="30.0" height="24.0" rx="1.5" fill="#FFFFFF" stroke="#0072B2" stroke-width="0.6"/>
+<text x="161.0" y="37.0" font-family="Helvetica, Arial, sans-serif" font-size="2.9" font-weight="bold" fill="#0072B2" text-anchor="middle">Caudal Q</text>
+<text x="161.0" y="41.5" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">53 % (PL) a 60 % (PI)</text>
+<text x="161.0" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">de la lluvia</text>
+<text x="161.0" y="48.7" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="normal" fill="#222222" text-anchor="middle">río filtra lo rápido</text>
+<line x1="36.0" y1="47.6" x2="51.0" y2="47.6" stroke="#E69F00" stroke-width="0.7" marker-end="url(#esq-punta-clima)"/>
+<text x="43.5" y="42.1" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#E69F00" text-anchor="middle" font-style="italic">humedad y</text>
+<text x="43.5" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#E69F00" text-anchor="middle" font-style="italic">convección</text>
+<line x1="83.0" y1="47.6" x2="98.0" y2="47.6" stroke="#0072B2" stroke-width="0.7" marker-end="url(#esq-punta-lluvia)" stroke-dasharray="1.5 1"/>
+<text x="90.5" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#0072B2" text-anchor="middle" font-style="italic">infiltración</text>
+<line x1="130.0" y1="47.6" x2="145.0" y2="47.6" stroke="#009E73" stroke-width="0.7" marker-end="url(#esq-punta-almacen)" stroke-dasharray="1.5 1"/>
+<text x="137.5" y="42.1" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#009E73" text-anchor="middle" font-style="italic">flujo base</text>
+<text x="137.5" y="45.1" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#009E73" text-anchor="middle" font-style="italic">17 días después</text>
+<line x1="90.5" y1="31.0" x2="90.5" y2="19.0" stroke="#D55E00" stroke-width="0.7" marker-end="url(#esq-punta-etp)"/>
+<text x="93.0" y="25.0" font-family="Helvetica, Arial, sans-serif" font-size="2.1" font-weight="normal" fill="#D55E00" text-anchor="start" font-style="italic">ETP 1 257 mm/año, casi constante en el año (P/ETP 2.01 con PL, 1.77 con PI)</text>
+<text x="10.0" y="73.0" font-family="Helvetica, Arial, sans-serif" font-size="2.6" font-weight="bold" fill="#333333" text-anchor="start">Escalas de tiempo</text>
+<line x1="10" y1="80" x2="173" y2="80" stroke="#666666" stroke-width="0.5" marker-end="url(#esq-punta-gris)"/>
+<circle cx="26.3" cy="80" r="1.2" fill="#56B4E9"/>
+<text x="26.3" y="77.0" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="bold" fill="#56B4E9" text-anchor="middle">horas</text>
+<text x="26.3" y="85.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">convección; tiempo de</text>
+<text x="26.3" y="88.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">concentración 4–20 h</text>
+<circle cx="70.3" cy="80" r="1.2" fill="#009E73"/>
+<text x="70.3" y="77.0" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="bold" fill="#009E73" text-anchor="middle">días a semanas</text>
+<text x="70.3" y="85.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">atraso del río:</text>
+<text x="70.3" y="88.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">17 días (13–21) con PL</text>
+<circle cx="114.3" cy="80" r="1.2" fill="#E69F00"/>
+<text x="114.3" y="77.0" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="bold" fill="#E69F00" text-anchor="middle">meses</text>
+<text x="114.3" y="85.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">ciclo de 6 meses:</text>
+<text x="114.3" y="88.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">doble paso de la ZCIT</text>
+<circle cx="158.3" cy="80" r="1.2" fill="#D55E00"/>
+<text x="158.3" y="77.0" font-family="Helvetica, Arial, sans-serif" font-size="2.3" font-weight="bold" fill="#D55E00" text-anchor="middle">años</text>
+<text x="158.3" y="85.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">ENSO, banda de 3–7 años;</text>
+<text x="158.3" y="88.0" font-family="Helvetica, Arial, sans-serif" font-size="2.0" font-weight="normal" fill="#222222" text-anchor="middle">Q, 2 meses tras el ONI</text>
+</svg></div>
+    <figcaption>
+      <h3>Figura 7 · Esquema conceptual de la cuenca</h3>
+      <p>El clima regional pone la lluvia: la ZCIT, sus dos temporadas al año, y el ENSO, las diferencias entre años. La
+      lluvia que no vuelve a la atmósfera se guarda en el suelo y el acuífero, y sale por el río días después. La ETP casi
+      no cambia en el año, así que el ciclo del caudal lo pone la lluvia. Abajo, las escalas de tiempo de cada proceso;
+      cada cifra remite a la fila de la tabla que la explica.</p>
+    </figcaption>
+  </figure>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Resultado</th><th>Lo que muestran los datos</th><th>Mecanismo propuesto</th><th>Evidencia propia</th>
@@ -3489,7 +3550,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 233 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 236 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo

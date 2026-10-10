@@ -1652,6 +1652,98 @@ _cajas = corr_significancia[corr_significancia.mes <= 12].cajas
 rob_cajas = (int(_cajas.min()), int(_cajas.max()))
 assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 
+# ---------------------------------------------------------------- síntesis física: el esquema conceptual
+# Un esquema en SVG (decisión del usuario, 2026-10-10: vector y no imagen), hecho con las pautas de la skill
+# «academic-figures»: cajas y flechas con al menos 10 mm de largo, etiquetas encima de las flechas y la paleta de Wong
+# (2011), segura para daltónicos. Las unidades del dibujo son milímetros. Va incrustado en el HTML, así que sus cifras
+# salen de las mismas variables que el resto del informe. Línea continua: lo que muestran los datos; punteada: lo que
+# se infiere (el almacenamiento no se mide).
+ESQ_COLOR = {"clima": "#E69F00", "lluvia": "#0072B2", "almacen": "#009E73", "etp": "#D55E00", "horas": "#56B4E9",
+             "texto": "#222222", "gris": "#666666"}
+ESQ_LETRA = "Helvetica, Arial, sans-serif"
+
+
+def _esq_texto(x, y, t, tam=2.4, peso="normal", color=ESQ_COLOR["texto"], ancla="middle", cursiva=False):
+    estilo = ' font-style="italic"' if cursiva else ""
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="{ESQ_LETRA}" font-size="{tam}" font-weight="{peso}" '
+            f'fill="{color}" text-anchor="{ancla}"{estilo}>{t}</text>')
+
+
+def _esq_caja(x, y, w, h, titulo, lineas, color, punteada=False):
+    trazo = ' stroke-dasharray="1.5 1"' if punteada else ""
+    partes = [f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="1.5" fill="#FFFFFF" '
+              f'stroke="{color}" stroke-width="0.6"{trazo}/>',
+              _esq_texto(x + w / 2, y + 5, titulo, 2.9, "bold", color)]
+    partes += [_esq_texto(x + w / 2, y + 9.5 + i * 3.6, linea, 2.3) for i, linea in enumerate(lineas)]
+    return "\n".join(partes)
+
+
+def _esq_flecha(x1, y1, x2, y2, clave, etiqueta=(), punteada=False):
+    assert ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5 >= 10        # la skill pide flechas de al menos 10 mm
+    trazo = ' stroke-dasharray="1.5 1"' if punteada else ""
+    partes = [f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{ESQ_COLOR[clave]}" '
+              f'stroke-width="0.7" marker-end="url(#esq-punta-{clave})"{trazo}/>']
+    mx, my = (x1 + x2) / 2, (y1 + y2) / 2                          # etiqueta encima de la flecha, nunca sobre ella
+    partes += [_esq_texto(mx, my - 2.5 - (len(etiqueta) - 1 - i) * 3, e, 2.1, color=ESQ_COLOR[clave], cursiva=True)
+               for i, e in enumerate(etiqueta)]
+    return "\n".join(partes)
+
+
+_esq_pl, _esq_pi = cmp_stats[NOM_RED]["pluv"], cmp_stats[NOM_RED]["imerg"]
+assert _esq_pi < _esq_pl
+assert fis_coef["pl"] < fis_coef["pi"]                                          # «de PL a PI», en ese orden
+_esq_ancho, _esq_alto = 183, 94
+_esq_caja_w, _esq_caja_h, _esq_caja_y = 30, 24, 32
+_esq_x = [5, 52, 99, 146]                                          # cuatro cajas con 17 mm entre una y otra
+_esq_y_flecha = _esq_caja_y + _esq_caja_h * 0.65                   # tercio inferior, para que la etiqueta no toque la caja
+_esq_x_etp = (_esq_x[1] + _esq_x[2] + _esq_caja_w) / 2
+_esq_escalas = [
+    ("horas", "convección; tiempo de", f"concentración {desfase_tc[0]:.0f}–{desfase_tc[1]:.0f} h", "horas"),
+    ("días a semanas", "atraso del río:",
+     f"{desfase['Q_PL']:.0f} días ({desfase_ic['Q_PL'][0]:.0f}–{desfase_ic['Q_PL'][1]:.0f}) con PL", "almacen"),
+    ("meses", "ciclo de 6 meses:", "doble paso de la ZCIT", "clima"),
+    ("años", f"ENSO, banda de {FOU_INTERANUAL[0] / 12:.0f}–{FOU_INTERANUAL[1] / 12:.0f} años;",
+     f"Q, {fis_q_rezago_oni} meses tras el ONI", "etp"),
+]
+_esq_partes = [
+    _esq_texto(5, 8, "Línea continua: lo que muestran los datos. Punteada: lo que se infiere.", 2.2,
+               color=ESQ_COLOR["gris"], ancla="start", cursiva=True),
+    _esq_caja(_esq_x[0], _esq_caja_y, _esq_caja_w, _esq_caja_h, "Clima regional",
+              ["ZCIT: dos pasos al año", "ENSO: El Niño seca", "(circulación de Walker)"], ESQ_COLOR["clima"]),
+    _esq_caja(_esq_x[1], _esq_caja_y, _esq_caja_w, _esq_caja_h, "Lluvia",
+              [f"PL {_esq_pl:.0f} mm/mes", f"PI {_esq_pi:.0f} mm/mes", "menos lluvia arriba"], ESQ_COLOR["lluvia"]),
+    _esq_caja(_esq_x[2], _esq_caja_y, _esq_caja_w, _esq_caja_h, "Suelo y acuífero",
+              ["almacenamiento", "inferido, no medido", "atrasa y suaviza"], ESQ_COLOR["almacen"], punteada=True),
+    _esq_caja(_esq_x[3], _esq_caja_y, _esq_caja_w, _esq_caja_h, "Caudal Q",
+              [f"{fis_coef['pl'] * 100:.0f} % (PL) a {fis_coef['pi'] * 100:.0f} % (PI)", "de la lluvia",
+               "río filtra lo rápido"], ESQ_COLOR["lluvia"]),
+    _esq_flecha(_esq_x[0] + _esq_caja_w + 1, _esq_y_flecha, _esq_x[1] - 1, _esq_y_flecha, "clima",
+                ("humedad y", "convección")),
+    _esq_flecha(_esq_x[1] + _esq_caja_w + 1, _esq_y_flecha, _esq_x[2] - 1, _esq_y_flecha, "lluvia",
+                ("infiltración",), punteada=True),
+    _esq_flecha(_esq_x[2] + _esq_caja_w + 1, _esq_y_flecha, _esq_x[3] - 1, _esq_y_flecha, "almacen",
+                ("flujo base", f"{desfase['Q_PL']:.0f} días después"), punteada=True),
+    _esq_flecha(_esq_x_etp, _esq_caja_y - 1, _esq_x_etp, _esq_caja_y - 13, "etp"),
+    _esq_texto(_esq_x_etp + 2.5, _esq_caja_y - 7,
+               f"ETP {n(etp_anual.era)} mm/año, casi constante en el año (P/ETP {pe_indice['pl']['ie']:.2f} con PL, "
+               f"{pe_indice['pi']['ie']:.2f} con PI)", 2.1, color=ESQ_COLOR["etp"], ancla="start", cursiva=True),
+    _esq_texto(10, 73, "Escalas de tiempo", 2.6, "bold", "#333333", "start"),
+    f'<line x1="10" y1="80" x2="173" y2="80" stroke="{ESQ_COLOR["gris"]}" stroke-width="0.5" '
+    f'marker-end="url(#esq-punta-gris)"/>',
+]
+for _i, (_nombre, _l1, _l2, _clave) in enumerate(_esq_escalas):
+    _x = 10 + 163 * (0.1 + 0.27 * _i)
+    _esq_partes += [f'<circle cx="{_x:.1f}" cy="80" r="1.2" fill="{ESQ_COLOR[_clave]}"/>',
+                    _esq_texto(_x, 77, _nombre, 2.3, "bold", ESQ_COLOR[_clave]),
+                    _esq_texto(_x, 85, _l1, 2.0), _esq_texto(_x, 88, _l2, 2.0)]
+_esq_puntas = "".join(
+    f'<marker id="esq-punta-{k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" '
+    f'orient="auto-start-reverse"><path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="{c}"/></marker>' for k, c in ESQ_COLOR.items())
+esquema_svg = (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {_esq_ancho} {_esq_alto}" role="img" '
+               f'aria-label="Esquema conceptual de la cuenca: clima regional, lluvia, suelo y acuífero, caudal y '
+               f'evapotranspiración, con sus escalas de tiempo" style="width:100%; height:auto; background:#FFFFFF">'
+               f'<defs>{_esq_puntas}</defs>\n' + "\n".join(_esq_partes) + "\n</svg>")
+
 # ---------------------------------------------------------------- síntesis física: la tabla
 # Una fila por resultado principal del informe: qué se observó, el mecanismo que se propone, la evidencia propia que lo
 # apoya, la fuente consultada y la limitación o explicación alternativa. Las cifras son las mismas de las secciones a
@@ -1847,6 +1939,7 @@ td.atip-bajo, .sin-destacar tbody tr:first-child td.atip-bajo {{ background: var
 .dos-graficos {{ display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-top: 12px; }}
 @media (max-width: 860px) {{ .dos-graficos {{ grid-template-columns: 1fr; }} }}
 figure {{ margin: 24px 0 0; display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 32px; align-items: start; }}
+figure.esquema {{ grid-template-columns: 1fr; gap: 16px; }}   /* el esquema es ancho: el pie va debajo */
 .placa {{ background: var(--placa); border: 1px solid var(--linea); border-radius: 6px; padding: 10px; }}
 .placa img {{ display: block; width: 100%; height: auto; }}
 figcaption {{ font-size: 16px; }}
@@ -4453,6 +4546,16 @@ a {{ color: var(--acento); }}
   mecanismo que se propone para explicarlo. La evidencia propia son cifras del proyecto, de las secciones que se citan
   entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene todavía una fuente ni
   un mecanismo, la tabla lo dice.</p>
+  <figure class="esquema">
+    <div class="placa">{esquema_svg}</div>
+    <figcaption>
+      <h3>Figura 7 · Esquema conceptual de la cuenca</h3>
+      <p>El clima regional pone la lluvia: la ZCIT, sus dos temporadas al año, y el ENSO, las diferencias entre años. La
+      lluvia que no vuelve a la atmósfera se guarda en el suelo y el acuífero, y sale por el río días después. La ETP casi
+      no cambia en el año, así que el ciclo del caudal lo pone la lluvia. Abajo, las escalas de tiempo de cada proceso;
+      cada cifra remite a la fila de la tabla que la explica.</p>
+    </figcaption>
+  </figure>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Resultado</th><th>Lo que muestran los datos</th><th>Mecanismo propuesto</th><th>Evidencia propia</th>

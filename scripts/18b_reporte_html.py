@@ -1730,6 +1730,14 @@ SINT_FILAS = [
      f"Que no sea significativa no prueba que no haya cambio. La lluvia de marzo sube ({fis_marzo['pend']:+.0f} mm/mes por "
      "década con PL*) y el caudal de marzo no la sigue."),
 ]
+# conclusiones sobre los datos: lo que el texto afirma de PI, de CAMELS-COL y de los mapas
+sint_est_pi_mayor = sum(v["sesgo"] > 0 for k, v in cmp_stats.items() if k != NOM_RED)   # pluviómetros que PI supera
+assert sesgo_pi_pl < 0 and p2_pipl["debajo_pct"] > 50                            # «PI queda por debajo de PL»
+assert 0 < sint_est_pi_mayor < len(cmp_stats) - 1                                # «pero no de todos los pluviómetros»
+assert rho("PI", "Q") < rho("PL", "Q")                                           # «Q se lleva mejor con PL»
+assert _k("PI", MOD_ELEGIDO).kge < _k("PL", MOD_ELEGIDO).kge and mod_pi_kge_bajo_m0["vc"]
+assert etp_anual.camels > etp_pl_anual                                           # «la ETP de CAMELS-COL supera a la lluvia»
+assert rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>" for c in fila[1:]) + "</tr>"
                        for fila in SINT_FILAS)
 
@@ -4454,6 +4462,29 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
+
+  <h3>Lo que aprendimos de los datos</h3>
+  <p><b>PI queda por debajo de PL y se conecta peor con el caudal.</b> Con todas las exclusiones, PI está un
+  {abs(sesgo_pi_pl):.1f} % por debajo de PL, y lo está en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses (ver
+  «Comparando PI con PL»). No es una diferencia uniforme: PI supera a {sint_est_pi_mayor} de los
+  {len(cmp_stats) - 1} pluviómetros por separado. Que PI sea más baja no dice cuál de las dos acierta: ningún pluviómetro
+  mide por encima de {n(mapa_plu_alta.altitud)} m, y arriba llueve menos. Aparte del nivel, el caudal se lleva mejor con PL que
+  con PI (ρ = {rho("PL", "Q"):.2f} contra {rho("PI", "Q"):.2f}; ver «Qué dicen»). Con PL, el modelo del caudal tiene un KGE de
+  {_k("PL", MOD_ELEGIDO).kge:.2f} fuera del ajuste; con PI, {_k("PI", MOD_ELEGIDO).kge:.2f}, por debajo de la climatología
+  ({_k("PI", MOD_REFERENCIA).kge:.2f}; ver «Validación fuera del ajuste»). Para estimar el caudal, el nivel de la
+  lluvia importa poco, porque el modelo lo absorbe al ajustarse: importa que suba y baje cuando sube y baja el río, y eso lo hace mejor PL. Por
+  eso, cuando hay que escoger, manda PL.</p>
+  <p><b>Dos atributos de CAMELS-COL tienen errores, y por eso se recalcularon.</b> La geología trae las etiquetas corridas: su
+  columna de rocas plutónicas trae el {geo_sedimentaria:.1f} % que, según el mapa del SGC, es roca sedimentaria, y la
+  volcanoclástica repite la volcánica en las {geo_n_cuencas} cuencas del archivo (ver «Coberturas, suelos y geología»). La ETP
+  sale {etp_cociente.median():.2f} veces la de su propia fórmula, {n(etp_anual.camels)} mm/año, más que la lluvia
+  ({n(etp_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
+  del proyecto. Del resto de CAMELS-COL, el caudal pasó el control de calidad del proyecto.</p>
+  <p><b>De los campos climáticos globales solo sirvió El Niño.</b> En los mapas de correlación, solo
+  {rob_mapas["con_fdr"]} de los {rob_mapas["total"]} paneles mensuales tienen alguna caja que pase la corrección por pruebas
+  múltiples, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar un solo año (ver «¿Y los mapas?»). Con
+  {pe_n_anios} años, las manchas de los mapas no se distinguen del azar. Lo único que resistió fue la relación con el índice
+  Niño 3.4, que se resume en una sola serie.</p>
 </section>
 
 <section>

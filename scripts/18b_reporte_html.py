@@ -4587,7 +4587,6 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>La cuenca frente a los campos climáticos</h2>
-  <div class="revision" data-etiqueta="Revisión · correlaciones con los campos">
   <p>Esta sección busca qué relación hay, año a año, entre la cuenca y los campos de «Campos climáticos globales».
   Se usan anomalías: para la cuenca y para cada campo, el valor menos la media de su mes en
   {cam_anios[0]}–{cam_anios[1]}. Cada mes del calendario se correlaciona <b>a través de los años</b>: por ejemplo, los
@@ -4678,7 +4677,6 @@ a {{ color: var(--acento); }}
   concluyentes</b> más allá de la relación con El Niño: con 25 años, la forma detallada de las manchas no se distingue
   del azar. Por eso no se muestran aquí; los dibuja <code>scripts/21_mapas_correlacion.py</code> en
   <code>reporte/figuras/</code>.</p>
-  </div>
 </section>
 
 <section>

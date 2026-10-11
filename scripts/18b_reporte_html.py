@@ -4802,8 +4802,8 @@ a {{ color: var(--acento); }}
     Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
     Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
     <li id="ref-alos">ALOS PALSAR, modelo digital de elevación de 12.5 m (Agencia Japonesa de Exploración Aeroespacial,
-    JAXA). El proyecto usa un recorte de un mosaico nacional del equipo; <b>falta registrar de dónde se descargó</b>
-    (portal, producto exacto, fecha y licencia; ver <code>DATOS_FUENTES.md</code>).</li>
+    JAXA). El proyecto usa un recorte de un mosaico de Colombia que el equipo ya tenía; el producto se puede descargar
+    del Alaska Satellite Facility (ASF). Ver <code>DATOS_FUENTES.md</code>.</li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>

@@ -3887,8 +3887,7 @@ assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
 
 # ======================================================================================================
 # Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.
-# Morfometría (ya calculada por 13-15), PL con Thiessen y corrección por altura (07e) y el balance de largo plazo en
-# el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
+# Morfometría (ya calculada por 13-15) y el balance de largo plazo en el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
 # ======================================================================================================
 # ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
 morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
@@ -3906,30 +3905,9 @@ assert morf_gravelius > 1.75 and morf_forma < 0.3
 assert morf_tc_medido.max() < 24 and morf_tc_publicado.max() > 48
 assert (desfase_tc[0], desfase_tc[1]) == (morf_tc_medido.min(), morf_tc_medido.max())
 
-# ---------------------------------------------------------------- PL con Thiessen y corrección por altura (07e)
-th_mensual = pd.read_csv("out/pl_thiessen_mensual.csv")
-th_mensual["periodo"] = pd.PeriodIndex(th_mensual.periodo, freq="M")
-th_mensual = th_mensual.set_index("periodo")
-th_poligonos = pd.read_csv("out/pl_thiessen_poligonos.csv").set_index("codigo")
-TH_COLUMNAS = {"pl_promedio_simple": "PL (promedio simple)", "pl_thiessen": "PL con Thiessen",
-               "pl_thiessen_altura": "PL con Thiessen y altura"}
-th_anual = {c: float(th_mensual[c].mean() * 12) for c in TH_COLUMNAS}
-th_pct = {c: (th_anual[c] / th_anual["pl_promedio_simple"] - 1) * 100 for c in TH_COLUMNAS}
-th_pi_anual = float(comp["IMERG"].mean() * 12)
-th_brecha_pi = {c: (th_pi_anual / th_anual[c] - 1) * 100 for c in TH_COLUMNAS}
-# coeficiente de escorrentía y correlación con Q de cada versión, en los meses con Q
-_th_q = pd.concat([th_mensual[list(TH_COLUMNAS)], q_camels.rename("Q"),
-                   comp["IMERG"].rename("PI")], axis=1).dropna()
-th_coef = {c: float(_th_q.Q.sum() / _th_q[c].sum()) for c in list(TH_COLUMNAS) + ["PI"]}
-th_rho_q = {c: float(_th_q[c].corr(_th_q.Q, method="spearman")) for c in list(TH_COLUMNAS) + ["PI"]}
-th_peso_max = th_poligonos.peso.idxmax()
-assert np.isclose(th_anual["pl_promedio_simple"], comp["RED"].mean() * 12)    # el promedio simple es la PL de siempre
-# lo que afirma el texto: Thiessen sube PL (Encino, la estación más lluviosa, pesa más), la corrección por altura
-# la baja, y ninguna de las dos versiones se aleja de la PL de siempre tanto como PI
-assert th_pct["pl_thiessen"] > 0 > th_pct["pl_thiessen_altura"]
-assert max(abs(th_pct["pl_thiessen"]), abs(th_pct["pl_thiessen_altura"])) < abs(sesgo_pi_pl) / 2
-assert th_poligonos.loc[th_peso_max, "nombre"] == "ENCINO"
-assert all(th_brecha_pi[c] < 0 for c in TH_COLUMNAS)                           # PI queda por debajo de las tres
+# ---------------------------------------------------------------- lluvia anual de la portada y el resumen
+alt_pl_anual = float(comp["RED"].mean() * 12)        # PL: promedio simple de la red, los 300 meses de 1998-2022
+alt_pi_anual = float(comp["IMERG"].mean() * 12)
 
 # ---------------------------------------------------------------- balance de largo plazo: Budyko
 # Con los meses en que hay Q, la evapotranspiración real media es E = P − Q (a largo plazo el almacenamiento se
@@ -3946,8 +3924,7 @@ def _fu(phi, w):
 
 _vm = pd.read_csv("out/variables_mensuales.csv", index_col=0)
 _vm.index = pd.PeriodIndex(_vm.index, freq="M")
-_vm["PL_TH"] = th_mensual.pl_thiessen_altura.reindex(_vm.index)
-BUD_FUENTES = {"PL": "PL", "PL_TH": "PL con Thiessen y altura", "PI": "PI"}
+BUD_FUENTES = {"PL": "PL", "PI": "PI"}
 bud = {}
 for _f in BUD_FUENTES:
     _p, _q, _e = _vm[_f].mean() * 12, _vm.Q.mean() * 12, _vm.ETP.mean() * 12

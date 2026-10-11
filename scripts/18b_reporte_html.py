@@ -233,7 +233,6 @@ CITA_MUNOZ = '<a class="cita" href="#ref-munoz2021">Muñoz-Sabater et al., 2021<
 CITA_SGC = '<a class="cita" href="#ref-sgc2023">Servicio Geológico Colombiano, 2023</a>'
 CITA_MAPBIOMAS = '<a class="cita" href="#ref-mapbiomas2025">Fundación Gaia Amazonas, 2025</a>'
 CITA_STRAHLER = '<a class="cita" href="#ref-strahler1952">Strahler, 1952</a>'
-CITA_THIESSEN = '<a class="cita" href="#ref-thiessen1911">Thiessen, 1911</a>'
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
 # cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
@@ -1811,7 +1810,7 @@ SINT_FILAS += [
      f"{n(bud['PL']['p'])} y PI {n(bud['PI']['p'])}.",
      "A largo plazo, la lluvia que no sale por el río se evapotranspira, y la proporción depende de la aridez.",
      f"Con PL la cuenca queda por encima de la curva (ω = {bud['PL']['omega']:.1f}) y con PI por debajo "
-     f"(ω = {bud['PI']['omega']:.1f}); PL con Thiessen y altura queda más cerca («Balance de largo plazo: Budyko»).",
+     f"(ω = {bud['PI']['omega']:.1f}) («Balance de largo plazo: Budyko»).",
      f"{CITA_BUDYKO}; {CITA_FU}",
      "La curva es el comportamiento medio de muchas cuencas; una cuenca concreta puede apartarse de ella. La ETP es de "
      "Hargreaves y potencial."),
@@ -1821,8 +1820,8 @@ sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>
 
 
 # ======================================================================================================
-# Versión alterna del informe (2026-10-11). Textos de las secciones nuevas (forma y relieve, PL con Thiessen,
-# Budyko, curva de duración de los caudales mensuales), del resumen y las conclusiones, y de las correcciones que pidió la revisión
+# Versión alterna del informe (2026-10-11). Textos de las secciones nuevas (forma y relieve,
+# Budyko), del resumen y las conclusiones, y de las correcciones que pidió la revisión
 # adversarial. Las cifras salen de 18_calculos_informe.py; lo que el texto afirma se protege con assert.
 # ======================================================================================================
 
@@ -1939,76 +1938,16 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
   estacional»). Ese atraso no es el tiempo de viaje del agua por los cauces: es agua que la cuenca guarda y suelta
   después.</p>"""
 
-# ---------------------------------------------------------------- PL con Thiessen y corrección por altura
-alt_filas_th_pol = "\n".join(
-    f"<tr><td>{html.escape(r.nombre.title())}</td><td class='num'>{n(r.altitud_estacion_m)}</td>"
-    f"<td class='num'>{n(r.area_km2)}</td><td class='num'>{r.peso:.3f}</td><td class='num'>{n(r.altura_poligono_m)}</td>"
-    f"<td class='num'>{r.factor_altura:.3f}</td></tr>"
-    for _, r in th_poligonos.sort_values("altitud_estacion_m").iterrows())
-alt_filas_th = "\n".join(
-    f"<tr><td>{nombre}</td><td class='num'>{n(th_anual[c])}</td><td class='num'>{th_pct[c]:+.1f} %</td>"
-    f"<td class='num'>{th_brecha_pi[c]:+.1f} %</td><td class='num'>{th_coef[c]:.3f}</td>"
-    f"<td class='num'>{th_rho_q[c]:.3f}</td></tr>" for c, nombre in TH_COLUMNAS.items()) + (
-    f"\n<tr><td>PI</td><td class='num'>{n(th_pi_anual)}</td><td class='num'>—</td><td class='num'>—</td>"
-    f"<td class='num'>{th_coef['PI']:.3f}</td><td class='num'>{th_rho_q['PI']:.3f}</td></tr>")
-alt_thiessen = f"""<h3>¿Cambia PL si se pondera por área y por altura?</h3>
-  <p>PL es el promedio simple de las estaciones con dato cada mes: cada pluviómetro pesa lo mismo, cubra la parte de la
-  cuenca que cubra. Las {len(th_poligonos)} estaciones están entre {n(th_poligonos.altitud_estacion_m.min())} y
-  {n(th_poligonos.altitud_estacion_m.max())} m, y la cuenca llega a {n(elev_max)} m. Para medir cuánto pesa eso se
-  probaron dos métodos espaciales usuales (<code>scripts/07e_pl_thiessen.py</code>):</p>
-  <ul>
-    <li><b>Polígonos de Thiessen</b> ({CITA_THIESSEN}): cada punto de la cuenca toma la lluvia del pluviómetro más
-    cercano, y cada estación pesa según el área de su polígono. Los polígonos se rehacen cada mes con las estaciones
-    que tienen dato; no se rellena nada.</li>
-    <li><b>Thiessen con corrección por altura</b>: la lluvia de cada estación se lleva a la altura media de su polígono
-    con la recta de lluvia contra altura de IMERG (ver «En esta cuenca llueve menos arriba»). Se usa la de IMERG
-    porque la de los pluviómetros no es significativa. <i>Es una decisión de método de esta versión</i>, para que el
-    equipo la acepte o la cambie.</li>
-  </ul>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Estación</th><th class="num">Altura (m)</th><th class="num">Área del polígono (km²)</th>
-    <th class="num">Peso</th><th class="num">Altura media del polígono (m)</th><th class="num">Factor por altura</th></tr></thead>
-    <tbody>
-{alt_filas_th_pol}
-    </tbody>
-  </table>
-  </div>
-  <p class="nota">Polígonos con las {len(th_poligonos)} estaciones presentes, en EPSG:3116. El factor por altura multiplica la
-  lluvia de la estación: menor que 1 porque cada polígono queda, en promedio, más alto que su estación.</p>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Lluvia</th><th class="num">P (mm/año)</th><th class="num">Frente a PL</th>
-    <th class="num">PI frente a esta</th><th class="num">Coeficiente de escorrentía</th><th class="num">ρ con Q</th></tr></thead>
-    <tbody>
-{alt_filas_th}
-    </tbody>
-  </table>
-  </div>
-  <p class="nota">P: media anual de los {len(th_mensual)} meses de 1998–2022. Coeficiente de escorrentía y ρ de Spearman con
-  Q: en los {len(_th_q)} meses con caudal.</p>
-  <p><b>El método de promedio cambia PL poco.</b> Thiessen la sube un {th_pct["pl_thiessen"]:.1f} % ({html.escape(
-  th_poligonos.loc[th_peso_max, "nombre"].title())}, el polígono más grande, pesa {th_poligonos.peso.max():.2f}); la
-  corrección por altura la baja un {abs(th_pct["pl_thiessen_altura"]):.1f} %. PI queda por debajo de las tres versiones,
-  entre {abs(max(th_brecha_pi.values())):.1f} y {abs(min(th_brecha_pi.values())):.1f} %: <b>la diferencia entre PI y PL no
-  se explica por cómo se promedian los pluviómetros</b>. La relación con Q casi no cambia. El informe sigue usando la PL
-  de siempre; las otras dos son una prueba de sensibilidad.</p>"""
-
 # ---------------------------------------------------------------- balance de largo plazo: Budyko
-_bud_abajo = {"PL": False, "PL_TH": True, "PI": False}
 bud_json = json.dumps({"curva": bud_curva_json, "puntos": [
     {"nombre": BUD_FUENTES[f], "phi": round(b["phi"], 3), "ep": round(b["ep"], 3),
-     "color": COLOR_VAR["PI" if f == "PI" else "PL"], "simbolo": "diamond" if f == "PL_TH" else "circle",
-     "abajo": _bud_abajo[f]} for f, b in bud.items()]}, ensure_ascii=False)
+     "color": COLOR_VAR["PI" if f == "PI" else "PL"], "simbolo": "circle",
+     "abajo": False} for f, b in bud.items()]}, ensure_ascii=False)
 alt_filas_bud = "\n".join(
     f"<tr><td>{BUD_FUENTES[f]}</td><td class='num'>{n(b['p'])}</td><td class='num'>{n(b['q'])}</td>"
     f"<td class='num'>{n(b['et_real'])}</td><td class='num'>{n(b['etp'])}</td><td class='num'>{b['phi']:.3f}</td>"
     f"<td class='num'>{b['ep']:.3f}</td><td class='num'>{b['ep_budyko']:.3f}</td><td class='num'>{b['omega']:.2f}</td></tr>"
     for f, b in bud.items())
-# «la relación con Q casi no cambia»
-assert max(th_rho_q[c] for c in TH_COLUMNAS) - min(th_rho_q[c] for c in TH_COLUMNAS) < 0.02
-# «PL con Thiessen y altura queda más cerca de la lluvia que pide la curva»
-assert abs(bud["PL_TH"]["p"] - bud_p_curva) < min(abs(bud["PL"]["p"] - bud_p_curva), abs(bud["PI"]["p"] - bud_p_curva))
 alt_budyko = f"""<h3>Balance de largo plazo: Budyko</h3>
   <p>Mes a mes, P − Q incluye el almacenamiento; en muchos años, en cambio, lo que la cuenca guarda y suelta se compensa, y
   la lluvia que no sale por el río es la evapotranspiración real: E = P − Q. El marco de {CITA_BUDYKO} pone a cada cuenca
@@ -2031,8 +1970,7 @@ alt_budyko = f"""<h3>Balance de largo plazo: Budyko</h3>
   <p><b>Con PL la cuenca evapotranspira más de lo esperable; con PI, menos.</b> Con PL queda por encima de la curva (E/P de
   {bud["PL"]["ep"]:.2f} contra {bud["PL"]["ep_budyko"]:.2f}) y con PI por debajo ({bud["PI"]["ep"]:.2f} contra
   {bud["PI"]["ep_budyko"]:.2f}). Con el Q y la ETP observados, la lluvia con la que la cuenca caería justo sobre la curva es
-  de {n(bud_p_curva)} mm/año: entre PI ({n(bud["PI"]["p"])}) y PL ({n(bud["PL"]["p"])}), y más cerca de PL con Thiessen y
-  altura ({n(bud["PL_TH"]["p"])}). <b>No es una medida de la lluvia</b>: es la que haría que esta cuenca se comportara como
+  de {n(bud_p_curva)} mm/año: entre PI ({n(bud["PI"]["p"])}) y PL ({n(bud["PL"]["p"])}). <b>No es una medida de la lluvia</b>: es la que haría que esta cuenca se comportara como
   la media de las cuencas del mundo, y una cuenca concreta puede apartarse de esa media. Sirve como contraste
   independiente de las dos fuentes, y no le da la razón del todo a ninguna.</p>"""
 
@@ -2051,8 +1989,8 @@ alt_veredicto_h = f"""<div class="aviso">
 
 # ---------------------------------------------------------------- resumen, cambios y conclusiones
 alt_resumen = f"""<p>La cuenca del Fonce hasta San Gil ({n(sg["area"], 2)} km², de {n(elev_min)} a {n(elev_max)} m) es
-  alargada y empinada. Según los pluviómetros (PL) recibe {n(th_anual["pl_promedio_simple"])} mm/año, y según el satélite
-  (PI), {n(th_pi_anual)}, un {abs(sesgo_pi_pl):.1f} % menos. No hay forma de saber cuál acierta, y por eso todo se calcula
+  alargada y empinada. Según los pluviómetros (PL) recibe {n(alt_pl_anual)} mm/año, y según el satélite
+  (PI), {n(alt_pi_anual)}, un {abs(sesgo_pi_pl):.1f} % menos. No hay forma de saber cuál acierta, y por eso todo se calcula
   con las dos; cuando hay que escoger, manda PL. Sale como caudal (Q) el {fis_coef["pl"] * 100:.0f} % de la lluvia con PL
   ({coef_periodo * 100:.0f} % con PI).</p>
   <p>Llueve en dos temporadas al año ({pico_pl[0]} y {pico_pl[1]} son los picos con PL) y el río las sigue con unos
@@ -2066,7 +2004,7 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
   aquí sin el equipo van marcadas, para que el equipo las acepte o las cambie.</p>
   <ul>
     <li><b>Secciones nuevas:</b> «Forma y relieve de la cuenca» (la morfometría ya calculada, que no estaba en el informe),
-    «¿Cambia PL si se pondera por área y por altura?», «Balance de largo plazo: Budyko», este resumen, un veredicto sobre la hipótesis H y conclusiones numeradas.</li>
+    «Balance de largo plazo: Budyko», este resumen, un veredicto sobre la hipótesis H y conclusiones numeradas.</li>
     <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
     manda; CAMELS-COL ya no se presenta como confirmación; el rezago de Q frente al ONI es de 1 a 2 meses en todas partes;
     los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
@@ -2082,8 +2020,6 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
   </ul>
   <p><b>Decisiones de método tomadas en esta versión:</b></p>
   <ul>
-    <li>La corrección de PL por altura usa la recta de IMERG, porque la de los pluviómetros no es significativa. Es solo
-    una prueba de sensibilidad: PL sigue siendo el promedio simple.</li>
     <li>En el balance de Budyko, la evapotranspiración real es P − Q en los meses con todas las variables.</li>
   </ul>
   <p class="nota">Quedaron sin hacer: rehacer la figura del DEM en una proyección de Colombia (necesita el DEM completo),
@@ -2095,9 +2031,7 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Régimen bimodal.</b> La lluvia y el caudal tienen dos temporadas al año, por el doble paso de la ZCIT; los
     picos de PL están en {pico_pl[0]} y {pico_pl[1]}.</li>
     <li><b>Balance.</b> Sale como caudal el {fis_coef["pl"] * 100:.0f} % de la lluvia con PL ({coef_periodo * 100:.0f} %
-    con PI). El balance de Budyko pide una lluvia de {n(bud_p_curva)} mm/año, entre PI y PL. La diferencia entre las dos
-    fuentes pesa mucho más que el método con que se promedian los pluviómetros, que cambia PL poco (±{max(abs(th_pct["pl_thiessen"]),
-    abs(th_pct["pl_thiessen_altura"])):.0f} %).</li>
+    con PI). El balance de Budyko pide una lluvia de {n(bud_p_curva)} mm/año, entre PI y PL.</li>
     <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
     despacio.</li>
@@ -2270,8 +2204,8 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(sg['area'])} km²</b><span>área de drenaje</span></div>
     <div class="cifra"><b>{n(elev_min)}–{n(elev_max)} m</b><span>rango de elevación (DEM)</span></div>
     <div class="cifra"><b>{n(elev_media)} m</b><span>elevación media (DEM)</span></div>
-    <div class="cifra"><b>{n(th_anual["pl_promedio_simple"])} mm</b><span>lluvia anual PL 1998–2022</span></div>
-    <div class="cifra"><b>{n(th_pi_anual)} mm</b><span>lluvia anual PI 1998–2022</span></div>
+    <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual PL 1998–2022</span></div>
+    <div class="cifra"><b>{n(alt_pi_anual)} mm</b><span>lluvia anual PI 1998–2022</span></div>
   </div>
   <p class="intro">Tres siglas en todo el informe: <b>PL</b> es la lluvia de los pluviómetros del IDEAM (el promedio de
   las {len(DENTRO)} estaciones dentro de la cuenca), <b>PI</b> la del satélite IMERG promediada sobre la cuenca y
@@ -2748,7 +2682,6 @@ a {{ color: var(--acento); }}
   <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
   la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
   PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
-  {alt_thiessen}
 </section>
 
 <section>
@@ -5075,9 +5008,6 @@ a {{ color: var(--acento); }}
     <li id="ref-strahler1952">Strahler, A. N. (1952). Hypsometric (area-altitude) analysis of erosional topography.
     <i>Geological Society of America Bulletin</i>, 63(11), 1117–1142.
     <a href="https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2">https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2</a></li>
-    <li id="ref-thiessen1911">Thiessen, A. H. (1911). Precipitation averages for large areas. <i>Monthly Weather Review</i>,
-    39(7), 1082–1084.
-    <a href="https://doi.org/10.1175/1520-0493(1911)39%3C1082b:PAFLA%3E2.0.CO;2">https://doi.org/10.1175/1520-0493(1911)39&lt;1082b:PAFLA&gt;2.0.CO;2</a></li>
     <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
     based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>

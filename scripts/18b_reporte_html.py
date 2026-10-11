@@ -2592,9 +2592,7 @@ a {{ color: var(--acento); }}
   <h2>Qué meses tienen dato y cuáles no</h2>
   <p>Cada franja es un mes de una fuente, y en las series diarias su color es el <b>porcentaje de días del mes
   con registro</b>: así se distingue un mes completo de uno al que le faltan unos días.</p>
-  <p class="nota"><b>PI</b>: lluvia de IMERG sobre la cuenca. <b>PL</b>: la de los pluviómetros del IDEAM dentro de
-  la divisoria (su promedio o cada uno). <b>Q</b>: caudal en San Gil. <b>ETP</b>: evapotranspiración potencial de
-  Hargreaves con ERA5-Land.</p>
+  <p class="nota"><b>ETP</b>: evapotranspiración potencial de Hargreaves con ERA5-Land.</p>
   <p>La regla acepta un mes al que le falten <b>{MAX_DIAS_FALTANTES} días o menos</b>; como no es lo mismo que
   falten sueltos o seguidos, el detalle de cada mes (al pasar el cursor) dice también <b>cuántos son
   consecutivos</b>.</p>
@@ -2785,8 +2783,7 @@ a {{ color: var(--acento); }}
 <section>
   <details class="plegable" open>
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
-  {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
+  <p>Las variables mensuales del proyecto en San Gil: PI, PL, Q y la temperatura de ERA5-Land: <b>T media</b>,
   <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. La temperatura es una sola variable, pero
   va en tres columnas. La ETP no está en la tabla: se calcula con la temperatura (Hargreaves) y tiene su propia
   sección, «La evapotranspiración potencial (ETP)». Q sale de la curva de calibración del IDEAM,
@@ -3075,9 +3072,6 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Lo que le cae a la cuenca y lo que sale por el río</h2>
-  <p class="nota">De aquí en adelante, y en todo el informe, tres siglas: <b>PI</b> es la precipitación de
-  IMERG (satélite) promediada sobre la cuenca, <b>PL</b> la precipitación de los pluviómetros del IDEAM
-  (el promedio de las {len(DENTRO)} estaciones de la red) y <b>Q</b> el caudal.</p>
   <p>Dividido por el área de la cuenca ({n(AREA_SG_KM2)} km²), el caudal queda como lámina de agua, en mm, y se
   compara con la lluvia en el mismo eje.</p>
   <div class="cifras" style="margin: 18px 0 6px">

@@ -2822,7 +2822,9 @@ a {{ color: var(--acento); }}
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
   {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
-  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. Q sale de la curva de calibración del IDEAM,
+  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. La temperatura es una sola variable, pero
+  va en tres columnas. La ETP no está en la tabla: se calcula con la temperatura (Hargreaves) y tiene su propia
+  sección, «La evapotranspiración potencial (ETP)». Q sale de la curva de calibración del IDEAM,
   que pasa del nivel del río al caudal; el error de esa curva no se conoce, sobre todo en caudales altos, donde hay menos
   aforos, y en este informe Q se trata como exacto (ver «Limitaciones y trabajo futuro»).</p>
   <div class="tabla-caja">

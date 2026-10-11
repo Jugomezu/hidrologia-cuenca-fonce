@@ -4965,7 +4965,8 @@ a {{ color: var(--acento); }}
     based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
   </ol>
-  <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
+  <p class="nota">Las fuentes de datos principales están al pie de la página; la lista completa, con todas las fuentes de
+  datos que usa el informe, es esta bibliografía.</p>
 </section>
 
 <section>
@@ -5071,11 +5072,6 @@ a {{ color: var(--acento); }}
     <li><b>Estaciones de aforo:</b> IDEAM, a través de CAMELS-COL.</li>
     <li><b>Pluviómetros:</b> IDEAM, portal DHIME (<code>atencionciudadano.ideam.gov.co</code>), precipitación total mensual 1998–2022, nivel preliminar y definitivo.</li>
     <li><b>El Niño y La Niña:</b> ONI de la NOAA; ver la bibliografía.</li>
-    <li><b>Temperatura y ETP:</b> ERA5-Land ({CITA_MUNOZ}), DOI <a href="https://doi.org/10.24381/cds.e2161bac">10.24381/cds.e2161bac</a>.</li>
-    <li><b>Geología:</b> Mapa Geológico de Colombia 2023, escala 1:1 500 000 ({CITA_SGC}).</li>
-    <li><b>Coberturas:</b> MapBiomas Colombia, colección 3, año 2022 ({CITA_MAPBIOMAS}).</li>
-    <li><b>Mapa de ubicación:</b> Copernicus DEM GLO-90 (ESA) y límites de Natural Earth 1:10 m, de dominio público.</li>
-    <li><b>Campos climáticos globales:</b> ERSST v5 y ERA5 mensual; ver la bibliografía.</li>
   </ul>
   <p style="margin-top:14px">Generado con <code>scripts/08_mapas_y_pixeles.py</code>, <code>scripts/18_calculos_informe.py</code> y <code>scripts/18b_reporte_html.py</code>.</p>
 </footer>

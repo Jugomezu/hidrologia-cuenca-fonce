@@ -1039,6 +1039,21 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
 - **Nota:** la NOAA puede revisar los valores recientes; la copia local con su SHA-256 es la referencia.
 
 
+## TNA - indice del Atlantico tropical norte (NOAA PSL)
+
+- **Producto:** Tropical Northern Atlantic Index (TNA; Enfield et al., 1999): anomalia mensual de la temperatura
+  superficial del mar en 5.5° N-23.5° N, 15° O-57.5° O, calculada por NOAA PSL con HadISST1.1 y climatologia 1991-2020.
+- **Fuente:** https://psl.noaa.gov/data/correlation/tna.data
+- **Licencia:** datos publicos del gobierno de EE. UU. (dominio publico).
+- **Descargado:** 2026-10-11, con `scripts/17b_soi_tna.py` (se baja solo si no existe en `data/`). El usuario lo eligio
+  ese dia en lugar de la NAO para representar al Atlantico.
+- **Destino local:** `data/noaa/tna.txt` (943 meses con dato, 1948-01 a 2026-07; faltantes como -99.99) y
+  `out/soi_tna_mensual_1981_2022.csv` (504 meses, sin vacios, con el SOI).
+- **SHA-256 de `data/noaa/tna.txt`:** `387c4125f377e57bcb683a849aefcd76da7d7f3cdcb2ac68ab086ceadf300e8b`
+- **Control de calidad (2026-10-11):** en 1981-2022 el TNA correlaciona 0.04 con el ONI del mismo mes y 0.23 con el ONI
+  de 5 meses antes (el Atlantico tropical norte se calienta despues de El Nino).
+
+
 ## ERSST v5 - temperatura superficial del mar (NOAA), campos mensuales del Punto 5
 
 - **Producto:** NOAA Extended Reconstructed Sea Surface Temperature, version 5 (ERSST v5): temperatura

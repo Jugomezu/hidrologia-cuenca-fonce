@@ -941,6 +941,23 @@ for _f in MOD_FUENTES:
     assert _b.meses_q_mayor_p_estimado < _b.meses_q_mayor_p_observado
     assert _b.anios_q_mayor_p_estimado == 0
 
+# ¿agrega algo la ETP? (16b): M5 = M4 + ln ETP, y la correlación parcial de las anomalías de Q y de la ETP sin la
+# lluvia del mes ni la del anterior (decidido por el usuario el 2026-10-11, a partir de la evaluación del informe)
+MOD_CON_ETP = "M5"
+mod_etp = pd.read_csv("out/modelos_etp.csv").set_index("fuente")
+for _f in MOD_FUENTES:
+    _e = mod_etp.loc[_f]
+    # el texto dice: la parcial es negativa y significativa, c es negativo con un intervalo que no toca el 0, M5 yerra
+    # menos que M4 en los dos esquemas, tiene menor BIC y le quita calendario a los residuos
+    assert _e.parcial_q_etp < 0 and _e.parcial_q_etp_p < MOD_ALFA
+    assert _e.c_ic95_superior < 0
+    assert _e.rmse_m5 < _e.rmse_m4 and _e.rmse_particion_m5 < _e.rmse_particion_m4 and _e.delta_bic_m5_menos_m4 < 0
+    assert _e.residuo_mes_max_abs_m5 < _e.residuo_mes_max_abs_m4
+mod_etp_10 = {f: (1 + MOD_CAMBIO_EJEMPLO) ** mod_etp.loc[f, "c"] - 1 for f in MOD_FUENTES}   # Q con 10 % más ETP
+mod_etp_calendario = {f: 1 - mod_etp.loc[f, "residuo_mes_max_abs_m5"] / mod_etp.loc[f, "residuo_mes_max_abs_m4"]
+                      for f in MOD_FUENTES}                                                    # cuánto calendario quita
+mod_etp_kw_queda = {f: mod_etp.loc[f, "kruskal_residuo_por_mes_p_m5"] < MOD_ALFA for f in MOD_FUENTES}
+
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
 ciclo_esc_razon_red = ciclo.escorrentia_red.max() / ciclo.escorrentia_red.min()

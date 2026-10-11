@@ -1423,12 +1423,14 @@ fis_q_abril_txt = (f"En abril, el mes siguiente, Q tampoco tiene tendencia signi
 
 # ---------------------------------------------------------------- modelos para estimar Q con la lluvia
 MOD_NOMBRE = {"M0": "climatología mensual de Q", "M1": "recta", "M2": "recta con la lluvia del mes anterior",
-              "M3": "logaritmos", "M4": "logaritmos con la lluvia del mes anterior"}
+              "M3": "logaritmos", "M4": "logaritmos con la lluvia del mes anterior",
+              "M5": "M4 más la ETP del mes"}
 MOD_ECUACION = {"M0": "Q̂ = Q medio de ese mes del calendario",
                 "M1": "Q = a + b·P<sub>t</sub>",
                 "M2": "Q = a + b<sub>0</sub>·P<sub>t</sub> + b<sub>1</sub>·P<sub>t−1</sub>",
                 "M3": "ln Q = a + b·ln P<sub>t</sub>",
-                "M4": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>"}
+                "M4": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>",
+                "M5": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub> + c·ln ETP<sub>t</sub>"}
 _mes_corto = lambda k: MESES_ES[int(k) - 1]
 
 # el diagnóstico: una columna por fuente y escala
@@ -1761,7 +1763,8 @@ SINT_FILAS = [
      f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).",
      "Ninguna: se infiere del atraso del río.",
      "El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones "
-     "de agua, que también podrían cambiar la respuesta del río."),
+     "de agua, que también podrían cambiar la respuesta del río. Parte del calendario que queda en los residuos lo explica "
+     "la ETP («¿Agrega algo la evapotranspiración? M5»)."),
     ("Los años con El Niño son más secos",
      f"Correlación negativa y robusta con el índice Niño 3.4 en {n34_robustos['PL']} con PL, {n34_robustos['PI']} con PI y "
      f"{n34_robustos['Q']} con Q.",
@@ -1940,13 +1943,16 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
 alt_veredicto_h = f"""<div class="aviso">
   <p><b>Veredicto: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
   ciclo anual, la del mes anterior agrega información, y el caudal no tiene tendencia sin un cambio de la lluvia. Lo que
-  la contradice, por su propio criterio: los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por mes
-  del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). Una lectura
-  posible, que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al
-  río entre temporadas y que el modelo no representa.</p>
-  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un
-  almacenamiento rápido, de un mes, y otro más lento. Para probarla haría falta un modelo con dos
-  almacenamientos y comprobar que sus residuos ya no conservan el calendario.</p>
+  la contradice, por su propio criterio: la ETP sí agrega información sobre el caudal una vez descontada la lluvia
+  (parcial {mod_etp.loc["PL", "parcial_q_etp"]:+.2f} con PL; M5 baja el error de {mod_etp.loc["PL", "rmse_m4"]:.1f} a
+  {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes), y los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por
+  mes del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). La ETP explica
+  parte de ese calendario: M5 le quita un {mod_etp_calendario["PL"] * 100:.0f} % al residuo del peor mes con PL{", pero no todo" if mod_etp_kw_queda["PL"] else ""}.
+  {"Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa." if mod_etp_kw_queda["PL"] else ""}</p>
+  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, menos una
+  evapotranspiración que cambia a lo largo del año, amortiguada por un almacenamiento rápido, de un mes{", y otro más lento" if mod_etp_kw_queda["PL"] else ""}.
+  Para probarla haría falta un modelo de balance con la evapotranspiración y {"dos almacenamientos" if mod_etp_kw_queda["PL"] else "el almacenamiento"}, y
+  comprobar que sus residuos ya no conservan el calendario.</p>
   </div>"""
 
 # ---------------------------------------------------------------- conclusiones
@@ -1960,13 +1966,14 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
     despacio.</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
-    PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}); con PI, no. Pero al modelo le falta el almacenamiento lento.</li>
+    PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}); con PI, no. Agregar la ETP (M5) baja el error de
+    {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL{"; aun así, al modelo le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
     <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
     después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI). Con {pe_n_anios} años no se le puede atribuir toda la
     variabilidad entre años.</li>
     <li><b>Tendencias.</b> La temperatura sube {fis_t_decada:+.2f} °C por década; la lluvia y el caudal no tienen una
     tendencia significativa, lo que no prueba que no la haya.</li>
-    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «La hipótesis H frente a los resultados»).</li>
+    <li><b>La hipótesis H</b> se sostiene en parte: la evapotranspiración sí agrega información sobre el caudal{", y probablemente falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""} (ver «La hipótesis H frente a los resultados»).</li>
   </ol>
 
   <h3>Limitaciones y trabajo futuro</h3>
@@ -2157,9 +2164,10 @@ a {{ color: var(--acento); }}
   la cuenca, amortiguada por un almacenamiento del orden de un mes. La evapotranspiración, casi constante en el año, no
   explica ni su ciclo ni sus diferencias entre años. Entre años, se espera además que el ENSO tenga algún efecto sobre
   la cuenca, a través de la lluvia.</p>
-  <p>Si H es cierta, se debería ver cuatro cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
-  mes anterior agrega información; que un cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento
-  no mueve el caudal; y que la lluvia y el caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
+  <p>Si H es cierta, se debería ver cinco cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
+  mes anterior agrega información; que la ETP no agrega información sobre el caudal una vez descontada la lluvia; que un
+  cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento no mueve el caudal; y que la lluvia y el
+  caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
   la lluvia no explica conservara el ciclo anual. El veredicto está en «Síntesis física y conclusiones».</p>
 </section>
 
@@ -4336,6 +4344,32 @@ a {{ color: var(--acento); }}
   mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
   sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
   independientes.</p>
+
+  <h3>¿Agrega algo la evapotranspiración? M5</h3>
+  <p>M4 usa solo la lluvia. Para poner a prueba la parte de H que dice que la evapotranspiración no explica el caudal se
+  ajusta <b>M5</b>, que es M4 más la ETP del mes: {MOD_ECUACION["M5"]}, con la misma muestra y la misma validación por
+  bloques.</p>
+  <ul>
+    <li><b>La ETP sí agrega información.</b> Quitando lo que explican la lluvia del mes y la del anterior, las anomalías de
+    Q y de la ETP se correlacionan en {mod_etp.loc["PL", "parcial_q_etp"]:+.2f} con PL y {mod_etp.loc["PI", "parcial_q_etp"]:+.2f}
+    con PI (p {fmt_p_eq(mod_etp.loc["PL", "parcial_q_etp_p"])} y {fmt_p_eq(mod_etp.loc["PI", "parcial_q_etp_p"])}). En M5 con
+    PL, c = {mod_etp.loc["PL", "c"]:.2f} (IC 95 %: {mod_etp.loc["PL", "c_ic95_inferior"]:.2f} a
+    {mod_etp.loc["PL", "c_ic95_superior"]:.2f}): con la misma lluvia, un mes con un {MOD_CAMBIO_EJEMPLO * 100:.0f} % más de ETP
+    lleva un {abs(mod_etp_10["PL"]) * 100:.0f} % menos de caudal.</li>
+    <li><b>Mejora fuera del ajuste.</b> En la validación cruzada, el error baja de {mod_etp.loc["PL", "rmse_m4"]:.1f} (M4) a
+    {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL y de {mod_etp.loc["PI", "rmse_m4"]:.1f} a {mod_etp.loc["PI", "rmse_m5"]:.1f}
+    con PI, y el KGE sube de {mod_etp.loc["PL", "kge_m4"]:.2f} a {mod_etp.loc["PL", "kge_m5"]:.2f} con PL. En la partición
+    2015–2022 pasa lo mismo ({mod_etp.loc["PL", "rmse_particion_m4"]:.1f} a {mod_etp.loc["PL", "rmse_particion_m5"]:.1f} mm/mes con
+    PL), y el BIC baja {abs(mod_etp.loc["PL", "delta_bic_m5_menos_m4"]):.0f} puntos.</li>
+    <li><b>Le quita parte del calendario a los residuos, no todo.</b> El residuo medio del peor mes del calendario baja de
+    {mod_etp.loc["PL", "residuo_mes_max_abs_m4"]:.2f} a {mod_etp.loc["PL", "residuo_mes_max_abs_m5"]:.2f} en ln Q con PL, un
+    {mod_etp_calendario["PL"] * 100:.0f} % menos.{" Pero los residuos de M5 todavía cambian con el mes del calendario (Kruskal-Wallis, p " + fmt_p_eq(mod_etp.loc["PL", "kruskal_residuo_por_mes_p_m5"]) + " con PL)." if mod_etp_kw_queda["PL"] else " Con PL, los residuos de M5 ya no cambian con el mes del calendario."}</li>
+  </ul>
+  <p class="aviso"><b>Qué se puede concluir y qué no.</b> La ETP de Hargreaves se calcula con la temperatura y su amplitud
+  diaria, que es mayor con el cielo despejado: en parte mide la nubosidad, y puede estar corrigiendo errores de la lluvia,
+  no solo midiendo la evaporación. M5 muestra que la demanda de la atmósfera, o algo que varía con ella, explica parte del
+  caudal que la lluvia no explica; no prueba el mecanismo. M4 sigue siendo el modelo de la ficha, porque estima el caudal
+  solo con la lluvia; M5 sirve para poner a prueba H.</p>
 </section>
 
 
@@ -4537,6 +4571,11 @@ a {{ color: var(--acento); }}
     en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_ELEGIDO):.1f} mm/mes con PL y
     de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_ELEGIDO):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
     la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
+    <li><b>En el balance de cada mes</b>, la ETP no debería agregar información sobre el caudal una vez descontada la
+    lluvia. Hoy sí agrega: la correlación parcial de las anomalías de Q y de la ETP es {mod_etp.loc["PL", "parcial_q_etp"]:+.2f}
+    con PL, y agregarla al modelo (M5) baja el error fuera del ajuste de {mod_etp.loc["PL", "rmse_m4"]:.1f} a
+    {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes (ver «¿Agrega algo la evapotranspiración? M5»). <b>Esto contradice a H</b>,
+    aunque la ETP de Hargreaves mide en parte la nubosidad.</li>
     <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
     lluvia de marzo sube ({fis_marzo["pend"]:+.0f} mm/mes por década con PL*, la única subserie de la lluvia que resiste la
     corrección FDR), pero el caudal de marzo no muestra tendencia significativa ({fis_marzo["q_mes"]["ols"]:+.1f} m³/s por

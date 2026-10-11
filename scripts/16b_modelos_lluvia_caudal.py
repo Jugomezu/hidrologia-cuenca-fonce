@@ -25,6 +25,10 @@ se comparan cinco, de menos a más complejo, con PL y con PI:
   M2  Q = a + b0·P(t) + b1·P(t−1)                 la recta con la lluvia del mes anterior
   M3  ln Q = a + b·ln P(t)                        la transformación logarítmica
   M4  ln Q = a + b0·ln P(t) + b1·ln P(t−1)        la transformación y el rezago
+  M5  ln Q = a + b0·ln P(t) + b1·ln P(t−1) + c·ln ETP(t)   M4 más la evapotranspiración potencial
+M5 no compite por la ficha: pone a prueba si la ETP agrega algo al caudal una vez descontada la lluvia (decidido
+por el usuario el 2026-10-11, a partir de la evaluación del informe). La ETP es la de Hargreaves con ERA5-Land,
+que depende de la amplitud térmica diaria: en parte mide la nubosidad, y eso se declara en el informe.
 
 En M3 y M4 el caudal estimado es exp(a + ...) multiplicado por el factor de Duan (1983, «smearing»): la media
 de exp(residuo) en el ajuste. Sin ese factor, volver del logaritmo daría la mediana del caudal y no su media,
@@ -65,6 +69,7 @@ Salidas:
   out/modelos_ficha.csv                     la ficha del modelo elegido, M4: una fila por fuente de lluvia
   out/modelos_estimados.csv                 el caudal estimado de cada mes fuera del ajuste, por modelo y esquema
   out/modelos_balance.csv                   ¿conserva masa M4? su caudal contra la lluvia y la ETP, por fuente
+  out/modelos_etp.csv                       ¿agrega algo la ETP? M5 contra M4 y la correlación parcial de Q con la ETP
 Las lee 18_calculos_informe.py, que por eso corre después.
 """
 from pathlib import Path
@@ -82,9 +87,11 @@ ESCALAS = ("lineal", "logarítmica")
 ALFA = 0.05                     # nivel de significancia de todas las pruebas
 REZAGOS_HAC = 12                # rezagos de Newey-West, los mismos que usan las tendencias en 18_calculos_informe.py
 NIVEL_IC = 0.95                 # nivel de los intervalos de los parámetros
-# los modelos: nombre -> (escala, ¿usa la lluvia del mes anterior?)
-MODELOS = {"M1": ("lineal", False), "M2": ("lineal", True),
-           "M3": ("logarítmica", False), "M4": ("logarítmica", True)}
+# los modelos: nombre -> (escala, ¿usa la lluvia del mes anterior?, ¿usa la ETP del mes?)
+MODELOS = {"M1": ("lineal", False, False), "M2": ("lineal", True, False),
+           "M3": ("logarítmica", False, False), "M4": ("logarítmica", True, False),
+           "M5": ("logarítmica", True, True)}
+CON_ETP = "M5"                   # la prueba de la ETP; el BIC de los demás se compara sin él
 ELEGIDO = "M4"                   # el modelo de la ficha (decidido por el usuario el 2026-10-09)
 COMPETIDOR = "M2"                # el otro con el mismo error, contra el que se justifica la elección
 REFERENCIA = "M0"                # la climatología mensual de Q
@@ -214,15 +221,19 @@ tabla.round(4).to_csv(OUT / "modelos_diagnostico.csv", index=False)
 # ------------------------------------------------------------------ modelos
 # La misma muestra para todos: meses con Q que tienen mes anterior dentro del período.
 MUESTRA = caudal.dropna().index[caudal.dropna().index > PERIODOS[0]]
+etp = variables["ETP"].reindex(PERIODOS)                   # mm/mes, Hargreaves con ERA5-Land
+assert etp.loc[MUESTRA].notna().all() and (etp.loc[MUESTRA] > 0).all()
 
 
 def matriz(fuente, modelo, indice):
-    """Columnas del modelo: la constante, la lluvia del mes y, si el modelo la usa, la del mes anterior."""
-    escala, con_rezago = MODELOS[modelo]
+    """Columnas del modelo: la constante, la lluvia del mes y, si el modelo las usa, la del mes anterior y la ETP."""
+    escala, con_rezago, con_etp = MODELOS[modelo]
     p = transformar(lluvia[fuente], escala)
     columnas = [np.ones(len(indice)), p.loc[indice].to_numpy()]
     if con_rezago:
         columnas.append(p.shift(1).loc[indice].to_numpy())
+    if con_etp:
+        columnas.append(transformar(etp, escala).loc[indice].to_numpy())
     return np.column_stack(columnas)
 
 
@@ -280,11 +291,11 @@ def metricas(observado, estimado):
 filas_parametros, filas_ajuste = [], []
 z = stats.norm.ppf(0.5 + NIVEL_IC / 2)
 for fuente in FUENTES:
-    for modelo, (escala, con_rezago) in MODELOS.items():
+    for modelo, (escala, con_rezago, con_etp) in MODELOS.items():
         X = matriz(fuente, modelo, MUESTRA)
         y = transformar(caudal.loc[MUESTRA], escala).to_numpy()
         beta, se, p = ols_hac(y, X, REZAGOS_HAC)
-        nombres = ["a", "b0", "b1"] if con_rezago else ["a", "b"]
+        nombres = (["a", "b0", "b1"] if con_rezago else ["a", "b"]) + (["c"] if con_etp else [])
         for nombre, valor, error_estandar, p_valor in zip(nombres, beta, se, p):
             filas_parametros.append({"fuente": fuente, "modelo": modelo, "escala": escala, "parametro": nombre,
                                      "valor": valor, "error_newey_west": error_estandar,
@@ -317,7 +328,10 @@ for fuente in FUENTES:
         })
 parametros, ajustes = pd.DataFrame(filas_parametros), pd.DataFrame(filas_ajuste)
 # BIC: diferencia con el mejor modelo de la misma fuente y la misma escala (0 = el mejor)
-ajustes["delta_bic_en_su_escala"] = ajustes.bic - ajustes.groupby(["fuente", "escala"]).bic.transform("min")
+# (sin M5, que no compite: se compara con M4 aparte, en modelos_etp.csv)
+_sin_etp = ajustes.modelo != CON_ETP
+ajustes.loc[_sin_etp, "delta_bic_en_su_escala"] = (
+    ajustes[_sin_etp].bic - ajustes[_sin_etp].groupby(["fuente", "escala"]).bic.transform("min"))
 
 # --- errores fuera del ajuste
 filas_evaluacion, estimados_fuera = [], []
@@ -416,8 +430,6 @@ pd.concat(estimados_fuera).round(4).to_csv(OUT / "modelos_estimados.csv", index=
 #   - mes a mes: meses en que Q supera a la lluvia del mes, o a la del mes y el anterior juntas. En los datos puede
 #     pasar (el río drena agua guardada de antes); en M4 solo pasa si la fórmula lo produce, no por un almacenamiento;
 #   - año a año: en los años con los 12 meses de Q, años en que P − Q supera a la ETP.
-etp = variables["ETP"].reindex(PERIODOS)                   # mm/mes, Hargreaves con ERA5-Land
-assert etp.loc[MUESTRA].notna().all()
 anios_completos = [a for a, g in caudal.groupby(caudal.index.year) if g.notna().sum() == 12]
 filas_balance = []
 for fuente in FUENTES:
@@ -450,6 +462,48 @@ ajustes.round(6).to_csv(OUT / "modelos_ajuste.csv", index=False)
 evaluacion.round(4).to_csv(OUT / "modelos_evaluacion.csv", index=False)
 
 
+# ------------------------------------------------------------------ ¿agrega algo la ETP?
+# Dos pruebas, con las dos fuentes de lluvia: (1) la correlación parcial entre las anomalías de Q y de la ETP
+# (cada mes menos la media de su mes del calendario en la muestra), quitando lo que explican la lluvia del mes y la
+# del anterior; (2) M5 contra M4: error fuera del ajuste, BIC (la misma escala) y el calendario que queda en los
+# residuos. Si la ETP no agregara nada, la parcial sería cercana a 0 y M5 no mejoraría a M4 fuera del ajuste.
+def anomalia(serie):
+    return serie - serie.groupby(serie.index.month).transform("mean")
+
+
+filas_etp = []
+_aj = ajustes.set_index(["fuente", "modelo"])
+_ev = evaluacion[~evaluacion.esquema.str.startswith("bloque")].set_index(["fuente", "modelo", "esquema"])
+_par = parametros.set_index(["fuente", "modelo", "parametro"])
+for fuente in FUENTES:
+    anom = pd.DataFrame({"q": anomalia(caudal.loc[MUESTRA]), "p": anomalia(lluvia[fuente].loc[MUESTRA]),
+                         "p_anterior": anomalia(lluvia[fuente].shift(1).loc[MUESTRA]),
+                         "etp": anomalia(etp.loc[MUESTRA])})
+    X = np.column_stack([np.ones(len(anom)), anom.p, anom.p_anterior])
+    sin_lluvia = lambda y: y - X @ np.linalg.lstsq(X, y, rcond=None)[0]
+    r_parcial = float(np.corrcoef(sin_lluvia(anom.q.to_numpy()), sin_lluvia(anom.etp.to_numpy()))[0, 1])
+    # t de la parcial con n − 2 − 2 grados de libertad (dos variables controladas)
+    gl = len(anom) - 4
+    p_parcial = float(2 * stats.t.sf(abs(r_parcial) * np.sqrt(gl / (1 - r_parcial ** 2)), gl))
+    residuo_mes = {m: pd.Series(ajustar(fuente, m, MUESTRA)["residuo"], index=MUESTRA).groupby(MUESTRA.month).mean()
+                   for m in (ELEGIDO, CON_ETP)}
+    c = _par.loc[(fuente, CON_ETP, "c")]
+    filas_etp.append({
+        "fuente": fuente, "n_meses": len(anom),
+        "parcial_q_etp": r_parcial, "parcial_q_etp_p": p_parcial,
+        "c": c.valor, "c_ic95_inferior": c.ic95_inferior, "c_ic95_superior": c.ic95_superior, "c_p": c.p,
+        "delta_bic_m5_menos_m4": _aj.loc[(fuente, CON_ETP), "bic"] - _aj.loc[(fuente, ELEGIDO), "bic"],
+        **{f"{k}_{m.lower()}": _ev.loc[(fuente, m, "validación cruzada"), k] for m in (ELEGIDO, CON_ETP)
+           for k in ("rmse", "nse", "kge")},
+        **{f"rmse_particion_{m.lower()}": _ev.loc[(fuente, m, "partición 2015-2022"), "rmse"] for m in (ELEGIDO, CON_ETP)},
+        **{f"kruskal_residuo_por_mes_p_{m.lower()}": _aj.loc[(fuente, m), "kruskal_residuo_por_mes_p"]
+           for m in (ELEGIDO, CON_ETP)},
+        # el residuo medio de cada mes del calendario, en ln Q: cuánto calendario queda
+        **{f"residuo_mes_max_abs_{m.lower()}": residuo_mes[m].abs().max() for m in (ELEGIDO, CON_ETP)},
+        **{f"mes_residuo_max_abs_{m.lower()}": int(residuo_mes[m].abs().idxmax()) for m in (ELEGIDO, CON_ETP)},
+    })
+pd.DataFrame(filas_etp).round(6).to_csv(OUT / "modelos_etp.csv", index=False)
+
 # ------------------------------------------------------------------ resumen por consola
 pd.set_option("display.width", 160)
 print(f"Diagnóstico de Q contra la lluvia del mismo mes, {tabla.n_meses.iloc[0]} meses con Q de {len(PERIODOS)}"
@@ -471,3 +525,6 @@ print(ficha.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))
 
 print(f"\n¿Conserva masa {ELEGIDO}? (mm/mes; años con los 12 meses de Q)")
 print(balance.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))
+
+print(f"\n¿Agrega algo la ETP? {CON_ETP} contra {ELEGIDO}")
+print(pd.DataFrame(filas_etp).set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))

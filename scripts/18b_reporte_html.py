@@ -4758,7 +4758,7 @@ a {{ color: var(--acento); }}
   <h2>Síntesis física y conclusiones</h2>
   <p>Esta sección junta los resultados principales del informe y, para cada uno, separa lo que muestran los datos del
   mecanismo que se propone para explicarlo. La evidencia propia son cifras del proyecto, de las secciones que se citan
-  entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene todavía una fuente ni
+  entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene una fuente ni
   un mecanismo, la tabla lo dice.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">

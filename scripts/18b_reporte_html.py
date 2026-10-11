@@ -4544,6 +4544,9 @@ a {{ color: var(--acento); }}
     <li><b>En las tendencias</b>, el calentamiento ({fis_t_decada:+.2f} °C por década) no debería mover el caudal, porque
     sube la ETP solo un {inc_etp["rel_pct"]:.2f} % por década (ver «Significativo no es lo mismo que importante»). Hoy, Q no
     tiene tendencia, lo que es coherente con H, pero no la prueba.</li>
+    <li><b>Entre años</b>, el caudal debería bajar con El Niño, porque llueve menos. Hoy: la anomalía de Q se correlaciona
+    en {ind_txt["ONI"]["r"]:+.2f} con el ONI de {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes (ver «Q frente
+    al ONI y al TNA»), y la relación con el índice Niño 3.4 fue lo único de los campos climáticos que resistió (ver «¿Es firme la relación con El Niño?»). Es coherente con H.</li>
   </ol>
   <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
   acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con

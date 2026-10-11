@@ -3839,3 +3839,15 @@ for _n, _d in ind_max.items():
     print(f"  {_n}: r = {_d['r']:+.2f} en el rezago {int(_d['rezago']):+d} (n = {int(_d['n'])}, n efectivo = "
           f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: "
           f"{ind_corr[(ind_corr.indice == _n) & ind_corr.significativa].rezago.tolist()}")
+
+# lo que el texto del informe afirma, en «Q frente al SOI, el NAO y el ONI»
+ind_sig = {n: [int(k) for k in ind_corr[(ind_corr.indice == n) & ind_corr.significativa].rezago] for n in IND_NOMBRES}
+# el texto dice que el SOI pesa más que el NAO: el SOI pasa la corrección en algún rezago, el NAO en ninguno, y el
+# |r| máximo del SOI es mayor
+assert ind_sig["SOI"] and not ind_sig["NAO"] and ind_mas_fuerte == "SOI"
+# el texto dice que el SOI va con signo positivo (La Niña, más caudal) y el ONI con signo negativo en su pico
+assert ind_max["SOI"]["r"] > 0 and ind_max["ONI"]["r"] < 0
+# el texto dice que en los dos el pico está con el índice antes que Q
+assert ind_max["SOI"]["rezago"] > 0 and ind_max["ONI"]["rezago"] > 0
+# el SOI y el ONI, en la misma ventana, sin rezago: las dos caras del ENSO
+ind_corr_soi_oni = float(_ind["SOI"].reindex(PERIODOS).corr(_ind["ONI"].reindex(PERIODOS)))

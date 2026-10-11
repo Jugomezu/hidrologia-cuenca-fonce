@@ -215,6 +215,8 @@ CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
+CITA_SOI_NAO = '<a class="cita" href="#ref-noaa-soi-nao">NOAA CPC</a>'
+CITA_BRETHERTON = '<a class="cita" href="#ref-bretherton1999">Bretherton et al., 1999</a>'
 CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
 CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
@@ -1633,6 +1635,32 @@ assert n34_rob_en_temporadas > n34_rob_total / 2                                
 # la corrección en más meses con el índice un mes antes
 assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
 assert n34_fdr_l[1] > n34_fdr_l[0]
+# «Q frente al SOI, el NAO y el ONI»: la curva de r contra el rezago de cada índice y los textos
+# colores de los índices (paleta de Okabe e Ito, como COLOR_VAR; el ONI usa el color de la tinta)
+COLOR_INDICE = {"SOI": "#E69F00", "NAO": "#56B4E9"}
+
+
+def _rango_rezagos(ks):
+    """Rezagos significativos como texto: «de −4 a +7 meses» si son seguidos; si no, la lista."""
+    if not ks:
+        return "ninguno"
+    if ks == list(range(ks[0], ks[-1] + 1)):
+        return f"de {ks[0]:+d} a {ks[-1]:+d} meses"
+    return ", ".join(f"{k:+d}" for k in ks) + " meses"
+
+
+ind_json = json.dumps({n: {"k": [int(k) for k in g.rezago], "r": g.r.round(3).tolist(),
+                           "sig": g.significativa.astype(bool).tolist(), "n": [int(x) for x in g.n],
+                           "q": g.q.round(4).tolist()}
+                       for n, g in ind_corr.groupby("indice")} | {"colores": COLOR_INDICE}, ensure_ascii=False)
+ind_txt = {n: {"r": d["r"], "k": int(d["rezago"]), "n": int(d["n"]), "n_ef": d["n_efectivo"], "r2": 100 * d["r"] ** 2,
+               "rango": _rango_rezagos(ind_sig[n])} for n, d in ind_max.items()}
+ind_n = (int(ind_corr.n.min()), int(ind_corr.n.max()))
+ind_n_ef = {n: (float(ind_corr[ind_corr.indice == n].n_efectivo.min()), float(ind_corr[ind_corr.indice == n].n_efectivo.max()))
+            for n in IND_NOMBRES}
+# el texto compara el ONI con el SOI: cuál de los dos tiene el |r| máximo mayor
+ind_oni_vs_soi = ("un poco más fuerte que" if abs(ind_txt["ONI"]["r"]) > abs(ind_txt["SOI"]["r"]) else
+                  "un poco más débil que")
 # para «¿El ENSO explica las tendencias?»: remite a «Sensibilidad a años extremos», sin recalcular
 assert all(tend_sin_anio[v]["n_sig"] == 0 for v in ("PL*", "PI", "Q"))         # «ninguna versión es significativa»
 if tend_sin_anio_comun is not None:
@@ -4397,6 +4425,42 @@ a {{ color: var(--acento); }}
   cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
   a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
 
+  <h3>Q frente al SOI, el NAO y el ONI</h3>
+  <div{revision("subsección nueva: Q frente al SOI, el NAO y el ONI")}>
+  <p>Dos índices de circulación que no son la SST: el <b>Índice de Oscilación del Sur (SOI)</b>, la diferencia de
+  presión al nivel del mar entre Tahití y Darwin, que es la cara atmosférica del ENSO (negativo con El Niño), y la
+  <b>Oscilación del Atlántico Norte (NAO)</b>, el contraste de presión entre Islandia y las Azores ({CITA_SOI_NAO}). La
+  pregunta es cuál de los dos pesa más sobre el caudal de la cuenca. Se correlaciona la <b>anomalía de Q</b> (cada mes
+  menos su media de {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}), todos los meses juntos, con cada índice desplazado de
+  {min(IND_REZAGOS)} a {max(IND_REZAGOS):+d} meses. En el rezago k se compara Q de un mes con el índice k meses antes:
+  k &gt; 0 quiere decir que el índice va primero. Los índices se usan como los publica la NOAA: el SOI y la NAO ya
+  vienen estandarizados.</p>
+  <p class="nota">Pares por rezago: entre {ind_n[0]} y {ind_n[1]} (los meses con Q). Los meses seguidos se parecen, así
+  que no son datos independientes: la prueba t usa el <b>n efectivo</b> de {CITA_BRETHERTON}, que con la autocorrelación
+  de un mes de las dos series baja a entre {ind_n_ef["SOI"][0]:.0f} y {ind_n_ef["SOI"][1]:.0f} con el SOI y entre
+  {ind_n_ef["NAO"][0]:.0f} y {ind_n_ef["NAO"][1]:.0f} con la NAO. Sobre los {len(IND_REZAGOS)} rezagos de cada índice se
+  controla la tasa de falsos descubrimientos ({CITA_BH}), con q &lt; {IND_Q_FDR:.2f}.</p>
+  <div id="g-ind-soi-nao" class="grafico" style="min-height:0; height:380px"></div>
+  <p class="nota">r entre la anomalía de Q y cada índice según el rezago. Punto lleno: pasa la corrección; punto vacío:
+  no pasa.</p>
+  <p><b>El SOI pesa mucho más que la NAO.</b> Con el SOI, la correlación más fuerte es r = {ind_txt["SOI"]["r"]:+.2f},
+  con el índice {ind_txt["SOI"]["k"]} meses antes que Q: en un año de SOI alto (La Niña) el río lleva más agua. Equivale a
+  un {ind_txt["SOI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la corrección {ind_txt["SOI"]["rango"]}. Con la
+  NAO, la mayor es r = {ind_txt["NAO"]["r"]:+.2f} (rezago {ind_txt["NAO"]["k"]:+d}) y no pasa la corrección en ningún
+  rezago: no se distingue del azar. Que el pico esté con el índice antes que Q cuadra con lo que se vio con el índice
+  Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja que el
+  SOI y el caudal cambian despacio. Es una correlación: el SOI no mueve el río, acompaña los cambios de la lluvia que
+  trae el ENSO.</p>
+  <h3>Aparte: Q frente al ONI, con los mismos rezagos</h3>
+  <div id="g-ind-oni" class="grafico" style="min-height:0; height:340px"></div>
+  <p class="nota">r entre la anomalía de Q y el ONI según el rezago; punto lleno: pasa la misma corrección.</p>
+  <p>Con el ONI ({CITA_ONI}), la anomalía de la SST en Niño 3.4, la correlación más fuerte es
+  r = {ind_txt["ONI"]["r"]:+.2f}, con el índice {ind_txt["ONI"]["k"]} {"mes" if ind_txt["ONI"]["k"] == 1 else "meses"} antes,
+  y pasa la corrección {ind_txt["ONI"]["rango"]}. Es {ind_oni_vs_soi} la del SOI y de signo contrario, como se espera:
+  en {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)} el SOI y el ONI se correlacionan en {ind_corr_soi_oni:+.2f}. Los dos miden el mismo
+  fenómeno, uno en la presión del aire y el otro en la temperatura del mar.</p>
+  </div>
+
   <h3>¿Y los mapas?</h3>
   <p>Los puntos negros de los mapas marcan las cajas que pasan la misma corrección dentro de cada panel (Benjamini y
   Hochberg sobre sus {n(rob_cajas[0])} a {n(rob_cajas[1])} cajas, q &lt; {CORR_Q_FDR:.2f}). Solo {rob_mapas["con_fdr"]} de
@@ -4499,6 +4563,9 @@ a {{ color: var(--acento); }}
     <li id="ref-benjamini1995">Benjamini, Y., y Hochberg, Y. (1995). Controlling the false discovery rate: a practical and
     powerful approach to multiple testing. <i>Journal of the Royal Statistical Society Series B</i>, 57(1), 289–300.
     <a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x">https://doi.org/10.1111/j.2517-6161.1995.tb02031.x</a></li>
+    <li id="ref-bretherton1999">Bretherton, C. S., Widmann, M., Dymnikov, V. P., Wallace, J. M., y Bladé, I. (1999). The
+    effective number of spatial degrees of freedom of a time-varying field. <i>Journal of Climate</i>, 12(7), 1990–2009.
+    <a href="https://doi.org/10.1175/1520-0442(1999)012%3C1990:TENOSD%3E2.0.CO;2">https://doi.org/10.1175/1520-0442(1999)012&lt;1990:TENOSD&gt;2.0.CO;2</a></li>
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
@@ -4566,6 +4633,10 @@ a {{ color: var(--acento); }}
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
+    <li id="ref-noaa-soi-nao">NOAA Climate Prediction Center. <i>Southern Oscillation Index (SOI), estandarizado</i> y
+    <i>North Atlantic Oscillation (NAO), índice mensual</i>. Descargados el 2026-10-11.
+    <a href="https://www.cpc.ncep.noaa.gov/data/indices/soi">https://www.cpc.ncep.noaa.gov/data/indices/soi</a> y
+    <a href="https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii">https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
     <i>Journal of the Royal Statistical Society, Series C (Applied Statistics)</i>, 28(2), 126–135.
     <a href="https://doi.org/10.2307/2346729">https://doi.org/10.2307/2346729</a></li>
@@ -5134,6 +5205,39 @@ a {{ color: var(--acento); }}
       {{ type: "scatter", mode: "lines+markers", name: "ETP", x: PQ.anios, y: PQ.etp_anual,
          line: {{ color: COLOR_VAR.ETP, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
     ], anual, CONF);
+  }}
+
+  // Q frente al SOI, el NAO y el ONI: r contra el rezago; punto lleno si pasa la corrección (FDR)
+  const IND = {ind_json};
+
+  function trazaIndice(nombre, color) {{
+    const d = IND[nombre];
+    return {{ type: "scatter", mode: "lines+markers", name: nombre, x: d.k, y: d.r,
+      line: {{ color: color, width: 2 }},
+      marker: {{ size: 8, color: d.sig.map(s => s ? color : css("--fondo")), line: {{ color: color, width: 1.6 }} }},
+      customdata: d.k.map((k, i) => [d.n[i], d.q[i], d.sig[i] ? "pasa" : "no pasa"]),
+      hovertemplate: "rezago %{{x:+d}}: r = %{{y:+.2f}} (n = %{{customdata[0]}}, q = %{{customdata[1]:.3f}}, %{{customdata[2]}})<extra>" + nombre + "</extra>" }};
+  }}
+
+  function disposicionIndice() {{
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 46, r: 10, b: 50, l: 54 }};
+    d.xaxis.title = {{ text: "rezago k (meses); k > 0: el índice va antes que Q", font: {{ size: 10.5 }} }};
+    d.xaxis.dtick = 2;
+    d.yaxis.title.text = "r con la anomalía de Q";
+    d.yaxis.rangemode = "normal";
+    d.yaxis.range = [-0.6, 0.6];
+    d.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: {{ color: css("--tinta"), width: 1 }} }},
+                {{ type: "line", yref: "paper", x0: 0, x1: 0, y0: 0, y1: 1, line: {{ color: css("--tenue"), width: 1, dash: "dot" }} }}];
+    return d;
+  }}
+
+  function dibujarIndices() {{
+    if (!window.Plotly) return;
+    Plotly.react("g-ind-soi-nao", [trazaIndice("SOI", IND.colores.SOI), trazaIndice("NAO", IND.colores.NAO)],
+                 disposicionIndice(), CONF);
+    Plotly.react("g-ind-oni", [trazaIndice("ONI", css("--tinta"))], disposicionIndice(), CONF);
   }}
 
   // P/ETP por mes del calendario, con PL y con PI lado a lado; la línea en 1 separa el déficit del excedente
@@ -5733,6 +5837,7 @@ a {{ color: var(--acento); }}
     dibujarFourier();
     dibujarPQ();
     dibujarPEMes();
+    dibujarIndices();
     dibujarCicloAnual();
     dibujarGradiente();
   }}

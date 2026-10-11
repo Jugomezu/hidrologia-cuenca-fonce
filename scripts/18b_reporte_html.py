@@ -3441,17 +3441,21 @@ a {{ color: var(--acento); }}
   <p>El mes más seco de PI es {ciclo_valle_imerg} y el caudal toca fondo en {ciclo_valle_q}.</p>
 
   <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{ciclo_pico_imerg}</b><span>pico de lluvia · IMERG</span></div>
-    <div class="cifra"><b>{ciclo_pico_red}</b><span>pico de lluvia · red</span></div>
-    <div class="cifra"><b>{ciclo_pico_q}</b><span>pico de caudal</span></div>
-    <div class="cifra"><b>{ciclo_valle_q}</b><span>caudal mínimo</span></div>
+    <div class="cifra"><b>{regimen["PI"]["max"]}</b><span>pico de lluvia · PI</span></div>
+    <div class="cifra"><b>{regimen["PL"]["max"]}</b><span>pico de lluvia · PL</span></div>
+    <div class="cifra"><b>{regimen["Q"]["max"]}</b><span>pico de caudal · Q</span></div>
+    <div class="cifra"><b>{regimen["Q"]["min"]}</b><span>caudal mínimo · Q</span></div>
   </div>
+  <p class="nota">Los meses de pico y de mínimo son los de «El régimen»: la mediana de cada mes con todos los meses
+  válidos de cada variable. La gráfica, en cambio, promedia los {ciclo_n} meses comunes. En PI, mayo y octubre quedan
+  casi empatados ({n(alt_pi_med_may, 1)} y {n(alt_pi_med_oct, 1)} mm/mes de mediana), así que con otra selección de meses
+  el pico puede pasar de uno al otro.</p>
 
-  <p>Las dos fuentes tienen la misma forma: la red pone sus picos en {ciclo_picos_red[0]} y
-  {ciclo_picos_red[1]}, y el satélite en {ciclo_picos_imerg[0]} y {ciclo_picos_imerg[1]}. Se separan en la
+  <p>Las dos fuentes tienen la misma forma: PL pone sus picos en {regimen["PL"]["picos"][0]} y
+  {regimen["PL"]["picos"][1]}, y PI en {regimen["PI"]["picos"][0]} y {regimen["PI"]["picos"][1]}. Se separan en la
   magnitud: la red mide más en {ciclo_meses_red_mayor} de los 12 meses (el sesgo del
   {abs(cmp_stats[NOM_RED]['sesgo']):.1f} %).
-  {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if ciclo_picos_red == ciclo_picos_imerg else "En el calendario difieren a lo sumo en un mes de pico."}</p>
+  {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if regimen["PL"]["picos"] == regimen["PI"]["picos"] else "En el calendario difieren a lo sumo en un mes de pico."}</p>
 
 </section>
 

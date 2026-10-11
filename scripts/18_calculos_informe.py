@@ -3907,6 +3907,15 @@ assert (desfase_tc[0], desfase_tc[1]) == (morf_tc_medido.min(), morf_tc_medido.m
 
 # ---------------------------------------------------------------- lluvia anual de la portada y el resumen
 alt_pl_anual = float(comp["RED"].mean() * 12)        # PL: promedio simple de la red, los 300 meses de 1998-2022
+# Pico del año típico (decisión del usuario, 2026-10-11): las tarjetas de «El año típico» usan los meses de
+# «El régimen» (mediana de cada mes, todos los meses válidos), no el promedio de los meses comunes. El texto dice
+# que en PI mayo y octubre quedan casi empatados y que PL y PI difieren a lo sumo en un mes de pico: se comprueba.
+alt_pi_med_may = float(regimen["PI"]["medianas"][4])
+alt_pi_med_oct = float(regimen["PI"]["medianas"][9])
+assert regimen["PI"]["max"] in ("mayo", "octubre")
+assert abs(alt_pi_med_may - alt_pi_med_oct) / max(alt_pi_med_may, alt_pi_med_oct) < 0.05   # «casi empatados»: menos de 5 %
+assert all(abs(MESES_LARGOS_ES.index(a) - MESES_LARGOS_ES.index(b)) <= 1
+           for a, b in zip(regimen["PL"]["picos"], regimen["PI"]["picos"]))
 alt_pi_anual = float(comp["IMERG"].mean() * 12)
 
 # ---------------------------------------------------------------- correcciones de la revisión

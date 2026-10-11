@@ -1705,6 +1705,13 @@ _cajas = corr_significancia[corr_significancia.mes <= 12].cajas
 rob_cajas = (int(_cajas.min()), int(_cajas.max()))
 assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 
+# «Frecuencias: análisis de Fourier» también da el rezago con el ONI, pero con las dos series sin tendencia
+_ind_oni_fou = fou_corr_oni[("común 1998–2022", "Q")]
+ind_oni_fourier_txt = ("" if _ind_oni_fou["rezago"] == ind_txt["ONI"]["k"] else
+    f" En «Frecuencias: análisis de Fourier» la correlación más negativa es con el ONI de {_ind_oni_fou['rezago']} "
+    f"{_palabra_mes(_ind_oni_fou['rezago'])} antes (r = {_ind_oni_fou['r']:+.2f}) porque allí al ONI y a Q se les quita además "
+    "la tendencia; es la misma relación.")
+
 # ---------------------------------------------------------------- síntesis física: la tabla
 # Una fila por resultado principal del informe: qué se observó, el mecanismo que se propone, la evidencia propia que lo
 # apoya, la fuente consultada y la limitación o explicación alternativa. Las cifras son las mismas de las secciones a
@@ -3112,7 +3119,8 @@ a {{ color: var(--acento); }}
   <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
   <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
-  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
+  {n(pq_etp_anual)} mm/año. En «La evapotranspiración potencial (ETP)», PL − Q da {n(etp_pl_menos_q)} mm/año porque allí
+  entran todos los meses en que PL, Q y las tres ETP tienen dato, no solo los años completos. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
   {"" if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else pq_explicaciones}
 
   <div{revision("índice P/ETP")}>
@@ -3505,7 +3513,10 @@ a {{ color: var(--acento); }}
   Con anomalías, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
   PI con Q de {anom_rho["PI–Q"]["tal cual"]:.2f} a {anom_rho["PI–Q"]["anomalías"]:.2f} y la de PI con PL de
   {anom_rho["PI–PL"]["tal cual"]:.2f} a {anom_rho["PI–PL"]["anomalías"]:.2f}. <b>Un mes más lluvioso de lo normal trae más
-  caudal de lo normal</b>, y con PL la relación se pierde menos que con PI.</p>
+  caudal de lo normal</b>, y con PL la relación se pierde menos que con PI. Son un poco distintas de las de «Cómo se
+  relacionan las variables entre sí» (PL con Q, de {rho('PL', 'Q'):.2f} a {rho('PL', 'Q', anomalias=True):.2f}) porque allí
+  solo entran los meses en que las siete variables tienen dato y la anomalía es la resta de la media del mes; aquí entra
+  cada mes en que el par tiene dato, y la anomalía se mide en rangos intercuartiles.</p>
   <div id="g-anom-dispersion" class="grafico" style="min-height:0; height:440px; max-width:620px"></div>
   <p class="nota">Cada punto es un mes; en color, los años contrastantes.</p>
   <h3>Los años contrastantes</h3>
@@ -4561,7 +4572,7 @@ a {{ color: var(--acento); }}
   <p>Si H es cierta, debería cumplirse:</p>
   <ol>
     <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
-    anterior agrega información. Hoy: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
+    anterior agrega información. Con las cifras de «Cómo se relacionan las variables entre sí»: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
     ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
     {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En meses que el ajuste
     no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
@@ -4649,7 +4660,7 @@ a {{ color: var(--acento); }}
   pasa la corrección; punto vacío: no pasa.</p>
   <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
   índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q, casi igual que con 2 meses (r = {alt_oni_r[2]:+.2f}):
-  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos. Con el Pacífico central más caliente (El Niño)
+  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos.{ind_oni_fourier_txt} Con el Pacífico central más caliente (El Niño)
   el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
   corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
   fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de

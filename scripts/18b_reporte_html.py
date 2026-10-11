@@ -185,7 +185,7 @@ _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0
 nota_colores = (
     "Cada variable tiene un solo color en todas las figuras: "
     f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI (la lluvia del satélite IMERG), azul; "
-    f"{_muestra('Q')} Q, verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
+    f"{_muestra('Q')} Q (el caudal en San Gil), verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
     f"{_muestra('T media')} T media y {_muestra('T máx')} T máx más oscura (la de MSWX, del mismo color con otro trazo); "
     f"{_muestra('ETP')} ETP, violeta.")
 
@@ -1942,34 +1942,7 @@ alt_veredicto_h = f"""<div class="aviso">
   almacenamientos y comprobar que sus residuos ya no conservan el calendario.</p>
   </div>"""
 
-# ---------------------------------------------------------------- resumen, cambios y conclusiones
-alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una revisión adversarial del informe: lo que
-  le faltaba, sus errores y sus incoherencias. No reemplaza al informe principal. Cada cambio lo decidió el equipo, problema por
-  problema.</p>
-  <ul>
-    <li><b>Secciones nuevas:</b> «Forma y relieve de la cuenca» (la morfometría ya calculada, que no estaba en el informe),
-    un veredicto sobre la hipótesis H, conclusiones numeradas y limitaciones.</li>
-    <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
-    manda; CAMELS-COL ya no se presenta como confirmación; el rezago del caudal (Q) frente al ONI es de 1 a 2 meses en todas partes;
-    los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
-    se corrigieron el porcentaje de Mérida, la frase de abril y mayo, el salto de Valle de San José, y el nombre del script
-    del pie de página.</li>
-    <li><b>Nombres:</b> «Anomalías en las series» pasa a «Saltos y errores de registro», y «Registro de anomalías» a
-    «Registro de problemas de los datos», porque «anomalía» ya significa otra cosa en el informe (la diferencia con el
-    mes típico).</li>
-    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas, el IGAC, Copernicus DEM, Natural Earth, ALOS PALSAR y los métodos de la morfometría.</li>
-    <li><b>Las cifras anuales de lluvia cambian según los meses que se promedian</b> (los {len(PERIODOS)} de 1998–2022 o
-    solo los que tienen caudal): cada tabla dice su ventana.</li>
-  </ul>
-  <p><b>Decisiones de método de esta versión</b> (tomadas por el equipo al revisar la lista de problemas):</p>
-  <ul>
-    <li>Todo se mantiene en resolución mensual: no se analizan caudales diarios (crecientes, estiajes, flujo base).</li>
-    <li>PL sigue siendo el promedio simple de los pluviómetros con dato cada mes.</li>
-  </ul>
-  <p class="nota">Quedaron sin hacer: rehacer la figura del DEM en una proyección de Colombia (necesita el DEM completo),
-  adelgazar las tablas de Fourier para bajar el tamaño de la página (decisión del equipo) y revisar a mano si el artículo
-  de Córdoba-Machado et al. (2015), que trata de El Niño Modoki, respalda lo que se le atribuye.</p>"""
-
+# ---------------------------------------------------------------- conclusiones
 alt_conclusiones = f"""<h3>Conclusiones</h3>
   <ol>
     <li><b>Régimen bimodal.</b> La lluvia y el caudal tienen dos temporadas al año, por el doble paso de la ZCIT; los
@@ -2152,11 +2125,6 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual de los pluviómetros del IDEAM (PL), 1998–2022</span></div>
   </div>
 </header>
-
-<section>
-  <h2>Qué cambia en esta versión</h2>
-  {alt_cambios}
-</section>
 
 <div{revision("colores unificados en todas las figuras")}>
   <p class="nota">{nota_colores}</p>

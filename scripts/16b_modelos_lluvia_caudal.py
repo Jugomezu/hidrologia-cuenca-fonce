@@ -26,9 +26,10 @@ se comparan cinco, de menos a más complejo, con PL y con PI:
   M3  ln Q = a + b·ln P(t)                        la transformación logarítmica
   M4  ln Q = a + b0·ln P(t) + b1·ln P(t−1)        la transformación y el rezago
   M5  ln Q = a + b0·ln P(t) + b1·ln P(t−1) + c·ln ETP(t)   M4 más la evapotranspiración potencial
-M5 no compite por la ficha: pone a prueba si la ETP agrega algo al caudal una vez descontada la lluvia (decidido
-por el usuario el 2026-10-11, a partir de la evaluación del informe). La ETP es la de Hargreaves con ERA5-Land,
-que depende de la amplitud térmica diaria: en parte mide la nubosidad, y eso se declara en el informe.
+M5 pone a prueba si la ETP agrega algo al caudal una vez descontada la lluvia, y como yerra menos fuera del ajuste es
+el modelo de la ficha (las dos cosas decididas por el usuario el 2026-10-11, a partir de la evaluación del informe).
+La ETP es la de Hargreaves con ERA5-Land, que depende de la amplitud térmica diaria: en parte mide la nubosidad, y eso
+se declara en el informe.
 
 En M3 y M4 el caudal estimado es exp(a + ...) multiplicado por el factor de Duan (1983, «smearing»): la media
 de exp(residuo) en el ajuste. Sin ese factor, volver del logaritmo daría la mediana del caudal y no su media,
@@ -44,7 +45,7 @@ Cómo se comparan (decidido por el usuario el 2026-10-09):
     (Gupta et al., 2009); el KGE se agregó el 2026-10-09 porque separa correlación, variabilidad y volumen.
 Todos los modelos usan la misma muestra: los meses con Q desde 1998-02 (enero de 1998 no tiene mes anterior).
 
-El elegido es M4 (decidido por el usuario el 2026-10-09): fuera del ajuste yerra lo mismo que M2, pero cumple
+Entre los modelos solo con lluvia, el mejor es M4 (decidido por el usuario el 2026-10-09): fuera del ajuste yerra lo mismo que M2, pero cumple
 sus supuestos (error proporcional al caudal, residuos simétricos) y no puede dar caudales negativos; M2 sí,
 con poca lluvia en dos meses seguidos. No se agrega la lluvia de hace dos meses (también decidido por el
 usuario): la memoria más larga de la cuenca queda declarada como límite del modelo.
@@ -92,8 +93,9 @@ MODELOS = {"M1": ("lineal", False, False), "M2": ("lineal", True, False),
            "M3": ("logarítmica", False, False), "M4": ("logarítmica", True, False),
            "M5": ("logarítmica", True, True)}
 CON_ETP = "M5"                   # la prueba de la ETP; el BIC de los demás se compara sin él
-ELEGIDO = "M4"                   # el modelo de la ficha (decidido por el usuario el 2026-10-09)
-COMPETIDOR = "M2"                # el otro con el mismo error, contra el que se justifica la elección
+ELEGIDO = "M5"                   # el modelo de la ficha (M4 el 2026-10-09; M5 desde el 2026-10-11, decisión del usuario)
+SOLO_LLUVIA = "M4"               # el mejor modelo solo con lluvia, contra el que se justifica la elección de M5
+RECTA_REZAGO = "M2"              # el que yerra como M4 pero da caudales negativos con poca lluvia
 REFERENCIA = "M0"                # la climatología mensual de Q
 PARTICION = {"ajuste": ("1998-01", "2014-12"), "evaluacion": ("2015-01", "2022-12")}
 BLOQUES_VC = [(1998, 2002), (2003, 2007), (2008, 2012), (2013, 2017), (2018, 2022)]   # 5 bloques de 5 años
@@ -366,7 +368,7 @@ for fuente in FUENTES:
 evaluacion = pd.DataFrame(filas_evaluacion)
 
 # ------------------------------------------------------------------ la ficha del modelo elegido
-# Q̂ = D · e^a · P(t)^b0 · P(t−1)^b1, en mm/mes. Todo lo que dice la ficha sale de las tablas de arriba o de
+# Q̂ = D · e^a · P(t)^b0 · P(t−1)^b1 · ETP(t)^c, en mm/mes. Todo lo que dice la ficha sale de las tablas de arriba o de
 # los datos de la muestra; los textos de los supuestos se escriben en el informe a partir de estas cifras.
 _ev_vc = evaluacion[evaluacion.esquema == "validación cruzada"].set_index(["fuente", "modelo"])
 _ev_bl = evaluacion[evaluacion.esquema.str.startswith("bloque")].set_index(["fuente", "modelo"]).sort_index()
@@ -375,23 +377,24 @@ for fuente in FUENTES:
     X = matriz(fuente, ELEGIDO, MUESTRA)
     y = transformar(caudal.loc[MUESTRA], "logarítmica").to_numpy()
     beta, cov = ols_hac_cov(y, X, REZAGOS_HAC)
-    a, b0, b1 = beta
+    a, b0, b1, c = beta
     # b0 + b1: cuánto cambia Q, en %, si la lluvia de los dos meses cambia 1 %; 1 sería proporcionalidad
     suma, se_suma = b0 + b1, float(np.sqrt(cov[1, 1] + cov[2, 2] + 2 * cov[1, 2]))
     fila_aj = ajustes.set_index(["fuente", "modelo"]).loc[(fuente, ELEGIDO)]
     residuo = pd.Series(ajustar(fuente, ELEGIDO, MUESTRA)["residuo"], index=MUESTRA)
     ajustado = y - residuo.to_numpy()
     # M2 da caudal negativo cuando a + (b0 + b1)·P < 0 con la misma lluvia P en los dos meses
-    a2, b0_2, b1_2 = parametros.query("fuente == @fuente and modelo == @COMPETIDOR").valor.to_numpy()
+    a2, b0_2, b1_2 = parametros.query("fuente == @fuente and modelo == @RECTA_REZAGO").valor.to_numpy()
     filas_ficha.append({
         "fuente": fuente, "modelo": ELEGIDO, "n_meses": len(MUESTRA),
-        "a": a, "b0": b0, "b1": b1, "factor_duan": fila_aj.factor_duan,
-        "coeficiente_C": fila_aj.factor_duan * np.exp(a),           # Q̂ = C · P(t)^b0 · P(t−1)^b1
+        "a": a, "b0": b0, "b1": b1, "c": c, "factor_duan": fila_aj.factor_duan,
+        "coeficiente_C": fila_aj.factor_duan * np.exp(a),           # Q̂ = C · P(t)^b0 · P(t−1)^b1 · ETP(t)^c
         "b0_mas_b1": suma, "b0_mas_b1_ic95_inferior": suma - z * se_suma, "b0_mas_b1_ic95_superior": suma + z * se_suma,
         # rango de aplicación: lo que vio el ajuste
         "lluvia_mes_min": lluvia[fuente].loc[MUESTRA].min(), "lluvia_mes_max": lluvia[fuente].loc[MUESTRA].max(),
         "lluvia_mes_anterior_min": lluvia[fuente].shift(1).loc[MUESTRA].min(),
         "lluvia_mes_anterior_max": lluvia[fuente].shift(1).loc[MUESTRA].max(),
+        "etp_min": etp.loc[MUESTRA].min(), "etp_max": etp.loc[MUESTRA].max(),
         "caudal_min": caudal.loc[MUESTRA].min(), "caudal_max": caudal.loc[MUESTRA].max(),
         "area_km2": AREA_KM2,
         # supuestos
@@ -403,18 +406,26 @@ for fuente in FUENTES:
         "kruskal_residuo_por_mes_p": fila_aj.kruskal_residuo_por_mes_p,
         "pluviometros_min_por_mes": int(pluvio.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO]
                                         .reindex(MUESTRA).notna().sum(axis=1).min()) if fuente == "PL" else np.nan,
-        # por qué se eligió: mismo error que M2, y la lluvia con que M2 se vuelve negativo
-        "rmse_vc": _ev_vc.loc[(fuente, ELEGIDO), "rmse"], "rmse_vc_competidor": _ev_vc.loc[(fuente, COMPETIDOR), "rmse"],
+        # por qué se eligió: yerra menos que M4 en la validación cruzada y en la partición; y la lluvia con que M2, que
+        # yerra como M4, se vuelve negativo
+        "rmse_vc": _ev_vc.loc[(fuente, ELEGIDO), "rmse"], "rmse_vc_solo_lluvia": _ev_vc.loc[(fuente, SOLO_LLUVIA), "rmse"],
+        "rmse_vc_m2": _ev_vc.loc[(fuente, RECTA_REZAGO), "rmse"],
+        "bloques_mejor_que_solo_lluvia": int((_ev_bl.loc[(fuente, ELEGIDO), "rmse"].to_numpy()
+                                              < _ev_bl.loc[(fuente, SOLO_LLUVIA), "rmse"].to_numpy()).sum()),
+        "rmse_bloques_solo_lluvia_min": _ev_bl.loc[(fuente, SOLO_LLUVIA), "rmse"].min(),
+        "rmse_bloques_solo_lluvia_max": _ev_bl.loc[(fuente, SOLO_LLUVIA), "rmse"].max(),
         "rmse_bloques_min": _ev_bl.loc[(fuente, ELEGIDO), "rmse"].min(),
         "rmse_bloques_max": _ev_bl.loc[(fuente, ELEGIDO), "rmse"].max(),
         "nse_vc": _ev_vc.loc[(fuente, ELEGIDO), "nse"], "nse_vc_climatologia": _ev_vc.loc[(fuente, REFERENCIA), "nse"],
-        "lluvia_q_cero_competidor": -a2 / (b0_2 + b1_2) if a2 < 0 else np.nan,
+        "lluvia_q_cero_m2": -a2 / (b0_2 + b1_2) if a2 < 0 else np.nan,
     })
 ficha = pd.DataFrame(filas_ficha)
-# lo que la ficha afirma: el elegido nunca da negativos, y la diferencia de error con M2 es menor que lo que
-# cambia el error de M4 de un bloque a otro
+# lo que la ficha afirma: el elegido nunca da negativos y yerra menos que M4 en la validación cruzada; M2 yerra como
+# M4 (la diferencia es menor que lo que cambia el error de M4 de un bloque a otro)
 assert (ajustes.query("modelo == @ELEGIDO").estimados_negativos == 0).all()
-assert all(abs(f.rmse_vc - f.rmse_vc_competidor) < f.rmse_bloques_max - f.rmse_bloques_min for f in ficha.itertuples())
+assert all(f.rmse_vc < f.rmse_vc_solo_lluvia for f in ficha.itertuples())
+assert all(abs(f.rmse_vc_m2 - f.rmse_vc_solo_lluvia) < f.rmse_bloques_solo_lluvia_max - f.rmse_bloques_solo_lluvia_min
+           for f in ficha.itertuples())
 
 parametros.round(6).to_csv(OUT / "modelos_parametros.csv", index=False)
 ficha.round(6).to_csv(OUT / "modelos_ficha.csv", index=False)
@@ -486,21 +497,21 @@ for fuente in FUENTES:
     gl = len(anom) - 4
     p_parcial = float(2 * stats.t.sf(abs(r_parcial) * np.sqrt(gl / (1 - r_parcial ** 2)), gl))
     residuo_mes = {m: pd.Series(ajustar(fuente, m, MUESTRA)["residuo"], index=MUESTRA).groupby(MUESTRA.month).mean()
-                   for m in (ELEGIDO, CON_ETP)}
+                   for m in (SOLO_LLUVIA, CON_ETP)}
     c = _par.loc[(fuente, CON_ETP, "c")]
     filas_etp.append({
         "fuente": fuente, "n_meses": len(anom),
         "parcial_q_etp": r_parcial, "parcial_q_etp_p": p_parcial,
         "c": c.valor, "c_ic95_inferior": c.ic95_inferior, "c_ic95_superior": c.ic95_superior, "c_p": c.p,
-        "delta_bic_m5_menos_m4": _aj.loc[(fuente, CON_ETP), "bic"] - _aj.loc[(fuente, ELEGIDO), "bic"],
-        **{f"{k}_{m.lower()}": _ev.loc[(fuente, m, "validación cruzada"), k] for m in (ELEGIDO, CON_ETP)
+        "delta_bic_m5_menos_m4": _aj.loc[(fuente, CON_ETP), "bic"] - _aj.loc[(fuente, SOLO_LLUVIA), "bic"],
+        **{f"{k}_{m.lower()}": _ev.loc[(fuente, m, "validación cruzada"), k] for m in (SOLO_LLUVIA, CON_ETP)
            for k in ("rmse", "nse", "kge")},
-        **{f"rmse_particion_{m.lower()}": _ev.loc[(fuente, m, "partición 2015-2022"), "rmse"] for m in (ELEGIDO, CON_ETP)},
+        **{f"rmse_particion_{m.lower()}": _ev.loc[(fuente, m, "partición 2015-2022"), "rmse"] for m in (SOLO_LLUVIA, CON_ETP)},
         **{f"kruskal_residuo_por_mes_p_{m.lower()}": _aj.loc[(fuente, m), "kruskal_residuo_por_mes_p"]
-           for m in (ELEGIDO, CON_ETP)},
+           for m in (SOLO_LLUVIA, CON_ETP)},
         # el residuo medio de cada mes del calendario, en ln Q: cuánto calendario queda
-        **{f"residuo_mes_max_abs_{m.lower()}": residuo_mes[m].abs().max() for m in (ELEGIDO, CON_ETP)},
-        **{f"mes_residuo_max_abs_{m.lower()}": int(residuo_mes[m].abs().idxmax()) for m in (ELEGIDO, CON_ETP)},
+        **{f"residuo_mes_max_abs_{m.lower()}": residuo_mes[m].abs().max() for m in (SOLO_LLUVIA, CON_ETP)},
+        **{f"mes_residuo_max_abs_{m.lower()}": int(residuo_mes[m].abs().idxmax()) for m in (SOLO_LLUVIA, CON_ETP)},
     })
 pd.DataFrame(filas_etp).round(6).to_csv(OUT / "modelos_etp.csv", index=False)
 
@@ -520,11 +531,11 @@ print("\nRMSE por bloque de la validación cruzada (mm/mes)")
 print(evaluacion[evaluacion.esquema.str.startswith("bloque")].pivot_table(
     index=["fuente", "modelo"], columns="esquema", values="rmse").round(1).to_string())
 
-print(f"\nFicha de {ELEGIDO}: Q̂ = C · P(t)^b0 · P(t−1)^b1, en mm/mes")
+print(f"\nFicha de {ELEGIDO}: Q̂ = C · P(t)^b0 · P(t−1)^b1 · ETP(t)^c, en mm/mes")
 print(ficha.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))
 
 print(f"\n¿Conserva masa {ELEGIDO}? (mm/mes; años con los 12 meses de Q)")
 print(balance.set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))
 
-print(f"\n¿Agrega algo la ETP? {CON_ETP} contra {ELEGIDO}")
+print(f"\n¿Agrega algo la ETP? {CON_ETP} contra {SOLO_LLUVIA}")
 print(pd.DataFrame(filas_etp).set_index("fuente").T.to_string(float_format=lambda v: f"{v:.4g}"))

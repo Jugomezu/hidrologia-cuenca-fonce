@@ -1457,7 +1457,7 @@ _di = mod_diag.loc[("PI", "lineal")]
 
 # la comparación de los cinco modelos
 def _fila_modelo(f, m):
-    elegido = m == MOD_ELEGIDO
+    elegido = m == MOD_SOLO_LLUVIA          # el mejor solo con lluvia; M5 se presenta aparte
     vc, pa = mod_vc.loc[(f, m)], mod_part.loc[(f, m)]
     if m == MOD_REFERENCIA:
         k, r2, dbic = "12", "—", "—"
@@ -1479,7 +1479,7 @@ _no_superan_txt = " ".join(
      f"Con {f}, {_lista_y([m for m in ms])} no {'supera' if len(ms) == 1 else 'superan'} a la climatología.")
     for f, ms in mod_no_superan.items())
 
-# NSE, KGE y sesgo fuera del ajuste, para la climatología y M4
+# NSE, KGE y sesgo fuera del ajuste, para la climatología, M4 y M5
 _ESQUEMAS_KGE = (("vc", "validación cruzada"), ("partición", f"{EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}"))
 mod_kge_filas = "\n".join(
     f"<tr><td colspan='8'><b>Con {f}</b></td></tr>\n" + "\n".join(
@@ -1487,29 +1487,31 @@ mod_kge_filas = "\n".join(
             f"<td{' class=num' if i >= 2 else ''}>{f'<b>{c}</b>' if elegido else c}</td>" for i, c in enumerate([
                 f"{m} · {MOD_NOMBRE[m]}", nombre_esq, f"{k.nse:.2f}", f"{k.kge:.2f}", f"{k.kge_r:.2f}",
                 f"{k.kge_alfa:.2f}", f"{k.kge_beta:.3f}", f"{k.sesgo:+.1f}"])) + "</tr>")(mod_kge[(f, m, esq)], m == MOD_ELEGIDO)
-        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_ELEGIDO))
+        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_SOLO_LLUVIA, MOD_ELEGIDO))
     for f in MOD_FUENTES)
 _k = lambda f, m, esq="vc": mod_kge[(f, m, esq)]
-_betas_m4 = [_k(f, MOD_ELEGIDO, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
-_sesgos_m4 = [_k(f, MOD_ELEGIDO, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_betas_m4 = [_k(f, MOD_SOLO_LLUVIA, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_sesgos_m4 = [_k(f, MOD_SOLO_LLUVIA, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
 if mod_pi_kge_bajo_m0["vc"]:
     _pi_kge_txt = (
         f"<b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es "
-        f"{_k('PI', MOD_ELEGIDO).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_ELEGIDO).kge:.2f} contra "
+        f"{_k('PI', MOD_SOLO_LLUVIA).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_SOLO_LLUVIA).kge:.2f} contra "
         f"{_k('PI', MOD_REFERENCIA).kge:.2f}"
-        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_ELEGIDO, 'partición').kge:.2f} contra "
+        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_SOLO_LLUVIA, 'partición').kge:.2f} contra "
            f"{_k('PI', MOD_REFERENCIA, 'partición').kge:.2f})" if mod_pi_kge_bajo_m0["partición"] else "")
-        + f". La correlación de M4 es mayor (r {_k('PI', MOD_ELEGIDO).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
-        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_ELEGIDO).kge_alfa:.2f}, es decir, reproduce el "
-        f"{_k('PI', MOD_ELEGIDO).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
+        + f". La correlación de M4 es mayor (r {_k('PI', MOD_SOLO_LLUVIA).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
+        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_SOLO_LLUVIA).kge_alfa:.2f}, es decir, reproduce el "
+        f"{_k('PI', MOD_SOLO_LLUVIA).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
         f"{_k('PI', MOD_REFERENCIA).kge_alfa * 100:.0f} % de la climatología. El NSE junta todo el error en un solo "
         f"número; el KGE castiga por separado que el modelo varíe menos que el río.")
 else:
     _pi_kge_txt = (
         f"<b>Con PI, M4 también supera a la climatología en KGE</b> en la validación cruzada "
-        f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+        f"({_k('PI', MOD_SOLO_LLUVIA).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+_pi_kge_txt += (f" Con la ETP (M5), PI {'sí' if mod_pi_m5_sobre_m0['vc'] else 'tampoco'} supera a la climatología en KGE "
+                f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f} en la validación cruzada).")
 
-# la ficha de M4
+# la ficha de M5
 _ic = lambda f, par: (f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'valor']:.2f} "
                       f"<small>({mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_inferior']:.2f} a "
                       f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_superior']:.2f})</small>")
@@ -1518,11 +1520,12 @@ mod_param_filas = "\n".join([
     "<tr><td>a</td>" + "".join(f"<td class='num'>{_ic(f, 'a')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>0</sub>, lluvia del mes</td>" + "".join(f"<td class='num'>{_ic(f, 'b0')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>1</sub>, lluvia del mes anterior</td>" + "".join(f"<td class='num'>{_ic(f, 'b1')}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>c, ETP del mes</td>" + "".join(f"<td class='num'>{_ic(f, 'c')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>0</sub> + b<sub>1</sub></td>" + "".join(
         f"<td class='num'>{_fi.loc[f, 'b0_mas_b1']:.3f} <small>({_fi.loc[f, 'b0_mas_b1_ic95_inferior']:.3f} a "
         f"{_fi.loc[f, 'b0_mas_b1_ic95_superior']:.3f})</small></td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>D, factor de Duan</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'factor_duan']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
-    "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{_fi.loc[f, 'coeficiente_C']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{n(_fi.loc[f, 'coeficiente_C'])}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>NSE en la validación cruzada</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'nse_vc']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>KGE en la validación cruzada</td>" + "".join(f"<td class='num'>{mod_vc.loc[(f, MOD_ELEGIDO), 'kge']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
 ])
@@ -1556,13 +1559,17 @@ mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in
      f"<b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> "
      f"{_p_txt(_fi.loc['PL', 'kruskal_residuo_por_mes_p'])} con PL). La cuenca guarda agua por más de un mes y el modelo "
      f"solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo."),
+    ("La ETP mide la demanda de agua de la atmósfera",
+     f"<b>No del todo</b>: la de Hargreaves se calcula con la temperatura y su amplitud diaria, que es mayor con el cielo "
+     f"despejado, así que en parte mide la nubosidad. Varió poco en el ajuste ({_fi.loc['PL', 'etp_min']:.0f} a "
+     f"{_fi.loc['PL', 'etp_max']:.0f} mm/mes)."),
     ("La lluvia se mide sin error",
      f"<b>No</b>: PL promedia entre {_fi.loc['PL', 'pluviometros_min_por_mes']:.0f} y {len(DENTRO)} pluviómetros según el mes, "
      f"ninguno por encima de {n(mapa_plu_alta.altitud)} m, y PI es una estimación de satélite. El error de la lluvia "
      f"aplana las pendientes."),
 ])
 
-# ¿conserva masa M4?
+# ¿conserva masa M5?
 _bal = mod_balance
 _bal_ind = [
     ("Lluvia media (mm/mes)", lambda f, c: f"{_bal.loc[f, 'lluvia_media']:.1f}"),
@@ -1583,11 +1590,11 @@ _bal_pl_obs, _bal_pl_est = _bal.loc["PL", "anios_p_menos_q_mayor_etp_observado"]
 _bal_pi_obs, _bal_pi_est = _bal.loc["PI", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PI", "anios_p_menos_q_mayor_etp_estimado"]
 _balance_etp_txt = (
     f"Con PL, P − Q supera a la ETP en {_anios_txt(_bal_pl_obs)} observados de {_bal.loc['PL', 'n_anios_completos']:.0f}, "
-    f"y con M4 en {_anios_txt(_bal_pl_est)}; con PI, "
-    + ("en ningún año, ni observado ni con M4. " if _bal_pi_obs == _bal_pi_est == 0 else
-       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M4. ")
+    f"y con M5 en {_anios_txt(_bal_pl_est)}; con PI, "
+    + ("en ningún año, ni observado ni con M5. " if _bal_pi_obs == _bal_pi_est == 0 else
+       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M5. ")
     + ("Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la "
-       "ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos."
+       "ETP de Hargreaves se queda corta. M5 no corrige eso: lo reproduce, porque aprende de los datos."
        if max(_bal_pl_obs, _bal_pl_est) > 0 else
        "Con ninguna de las dos fuentes el balance anual pide más evaporación de la posible.")
     + f" Ningún año estimado tiene más caudal que lluvia.")
@@ -1802,13 +1809,13 @@ sint_est_pi_mayor = sum(v["sesgo"] > 0 for k, v in cmp_stats.items() if k != NOM
 assert sesgo_pi_pl < 0 and p2_pipl["debajo_pct"] > 50                            # «PI queda por debajo de PL»
 assert 0 < sint_est_pi_mayor < len(cmp_stats) - 1                                # «pero no de todos los pluviómetros»
 assert rho("PI", "Q") < rho("PL", "Q")                                           # «Q se lleva mejor con PL»
-assert _k("PI", MOD_ELEGIDO).kge < _k("PL", MOD_ELEGIDO).kge and mod_pi_kge_bajo_m0["vc"]
+assert _k("PI", MOD_SOLO_LLUVIA).kge < _k("PL", MOD_SOLO_LLUVIA).kge and mod_pi_kge_bajo_m0["vc"]
 assert etp_anual.camels > etp_pl_anual                                           # «la ETP de CAMELS-COL supera a la lluvia»
 assert rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 # Versión alterna (2026-10-11): tres filas más, con los resultados de las secciones nuevas y del modelo lluvia–caudal
 SINT_FILAS += [
     ("La lluvia del mes y del anterior estiman el caudal mensual",
-     f"KGE fuera del ajuste de {_k('PL', MOD_ELEGIDO).kge:.2f} con PL y {_k('PI', MOD_ELEGIDO).kge:.2f} con PI, frente a "
+     f"KGE fuera del ajuste de {_k('PL', MOD_SOLO_LLUVIA).kge:.2f} con PL y {_k('PI', MOD_SOLO_LLUVIA).kge:.2f} con PI, frente a "
      f"{_k('PL', MOD_REFERENCIA).kge:.2f} de la climatología.",
      "El caudal es la lluvia reciente amortiguada por el almacenamiento.",
      "Sumar la lluvia del mes anterior baja el error en la validación cruzada («¿Sirve la lluvia para estimar el "
@@ -1966,8 +1973,8 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
     despacio.</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
-    PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}); con PI, no. Agregar la ETP (M5) baja el error de
-    {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL{"; aun así, al modelo le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
+    PL (KGE de {_k("PL", MOD_SOLO_LLUVIA).kge:.2f}); con PI, no. El modelo elegido, M5, agrega la ETP del mes: baja el error
+    de {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}){", y con PI ya supera a la climatología" if mod_pi_m5_sobre_m0["vc"] else ""}{"; aun así, le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
     <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
     después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI). Con {pe_n_anios} años no se le puede atribuir toda la
     variabilidad entre años.</li>
@@ -4210,7 +4217,7 @@ a {{ color: var(--acento); }}
   1 es perfecto y 0 es tan bueno como la media de los meses evaluados. R² con todos los meses, sobre Q en mm/mes, así que
   se puede comparar entre escalas. ΔBIC: diferencia con el mejor de la misma escala (0 es el mejor).</p>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p class="nota">Q de {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]} estimado con M4 ajustado en
+  <p class="nota">Q de {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]} estimado con M5, el modelo elegido, ajustado en
   {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}, con PL y con PI, y la climatología de esos años de ajuste. Los cortes de la
   línea verde son meses sin Q.</p>
   <ul>
@@ -4225,7 +4232,7 @@ a {{ color: var(--acento); }}
 
   <div{revision("nuevo")}>
   <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
-  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los {mod_n} meses, pero ninguna cifra de esta tabla
+  <p>Los parámetros del modelo elegido que se reportan más abajo se ajustan con los {mod_n} meses, pero ninguna cifra de esta tabla
   usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
   coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
   (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
@@ -4247,103 +4254,14 @@ a {{ color: var(--acento); }}
   de esos años, con el modelo ajustado en {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}.</p>
   <ul>
     <li><b>Con PL, M4 supera a la climatología en las dos medidas y en los dos esquemas</b>: KGE
-    {_k("PL", MOD_ELEGIDO).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada, y
-    {_k("PL", MOD_ELEGIDO, "partición").kge:.2f} contra {_k("PL", MOD_REFERENCIA, "partición").kge:.2f} en
+    {_k("PL", MOD_SOLO_LLUVIA).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada, y
+    {_k("PL", MOD_SOLO_LLUVIA, "partición").kge:.2f} contra {_k("PL", MOD_REFERENCIA, "partición").kge:.2f} en
     {_ESQUEMAS_KGE[1][1]}.</li>
     <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
     {min(_betas_m4):.3f} y {max(_betas_m4):.3f} y el sesgo entre {min(_sesgos_m4):+.1f} y {max(_sesgos_m4):+.1f} mm/mes.</li>
     <li>{_pi_kge_txt}</li>
   </ul>
   </div>
-
-  <h3>El modelo elegido: M4</h3>
-  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
-  &nbsp; con C = D · e<sup>a</sup></p>
-  <p>Es M4 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
-  y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
-  <dl class="lista-datos">
-    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre {n(AREA_SG_KM2)} km²; en m³/s, Q̂ · {n(AREA_SG_KM2)} · 10³ / (segundos del mes)</dd>
-    <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
-    <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
-    <dt>Ajuste</dt><dd>{mod_n} meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
-  </dl>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Parámetro</th><th class="num">Con PL</th><th class="num">Con PI</th></tr></thead>
-    <tbody>
-{mod_param_filas}
-    </tbody>
-  </table>
-  </div>
-  <p><b>Cómo se leen b<sub>0</sub> y b<sub>1</sub>.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en 1 %
-  la lluvia que acompaña; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
-  {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q sube un {mod_elasticidad["PL"]["mes"] * 100:.1f} % (1.1<sup>b<sub>0</sub></sup>); si
-  sube la del mes anterior, un {mod_elasticidad["PL"]["anterior"] * 100:.1f} %; si suben las dos, un
-  {mod_elasticidad["PL"]["ambos"] * 100:.1f} % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
-  {_proporcional_txt("PL")}; con PI, {_proporcional_txt("PI")}.</p>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
-    <tbody>
-{mod_supuestos_filas}
-    </tbody>
-  </table>
-  </div>
-  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
-  {_fi.loc["PL", "lluvia_mes_min"]:.1f} y {_fi.loc["PL", "lluvia_mes_max"]:.1f} mm/mes con PL, y entre
-  {_fi.loc["PI", "lluvia_mes_min"]:.1f} y {_fi.loc["PI", "lluvia_mes_max"]:.1f} con PI (en el mes y en el anterior); el
-  caudal observado fue de {_fi.loc["PL", "caudal_min"]:.1f} a {_fi.loc["PL", "caudal_max"]:.1f} mm/mes. Fuera de ese rango
-  no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
-  <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
-  cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
-  fuera del rango de aplicación.</p>
-  <p><b>Por qué M4 y no M2.</b> Fuera del ajuste yerran casi lo mismo ({mod_rmse("PL", MOD_ELEGIDO):.1f} contra
-  {mod_rmse("PL", MOD_COMPETIDOR):.1f} mm/mes con PL), menos de lo que cambia el error de M4 de un bloque a otro
-  ({_fi.loc["PL", "rmse_bloques_min"]:.1f} a {_fi.loc["PL", "rmse_bloques_max"]:.1f}). Tienen los mismos tres
-  parámetros. El desempate lo dan los supuestos, que M4 cumple mejor (el error de M2 crece con la lluvia y sus residuos no
-  son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses seguidos baja de
-  {_fi.loc["PL", "lluvia_q_cero_competidor"]:.1f} mm/mes con PL o de {_fi.loc["PI", "lluvia_q_cero_competidor"]:.1f} con PI,
-  y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M4 no
-  puede dar caudales negativos.</p>
-
-  <h3>¿Conserva masa el modelo?</h3>
-  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
-  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
-  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
-  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los {mod_balance.loc["PL", "n_meses"]:.0f}
-  meses del ajuste.</p>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
-    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
-    <tbody>
-{mod_balance_filas}
-    </tbody>
-  </table>
-  </div>
-  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
-  anterior»: a la lluvia de los dos meses juntos. Años: los {mod_balance.loc["PL", "n_anios_completos"]:.0f} con los
-  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
-  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
-  <ul>
-    <li><b>En el total, M4 reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL y
-    {mod_balance.loc["PI", "diferencia_volumen_pct"]:+.1f} % con PI) y el coeficiente de escorrentía. No es una prueba de
-    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
-    <li><b>Mes a mes, no representa el almacenamiento.</b> En {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f}
-    meses el río llevó más agua que la lluvia del mes según PL ({mod_balance.loc["PI", "meses_q_mayor_p_observado"]:.0f}
-    según PI): la cuenca soltaba agua guardada de antes. M4 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}
-    con PL y {mod_balance.loc["PI", "meses_q_mayor_p_estimado"]:.0f} con PI. La lluvia del mes anterior le da un mes de
-    memoria, pero no un depósito que se llene y se vacíe.</li>
-    <li><b>Hereda el balance de la fuente de lluvia.</b> {_balance_etp_txt}</li>
-  </ul>
-
-  <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
-  {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
-  corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
-  <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
-  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
-  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
-  independientes.</p>
 
   <h3>¿Agrega algo la evapotranspiración? M5</h3>
   <p>M4 usa solo la lluvia. Para poner a prueba la parte de H que dice que la evapotranspiración no explica el caudal se
@@ -4368,8 +4286,103 @@ a {{ color: var(--acento); }}
   <p class="aviso"><b>Qué se puede concluir y qué no.</b> La ETP de Hargreaves se calcula con la temperatura y su amplitud
   diaria, que es mayor con el cielo despejado: en parte mide la nubosidad, y puede estar corrigiendo errores de la lluvia,
   no solo midiendo la evaporación. M5 muestra que la demanda de la atmósfera, o algo que varía con ella, explica parte del
-  caudal que la lluvia no explica; no prueba el mecanismo. M4 sigue siendo el modelo de la ficha, porque estima el caudal
-  solo con la lluvia; M5 sirve para poner a prueba H.</p>
+  caudal que la lluvia no explica; no prueba el mecanismo. Aun así, M5 es el modelo elegido: yerra menos que M4 fuera del
+  ajuste en los dos esquemas, y M4 queda como el mejor modelo solo con lluvia.</p>
+
+  <h3>El modelo elegido: M5</h3>
+  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup> ·
+  ETP<sub>t</sub><sup>c</sup>, &nbsp; con C = D · e<sup>a</sup></p>
+  <p>Es M5 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
+  + c·ln ETP<sub>t</sub> y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
+  <dl class="lista-datos">
+    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre {n(AREA_SG_KM2)} km²; en m³/s, Q̂ · {n(AREA_SG_KM2)} · 10³ / (segundos del mes)</dd>
+    <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
+    <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
+    <dt>ETP<sub>t</sub></dt><dd>evapotranspiración potencial del mes, mm/mes (Hargreaves con ERA5-Land; ver «La evapotranspiración potencial (ETP)»)</dd>
+    <dt>Ajuste</dt><dd>{mod_n} meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
+  </dl>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Parámetro</th><th class="num">Con PL</th><th class="num">Con PI</th></tr></thead>
+    <tbody>
+{mod_param_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>Cómo se leen b<sub>0</sub>, b<sub>1</sub> y c.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en
+  1 % la variable que acompaña, con las otras fijas; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
+  {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q sube un {mod_elasticidad["PL"]["mes"] * 100:.1f} % (1.1<sup>b<sub>0</sub></sup>); si
+  sube la del mes anterior, un {mod_elasticidad["PL"]["anterior"] * 100:.1f} %; si suben las dos, un
+  {mod_elasticidad["PL"]["ambos"] * 100:.1f} % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
+  {_proporcional_txt("PL")}; con PI, {_proporcional_txt("PI")}. Con la misma lluvia, un mes con un
+  {MOD_CAMBIO_EJEMPLO * 100:.0f} % más de ETP lleva un {abs(mod_elasticidad["PL"]["etp"]) * 100:.1f} % menos de caudal con PL.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
+    <tbody>
+{mod_supuestos_filas}
+    </tbody>
+  </table>
+  </div>
+  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
+  {_fi.loc["PL", "lluvia_mes_min"]:.1f} y {_fi.loc["PL", "lluvia_mes_max"]:.1f} mm/mes con PL, y entre
+  {_fi.loc["PI", "lluvia_mes_min"]:.1f} y {_fi.loc["PI", "lluvia_mes_max"]:.1f} con PI (en el mes y en el anterior), y con
+  la ETP entre {_fi.loc["PL", "etp_min"]:.1f} y {_fi.loc["PL", "etp_max"]:.1f} mm/mes; el caudal observado fue de {_fi.loc["PL", "caudal_min"]:.1f} a {_fi.loc["PL", "caudal_max"]:.1f} mm/mes. Fuera de ese rango
+  no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
+  <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
+  cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
+  fuera del rango de aplicación.</p>
+  <p><b>Por qué M5.</b> Entre los modelos solo con lluvia, M4 y M2 yerran casi lo mismo fuera del ajuste
+  ({mod_rmse("PL", MOD_SOLO_LLUVIA):.1f} contra {mod_rmse("PL", MOD_COMPETIDOR):.1f} mm/mes con PL), menos de lo que cambia
+  el error de M4 de un bloque a otro ({_fi.loc["PL", "rmse_bloques_solo_lluvia_min"]:.1f} a
+  {_fi.loc["PL", "rmse_bloques_solo_lluvia_max"]:.1f}). El desempate lo dan los supuestos, que M4 cumple mejor (el error de
+  M2 crece con la lluvia y sus residuos no son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses
+  seguidos baja de {_fi.loc["PL", "lluvia_q_cero_m2"]:.1f} mm/mes con PL o de {_fi.loc["PI", "lluvia_q_cero_m2"]:.1f} con
+  PI, y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M5 es
+  M4 más la ETP: yerra menos que M4 en la validación cruzada ({mod_rmse("PL", MOD_ELEGIDO):.1f} contra
+  {mod_rmse("PL", MOD_SOLO_LLUVIA):.1f} mm/mes con PL), en {_fi.loc["PL", "bloques_mejor_que_solo_lluvia"]:.0f} de los
+  {mod_bloques.shape[1]} bloques y en la partición, y como M4 no puede dar caudales negativos. Lo que cuesta es
+  que necesita la ETP de cada mes.</p>
+
+  <h3>¿Conserva masa el modelo?</h3>
+  <p>No por construcción. Una regresión no impone el balance de agua: nada en M5 obliga a que el caudal estimado quede
+  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
+  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
+  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los {mod_balance.loc["PL", "n_meses"]:.0f}
+  meses del ajuste.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M5</th>
+    <th class="num">PI: observado</th><th class="num">PI: M5</th></tr></thead>
+    <tbody>
+{mod_balance_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
+  anterior»: a la lluvia de los dos meses juntos. Años: los {mod_balance.loc["PL", "n_anios_completos"]:.0f} con los
+  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
+  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
+  <ul>
+    <li><b>En el total, M5 reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL y
+    {mod_balance.loc["PI", "diferencia_volumen_pct"]:+.1f} % con PI) y el coeficiente de escorrentía. No es una prueba de
+    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
+    <li><b>Mes a mes, no representa el almacenamiento.</b> En {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f}
+    meses el río llevó más agua que la lluvia del mes según PL ({mod_balance.loc["PI", "meses_q_mayor_p_observado"]:.0f}
+    según PI): la cuenca soltaba agua guardada de antes. M5 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}
+    con PL y {mod_balance.loc["PI", "meses_q_mayor_p_estimado"]:.0f} con PI. La lluvia del mes anterior le da un mes de
+    memoria, pero no un depósito que se llene y se vacíe.</li>
+    <li><b>Hereda el balance de la fuente de lluvia.</b> {_balance_etp_txt}</li>
+  </ul>
+
+  <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
+  {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
+  corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
+  <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
+  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
+  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
+  independientes.</p>
+
 </section>
 
 
@@ -4568,8 +4581,8 @@ a {{ color: var(--acento); }}
     ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
     {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En meses que el ajuste
     no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
-    en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_ELEGIDO):.1f} mm/mes con PL y
-    de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_ELEGIDO):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
+    en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_SOLO_LLUVIA):.1f} mm/mes con PL y
+    de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_SOLO_LLUVIA):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
     la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
     <li><b>En el balance de cada mes</b>, la ETP no debería agregar información sobre el caudal una vez descontada la
     lluvia. Hoy sí agrega: la correlación parcial de las anomalías de Q y de la ETP es {mod_etp.loc["PL", "parcial_q_etp"]:+.2f}
@@ -4807,8 +4820,8 @@ a {{ color: var(--acento); }}
   «Comparando PI con PL»). No es una diferencia uniforme: PI supera a {sint_est_pi_mayor} de los
   {len(cmp_stats) - 1} pluviómetros por separado. Que PI sea más baja no dice cuál de las dos acierta: ningún pluviómetro
   mide por encima de {n(mapa_plu_alta.altitud)} m, y arriba llueve menos. Aparte del nivel, el caudal se lleva mejor con PL que
-  con PI (ρ = {rho("PL", "Q"):.2f} contra {rho("PI", "Q"):.2f}; ver «Qué dicen»). Con PL, el modelo del caudal tiene un KGE de
-  {_k("PL", MOD_ELEGIDO).kge:.2f} fuera del ajuste; con PI, {_k("PI", MOD_ELEGIDO).kge:.2f}, por debajo de la climatología
+  con PI (ρ = {rho("PL", "Q"):.2f} contra {rho("PI", "Q"):.2f}; ver «Qué dicen»). Con PL, el mejor modelo solo con lluvia (M4) tiene un KGE de
+  {_k("PL", MOD_SOLO_LLUVIA).kge:.2f} fuera del ajuste; con PI, {_k("PI", MOD_SOLO_LLUVIA).kge:.2f}, por debajo de la climatología
   ({_k("PI", MOD_REFERENCIA).kge:.2f}; ver «Validación fuera del ajuste»). Para estimar el caudal, el nivel de la
   lluvia importa poco, porque el modelo lo absorbe al ajustarse: importa que suba y baje cuando sube y baja el río, y eso lo hace mejor PL. Por
   eso, cuando hay que escoger, manda PL.</p>
@@ -5944,10 +5957,10 @@ a {{ color: var(--acento); }}
          line: {{ color: COLOR_VAR.Q, width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>Q observado</extra>" }},
       {{ type: "scatter", mode: "lines", name: "climatología (M0)", x: EV.meses, y: EV.clima,
          line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} mm/mes<extra>climatología (M0)</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "M4 con PL", x: EV.meses, y: EV.pl,
-         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PL</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "M4 con PI", x: EV.meses, y: EV.pi,
-         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PI</extra>" }}
+      {{ type: "scatter", mode: "lines", name: "M5 con PL", x: EV.meses, y: EV.pl,
+         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M5 con PL</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "M5 con PI", x: EV.meses, y: EV.pi,
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M5 con PI</extra>" }}
     ], d2, CONF);
   }}
   const BAL = {bal_json};

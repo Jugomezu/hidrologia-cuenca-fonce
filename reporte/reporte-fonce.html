@@ -209,9 +209,10 @@ section, section h3 { scroll-margin-top: 20px; }
   la cuenca, amortiguada por un almacenamiento del orden de un mes. La evapotranspiración, casi constante en el año, no
   explica ni su ciclo ni sus diferencias entre años. Entre años, se espera además que el ENSO tenga algún efecto sobre
   la cuenca, a través de la lluvia.</p>
-  <p>Si H es cierta, se debería ver cuatro cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
-  mes anterior agrega información; que un cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento
-  no mueve el caudal; y que la lluvia y el caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
+  <p>Si H es cierta, se debería ver cinco cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
+  mes anterior agrega información; que la ETP no agrega información sobre el caudal una vez descontada la lluvia; que un
+  cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento no mueve el caudal; y que la lluvia y el
+  caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
   la lluvia no explica conservara el ciclo anual. El veredicto está en «Síntesis física y conclusiones».</p>
 </section>
 
@@ -458,8 +459,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <h2>Coberturas, suelos y geología</h2>
   <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
   guarda. Aquí solo se usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca
-  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una
-  hipótesis para las relaciones y las tendencias»).</p>
+  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «La hipótesis H frente a los resultados»).</p>
 
   <h3>Geología</h3>
   <p>La geología sale del Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano (SGC), recortado con el
@@ -2837,7 +2837,7 @@ section, section h3 { scroll-margin-top: 20px; }
   1 es perfecto y 0 es tan bueno como la media de los meses evaluados. R² con todos los meses, sobre Q en mm/mes, así que
   se puede comparar entre escalas. ΔBIC: diferencia con el mejor de la misma escala (0 es el mejor).</p>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p class="nota">Q de 2015–2022 estimado con M4 ajustado en
+  <p class="nota">Q de 2015–2022 estimado con M5, el modelo elegido, ajustado en
   1998–2014, con PL y con PI, y la climatología de esos años de ajuste. Los cortes de la
   línea verde son meses sin Q.</p>
   <ul>
@@ -2852,7 +2852,7 @@ section, section h3 { scroll-margin-top: 20px; }
 
   <div>
   <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
-  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los 261 meses, pero ninguna cifra de esta tabla
+  <p>Los parámetros del modelo elegido que se reportan más abajo se ajustan con los 261 meses, pero ninguna cifra de esta tabla
   usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
   coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
   (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
@@ -2866,14 +2866,18 @@ section, section h3 { scroll-margin-top: 20px; }
     <tbody>
 <tr><td colspan='8'><b>Con PL</b></td></tr>
 <tr><td>M0 · climatología mensual de Q</td><td>validación cruzada</td><td class=num>0.47</td><td class=num>0.57</td><td class=num>0.68</td><td class=num>0.72</td><td class=num>0.998</td><td class=num>-0.2</td></tr>
-<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>validación cruzada</b></td><td class=num><b>0.79</b></td><td class=num><b>0.78</b></td><td class=num><b>0.89</b></td><td class=num><b>0.81</b></td><td class=num><b>0.993</b></td><td class=num><b>-0.8</b></td></tr>
+<tr><td>M4 · logaritmos con la lluvia del mes anterior</td><td>validación cruzada</td><td class=num>0.79</td><td class=num>0.78</td><td class=num>0.89</td><td class=num>0.81</td><td class=num>0.993</td><td class=num>-0.8</td></tr>
+<tr><td><b>M5 · M4 más la ETP del mes</b></td><td><b>validación cruzada</b></td><td class=num><b>0.84</b></td><td class=num><b>0.86</b></td><td class=num><b>0.92</b></td><td class=num><b>0.88</b></td><td class=num><b>0.996</b></td><td class=num><b>-0.5</b></td></tr>
 <tr><td>M0 · climatología mensual de Q</td><td>2015–2022</td><td class=num>0.46</td><td class=num>0.58</td><td class=num>0.70</td><td class=num>0.72</td><td class=num>1.100</td><td class=num>+10.7</td></tr>
-<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>2015–2022</b></td><td class=num><b>0.79</b></td><td class=num><b>0.81</b></td><td class=num><b>0.89</b></td><td class=num><b>0.85</b></td><td class=num><b>0.974</b></td><td class=num><b>-2.8</b></td></tr>
+<tr><td>M4 · logaritmos con la lluvia del mes anterior</td><td>2015–2022</td><td class=num>0.79</td><td class=num>0.81</td><td class=num>0.89</td><td class=num>0.85</td><td class=num>0.974</td><td class=num>-2.8</td></tr>
+<tr><td><b>M5 · M4 más la ETP del mes</b></td><td><b>2015–2022</b></td><td class=num><b>0.85</b></td><td class=num><b>0.84</b></td><td class=num><b>0.93</b></td><td class=num><b>0.86</b></td><td class=num><b>0.970</b></td><td class=num><b>-3.2</b></td></tr>
 <tr><td colspan='8'><b>Con PI</b></td></tr>
 <tr><td>M0 · climatología mensual de Q</td><td>validación cruzada</td><td class=num>0.47</td><td class=num>0.57</td><td class=num>0.68</td><td class=num>0.72</td><td class=num>0.998</td><td class=num>-0.2</td></tr>
-<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>validación cruzada</b></td><td class=num><b>0.52</b></td><td class=num><b>0.55</b></td><td class=num><b>0.73</b></td><td class=num><b>0.64</b></td><td class=num><b>0.992</b></td><td class=num><b>-0.9</b></td></tr>
+<tr><td>M4 · logaritmos con la lluvia del mes anterior</td><td>validación cruzada</td><td class=num>0.52</td><td class=num>0.55</td><td class=num>0.73</td><td class=num>0.64</td><td class=num>0.992</td><td class=num>-0.9</td></tr>
+<tr><td><b>M5 · M4 más la ETP del mes</b></td><td><b>validación cruzada</b></td><td class=num><b>0.70</b></td><td class=num><b>0.74</b></td><td class=num><b>0.83</b></td><td class=num><b>0.80</b></td><td class=num><b>0.997</b></td><td class=num><b>-0.3</b></td></tr>
 <tr><td>M0 · climatología mensual de Q</td><td>2015–2022</td><td class=num>0.46</td><td class=num>0.58</td><td class=num>0.70</td><td class=num>0.72</td><td class=num>1.100</td><td class=num>+10.7</td></tr>
-<tr><td><b>M4 · logaritmos con la lluvia del mes anterior</b></td><td><b>2015–2022</b></td><td class=num><b>0.58</b></td><td class=num><b>0.51</b></td><td class=num><b>0.80</b></td><td class=num><b>0.55</b></td><td class=num><b>1.042</b></td><td class=num><b>+4.4</b></td></tr>
+<tr><td>M4 · logaritmos con la lluvia del mes anterior</td><td>2015–2022</td><td class=num>0.58</td><td class=num>0.51</td><td class=num>0.80</td><td class=num>0.55</td><td class=num>1.042</td><td class=num>+4.4</td></tr>
+<tr><td><b>M5 · M4 más la ETP del mes</b></td><td><b>2015–2022</b></td><td class=num><b>0.69</b></td><td class=num><b>0.66</b></td><td class=num><b>0.85</b></td><td class=num><b>0.70</b></td><td class=num><b>1.038</b></td><td class=num><b>+4.0</b></td></tr>
     </tbody>
   </table>
   </div>
@@ -2888,89 +2892,122 @@ section, section h3 { scroll-margin-top: 20px; }
     2015–2022.</li>
     <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
     0.974 y 1.042 y el sesgo entre -2.8 y +4.4 mm/mes.</li>
-    <li><b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es 0.52 contra 0.47, y su KGE 0.55 contra 0.57 (en 2015–2022, 0.51 contra 0.58). La correlación de M4 es mayor (r 0.73 contra 0.68), pero su caudal varía menos que el observado: α = 0.64, es decir, reproduce el 64 % de la desviación estándar de Q, contra el 72 % de la climatología. El NSE junta todo el error en un solo número; el KGE castiga por separado que el modelo varíe menos que el río.</li>
+    <li><b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es 0.52 contra 0.47, y su KGE 0.55 contra 0.57 (en 2015–2022, 0.51 contra 0.58). La correlación de M4 es mayor (r 0.73 contra 0.68), pero su caudal varía menos que el observado: α = 0.64, es decir, reproduce el 64 % de la desviación estándar de Q, contra el 72 % de la climatología. El NSE junta todo el error en un solo número; el KGE castiga por separado que el modelo varíe menos que el río. Con la ETP (M5), PI sí supera a la climatología en KGE (0.74 contra 0.57 en la validación cruzada).</li>
   </ul>
   </div>
 
-  <h3>El modelo elegido: M4</h3>
-  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
-  &nbsp; con C = D · e<sup>a</sup></p>
-  <p>Es M4 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
-  y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
+  <h3>¿Agrega algo la evapotranspiración? M5</h3>
+  <p>M4 usa solo la lluvia. Para poner a prueba la parte de H que dice que la evapotranspiración no explica el caudal se
+  ajusta <b>M5</b>, que es M4 más la ETP del mes: ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub> + c·ln ETP<sub>t</sub>, con la misma muestra y la misma validación por
+  bloques.</p>
+  <ul>
+    <li><b>La ETP sí agrega información.</b> Quitando lo que explican la lluvia del mes y la del anterior, las anomalías de
+    Q y de la ETP se correlacionan en -0.38 con PL y -0.42
+    con PI (p &lt; 0.001 y &lt; 0.001). En M5 con
+    PL, c = -1.55 (IC 95 %: -1.86 a
+    -1.24): con la misma lluvia, un mes con un 10 % más de ETP
+    lleva un 14 % menos de caudal.</li>
+    <li><b>Mejora fuera del ajuste.</b> En la validación cruzada, el error baja de 24.6 (M4) a
+    21.2 mm/mes con PL y de 36.6 a 29.3
+    con PI, y el KGE sube de 0.78 a 0.86 con PL. En la partición
+    2015–2022 pasa lo mismo (24.5 a 20.8 mm/mes con
+    PL), y el BIC baja 90 puntos.</li>
+    <li><b>Le quita parte del calendario a los residuos, no todo.</b> El residuo medio del peor mes del calendario baja de
+    0.20 a 0.10 en ln Q con PL, un
+    51 % menos. Pero los residuos de M5 todavía cambian con el mes del calendario (Kruskal-Wallis, p = 0.003 con PL).</li>
+  </ul>
+  <p class="aviso"><b>Qué se puede concluir y qué no.</b> La ETP de Hargreaves se calcula con la temperatura y su amplitud
+  diaria, que es mayor con el cielo despejado: en parte mide la nubosidad, y puede estar corrigiendo errores de la lluvia,
+  no solo midiendo la evaporación. M5 muestra que la demanda de la atmósfera, o algo que varía con ella, explica parte del
+  caudal que la lluvia no explica; no prueba el mecanismo. Aun así, M5 es el modelo elegido: yerra menos que M4 fuera del
+  ajuste en los dos esquemas, y M4 queda como el mejor modelo solo con lluvia.</p>
+
+  <h3>El modelo elegido: M5</h3>
+  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup> ·
+  ETP<sub>t</sub><sup>c</sup>, &nbsp; con C = D · e<sup>a</sup></p>
+  <p>Es M5 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
+  + c·ln ETP<sub>t</sub> y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
   <dl class="lista-datos">
     <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre 2 099 km²; en m³/s, Q̂ · 2 099 · 10³ / (segundos del mes)</dd>
     <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
     <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
+    <dt>ETP<sub>t</sub></dt><dd>evapotranspiración potencial del mes, mm/mes (Hargreaves con ERA5-Land; ver «La evapotranspiración potencial (ETP)»)</dd>
     <dt>Ajuste</dt><dd>261 meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
   </dl>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Parámetro</th><th class="num">Con PL</th><th class="num">Con PI</th></tr></thead>
     <tbody>
-<tr><td>a</td><td class='num'>-1.07 <small>(-1.46 a -0.67)</small></td><td class='num'>0.06 <small>(-0.51 a 0.64)</small></td></tr>
-<tr><td>b<sub>0</sub>, lluvia del mes</td><td class='num'>0.67 <small>(0.61 a 0.73)</small></td><td class='num'>0.53 <small>(0.45 a 0.62)</small></td></tr>
-<tr><td>b<sub>1</sub>, lluvia del mes anterior</td><td class='num'>0.41 <small>(0.36 a 0.47)</small></td><td class='num'>0.35 <small>(0.28 a 0.42)</small></td></tr>
-<tr><td>b<sub>0</sub> + b<sub>1</sub></td><td class='num'>1.079 <small>(1.004 a 1.155)</small></td><td class='num'>0.884 <small>(0.773 a 0.995)</small></td></tr>
-<tr><td>D, factor de Duan</td><td class='num'>1.022</td><td class='num'>1.051</td></tr>
-<tr><td>C = D·e<sup>a</sup></td><td class='num'>0.351</td><td class='num'>1.121</td></tr>
-<tr><td>NSE en la validación cruzada</td><td class='num'>0.79</td><td class='num'>0.52</td></tr>
-<tr><td>KGE en la validación cruzada</td><td class='num'>0.78</td><td class='num'>0.55</td></tr>
+<tr><td>a</td><td class='num'>6.46 <small>(4.93 a 8.00)</small></td><td class='num'>11.79 <small>(9.91 a 13.68)</small></td></tr>
+<tr><td>b<sub>0</sub>, lluvia del mes</td><td class='num'>0.67 <small>(0.61 a 0.74)</small></td><td class='num'>0.59 <small>(0.49 a 0.70)</small></td></tr>
+<tr><td>b<sub>1</sub>, lluvia del mes anterior</td><td class='num'>0.34 <small>(0.29 a 0.40)</small></td><td class='num'>0.27 <small>(0.19 a 0.36)</small></td></tr>
+<tr><td>c, ETP del mes</td><td class='num'>-1.55 <small>(-1.86 a -1.24)</small></td><td class='num'>-2.51 <small>(-2.88 a -2.13)</small></td></tr>
+<tr><td>b<sub>0</sub> + b<sub>1</sub></td><td class='num'>1.018 <small>(0.959 a 1.076)</small></td><td class='num'>0.869 <small>(0.767 a 0.972)</small></td></tr>
+<tr><td>D, factor de Duan</td><td class='num'>1.015</td><td class='num'>1.034</td></tr>
+<tr><td>C = D·e<sup>a</sup></td><td class='num'>652</td><td class='num'>136 738</td></tr>
+<tr><td>NSE en la validación cruzada</td><td class='num'>0.84</td><td class='num'>0.70</td></tr>
+<tr><td>KGE en la validación cruzada</td><td class='num'>0.86</td><td class='num'>0.74</td></tr>
     </tbody>
   </table>
   </div>
-  <p><b>Cómo se leen b<sub>0</sub> y b<sub>1</sub>.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en 1 %
-  la lluvia que acompaña; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
+  <p><b>Cómo se leen b<sub>0</sub>, b<sub>1</sub> y c.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en
+  1 % la variable que acompaña, con las otras fijas; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
   10 %, Q sube un 6.6 % (1.1<sup>b<sub>0</sub></sup>); si
-  sube la del mes anterior, un 4.0 %; si suben las dos, un
-  10.8 % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
-  el caudal crece algo más rápido que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por encima de 1); con PI, el caudal crece algo más despacio que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por debajo de 1).</p>
+  sube la del mes anterior, un 3.3 %; si suben las dos, un
+  10.2 % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
+  no se puede descartar que el caudal sea proporcional a la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> incluye el 1); con PI, el caudal crece algo más despacio que la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> queda por debajo de 1). Con la misma lluvia, un mes con un
+  10 % más de ETP lleva un 13.7 % menos de caudal con PL.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
     <tbody>
 <tr><td>La relación es una recta en logaritmos</td><td><b>No del todo</b>: queda curvatura (<i>p</i> &lt; 0.001 con PL y &lt; 0.001 con PI).</td></tr>
-<tr><td>Los residuos son independientes</td><td><b>No</b>: el residuo de un mes se parece al del siguiente (0.38 con PL y 0.61 con PI; una serie sin memoria quedaría bajo ±0.13). Por eso los intervalos de los parámetros son de Newey-West.</td></tr>
-<tr><td>La varianza es constante en logaritmos</td><td><b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = 0.07 con PL y 0.37 con PI).</td></tr>
-<tr><td>Los residuos son normales</td><td><b>Con PL, sí</b> (Shapiro-Wilk, <i>p</i> = 0.46); <b>con PI, no</b> (<i>p</i> = 0.03).</td></tr>
-<tr><td>No queda patrón por mes del calendario</td><td><b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> &lt; 0.001 con PL). La cuenca guarda agua por más de un mes y el modelo solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo.</td></tr>
+<tr><td>Los residuos son independientes</td><td><b>No</b>: el residuo de un mes se parece al del siguiente (0.16 con PL y 0.34 con PI; una serie sin memoria quedaría bajo ±0.13). Por eso los intervalos de los parámetros son de Newey-West.</td></tr>
+<tr><td>La varianza es constante en logaritmos</td><td><b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = 0.66 con PL y 0.07 con PI).</td></tr>
+<tr><td>Los residuos son normales</td><td><b>Con PL, no</b> (Shapiro-Wilk, <i>p</i> = 0.05); <b>con PI, sí</b> (<i>p</i> = 0.65).</td></tr>
+<tr><td>No queda patrón por mes del calendario</td><td><b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> 0.003 con PL). La cuenca guarda agua por más de un mes y el modelo solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo.</td></tr>
+<tr><td>La ETP mide la demanda de agua de la atmósfera</td><td><b>No del todo</b>: la de Hargreaves se calcula con la temperatura y su amplitud diaria, que es mayor con el cielo despejado, así que en parte mide la nubosidad. Varió poco en el ajuste (85 a 122 mm/mes).</td></tr>
 <tr><td>La lluvia se mide sin error</td><td><b>No</b>: PL promedia entre 4 y 7 pluviómetros según el mes, ninguno por encima de 2 625 m, y PI es una estimación de satélite. El error de la lluvia aplana las pendientes.</td></tr>
     </tbody>
   </table>
   </div>
   <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
   29.9 y 445.1 mm/mes con PL, y entre
-  14.8 y 375.1 con PI (en el mes y en el anterior); el
-  caudal observado fue de 29.2 a 299.8 mm/mes. Fuera de ese rango
+  14.8 y 375.1 con PI (en el mes y en el anterior), y con
+  la ETP entre 85.1 y 121.6 mm/mes; el caudal observado fue de 29.2 a 299.8 mm/mes. Fuera de ese rango
   no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
   <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
   cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
   fuera del rango de aplicación.</p>
-  <p><b>Por qué M4 y no M2.</b> Fuera del ajuste yerran casi lo mismo (24.6 contra
-  23.5 mm/mes con PL), menos de lo que cambia el error de M4 de un bloque a otro
-  (19.0 a 30.5). Tienen los mismos tres
-  parámetros. El desempate lo dan los supuestos, que M4 cumple mejor (el error de M2 crece con la lluvia y sus residuos no
-  son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses seguidos baja de
-  40.9 mm/mes con PL o de 16.7 con PI,
-  y este último valor ya está dentro de lo observado (el mínimo de PI es 14.8). M4 no
-  puede dar caudales negativos.</p>
+  <p><b>Por qué M5.</b> Entre los modelos solo con lluvia, M4 y M2 yerran casi lo mismo fuera del ajuste
+  (24.6 contra 23.5 mm/mes con PL), menos de lo que cambia
+  el error de M4 de un bloque a otro (19.0 a
+  30.5). El desempate lo dan los supuestos, que M4 cumple mejor (el error de
+  M2 crece con la lluvia y sus residuos no son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses
+  seguidos baja de 40.9 mm/mes con PL o de 16.7 con
+  PI, y este último valor ya está dentro de lo observado (el mínimo de PI es 14.8). M5 es
+  M4 más la ETP: yerra menos que M4 en la validación cruzada (21.2 contra
+  24.6 mm/mes con PL), en 4 de los
+  5 bloques y en la partición, y como M4 no puede dar caudales negativos. Lo que cuesta es
+  que necesita la ETP de cada mes.</p>
 
   <h3>¿Conserva masa el modelo?</h3>
-  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
+  <p>No por construcción. Una regresión no impone el balance de agua: nada en M5 obliga a que el caudal estimado quede
   por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
   reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
   ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los 261
   meses del ajuste.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
-    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M5</th>
+    <th class="num">PI: observado</th><th class="num">PI: M5</th></tr></thead>
     <tbody>
 <tr><td>Lluvia media (mm/mes)</td><td class='num'>210.3</td><td class='num'>210.3</td><td class='num'>183.9</td><td class='num'>183.9</td></tr>
-<tr><td>Caudal medio (mm/mes)</td><td class='num'>111.2</td><td class='num'>110.6</td><td class='num'>111.2</td><td class='num'>110.5</td></tr>
-<tr><td>Coeficiente de escorrentía, Q / P</td><td class='num'>0.529</td><td class='num'>0.526</td><td class='num'>0.605</td><td class='num'>0.601</td></tr>
-<tr><td>P − Q (mm/mes)</td><td class='num'>99.1</td><td class='num'>99.7</td><td class='num'>72.7</td><td class='num'>73.4</td></tr>
+<tr><td>Caudal medio (mm/mes)</td><td class='num'>111.2</td><td class='num'>110.9</td><td class='num'>111.2</td><td class='num'>110.9</td></tr>
+<tr><td>Coeficiente de escorrentía, Q / P</td><td class='num'>0.529</td><td class='num'>0.527</td><td class='num'>0.605</td><td class='num'>0.603</td></tr>
+<tr><td>P − Q (mm/mes)</td><td class='num'>99.1</td><td class='num'>99.4</td><td class='num'>72.7</td><td class='num'>73.0</td></tr>
 <tr><td>ETP (mm/mes)</td><td class='num'>104.7</td><td class='num'>104.7</td><td class='num'>104.7</td><td class='num'>104.7</td></tr>
-<tr><td>Meses con Q mayor que P</td><td class='num'>7</td><td class='num'>0</td><td class='num'>21</td><td class='num'>6</td></tr>
+<tr><td>Meses con Q mayor que P</td><td class='num'>7</td><td class='num'>0</td><td class='num'>21</td><td class='num'>13</td></tr>
 <tr><td>Meses con Q mayor que P con el mes anterior</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td><td class='num'>0</td></tr>
 <tr><td>Años con P − Q mayor que la ETP</td><td class='num'>3</td><td class='num'>4</td><td class='num'>0</td><td class='num'>0</td></tr>
     </tbody>
@@ -2981,15 +3018,15 @@ section, section h3 { scroll-margin-top: 20px; }
   12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
   P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
   <ul>
-    <li><b>En el total, M4 reproduce el volumen</b> (-0.5 % con PL y
-    -0.6 % con PI) y el coeficiente de escorrentía. No es una prueba de
+    <li><b>En el total, M5 reproduce el volumen</b> (-0.3 % con PL y
+    -0.2 % con PI) y el coeficiente de escorrentía. No es una prueba de
     que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
     <li><b>Mes a mes, no representa el almacenamiento.</b> En 7
     meses el río llevó más agua que la lluvia del mes según PL (21
-    según PI): la cuenca soltaba agua guardada de antes. M4 estima 0
-    con PL y 6 con PI. La lluvia del mes anterior le da un mes de
+    según PI): la cuenca soltaba agua guardada de antes. M5 estima 0
+    con PL y 13 con PI. La lluvia del mes anterior le da un mes de
     memoria, pero no un depósito que se llene y se vacíe.</li>
-    <li><b>Hereda el balance de la fuente de lluvia.</b> Con PL, P − Q supera a la ETP en 3 años observados de 11, y con M4 en 4 años; con PI, en ningún año, ni observado ni con M4. Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos. Ningún año estimado tiene más caudal que lluvia.</li>
+    <li><b>Hereda el balance de la fuente de lluvia.</b> Con PL, P − Q supera a la ETP en 3 años observados de 11, y con M5 en 4 años; con PI, en ningún año, ni observado ni con M5. Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la ETP de Hargreaves se queda corta. M5 no corrige eso: lo reproduce, porque aprende de los datos. Ningún año estimado tiene más caudal que lluvia.</li>
   </ul>
 
   <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
@@ -2999,6 +3036,7 @@ section, section h3 { scroll-margin-top: 20px; }
   mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
   sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
   independientes.</p>
+
 </section>
 
 
@@ -3202,6 +3240,11 @@ section, section h3 { scroll-margin-top: 20px; }
     en la validación cruzada, el error baja de 30.8 a 24.6 mm/mes con PL y
     de 37.7 a 36.6 con PI, contra 38.8 de
     la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
+    <li><b>En el balance de cada mes</b>, la ETP no debería agregar información sobre el caudal una vez descontada la
+    lluvia. Hoy sí agrega: la correlación parcial de las anomalías de Q y de la ETP es -0.38
+    con PL, y agregarla al modelo (M5) baja el error fuera del ajuste de 24.6 a
+    21.2 mm/mes (ver «¿Agrega algo la evapotranspiración? M5»). <b>Esto contradice a H</b>,
+    aunque la ETP de Hargreaves mide en parte la nubosidad.</li>
     <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
     lluvia de marzo sube (+33 mm/mes por década con PL*, la única subserie de la lluvia que resiste la
     corrección FDR), pero el caudal de marzo no muestra tendencia significativa (+5.0 m³/s por
@@ -3220,13 +3263,16 @@ section, section h3 { scroll-margin-top: 20px; }
   <div class="aviso">
   <p><b>Veredicto: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
   ciclo anual, la del mes anterior agrega información, y el caudal no tiene tendencia sin un cambio de la lluvia. Lo que
-  la contradice, por su propio criterio: los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por mes
-  del calendario, p &lt; 0.001 con PL y &lt; 0.001 con PI). Una lectura
-  posible, que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al
-  río entre temporadas y que el modelo no representa.</p>
-  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un
-  almacenamiento rápido, de un mes, y otro más lento. Para probarla haría falta un modelo con dos
-  almacenamientos y comprobar que sus residuos ya no conservan el calendario.</p>
+  la contradice, por su propio criterio: la ETP sí agrega información sobre el caudal una vez descontada la lluvia
+  (parcial -0.38 con PL; M5 baja el error de 24.6 a
+  21.2 mm/mes), y los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por
+  mes del calendario, p = 0.003 con PL y &lt; 0.001 con PI). La ETP explica
+  parte de ese calendario: M5 le quita un 51 % al residuo del peor mes con PL, pero no todo.
+  Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa.</p>
+  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, menos una
+  evapotranspiración que cambia a lo largo del año, amortiguada por un almacenamiento rápido, de un mes, y otro más lento.
+  Para probarla haría falta un modelo de balance con la evapotranspiración y dos almacenamientos, y
+  comprobar que sus residuos ya no conservan el calendario.</p>
   </div>
   </div>
 </section>
@@ -3440,11 +3486,11 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td><b>Dos temporadas de lluvia y dos de caudal al año</b></td><td>Picos en abril y octubre con PL, mayo y octubre con PI, mayo y noviembre con Q. El ciclo de 6 meses tiene el 49 % de la varianza de PL y el 40 % de la de PI.</td><td>El doble paso de la ZCIT sobre el centro del país.</td><td>Los dos picos aparecen en 25 de 25 años con PL, y caen dentro de las dos temporadas lluviosas que da la fuente («El ciclo anual»; «Frecuencias: análisis de Fourier»).</td><td><a class="cita" href="#ref-poveda2004">Poveda, 2004</a>; <a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a></td><td>Las fuentes difieren en la banda de 12 meses: 18.5 % de la varianza con PI y 2.1 % con PL, y no hay forma de saber cuál tiene la razón.</td></tr>
 <tr><td><b>Llueve menos arriba</b></td><td>-222 mm/año por cada 1 000 m con IMERG (30 celdas) y -297 con los pluviómetros (7 estaciones).</td><td>Óptimo pluviográfico: por encima de unos 1 500 m, el aire que sube ya se quedó sin vapor que condensar.</td><td>El 90 % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca llueve menos arriba»).</td><td><a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a></td><td>Ningún pluviómetro mide por encima de 2 625 m, donde está el 30 % de la cuenca: arriba, la pendiente depende solo del satélite.</td></tr>
 <tr><td><b>Cuenca húmeda</b></td><td>P/ETP anual de 2.01 con PL y 1.77 con PI; enero, el mes de menor P/ETP, queda en 1.01 con PL y 0.71 con PI.</td><td>La lluvia supera a la demanda de evaporación, que casi no cambia en el año: el ciclo lo pone la lluvia.</td><td>La ETP varía un 21 % de su media a lo largo del año; la lluvia, un 97 % con PL y un 102 % con PI («¿Húmeda o árida? La lluvia contra la ETP»).</td><td><a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>; <a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a></td><td>La fuente cambia el borde: con PI, enero tiene déficit, y con PL no. La ETP es potencial y de Hargreaves; las clases de UNEP se definieron con Thornthwaite. No hay una medida de la evapotranspiración real.</td></tr>
-<tr><td><b>El río va atrasado y suavizado respecto a la lluvia</b></td><td>Q llega 17 días después que PL (IC 95 %: 13 a 21) y 14 después que PI.</td><td>Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.</td><td>El atraso es mucho mayor que el tiempo de concentración (4 a 20 horas); la lluvia del mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el 54 % de la varianza de la lluvia y el 37 % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).</td><td>Ninguna: se infiere del atraso del río.</td><td>El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones de agua, que también podrían cambiar la respuesta del río.</td></tr>
+<tr><td><b>El río va atrasado y suavizado respecto a la lluvia</b></td><td>Q llega 17 días después que PL (IC 95 %: 13 a 21) y 14 después que PI.</td><td>Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.</td><td>El atraso es mucho mayor que el tiempo de concentración (4 a 20 horas); la lluvia del mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el 54 % de la varianza de la lluvia y el 37 % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).</td><td>Ninguna: se infiere del atraso del río.</td><td>El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones de agua, que también podrían cambiar la respuesta del río. Parte del calendario que queda en los residuos lo explica la ETP («¿Agrega algo la evapotranspiración? M5»).</td></tr>
 <tr><td><b>Los años con El Niño son más secos</b></td><td>Correlación negativa y robusta con el índice Niño 3.4 en junio con PL, junio, agosto y diciembre con PI y enero y marzo con Q.</td><td>Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve menos y, con el atraso del almacenamiento, baja el caudal.</td><td>De los 5 meses del calendario con relación robusta, 4 caen en las temporadas que señala la fuente (por azar caería la mitad: es coherente, no una prueba); Q pasa la corrección en más meses con el índice un mes antes; el año más seco, 2015, tuvo 12 meses de El Niño; la anomalía de Q se correlaciona en -0.46 con el ONI de 1 mes antes y en -0.45 con el de 2 meses antes, más que con el TNA (+0.36), que sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).</td><td><a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>; <a class="cita" href="#ref-poveda2004">Poveda, 2004</a></td><td>Son 25 años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo.</td></tr>
 <tr><td><b>La temperatura sube</b></td><td>+0.14 °C por década en la temperatura media (ERA5-Land, registro completo), significativa sin importar qué año se quite.</td><td>El calentamiento global.</td><td>Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).</td><td>Ninguna: los datos muestran que sube, no por qué.</td><td>Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa.</td></tr>
 <tr><td><b>La lluvia y el caudal no tienen tendencia</b></td><td>Q: -0.8 m³/s por década (p = 0.719). PL* y PI no son significativas con ningún método, representación ni período.</td><td>Sin un cambio de la lluvia, el río no tiene por qué cambiar; el calentamiento sube la ETP muy poco.</td><td>Quitando un año a la vez, ninguna versión es significativa; la ETP sube solo un 0.52 % por década («Sensibilidad a años extremos»; «Significativo no es lo mismo que importante»).</td><td>No aplica: es la ausencia de un cambio.</td><td>Que no sea significativa no prueba que no haya cambio. La lluvia de marzo sube (+33 mm/mes por década con PL*) y el caudal de marzo no la sigue.</td></tr>
-<tr><td><b>La lluvia del mes y del anterior estiman el caudal mensual</b></td><td>KGE fuera del ajuste de 0.78 con PL y 0.55 con PI, frente a 0.57 de la climatología.</td><td>El caudal es la lluvia reciente amortiguada por el almacenamiento.</td><td>Sumar la lluvia del mes anterior baja el error en la validación cruzada («¿Sirve la lluvia para estimar el caudal?»; «Validación fuera del ajuste»).</td><td>No aplica: es un ajuste estadístico propio.</td><td>Los residuos conservan el calendario (Kruskal-Wallis por mes, p &lt; 0.001 con PL): apunta a que al modelo le falta un almacenamiento más lento que un mes. Con PI, el modelo no supera a la climatología.</td></tr>
+<tr><td><b>La lluvia del mes y del anterior estiman el caudal mensual</b></td><td>KGE fuera del ajuste de 0.78 con PL y 0.55 con PI, frente a 0.57 de la climatología.</td><td>El caudal es la lluvia reciente amortiguada por el almacenamiento.</td><td>Sumar la lluvia del mes anterior baja el error en la validación cruzada («¿Sirve la lluvia para estimar el caudal?»; «Validación fuera del ajuste»).</td><td>No aplica: es un ajuste estadístico propio.</td><td>Los residuos conservan el calendario (Kruskal-Wallis por mes, p = 0.003 con PL): apunta a que al modelo le falta un almacenamiento más lento que un mes. Con PI, el modelo no supera a la climatología.</td></tr>
     </tbody>
   </table>
   </div>
@@ -3455,7 +3501,7 @@ section, section h3 { scroll-margin-top: 20px; }
   «Comparando PI con PL»). No es una diferencia uniforme: PI supera a 3 de los
   7 pluviómetros por separado. Que PI sea más baja no dice cuál de las dos acierta: ningún pluviómetro
   mide por encima de 2 625 m, y arriba llueve menos. Aparte del nivel, el caudal se lleva mejor con PL que
-  con PI (ρ = 0.82 contra 0.71; ver «Qué dicen»). Con PL, el modelo del caudal tiene un KGE de
+  con PI (ρ = 0.82 contra 0.71; ver «Qué dicen»). Con PL, el mejor modelo solo con lluvia (M4) tiene un KGE de
   0.78 fuera del ajuste; con PI, 0.55, por debajo de la climatología
   (0.57; ver «Validación fuera del ajuste»). Para estimar el caudal, el nivel de la
   lluvia importa poco, porque el modelo lo absorbe al ajustarse: importa que suba y baje cuando sube y baja el río, y eso lo hace mejor PL. Por
@@ -3481,14 +3527,14 @@ section, section h3 { scroll-margin-top: 20px; }
     concentración (4 a 20 horas): la cuenca guarda agua y la suelta
     despacio.</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
-    PL (KGE de 0.78); con PI, no. Pero al modelo le falta el almacenamiento lento.</li>
+    PL (KGE de 0.78); con PI, no. El modelo elegido, M5, agrega la ETP del mes: baja el error
+    de 24.6 a 21.2 mm/mes con PL (KGE de 0.86), y con PI ya supera a la climatología; aun así, le falta un almacenamiento lento.</li>
     <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
     después, baja el caudal (r = -0.46 con el ONI). Con 25 años no se le puede atribuir toda la
     variabilidad entre años.</li>
     <li><b>Tendencias.</b> La temperatura sube +0.14 °C por década; la lluvia y el caudal no tienen una
     tendencia significativa, lo que no prueba que no la haya.</li>
-    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «Una hipótesis para las
-    relaciones y las tendencias»).</li>
+    <li><b>La hipótesis H</b> se sostiene en parte: la evapotranspiración sí agrega información sobre el caudal, y probablemente falta un almacenamiento lento (ver «La hipótesis H frente a los resultados»).</li>
   </ol>
 
   <h3>Limitaciones y trabajo futuro</h3>
@@ -3699,7 +3745,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 262 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 265 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Saltos y errores de registro» y el «Registro de problemas de los datos», que deja constancia de lo
@@ -4639,7 +4685,7 @@ section, section h3 { scroll-margin-top: 20px; }
   });
 
   const P2 = {"pi": [49.9, 121.1, 158.3, 267.3, 286.9, 197.6, 230.1, 208.3, 211.3, 300.8, 188.5, 139.8, 115.6, 225.0, 143.7, 251.1, 206.7, 223.1, 174.4, 182.8, 283.4, 302.1, 257.0, 146.8, 79.3, 161.1, 157.7, 210.0, 266.1, 252.2, 212.0, 218.6, 303.8, 282.2, 207.2, 103.4, 52.3, 52.3, 151.4, 165.8, 271.0, 200.1, 238.1, 169.3, 229.2, 291.1, 185.3, 149.2, 39.2, 56.6, 208.3, 246.7, 219.6, 195.0, 147.9, 161.4, 191.9, 176.7, 149.7, 107.7, 14.8, 90.8, 168.8, 259.2, 217.4, 224.6, 165.8, 160.4, 227.0, 264.8, 203.5, 134.5, 57.5, 73.2, 131.5, 236.5, 321.4, 166.5, 178.0, 149.9, 260.4, 275.0, 207.6, 81.1, 125.3, 136.8, 95.8, 270.2, 283.1, 207.2, 151.5, 172.9, 159.6, 318.3, 253.8, 105.4, 98.4, 61.6, 214.5, 256.5, 269.8, 247.2, 173.6, 174.3, 175.2, 298.5, 224.9, 118.8, 66.1, 37.8, 222.9, 237.5, 262.5, 177.5, 180.7, 217.4, 182.2, 327.4, 158.8, 134.2, 90.8, 108.8, 134.1, 203.9, 324.6, 234.4, 196.6, 238.4, 201.7, 270.5, 260.3, 77.7, 110.2, 117.4, 239.5, 197.1, 202.7, 208.2, 161.3, 193.5, 121.2, 211.0, 174.8, 82.6, 31.1, 75.3, 138.2, 246.4, 312.8, 229.1, 300.3, 239.7, 268.0, 264.7, 278.5, 171.0, 66.7, 132.0, 207.1, 375.1, 313.4, 188.9, 163.5, 183.8, 171.6, 260.8, 283.3, 163.6, 73.6, 60.4, 236.4, 320.8, 213.6, 147.6, 186.8, 189.1, 164.1, 250.1, 114.4, 90.2, 48.4, 176.7, 188.2, 288.3, 286.2, 179.8, 102.8, 209.1, 186.3, 170.6, 210.7, 124.7, 65.5, 191.5, 148.2, 156.2, 179.0, 157.4, 168.1, 155.5, 187.6, 266.3, 230.4, 109.8, 115.5, 132.5, 179.4, 260.6, 147.9, 109.1, 146.9, 116.0, 168.8, 182.6, 217.4, 59.7, 56.7, 77.5, 141.4, 269.4, 262.4, 128.2, 166.9, 149.9, 145.5, 215.2, 179.4, 153.1, 73.8, 95.3, 251.8, 265.9, 264.5, 206.5, 137.4, 245.9, 195.0, 236.2, 200.6, 119.1, 113.3, 77.8, 256.6, 259.2, 310.2, 126.9, 190.8, 115.0, 194.8, 320.8, 203.4, 54.2, 65.4, 130.4, 246.5, 260.7, 269.3, 150.5, 128.1, 142.2, 161.1, 259.8, 231.3, 134.7, 86.0, 95.8, 219.6, 166.0, 212.8, 184.5, 178.6, 150.1, 162.8, 217.6, 253.8, 128.6, 36.8, 146.2, 200.1, 205.0, 278.7, 220.0, 182.7, 213.2, 197.4, 271.8, 185.7, 127.3, 81.6, 198.4, 202.4, 291.5, 354.7, 282.8, 184.7, 206.3, 252.3, 275.2, 249.6, 111.1], "pl": [68.8, 135.9, 240.5, 296.2, 293.9, 133.9, 182.0, 216.8, 231.5, 420.7, 242.5, 252.4, 206.3, 355.0, 257.0, 290.2, 237.2, 275.6, 151.6, 218.1, 310.0, 307.2, 310.5, 221.7, 115.9, 227.2, 189.2, 297.6, 214.5, 232.9, 183.5, 167.5, 279.0, 239.4, 221.5, 98.6, 100.8, 103.6, 244.0, 197.2, 274.9, 144.6, 154.5, 124.2, 217.3, 321.4, 251.7, 218.4, 62.3, 72.8, 229.4, 389.6, 259.4, 182.4, 109.4, 170.0, 208.2, 241.9, 212.2, 198.2, 41.8, 113.8, 212.1, 360.6, 276.4, 219.0, 139.5, 228.4, 271.0, 394.4, 354.6, 138.5, 135.0, 118.6, 179.0, 347.4, 387.2, 128.6, 168.8, 115.1, 279.0, 310.5, 282.4, 138.6, 206.8, 203.1, 135.3, 294.1, 253.9, 166.2, 156.8, 141.2, 164.0, 374.2, 307.2, 114.3, 115.1, 65.0, 300.4, 355.1, 338.7, 209.4, 108.6, 195.3, 181.5, 344.0, 332.8, 196.0, 169.2, 56.4, 330.6, 334.6, 317.9, 153.2, 219.9, 248.7, 201.2, 417.1, 220.6, 215.5, 121.8, 137.0, 187.6, 239.5, 330.3, 207.8, 197.4, 253.4, 237.7, 297.6, 293.3, 94.1, 152.6, 209.6, 323.9, 235.1, 171.7, 166.2, 110.9, 252.6, 109.9, 215.8, 203.5, 117.6, 70.7, 86.6, 178.7, 264.9, 299.2, 273.7, 310.2, 221.6, 327.8, 323.3, 331.2, 131.4, 80.8, 180.3, 326.2, 445.1, 301.2, 175.7, 122.8, 220.7, 187.6, 356.7, 332.4, 226.0, 159.0, 66.3, 276.8, 410.5, 240.4, 133.7, 113.9, 192.8, 150.5, 298.8, 156.7, 107.5, 43.7, 226.4, 238.9, 315.8, 328.2, 91.1, 97.2, 193.5, 146.8, 285.3, 269.4, 166.4, 111.3, 225.0, 224.0, 267.6, 253.2, 91.6, 102.5, 140.3, 170.1, 274.3, 289.2, 122.0, 108.7, 139.2, 284.3, 363.9, 136.1, 54.0, 116.5, 180.2, 139.6, 255.2, 167.6, 85.8, 35.9, 59.0, 141.8, 265.8, 264.5, 122.2, 149.6, 160.3, 181.0, 277.6, 274.5, 166.7, 78.7, 64.1, 336.0, 297.0, 315.8, 263.0, 158.0, 155.9, 184.8, 225.5, 241.7, 145.3, 154.1, 71.2, 274.7, 291.9, 394.8, 141.3, 157.0, 121.1, 189.8, 365.6, 206.8, 70.4, 87.9, 225.3, 320.9, 307.9, 288.8, 83.6, 157.4, 111.4, 213.5, 229.1, 198.2, 150.8, 69.3, 62.2, 241.4, 228.2, 213.3, 222.2, 172.2, 183.4, 190.0, 278.8, 356.1, 133.6, 29.9, 138.3, 313.0, 240.9, 303.3, 153.1, 158.7, 223.4, 246.5, 274.5, 193.2, 129.4, 52.1, 161.3, 334.9, 276.8, 276.9, 332.9, 149.2, 213.0, 320.4, 338.8, 340.4, 127.5], "mes": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "periodo": ["1998-01", "1998-02", "1998-03", "1998-04", "1998-05", "1998-06", "1998-07", "1998-08", "1998-09", "1998-10", "1998-11", "1998-12", "1999-01", "1999-02", "1999-03", "1999-04", "1999-05", "1999-06", "1999-07", "1999-08", "1999-09", "1999-10", "1999-11", "1999-12", "2000-01", "2000-02", "2000-03", "2000-04", "2000-05", "2000-06", "2000-07", "2000-08", "2000-09", "2000-10", "2000-11", "2000-12", "2001-01", "2001-02", "2001-03", "2001-04", "2001-05", "2001-06", "2001-07", "2001-08", "2001-09", "2001-10", "2001-11", "2001-12", "2002-01", "2002-02", "2002-03", "2002-04", "2002-05", "2002-06", "2002-07", "2002-08", "2002-09", "2002-10", "2002-11", "2002-12", "2003-01", "2003-02", "2003-03", "2003-04", "2003-05", "2003-06", "2003-07", "2003-08", "2003-09", "2003-10", "2003-11", "2003-12", "2004-01", "2004-02", "2004-03", "2004-04", "2004-05", "2004-06", "2004-07", "2004-08", "2004-09", "2004-10", "2004-11", "2004-12", "2005-01", "2005-02", "2005-03", "2005-04", "2005-05", "2005-06", "2005-07", "2005-08", "2005-09", "2005-10", "2005-11", "2005-12", "2006-01", "2006-02", "2006-03", "2006-04", "2006-05", "2006-06", "2006-07", "2006-08", "2006-09", "2006-10", "2006-11", "2006-12", "2007-01", "2007-02", "2007-03", "2007-04", "2007-05", "2007-06", "2007-07", "2007-08", "2007-09", "2007-10", "2007-11", "2007-12", "2008-01", "2008-02", "2008-03", "2008-04", "2008-05", "2008-06", "2008-07", "2008-08", "2008-09", "2008-10", "2008-11", "2008-12", "2009-01", "2009-02", "2009-03", "2009-04", "2009-05", "2009-06", "2009-07", "2009-08", "2009-09", "2009-10", "2009-11", "2009-12", "2010-01", "2010-02", "2010-03", "2010-04", "2010-05", "2010-06", "2010-07", "2010-08", "2010-09", "2010-10", "2010-11", "2010-12", "2011-01", "2011-02", "2011-03", "2011-04", "2011-05", "2011-06", "2011-07", "2011-08", "2011-09", "2011-10", "2011-11", "2011-12", "2012-01", "2012-02", "2012-03", "2012-04", "2012-05", "2012-06", "2012-07", "2012-08", "2012-09", "2012-10", "2012-11", "2012-12", "2013-01", "2013-02", "2013-03", "2013-04", "2013-05", "2013-06", "2013-07", "2013-08", "2013-09", "2013-10", "2013-11", "2013-12", "2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06", "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"]};
-  const EV = {"meses": ["2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "q": [40.1, 59.3, 90.5, 164.2, 58.7, null, null, null, null, null, null, null, 29.2, 29.4, 51.2, 100.0, 117.1, 67.3, 63.3, null, 49.2, 111.7, 159.3, 136.7, 78.1, 40.3, 151.8, 135.3, 182.5, 133.4, 94.9, 68.9, 76.7, 100.5, 132.4, 80.9, 77.8, 43.6, 79.1, 166.0, 236.6, 110.4, 88.7, 68.4, 70.6, 207.3, 174.2, 68.8, 44.7, 71.1, 142.4, 201.7, 147.3, 98.1, 63.3, 53.9, 63.3, 109.5, 124.9, 71.8, 39.4, 34.0, 66.8, 101.5, 94.4, 121.0, 90.9, 97.6, 84.5, 104.8, 203.1, 94.2, 47.9, 41.4, 129.2, 139.0, 194.9, 121.9, 85.4, 104.5, 111.2, 133.8, 117.1, 87.4, 52.8, 72.8, 156.7, 162.3, 165.4, null, null, null, null, 261.0, 299.8, 152.6], "clima": [76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, null, null, null, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, null, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, 172.0, 167.2, 124.4], "pl": [55.0, 62.8, 117.2, 189.2, 102.4, null, null, null, null, null, null, null, 21.2, 21.1, 49.3, 112.5, 145.8, 82.9, 69.5, null, 89.5, 128.6, 152.5, 105.5, 49.5, 31.2, 95.8, 174.9, 173.8, 156.0, 99.7, 79.7, 89.8, 111.5, 127.4, 90.5, 76.4, 44.5, 86.4, 158.8, 203.1, 108.9, 76.5, 66.2, 82.4, 160.3, 139.2, 50.0, 37.5, 81.7, 156.6, 176.2, 165.3, 65.2, 61.6, 62.3, 86.7, 119.8, 111.0, 85.6, 43.3, 28.9, 74.3, 125.7, 116.9, 117.1, 98.9, 93.1, 98.1, 131.7, 184.8, 100.1, 22.3, 36.5, 125.4, 145.8, 154.6, 103.4, 79.8, 103.9, 128.8, 145.1, 117.5, 75.7, 33.0, 51.4, 140.5, 166.0, 153.3, null, null, null, null, 188.8, 194.0, 95.0], "pi": [78.5, 85.3, 103.1, 135.5, 113.8, null, null, null, null, null, null, null, 46.2, 53.2, 78.5, 128.7, 152.9, 106.2, 98.6, null, 96.3, 116.0, 118.6, 104.0, 69.0, 63.6, 111.1, 150.9, 152.9, 134.9, 102.6, 122.0, 128.4, 132.2, 128.8, 94.7, 79.6, 65.0, 105.8, 149.8, 164.3, 110.8, 105.1, 91.8, 103.2, 153.9, 141.6, 64.2, 48.2, 71.8, 120.3, 148.5, 153.4, 115.9, 90.4, 91.0, 99.8, 131.2, 142.1, 105.0, 71.8, 66.6, 103.9, 114.7, 119.8, 119.9, 113.2, 102.8, 101.9, 120.5, 141.4, 105.3, 46.4, 64.4, 112.0, 124.1, 145.6, 141.4, 120.4, 123.3, 124.0, 142.3, 129.0, 95.8, 68.9, 94.4, 123.0, 148.4, 181.7, null, null, null, null, 153.6, 150.0, 97.4]};
+  const EV = {"meses": ["2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "q": [40.1, 59.3, 90.5, 164.2, 58.7, null, null, null, null, null, null, null, 29.2, 29.4, 51.2, 100.0, 117.1, 67.3, 63.3, null, 49.2, 111.7, 159.3, 136.7, 78.1, 40.3, 151.8, 135.3, 182.5, 133.4, 94.9, 68.9, 76.7, 100.5, 132.4, 80.9, 77.8, 43.6, 79.1, 166.0, 236.6, 110.4, 88.7, 68.4, 70.6, 207.3, 174.2, 68.8, 44.7, 71.1, 142.4, 201.7, 147.3, 98.1, 63.3, 53.9, 63.3, 109.5, 124.9, 71.8, 39.4, 34.0, 66.8, 101.5, 94.4, 121.0, 90.9, 97.6, 84.5, 104.8, 203.1, 94.2, 47.9, 41.4, 129.2, 139.0, 194.9, 121.9, 85.4, 104.5, 111.2, 133.8, 117.1, 87.4, 52.8, 72.8, 156.7, 162.3, 165.4, null, null, null, null, 261.0, 299.8, 152.6], "clima": [76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, null, null, null, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, null, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, 103.1, 79.5, 81.3, 89.5, 172.0, 167.2, 124.4, 76.5, 68.7, 100.5, 157.4, 168.3, null, null, null, null, 172.0, 167.2, 124.4], "pl": [54.5, 74.1, 107.2, 168.0, 86.5, null, null, null, null, null, null, null, 23.3, 25.0, 45.5, 109.8, 136.1, 78.9, 67.6, null, 81.2, 127.4, 175.4, 123.0, 55.9, 34.7, 101.6, 153.7, 162.2, 159.8, 91.0, 69.4, 82.4, 108.5, 142.6, 95.2, 83.5, 51.0, 77.0, 157.7, 203.2, 103.9, 71.0, 55.1, 77.7, 167.0, 153.9, 48.8, 38.6, 92.8, 139.9, 165.9, 155.4, 62.7, 58.5, 52.7, 79.5, 117.6, 125.8, 90.6, 41.7, 30.7, 72.2, 113.8, 106.6, 120.1, 96.1, 85.6, 92.2, 127.5, 220.2, 107.5, 22.3, 45.3, 122.7, 137.5, 153.0, 105.5, 75.5, 98.0, 118.9, 136.9, 132.5, 84.8, 37.2, 69.5, 136.9, 162.4, 150.9, null, null, null, null, 179.3, 230.7, 103.9], "pi": [71.6, 105.8, 85.2, 118.1, 86.6, null, null, null, null, null, null, null, 48.0, 57.5, 59.7, 122.6, 139.3, 94.7, 88.4, null, 77.8, 115.6, 157.1, 140.6, 78.3, 68.1, 113.4, 128.4, 142.1, 146.6, 87.0, 95.0, 103.5, 125.5, 157.5, 101.6, 88.6, 76.8, 81.2, 153.9, 175.5, 103.6, 89.4, 60.7, 89.6, 170.2, 176.8, 55.2, 44.2, 85.0, 104.6, 142.4, 145.4, 107.0, 71.5, 64.9, 79.1, 132.0, 178.2, 110.5, 61.6, 63.8, 88.9, 95.9, 104.7, 124.6, 107.8, 85.0, 90.1, 115.1, 205.3, 122.1, 39.0, 80.7, 104.6, 118.4, 149.4, 150.9, 102.6, 108.1, 107.9, 134.3, 161.4, 112.6, 76.7, 142.7, 114.0, 156.8, 186.0, null, null, null, null, 149.9, 218.4, 115.0]};
 
   function dibujarPuntoDos() {
     if (!window.Plotly) return;
@@ -4674,10 +4720,10 @@ section, section h3 { scroll-margin-top: 20px; }
          line: { color: COLOR_VAR.Q, width: 2 }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>Q observado</extra>" },
       { type: "scatter", mode: "lines", name: "climatología (M0)", x: EV.meses, y: EV.clima,
          line: { color: GRIS, width: 1.4, dash: "dot" }, hovertemplate: "%{y:.0f} mm/mes<extra>climatología (M0)</extra>" },
-      { type: "scatter", mode: "lines", name: "M4 con PL", x: EV.meses, y: EV.pl,
-         line: { color: COLOR_VAR.PL, width: 1.6 }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M4 con PL</extra>" },
-      { type: "scatter", mode: "lines", name: "M4 con PI", x: EV.meses, y: EV.pi,
-         line: { color: COLOR_VAR.PI, width: 1.2, dash: "dash" }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M4 con PI</extra>" }
+      { type: "scatter", mode: "lines", name: "M5 con PL", x: EV.meses, y: EV.pl,
+         line: { color: COLOR_VAR.PL, width: 1.6 }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M5 con PL</extra>" },
+      { type: "scatter", mode: "lines", name: "M5 con PI", x: EV.meses, y: EV.pi,
+         line: { color: COLOR_VAR.PI, width: 1.2, dash: "dash" }, connectgaps: false, hovertemplate: "%{y:.0f} mm/mes<extra>M5 con PI</extra>" }
     ], d2, CONF);
   }
   const BAL = {"meses": ["1998-01", "1998-02", "1998-03", "1998-04", "1998-05", "1998-06", "1998-07", "1998-08", "1998-09", "1998-10", "1998-11", "1998-12", "1999-01", "1999-02", "1999-03", "1999-04", "1999-05", "1999-06", "1999-07", "1999-08", "1999-09", "1999-10", "1999-11", "1999-12", "2000-01", "2000-02", "2000-03", "2000-04", "2000-05", "2000-06", "2000-07", "2000-08", "2000-09", "2000-10", "2000-11", "2000-12", "2001-01", "2001-02", "2001-03", "2001-04", "2001-05", "2001-06", "2001-07", "2001-08", "2001-09", "2001-10", "2001-11", "2001-12", "2002-01", "2002-02", "2002-03", "2002-04", "2002-05", "2002-06", "2002-07", "2002-08", "2002-09", "2002-10", "2002-11", "2002-12", "2003-01", "2003-02", "2003-03", "2003-04", "2003-05", "2003-06", "2003-07", "2003-08", "2003-09", "2003-10", "2003-11", "2003-12", "2004-01", "2004-02", "2004-03", "2004-04", "2004-05", "2004-06", "2004-07", "2004-08", "2004-09", "2004-10", "2004-11", "2004-12", "2005-01", "2005-02", "2005-03", "2005-04", "2005-05", "2005-06", "2005-07", "2005-08", "2005-09", "2005-10", "2005-11", "2005-12", "2006-01", "2006-02", "2006-03", "2006-04", "2006-05", "2006-06", "2006-07", "2006-08", "2006-09", "2006-10", "2006-11", "2006-12", "2007-01", "2007-02", "2007-03", "2007-04", "2007-05", "2007-06", "2007-07", "2007-08", "2007-09", "2007-10", "2007-11", "2007-12", "2008-01", "2008-02", "2008-03", "2008-04", "2008-05", "2008-06", "2008-07", "2008-08", "2008-09", "2008-10", "2008-11", "2008-12", "2009-01", "2009-02", "2009-03", "2009-04", "2009-05", "2009-06", "2009-07", "2009-08", "2009-09", "2009-10", "2009-11", "2009-12", "2010-01", "2010-02", "2010-03", "2010-04", "2010-05", "2010-06", "2010-07", "2010-08", "2010-09", "2010-10", "2010-11", "2010-12", "2011-01", "2011-02", "2011-03", "2011-04", "2011-05", "2011-06", "2011-07", "2011-08", "2011-09", "2011-10", "2011-11", "2011-12", "2012-01", "2012-02", "2012-03", "2012-04", "2012-05", "2012-06", "2012-07", "2012-08", "2012-09", "2012-10", "2012-11", "2012-12", "2013-01", "2013-02", "2013-03", "2013-04", "2013-05", "2013-06", "2013-07", "2013-08", "2013-09", "2013-10", "2013-11", "2013-12", "2014-01", "2014-02", "2014-03", "2014-04", "2014-05", "2014-06", "2014-07", "2014-08", "2014-09", "2014-10", "2014-11", "2014-12", "2015-01", "2015-02", "2015-03", "2015-04", "2015-05", "2015-06", "2015-07", "2015-08", "2015-09", "2015-10", "2015-11", "2015-12", "2016-01", "2016-02", "2016-03", "2016-04", "2016-05", "2016-06", "2016-07", "2016-08", "2016-09", "2016-10", "2016-11", "2016-12", "2017-01", "2017-02", "2017-03", "2017-04", "2017-05", "2017-06", "2017-07", "2017-08", "2017-09", "2017-10", "2017-11", "2017-12", "2018-01", "2018-02", "2018-03", "2018-04", "2018-05", "2018-06", "2018-07", "2018-08", "2018-09", "2018-10", "2018-11", "2018-12", "2019-01", "2019-02", "2019-03", "2019-04", "2019-05", "2019-06", "2019-07", "2019-08", "2019-09", "2019-10", "2019-11", "2019-12", "2020-01", "2020-02", "2020-03", "2020-04", "2020-05", "2020-06", "2020-07", "2020-08", "2020-09", "2020-10", "2020-11", "2020-12", "2021-01", "2021-02", "2021-03", "2021-04", "2021-05", "2021-06", "2021-07", "2021-08", "2021-09", "2021-10", "2021-11", "2021-12", "2022-01", "2022-02", "2022-03", "2022-04", "2022-05", "2022-06", "2022-07", "2022-08", "2022-09", "2022-10", "2022-11", "2022-12"], "p": [49.9, 121.1, 158.3, 267.3, 286.9, 197.6, 230.1, 208.3, 211.3, 300.9, 188.5, 139.8, 115.6, 225.0, 143.7, 251.1, 206.7, 223.1, 174.3, 182.8, 283.4, 302.1, 257.0, 146.8, 79.3, 161.1, 157.7, 210.0, 266.1, 252.2, 212.0, 218.6, 303.8, 282.2, 207.2, 103.3, 52.3, 52.3, 151.4, 165.8, 271.0, 200.1, 238.1, 169.3, 229.2, 291.1, 185.3, 149.2, 39.2, 56.6, 208.3, 246.7, 219.6, 195.0, 147.9, 161.4, 191.9, 176.7, 149.7, 107.7, 14.8, 90.8, 168.8, 259.2, 217.4, 224.6, 165.8, 160.4, 227.1, 264.8, 203.5, 134.5, 57.5, 73.2, 131.5, 236.5, 321.4, 166.5, 178.0, 149.9, 260.4, 275.1, 207.6, 81.1, 125.3, 136.8, 95.8, 270.2, 283.1, 207.2, 151.5, 172.9, 159.6, 318.3, 253.8, 105.4, 98.4, 61.6, 214.5, 256.5, 269.8, 247.2, 173.6, 174.3, 175.2, 298.5, 224.9, 118.8, 66.1, 37.8, 222.9, 237.5, 262.5, 177.5, 180.7, 217.3, 182.2, 327.4, 158.8, 134.2, 90.8, 108.8, 134.1, 203.9, 324.6, 234.4, 196.6, 238.4, 201.7, 270.5, 260.3, 77.7, 110.2, 117.4, 239.5, 197.1, 202.7, 208.2, 161.3, 193.5, 121.2, 211.0, 174.8, 82.6, 31.1, 75.3, 138.2, 246.3, 312.8, 229.1, 300.3, 239.7, 268.0, 264.7, 278.5, 171.0, 66.7, 132.0, 207.1, 375.1, 313.4, 188.9, 163.5, 183.8, 171.6, 260.8, 283.3, 163.7, 73.6, 60.4, 236.4, 320.8, 213.6, 147.6, 186.8, 189.1, 164.1, 250.1, 114.4, 90.2, 48.5, 176.7, 188.2, 288.3, 286.2, 179.8, 102.8, 209.1, 186.3, 170.6, 210.7, 124.7, 65.5, 191.5, 148.2, 156.2, 179.0, 157.4, 168.1, 155.5, 187.6, 266.3, 230.4, 109.8, 115.5, 132.5, 179.3, 260.6, 147.9, 109.1, 146.9, 116.0, 168.8, 182.6, 217.4, 59.7, 56.7, 77.5, 141.4, 269.4, 262.4, 128.2, 166.9, 149.9, 145.5, 215.2, 179.4, 153.1, 73.8, 95.3, 251.8, 265.9, 264.5, 206.5, 137.4, 245.9, 195.0, 236.2, 200.6, 119.1, 113.3, 77.8, 256.6, 259.2, 310.2, 126.9, 190.8, 115.0, 194.8, 320.8, 203.4, 54.2, 65.4, 130.4, 246.5, 260.7, 269.3, 150.5, 128.1, 142.2, 161.1, 259.8, 231.3, 134.7, 86.0, 95.8, 219.6, 166.0, 212.8, 184.5, 178.6, 150.1, 162.8, 217.7, 253.8, 128.6, 36.8, 146.2, 200.1, 205.0, 278.7, 220.0, 182.7, 213.2, 197.4, 271.8, 185.7, 127.3, 81.6, 198.4, 202.4, 291.5, 354.7, 282.8, 184.7, 206.3, 252.3, 275.2, 249.7, 111.1], "q": [34.7, 49.5, 81.4, null, null, 88.9, 83.2, 95.6, 104.0, 199.9, 172.4, 170.1, 109.9, 179.2, 156.2, 169.3, 159.6, 109.7, 87.6, 93.5, null, 191.2, 214.4, 139.5, 76.2, 88.2, 121.9, 114.0, null, 114.9, 85.5, 63.1, null, null, 136.2, null, 52.5, 43.3, null, 69.3, 119.4, 96.2, 63.1, 47.1, 66.7, 145.9, 142.5, 128.5, 49.7, 45.9, 102.8, 196.5, 138.4, 136.8, 65.0, 52.0, 79.0, 107.8, 104.4, 92.9, 43.3, 37.5, 69.6, 156.9, 115.2, 113.5, 68.6, 81.9, 97.9, 199.0, 168.7, 131.4, 71.5, 44.0, 55.9, 152.0, 199.7, 78.8, 64.0, 50.1, 95.9, 144.5, 202.0, 105.1, 96.2, 102.7, 61.9, null, 152.9, 99.8, 75.5, 64.4, 70.2, 205.1, 208.7, 102.9, null, 48.3, 142.1, 177.2, 221.7, 142.8, 66.8, 60.9, 70.5, 158.9, 190.4, 145.6, 82.6, 36.8, 101.4, 157.5, 167.3, 112.3, 88.2, 102.5, 98.6, 207.0, 152.8, 128.9, 94.7, 67.2, null, null, null, 120.7, 107.7, 128.6, 120.8, 163.0, 180.9, 101.2, 98.3, 114.8, null, 142.1, null, 95.9, 56.9, 92.4, 66.9, 75.3, 148.8, 62.6, 33.5, 30.3, 52.0, 105.8, 149.6, 125.4, 177.3, 130.5, 205.9, 206.4, 244.2, 161.9, 70.2, 78.8, 183.0, 279.0, 231.5, 120.9, 76.8, 87.9, 89.5, 231.6, 189.6, 223.8, 121.3, 57.7, 87.1, 234.7, 193.4, 75.9, 60.0, 104.5, 57.4, null, 76.2, 59.5, null, 74.4, 90.9, null, 171.1, 64.9, 46.0, 73.6, 68.6, null, 143.0, 111.4, 71.0, null, null, 92.2, null, 55.8, null, 53.2, 50.0, null, null, null, 40.1, 59.3, 90.5, 164.2, 58.7, null, null, null, null, null, null, null, 29.2, 29.4, 51.2, 100.0, 117.1, 67.3, 63.3, null, 49.2, 111.7, 159.3, 136.7, 78.1, 40.3, 151.8, 135.3, 182.5, 133.4, 94.9, 68.9, 76.7, 100.5, 132.4, 80.9, 77.8, 43.6, 79.1, 166.0, 236.6, 110.4, 88.7, 68.4, 70.6, 207.3, 174.2, 68.8, 44.7, 71.1, 142.4, 201.7, 147.3, 98.1, 63.3, 53.9, 63.3, 109.5, 124.9, 71.8, 39.4, 34.0, 66.8, 101.5, 94.4, 121.0, 90.9, 97.6, 84.5, 104.8, 203.1, 94.2, 47.9, 41.4, 129.2, 139.0, 194.9, 121.9, 85.4, 104.5, 111.2, 133.8, 117.1, 87.4, 52.8, 72.8, 156.7, 162.3, 165.4, null, null, null, null, 261.0, 299.8, 152.6], "coef": [0.696, 0.409, 0.514, null, null, 0.45, 0.362, 0.459, 0.492, 0.664, 0.915, 1.217, 0.951, 0.796, 1.087, 0.674, 0.773, 0.491, 0.502, 0.511, null, 0.633, 0.834, 0.95, 0.96, 0.547, 0.773, 0.543, null, 0.456, 0.403, 0.289, null, null, 0.657, null, 1.003, 0.828, null, 0.418, 0.441, 0.481, 0.265, 0.278, 0.291, 0.501, 0.769, 0.861, 1.267, 0.811, 0.493, 0.797, 0.63, 0.701, 0.439, 0.322, 0.412, 0.61, 0.698, 0.862, 2.924, 0.413, 0.412, 0.605, 0.53, 0.505, 0.414, 0.51, 0.431, 0.752, 0.829, 0.977, 1.243, 0.601, 0.425, 0.643, 0.621, 0.473, 0.36, 0.334, 0.368, 0.525, 0.973, 1.295, 0.768, 0.751, 0.647, null, 0.54, 0.482, 0.498, 0.373, 0.44, 0.644, 0.822, 0.976, null, 0.785, 0.663, 0.691, 0.822, 0.578, 0.385, 0.35, 0.402, 0.532, 0.846, 1.225, 1.25, 0.976, 0.455, 0.663, 0.637, 0.633, 0.488, 0.472, 0.541, 0.632, 0.962, 0.961, 1.043, 0.618, null, null, null, 0.515, 0.548, 0.54, 0.599, 0.603, 0.695, 1.302, 0.892, 0.977, null, 0.721, null, 0.461, 0.353, 0.477, 0.552, 0.357, 0.851, 0.757, 1.078, 0.402, 0.376, 0.43, 0.478, 0.547, 0.59, 0.545, 0.768, 0.78, 0.877, 0.947, 1.052, 0.597, 0.883, 0.744, 0.738, 0.64, 0.47, 0.478, 0.522, 0.888, 0.669, 1.368, 1.647, 0.954, 0.369, 0.732, 0.905, 0.514, 0.321, 0.552, 0.35, null, 0.666, 0.66, null, 0.421, 0.483, null, 0.598, 0.361, 0.447, 0.352, 0.369, null, 0.679, 0.893, 1.083, null, null, 0.59, null, 0.355, null, 0.342, 0.267, null, null, null, 0.347, 0.447, 0.505, 0.63, 0.397, null, null, null, null, null, null, null, 0.516, 0.38, 0.362, 0.371, 0.446, 0.525, 0.379, null, 0.338, 0.519, 0.888, 0.893, 1.059, 0.423, 0.603, 0.509, 0.69, 0.646, 0.69, 0.28, 0.393, 0.426, 0.66, 0.679, 0.687, 0.56, 0.308, 0.64, 0.763, 0.87, 0.465, 0.595, 0.363, 0.646, 0.857, 1.27, 0.683, 0.546, 0.578, 0.774, 0.547, 0.652, 0.495, 0.379, 0.393, 0.422, 0.54, 0.533, 0.459, 0.355, 0.304, 0.611, 0.444, 0.655, 0.509, 0.65, 0.519, 0.482, 0.8, 0.732, 1.302, 0.283, 0.646, 0.678, 0.699, 0.554, 0.467, 0.49, 0.563, 0.492, 0.631, 0.686, 0.647, 0.367, 0.774, 0.557, 0.466, null, null, null, null, 0.948, 1.201, 1.374], "coef_medio": 0.605, "coef_pl": [0.505, 0.364, 0.339, null, null, 0.664, 0.457, 0.441, 0.449, 0.475, 0.711, 0.674, 0.533, 0.505, 0.608, 0.584, 0.673, 0.398, 0.578, 0.428, null, 0.622, 0.691, 0.629, 0.657, 0.388, 0.644, 0.383, null, 0.493, 0.466, 0.377, null, null, 0.615, null, 0.521, 0.418, null, 0.351, 0.434, 0.665, 0.408, 0.379, 0.307, 0.454, 0.566, 0.588, 0.798, 0.63, 0.448, 0.504, 0.534, 0.75, 0.594, 0.306, 0.379, 0.446, 0.492, 0.469, 1.036, 0.329, 0.328, 0.435, 0.417, 0.518, 0.491, 0.358, 0.361, 0.505, 0.476, 0.948, 0.53, 0.371, 0.312, 0.437, 0.516, 0.613, 0.379, 0.435, 0.344, 0.465, 0.715, 0.758, 0.465, 0.506, 0.458, null, 0.602, 0.601, 0.482, 0.456, 0.428, 0.548, 0.679, 0.901, null, 0.743, 0.473, 0.499, 0.655, 0.682, 0.615, 0.312, 0.388, 0.462, 0.572, 0.743, 0.488, 0.653, 0.307, 0.471, 0.526, 0.733, 0.401, 0.412, 0.49, 0.496, 0.693, 0.598, 0.778, 0.491, null, null, null, 0.581, 0.546, 0.508, 0.508, 0.548, 0.617, 1.076, 0.644, 0.547, null, 0.604, null, 0.577, 0.513, 0.366, 0.609, 0.349, 0.731, 0.532, 0.474, 0.35, 0.291, 0.399, 0.5, 0.458, 0.572, 0.589, 0.628, 0.639, 0.737, 1.232, 0.869, 0.437, 0.561, 0.627, 0.769, 0.688, 0.625, 0.398, 0.477, 0.649, 0.57, 0.99, 0.762, 0.87, 0.315, 0.572, 0.804, 0.568, 0.527, 0.542, 0.381, null, 0.486, 0.554, null, 0.329, 0.381, null, 0.521, 0.712, 0.473, 0.38, 0.468, null, 0.531, 0.669, 0.637, null, null, 0.345, null, 0.609, null, 0.379, 0.294, null, null, null, 0.369, 0.426, 0.318, 0.451, 0.431, null, null, null, null, null, null, null, 0.815, 0.499, 0.361, 0.376, 0.443, 0.551, 0.423, null, 0.272, 0.402, 0.58, 0.82, 0.993, 0.629, 0.452, 0.456, 0.578, 0.507, 0.6, 0.442, 0.415, 0.446, 0.548, 0.557, 0.505, 0.612, 0.288, 0.569, 0.599, 0.781, 0.565, 0.565, 0.372, 0.567, 0.842, 0.977, 0.508, 0.316, 0.444, 0.655, 0.51, 1.173, 0.402, 0.484, 0.296, 0.478, 0.63, 0.476, 0.569, 0.547, 0.277, 0.445, 0.443, 0.544, 0.528, 0.532, 0.444, 0.376, 0.57, 0.705, 1.598, 0.299, 0.413, 0.577, 0.643, 0.796, 0.538, 0.468, 0.451, 0.487, 0.606, 0.675, 1.015, 0.451, 0.468, 0.586, 0.597, null, null, null, null, 0.77, 0.881, 1.197]};

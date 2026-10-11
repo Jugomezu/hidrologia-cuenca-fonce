@@ -837,10 +837,11 @@ assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
 
 # ---------------------------------------------------------------- modelos para estimar Q con la lluvia (Punto 2)
 # Los calcula 16b_modelos_lluvia_caudal.py: el diagnóstico, cinco modelos (M0 a M4), sus errores fuera del ajuste
-# (partición 1998-2014 / 2015-2022 y validación cruzada con 5 bloques de 5 años) y la ficha del elegido, M4. Aquí
+# (partición 1998-2014 / 2015-2022 y validación cruzada con 5 bloques de 5 años), M5 (M4 más la ETP) y la ficha del
+# elegido, M5 (desde el 2026-10-11; antes M4, que queda como el mejor modelo solo con lluvia). Aquí
 # solo se leen y se comprueba lo que afirman los textos. Lluvia y Q en mm/mes.
 MOD_ALFA = 0.05                                   # el mismo nivel de 16b
-MOD_ELEGIDO, MOD_COMPETIDOR, MOD_REFERENCIA = "M4", "M2", "M0"
+MOD_ELEGIDO, MOD_SOLO_LLUVIA, MOD_COMPETIDOR, MOD_REFERENCIA = "M5", "M4", "M2", "M0"
 MOD_CON_LLUVIA = ("M1", "M2", "M3", "M4")
 MOD_FUENTES = ("PL", "PI")                     # regla 11: las dos en paralelo; manda PL
 mod_diag = pd.read_csv("out/modelos_diagnostico.csv").set_index(["fuente", "escala"])
@@ -886,56 +887,62 @@ for _f in MOD_FUENTES:
     assert (mod_bloques.loc[(_f, "M2")] < mod_bloques.loc[(_f, "M1")]).all()
     # el logaritmo no baja el error
     assert mod_rmse(_f, "M3") >= mod_rmse(_f, "M1") and mod_rmse(_f, "M4") >= mod_rmse(_f, "M2")
-    # la curvatura sigue con el rezago incluido
-    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "cuadratico_p_hac"] < MOD_ALFA
-    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "kruskal_residuo_por_mes_p"] < MOD_ALFA
+    # la curvatura sigue con el rezago incluido, y queda calendario en los residuos, también con la ETP
+    for _m in (MOD_SOLO_LLUVIA, MOD_ELEGIDO):
+        assert mod_ajuste.loc[(_f, _m), "cuadratico_p_hac"] < MOD_ALFA
+        assert mod_ajuste.loc[(_f, _m), "kruskal_residuo_por_mes_p"] < MOD_ALFA
 # con PI, cada modelo yerra más que con PL, y el mejor con PI no alcanza a la recta con PL
 assert all(mod_rmse("PI", m) > mod_rmse("PL", m) for m in MOD_CON_LLUVIA)
 assert max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA) < mod_vc.loc[("PL", "M1"), "nse"]
-# KGE fuera del ajuste (Gupta et al., 2009; lo calcula 16b con r, α y β por separado), para M4 y la climatología
-MOD_TOLERANCIA_VOLUMEN = 0.05     # el texto dice que M4 reproduce el volumen fuera del ajuste: |β − 1| < 5 %
-mod_kge = {(f, m, esq): tabla.loc[(f, m)] for f in MOD_FUENTES for m in (MOD_REFERENCIA, MOD_ELEGIDO)
+# KGE fuera del ajuste (Gupta et al., 2009; lo calcula 16b con r, α y β por separado), para la climatología, M4 (el
+# mejor solo con lluvia) y M5 (el elegido); los textos de esta parte hablan de M4
+MOD_TOLERANCIA_VOLUMEN = 0.05     # el texto dice que M4 y M5 reproducen el volumen fuera del ajuste: |β − 1| < 5 %
+mod_kge = {(f, m, esq): tabla.loc[(f, m)] for f in MOD_FUENTES for m in (MOD_REFERENCIA, MOD_SOLO_LLUVIA, MOD_ELEGIDO)
            for esq, tabla in (("vc", mod_vc), ("partición", mod_part))}
 for _esq in ("vc", "partición"):
     # con PL, M4 supera a la climatología en NSE y en KGE
-    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].kge > mod_kge[("PL", MOD_REFERENCIA, _esq)].kge
-    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].nse > mod_kge[("PL", MOD_REFERENCIA, _esq)].nse
+    assert mod_kge[("PL", MOD_SOLO_LLUVIA, _esq)].kge > mod_kge[("PL", MOD_REFERENCIA, _esq)].kge
+    assert mod_kge[("PL", MOD_SOLO_LLUVIA, _esq)].nse > mod_kge[("PL", MOD_REFERENCIA, _esq)].nse
     for _f in MOD_FUENTES:
-        assert abs(mod_kge[(_f, MOD_ELEGIDO, _esq)].kge_beta - 1) < MOD_TOLERANCIA_VOLUMEN
+        for _m in (MOD_SOLO_LLUVIA, MOD_ELEGIDO):
+            assert abs(mod_kge[(_f, _m, _esq)].kge_beta - 1) < MOD_TOLERANCIA_VOLUMEN
 # con PI, M4 se correlaciona menos con Q que con PL y reproduce menos su variabilidad (el texto lo dice)
-assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_r"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_r"]
-assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_alfa"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_alfa"]
+assert mod_vc.loc[("PI", MOD_SOLO_LLUVIA), "kge_r"] < mod_vc.loc[("PL", MOD_SOLO_LLUVIA), "kge_r"]
+assert mod_vc.loc[("PI", MOD_SOLO_LLUVIA), "kge_alfa"] < mod_vc.loc[("PL", MOD_SOLO_LLUVIA), "kge_alfa"]
 # ¿queda M4 con PI por debajo de la climatología en KGE? El texto lo dice según lo que salga, en cada esquema
-mod_pi_kge_bajo_m0 = {esq: mod_kge[("PI", MOD_ELEGIDO, esq)].kge < mod_kge[("PI", MOD_REFERENCIA, esq)].kge
+mod_pi_kge_bajo_m0 = {esq: mod_kge[("PI", MOD_SOLO_LLUVIA, esq)].kge < mod_kge[("PI", MOD_REFERENCIA, esq)].kge
+                      for esq in ("vc", "partición")}
+# ¿y M5 con PI? (el texto lo dice según lo que salga)
+mod_pi_m5_sobre_m0 = {esq: mod_kge[("PI", MOD_ELEGIDO, esq)].kge > mod_kge[("PI", MOD_REFERENCIA, esq)].kge
                       for esq in ("vc", "partición")}
 
 # qué modelos no superan a la climatología (el texto lo dice según lo que salga)
 mod_no_superan = {f: [m for m in MOD_CON_LLUVIA if mod_rmse(f, m) >= mod_rmse(f, MOD_REFERENCIA)] for f in MOD_FUENTES}
 
-# la ficha de M4: cuánto cambia Q si la lluvia sube un 10 %
+# la ficha de M5: cuánto cambia Q si la lluvia o la ETP suben un 10 %
 MOD_CAMBIO_EJEMPLO = 0.10
 mod_elasticidad = {f: {"mes": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0"] - 1,
                        "anterior": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b1"] - 1,
-                       "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1} for f in MOD_FUENTES}
-# la ficha dice qué supuestos se cumplen; aquí se fija que el texto de PL coincide con las pruebas
-assert mod_ficha.loc["PL", "shapiro_residuo_p"] >= MOD_ALFA and mod_ficha.loc["PI", "shapiro_residuo_p"] < MOD_ALFA
+                       "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1,
+                       "etp": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "c"] - 1} for f in MOD_FUENTES}
+# la ficha dice qué supuestos se cumplen (la normalidad, según lo que salga); la varianza constante, en firme
 assert mod_ficha.loc["PL", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert mod_ficha.loc["PI", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert (mod_ajuste.loc[(list(MOD_FUENTES), MOD_ELEGIDO), "estimados_negativos"] == 0).all()
 # M2 con PI da caudal negativo dentro del rango de lluvia que ya se observó; con PL, por debajo de ese rango no
-assert mod_ficha.loc["PI", "lluvia_q_cero_competidor"] > mod_ficha.loc["PI", "lluvia_mes_min"]
+assert mod_ficha.loc["PI", "lluvia_q_cero_m2"] > mod_ficha.loc["PI", "lluvia_mes_min"]
 # M2 no cumple sus supuestos como M4: su error crece con la lluvia y sus residuos no son normales
 assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_seco"] > P2_RAZON_VARIANZA
            and mod_ajuste.loc[(f, MOD_COMPETIDOR), "shapiro_residuo_p"] < MOD_ALFA for f in MOD_FUENTES)
-# los residuos de M4 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
+# los residuos de M5 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
 mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
 assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
 
-# ¿conserva masa M4? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
+# ¿conserva masa M5? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
 mod_balance = pd.read_csv("out/modelos_balance.csv").set_index("fuente")
 for _f in MOD_FUENTES:
     _b = mod_balance.loc[_f]
-    # el texto dice que el volumen total casi coincide (menos de 2 %), que M4 da menos meses con Q > P que los
+    # el texto dice que el volumen total casi coincide (menos de 2 %), que M5 da menos meses con Q > P que los
     # observados y que ningún año estimado tiene más caudal que lluvia
     assert abs(_b.diferencia_volumen_pct) < 2
     assert _b.meses_q_mayor_p_estimado < _b.meses_q_mayor_p_observado
@@ -3430,7 +3437,7 @@ assert fis_t_decada > 0 and fis_q_global["p_hac"] >= TEND_ALFA and not inc_fdr["
 #    d) fuera del ajuste, la lluvia supera a la climatología, y la del mes anterior mejora la estimación,
 #       más con PL que con PI
 assert all(mod_rmse(f, "M1") < mod_rmse(f, MOD_REFERENCIA) for f in MOD_FUENTES)
-assert mod_rmse("PL", "M1") - mod_rmse("PL", MOD_ELEGIDO) > mod_rmse("PI", "M1") - mod_rmse("PI", MOD_ELEGIDO) > 0
+assert mod_rmse("PL", "M1") - mod_rmse("PL", MOD_SOLO_LLUVIA) > mod_rmse("PI", "M1") - mod_rmse("PI", MOD_SOLO_LLUVIA) > 0
 
 #    e) lo que dicen los textos de la ZCIT y del ENSO
 # Poveda (2004): temporadas lluviosas en abril-mayo y octubre-noviembre. El primer pico de PL, PI y Q cae en la

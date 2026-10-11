@@ -107,9 +107,21 @@ q_mes_ok = a_mensual(cam["caudal"], "mean").notna()
 # ---------------------------------------------------------------- IMERG vs pluviómetros
 # Los 8 pluviómetros del IDEAM con serie mensual en 1998-2022. Solo los 7 que caen dentro de la
 # divisoria entran al promedio de la red; Mamonal El Hacienda está en la vertiente del Chicamocha.
+# El catálogo del IDEAM trae los nombres en mayúsculas, sin tildes y con el artículo al final («PAVAS LAS [24020220]»).
+# En el informe van sin el código, en minúsculas, y con estas correcciones (decididas por el usuario el 2026-10-11).
+CORRECCION_NOMBRES = {"Pavas Las": "Las Pavas", "Valle de San Jose": "Valle de San José",
+                      "Escuela Agricola Mogotes": "Escuela Agrícola Mogotes"}
+
+
+def nombre_estacion(nombre_ideam):
+    """«PAVAS LAS [24020220]» -> «Las Pavas»: el nombre de una estación tal como se escribe en el informe."""
+    base = pd.Series([nombre_ideam]).str.replace(r"\s*\[\d+\]", "", regex=True).str.strip().iloc[0]
+    base = base.title().replace(" De ", " de ")
+    return CORRECCION_NOMBRES.get(base, base)
+
+
 cat_plu = pd.read_csv("out/pluviometros_fonce_catalogo.csv").set_index("codigo")
-cat_plu["etiqueta"] = (cat_plu["nombre"].str.replace(r"\s*\[\d+\]", "", regex=True)
-                       .str.title().str.replace(" De ", " de "))
+cat_plu["etiqueta"] = cat_plu["nombre"].map(nombre_estacion)
 DENTRO = cat_plu.index[cat_plu["dentro_cuenca"]].tolist()
 COD_PLUVIO = {c: f"{cat_plu.loc[c, 'etiqueta']} ({cat_plu.loc[c, 'altitud']:,.0f} m)".replace(",", " ")
               for c in DENTRO}
@@ -1409,7 +1421,7 @@ grad_men = pd.read_csv("out/pluviometros_fonce_mensual_depurado.csv")
 _media_mes = grad_men.groupby("codigo").precipitacion_mm.mean().rename("p_mes_mm")
 grad_plu = grad_cat.merge(_media_mes, on="codigo")
 grad_plu["p_anual_mm"] = grad_plu.p_mes_mm * 12
-grad_plu["nombre_corto"] = grad_plu.nombre.str.replace(r"\s*\[\d+\]", "", regex=True).str.strip()
+grad_plu["nombre_corto"] = grad_plu.nombre.map(nombre_estacion)
 grad_plu = grad_plu.sort_values("altitud")
 grad_dentro = grad_plu[grad_plu.dentro_cuenca]
 grad_fuera = grad_plu[~grad_plu.dentro_cuenca]

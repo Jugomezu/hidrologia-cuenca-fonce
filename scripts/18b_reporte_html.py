@@ -6109,6 +6109,11 @@ a {{ color: var(--acento); }}
 </div>
 {INDICE_HTML}
 """
+# Algunos textos del informe vienen escritos en archivos de out/ (el registro de problemas, las tablas de anomalías)
+# con los nombres viejos de las estaciones; aquí se cambian por los de CORRECCION_NOMBRES. Los nombres viejos tienen
+# espacios, así que no pueden aparecer dentro de las imágenes incrustadas en base64.
+for _viejo, _nuevo in CORRECCION_NOMBRES.items():
+    pagina = pagina.replace(_viejo, _nuevo)
 SALIDA.write_text(pagina, encoding="utf-8")
 print(f"{SALIDA} ({SALIDA.stat().st_size / 1e6:.1f} MB)")
 print(p_imerg.round(0).to_dict())

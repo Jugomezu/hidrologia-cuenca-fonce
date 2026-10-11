@@ -226,8 +226,6 @@ CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
 CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a>'
 CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
 # citas de la versión alterna (2026-10-11): los métodos de las secciones nuevas y las fuentes que faltaban
-CITA_BUDYKO = '<a class="cita" href="#ref-budyko1974">Budyko, 1974</a>'
-CITA_FU = '<a class="cita" href="#ref-fu1981">Fu, 1981</a>'
 CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
 CITA_MUNOZ = '<a class="cita" href="#ref-munoz2021">Muñoz-Sabater et al., 2021</a>'
 CITA_SGC = '<a class="cita" href="#ref-sgc2023">Servicio Geológico Colombiano, 2023</a>'
@@ -1805,23 +1803,13 @@ SINT_FILAS += [
      "No aplica: es un ajuste estadístico propio.",
      f"Los residuos conservan el calendario (Kruskal-Wallis por mes, p {fmt_p_eq(alt_kw_residuo['PL'])} con PL): apunta a que al modelo le "
      "falta un almacenamiento más lento que un mes. Con PI, el modelo no supera a la climatología."),
-    ("El balance de largo plazo pide una lluvia entre PI y PL",
-     f"Con el Q y la ETP observados, la curva de Budyko corresponde a {n(bud_p_curva)} mm/año de lluvia; PL da "
-     f"{n(bud['PL']['p'])} y PI {n(bud['PI']['p'])}.",
-     "A largo plazo, la lluvia que no sale por el río se evapotranspira, y la proporción depende de la aridez.",
-     f"Con PL la cuenca queda por encima de la curva (ω = {bud['PL']['omega']:.1f}) y con PI por debajo "
-     f"(ω = {bud['PI']['omega']:.1f}) («Balance de largo plazo: Budyko»).",
-     f"{CITA_BUDYKO}; {CITA_FU}",
-     "La curva es el comportamiento medio de muchas cuencas; una cuenca concreta puede apartarse de ella. La ETP es de "
-     "Hargreaves y potencial."),
 ]
 sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>" for c in fila[1:]) + "</tr>"
                        for fila in SINT_FILAS)
 
 
 # ======================================================================================================
-# Versión alterna del informe (2026-10-11). Textos de las secciones nuevas (forma y relieve,
-# Budyko), del resumen y las conclusiones, y de las correcciones que pidió la revisión
+# Versión alterna del informe (2026-10-11). Textos de las secciones nuevas (forma y relieve), del resumen y las conclusiones, y de las correcciones que pidió la revisión
 # adversarial. Las cifras salen de 18_calculos_informe.py; lo que el texto afirma se protege con assert.
 # ======================================================================================================
 
@@ -1938,42 +1926,6 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
   estacional»). Ese atraso no es el tiempo de viaje del agua por los cauces: es agua que la cuenca guarda y suelta
   después.</p>"""
 
-# ---------------------------------------------------------------- balance de largo plazo: Budyko
-bud_json = json.dumps({"curva": bud_curva_json, "puntos": [
-    {"nombre": BUD_FUENTES[f], "phi": round(b["phi"], 3), "ep": round(b["ep"], 3),
-     "color": COLOR_VAR["PI" if f == "PI" else "PL"], "simbolo": "circle",
-     "abajo": False} for f, b in bud.items()]}, ensure_ascii=False)
-alt_filas_bud = "\n".join(
-    f"<tr><td>{BUD_FUENTES[f]}</td><td class='num'>{n(b['p'])}</td><td class='num'>{n(b['q'])}</td>"
-    f"<td class='num'>{n(b['et_real'])}</td><td class='num'>{n(b['etp'])}</td><td class='num'>{b['phi']:.3f}</td>"
-    f"<td class='num'>{b['ep']:.3f}</td><td class='num'>{b['ep_budyko']:.3f}</td><td class='num'>{b['omega']:.2f}</td></tr>"
-    for f, b in bud.items())
-alt_budyko = f"""<h3>Balance de largo plazo: Budyko</h3>
-  <p>Mes a mes, P − Q incluye el almacenamiento; en muchos años, en cambio, lo que la cuenca guarda y suelta se compensa, y
-  la lluvia que no sale por el río es la evapotranspiración real: E = P − Q. El marco de {CITA_BUDYKO} pone a cada cuenca
-  en un plano: en el eje horizontal, el índice de aridez ETP/P (cuánto podría evaporar el clima frente a cuánto llueve); en
-  el vertical, E/P (qué fracción de la lluvia se evapotranspira). Ninguna cuenca puede pasar de las dos líneas punteadas:
-  E no supera a la ETP (límite de energía) ni a la lluvia (límite de agua). La curva de Budyko es el comportamiento medio
-  de muchas cuencas del mundo. El parámetro ω de la ecuación de {CITA_FU} resume dónde queda una cuenca: con más ω, más
-  evapotranspiración para la misma aridez. Se calcula con los {bud_n} meses en que hay Q, PL, PI y ETP.</p>
-  <div id="g-budyko" class="grafico" style="min-height:0; height:380px"></div>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Lluvia</th><th class="num">P (mm/año)</th><th class="num">Q (mm/año)</th><th class="num">E = P − Q</th>
-    <th class="num">ETP</th><th class="num">ETP/P</th><th class="num">E/P</th><th class="num">E/P de la curva</th>
-    <th class="num">ω de Fu</th></tr></thead>
-    <tbody>
-{alt_filas_bud}
-    </tbody>
-  </table>
-  </div>
-  <p><b>Con PL la cuenca evapotranspira más de lo esperable; con PI, menos.</b> Con PL queda por encima de la curva (E/P de
-  {bud["PL"]["ep"]:.2f} contra {bud["PL"]["ep_budyko"]:.2f}) y con PI por debajo ({bud["PI"]["ep"]:.2f} contra
-  {bud["PI"]["ep_budyko"]:.2f}). Con el Q y la ETP observados, la lluvia con la que la cuenca caería justo sobre la curva es
-  de {n(bud_p_curva)} mm/año: entre PI ({n(bud["PI"]["p"])}) y PL ({n(bud["PL"]["p"])}). <b>No es una medida de la lluvia</b>: es la que haría que esta cuenca se comportara como
-  la media de las cuencas del mundo, y una cuenca concreta puede apartarse de esa media. Sirve como contraste
-  independiente de las dos fuentes, y no le da la razón del todo a ninguna.</p>"""
-
 # ---------------------------------------------------------------- veredicto sobre la hipótesis H
 alt_veredicto_h = f"""<div class="aviso">
   <p><b>Veredicto de esta versión: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
@@ -2000,11 +1952,11 @@ alt_resumen = f"""<p>La cuenca del Fonce hasta San Gil ({n(sg["area"], 2)} km²,
 assert morf_pendiente > 15                                           # «empinada»
 
 alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una revisión adversarial del informe: lo que
-  le faltaba, sus errores y sus incoherencias. No reemplaza al informe principal. Las decisiones de método que se tomaron
-  aquí sin el equipo van marcadas, para que el equipo las acepte o las cambie.</p>
+  le faltaba, sus errores y sus incoherencias. No reemplaza al informe principal. Cada cambio lo decidió el equipo, problema por
+  problema.</p>
   <ul>
     <li><b>Secciones nuevas:</b> «Forma y relieve de la cuenca» (la morfometría ya calculada, que no estaba en el informe),
-    «Balance de largo plazo: Budyko», este resumen, un veredicto sobre la hipótesis H y conclusiones numeradas.</li>
+    este resumen, un veredicto sobre la hipótesis H y conclusiones numeradas.</li>
     <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
     manda; CAMELS-COL ya no se presenta como confirmación; el rezago de Q frente al ONI es de 1 a 2 meses en todas partes;
     los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
@@ -2013,14 +1965,15 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
     <li><b>Nombres:</b> «Anomalías en las series» pasa a «Saltos y errores de registro», y «Registro de anomalías» a
     «Registro de problemas de los datos», porque «anomalía» ya significa otra cosa en el informe (la diferencia con el
     mes típico).</li>
-    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas y los métodos nuevos, y se
+    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas y los métodos de la morfometría, y se
     completaron las páginas de Mann, Newey y West y Scargle.</li>
     <li><b>Las cifras anuales de lluvia cambian según los meses que se promedian</b> (los {len(PERIODOS)} de 1998–2022 o
     solo los que tienen caudal): cada tabla dice su ventana.</li>
   </ul>
-  <p><b>Decisiones de método tomadas en esta versión:</b></p>
+  <p><b>Decisiones de método de esta versión</b> (tomadas por el equipo al revisar la lista de problemas):</p>
   <ul>
-    <li>En el balance de Budyko, la evapotranspiración real es P − Q en los meses con todas las variables.</li>
+    <li>Todo se mantiene en resolución mensual: no se analizan caudales diarios (crecientes, estiajes, flujo base).</li>
+    <li>PL sigue siendo el promedio simple de los pluviómetros con dato cada mes.</li>
   </ul>
   <p class="nota">Quedaron sin hacer: rehacer la figura del DEM en una proyección de Colombia (necesita el DEM completo),
   adelgazar las tablas de Fourier para bajar el tamaño de la página (decisión del equipo) y revisar a mano si el artículo
@@ -2031,7 +1984,7 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Régimen bimodal.</b> La lluvia y el caudal tienen dos temporadas al año, por el doble paso de la ZCIT; los
     picos de PL están en {pico_pl[0]} y {pico_pl[1]}.</li>
     <li><b>Balance.</b> Sale como caudal el {fis_coef["pl"] * 100:.0f} % de la lluvia con PL ({coef_periodo * 100:.0f} %
-    con PI). El balance de Budyko pide una lluvia de {n(bud_p_curva)} mm/año, entre PI y PL.</li>
+    con PI).</li>
     <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
     despacio.</li>
@@ -3252,7 +3205,6 @@ a {{ color: var(--acento); }}
   P/ETP &lt; 1 no quiere decir que la cuenca se seque: la evapotranspiración real queda limitada por el agua disponible, y
   la cuenca gasta lo que guardó en los meses húmedos (ver P − Q, arriba).</p>
   </div>
-  {alt_budyko}
 </section>
 
 <section>
@@ -4904,7 +4856,6 @@ a {{ color: var(--acento); }}
     <li id="ref-bretherton1999">Bretherton, C. S., Widmann, M., Dymnikov, V. P., Wallace, J. M., y Bladé, I. (1999). The
     effective number of spatial degrees of freedom of a time-varying field. <i>Journal of Climate</i>, 12(7), 1990–2009.
     <a href="https://doi.org/10.1175/1520-0442(1999)012%3C1990:TENOSD%3E2.0.CO;2">https://doi.org/10.1175/1520-0442(1999)012&lt;1990:TENOSD&gt;2.0.CO;2</a></li>
-    <li id="ref-budyko1974">Budyko, M. I. (1974). <i>Climate and Life</i>. Academic Press, Nueva York.</li>
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
@@ -4924,8 +4875,6 @@ a {{ color: var(--acento); }}
     <li id="ref-enfield1999">Enfield, D. B., Mestas-Nuñez, A. M., Mayer, D. A., y Cid-Serrano, L. (1999). How ubiquitous is
     the dipole relationship in tropical Atlantic sea surface temperatures? <i>Journal of Geophysical Research: Oceans</i>,
     104(C4), 7841–7848. <a href="https://doi.org/10.1029/1998JC900109">https://doi.org/10.1029/1998JC900109</a></li>
-    <li id="ref-fu1981">Fu, B. P. (1981). On the calculation of the evaporation from land surface (en chino).
-    <i>Scientia Atmospherica Sinica</i>, 5(1), 23–31.</li>
     <li id="ref-mapbiomas2025">Fundación Gaia Amazonas. (2025). <i>Proyecto MapBiomas Colombia Colección 3.0 – Mapeo anual
     de cobertura y uso del suelo</i>. Recuperado el 2026-10-09 de
     <a href="https://storage.googleapis.com/mapbiomas-public/initiatives/colombia/collection_3/coverage/colombia_coverage_2022.tif">storage.googleapis.com/mapbiomas-public</a>.</li>
@@ -6147,37 +6096,6 @@ a {{ color: var(--acento); }}
     Plotly.react("g-gradiente-limpio", trazasLimpio, dispLimpio, CONF);
   }}
 
-  // --- versión alterna: balance de Budyko ---
-  const BUD = {bud_json};
-
-  function dibujarBudyko() {{
-    if (!window.Plotly) return;
-    const tenue = css("--tenue");
-    const trazas = [
-      {{ type: "scatter", mode: "lines", name: "curva de Budyko", x: BUD.curva.phi, y: BUD.curva.budyko,
-         line: {{ color: tenue, width: 2 }}, hoverinfo: "skip" }},
-      // los dos límites: la energía (E no supera a la ETP) y el agua (E no supera a la lluvia)
-      {{ type: "scatter", mode: "lines", name: "límites de energía y de agua", x: [0, 1, 1.6], y: [0, 1, 1],
-         line: {{ color: tenue, width: 1, dash: "dot" }}, hoverinfo: "skip" }},
-      ...BUD.puntos.map(p => ({{
-        type: "scatter", mode: "markers+text", name: p.nombre, x: [p.phi], y: [p.ep], text: [p.nombre],
-        textposition: p.abajo ? "bottom center" : "top center", textfont: {{ size: 10.5, color: p.color }},
-        marker: {{ size: 13, color: p.color, symbol: p.simbolo, line: {{ color: "#FFFFFF", width: 1.4 }} }},
-        hovertemplate: "ETP/P = %{{x:.2f}}<br>E/P = %{{y:.2f}}<extra>" + p.nombre + "</extra>" }}))
-    ];
-    const disp = base();
-    disp.hovermode = "closest";
-    disp.showlegend = false;
-    disp.margin.t = 20;
-    disp.xaxis.title = {{ text: "índice de aridez: ETP / P", font: {{ size: 11, color: tenue }} }};
-    disp.xaxis.range = [0.3, 0.8];
-    disp.yaxis.title.text = "evapotranspiración real / lluvia: E / P";
-    disp.yaxis.rangemode = "normal";
-    disp.yaxis.range = [0.25, 0.65];
-    Plotly.react("g-budyko", trazas, disp, CONF);
-  }}
-
-
   function dibujar() {{
     if (!window.Plotly) return;
     // los pluviómetros sueltos van tenues y comparten una sola entrada de leyenda
@@ -6226,7 +6144,6 @@ a {{ color: var(--acento); }}
     dibujarIndices();
     dibujarCicloAnual();
     dibujarGradiente();
-    dibujarBudyko();
   }}
 
   dibujar();

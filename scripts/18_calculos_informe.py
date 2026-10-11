@@ -17,7 +17,6 @@ from itertools import combinations
 from pathlib import Path
 from scipy import stats
 from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
-from scipy.optimize import brentq
 import numpy as np
 import pandas as pd
 import rasterio
@@ -3887,7 +3886,8 @@ assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
 
 # ======================================================================================================
 # Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.
-# Morfometría (ya calculada por 13-15) y el balance de largo plazo en el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
+# Morfometría (ya calculada por 13-15) y correcciones de la revisión. Todo sale de out/; lo que el texto afirma se
+# protege con assert.
 # ======================================================================================================
 # ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
 morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
@@ -3908,43 +3908,6 @@ assert (desfase_tc[0], desfase_tc[1]) == (morf_tc_medido.min(), morf_tc_medido.m
 # ---------------------------------------------------------------- lluvia anual de la portada y el resumen
 alt_pl_anual = float(comp["RED"].mean() * 12)        # PL: promedio simple de la red, los 300 meses de 1998-2022
 alt_pi_anual = float(comp["IMERG"].mean() * 12)
-
-# ---------------------------------------------------------------- balance de largo plazo: Budyko
-# Con los meses en que hay Q, la evapotranspiración real media es E = P − Q (a largo plazo el almacenamiento se
-# compensa). Se ubica la cuenca en el marco de Budyko (1974): índice de aridez φ = ETP/P contra E/P. La curva de
-# Budyko da el E/P esperable para una cuenca con ese φ; el parámetro ω de Fu (1981) resume cuánto se aparta: la curva
-# de Budyko equivale a ω ≈ 2.6; valores más altos indican más evapotranspiración que la esperable y más bajos, menos.
-def _budyko(phi):
-    return np.sqrt(phi * np.tanh(1 / phi) * (1 - np.exp(-phi)))
-
-
-def _fu(phi, w):
-    return 1 + phi - (1 + phi ** w) ** (1 / w)
-
-
-_vm = pd.read_csv("out/variables_mensuales.csv", index_col=0)
-_vm.index = pd.PeriodIndex(_vm.index, freq="M")
-BUD_FUENTES = {"PL": "PL", "PI": "PI"}
-bud = {}
-for _f in BUD_FUENTES:
-    _p, _q, _e = _vm[_f].mean() * 12, _vm.Q.mean() * 12, _vm.ETP.mean() * 12
-    _phi = _e / _p
-    _ep = (_p - _q) / _p
-    bud[_f] = {"p": _p, "q": _q, "etp": _e, "et_real": _p - _q, "phi": _phi, "ep": _ep,
-               "ep_budyko": float(_budyko(_phi)), "omega": float(brentq(lambda w: _fu(_phi, w) - _ep, 1.0001, 20))}
-bud_n = len(_vm)
-bud_curva_json = {"phi": [round(float(x), 3) for x in np.linspace(0.2, 1.6, 57)],
-                  "budyko": [round(float(_budyko(x)), 4) for x in np.linspace(0.2, 1.6, 57)]}
-# la lluvia con la que la cuenca caería justo sobre la curva de Budyko, con el Q y la ETP observados: no es un dato,
-# es la lluvia que haría coherente el balance si la cuenca se comportara como la curva media
-bud_p_curva = float(brentq(lambda p: (p - bud["PL"]["q"]) / p - _budyko(bud["PL"]["etp"] / p),
-                           bud["PL"]["q"] * 1.05, bud["PL"]["q"] * 5))
-# lo que afirma el texto: con las tres lluvias la cuenca queda bajo el límite de energía (E < ETP) y de agua (E < P);
-# con PL queda por encima de la curva (evapotranspira más de lo esperable) y con PI por debajo, así que la lluvia que
-# haría coincidir el balance con la curva queda entre las dos
-assert all(b["et_real"] < b["etp"] and 0 < b["ep"] < 1 for b in bud.values())
-assert bud["PL"]["ep"] > bud["PL"]["ep_budyko"] and bud["PI"]["ep"] < bud["PI"]["ep_budyko"]
-assert bud["PI"]["p"] < bud_p_curva < bud["PL"]["p"]
 
 # ---------------------------------------------------------------- correcciones de la revisión
 # rezago del ONI frente a Q: el 1 y el 2 están casi empatados (la explicación física decía «2 meses» y la sección de

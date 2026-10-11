@@ -821,8 +821,7 @@ for (v, per), f in met_global.items():
         + f"<td class='num'>{_p_neg(_ic_txt(o['Xmes']['pend'], o['Xmes']['ic_hac'], d), o['Xmes']['p_hac'])} <small>(p {_p_txt(o['Xmes']['p_hac'])})</small></td>"
         + f"<td class='num'>{_p_neg(_ic_txt(o['a']['pend'], o['a']['ic_hac'], d), o['a']['p_hac'])} <small>(clásico ± {o['a']['ic_cl']:.{d}f})</small></td>"
         + f"<td class='num'>{_p_neg(_ic_txt(o['z']['pend'], o['z']['ic_hac'], 3), o['z']['p_hac'])}</td>"
-        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td>"
-        + f"<td class='num'>{_p_txt(o['a']['p_sw'])}</td></tr>")
+        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td></tr>")
     mx, ma = f["mk_X"], f["mk_a"]
     sen_x = f"{mx['pend']:+.{d}f} [{mx['lo']:+.{d}f}, {mx['hi']:+.{d}f}]"
     sen_a = f"{ma['pend']:+.{d}f} [{ma['lo']:+.{d}f}, {ma['hi']:+.{d}f}]"
@@ -1446,7 +1445,6 @@ _diag_ind = [
     ("Mes con el residuo medio más bajo", lambda r, e: f"{_mes_corto(r.mes_residuo_medio_min)} ({_res(e, r.residuo_medio_min)})"),
     ("Correlación del residuo con el del mes siguiente", lambda r, e: f"{r.autocorr_residuo_1_mes:.2f}"),
     ("Correlación del residuo con la lluvia del mes anterior", lambda r, e: f"{r.corr_residuo_lluvia_mes_anterior:.2f}"),
-    ("Residuos normales: <i>p</i> de Shapiro-Wilk", lambda r, e: _p_txt(r.shapiro_residuo_p)),
     ("Asimetría del residuo", lambda r, e: f"{r.asimetria_residuo:+.2f}"),
 ]
 mod_diag_filas = "\n".join(
@@ -1540,7 +1538,6 @@ def _proporcional_txt(f):
     return "no se puede descartar que el caudal sea proporcional a la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> incluye el 1)"
 
 
-_cumple = lambda p: "sí" if p >= MOD_ALFA else "no"
 mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in [
     ("La relación es una recta en logaritmos",
      f"<b>No del todo</b>: queda curvatura (<i>p</i> {_p_txt(_fi.loc['PL', 'cuadratico_p_hac'])} con PL y "
@@ -1552,9 +1549,6 @@ mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in
     ("La varianza es constante en logaritmos",
      f"<b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = "
      f"{_fi.loc['PL', 'spearman_abs_residuo_ajustado_p']:.2f} con PL y {_fi.loc['PI', 'spearman_abs_residuo_ajustado_p']:.2f} con PI)."),
-    ("Los residuos son normales",
-     f"<b>Con PL, {_cumple(_fi.loc['PL', 'shapiro_residuo_p'])}</b> (Shapiro-Wilk, <i>p</i> = {_fi.loc['PL', 'shapiro_residuo_p']:.2f}); "
-     f"<b>con PI, {_cumple(_fi.loc['PI', 'shapiro_residuo_p'])}</b> (<i>p</i> = {_fi.loc['PI', 'shapiro_residuo_p']:.2f})."),
     ("No queda patrón por mes del calendario",
      f"<b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> "
      f"{_p_txt(_fi.loc['PL', 'kruskal_residuo_por_mes_p'])} con PL). La cuenca guarda agua por más de un mes y el modelo "
@@ -3686,7 +3680,7 @@ a {{ color: var(--acento); }}
   <p><b>Diagnóstico de los residuos.</b> En las {len([1 for (v, per) in met_global if per == "completo"])} variables, los residuos del
   ajuste están autocorrelacionados (prueba de Ljung-Box con {MET_LB_REZAGOS} rezagos, p &lt; {TEND_ALFA}): un mes húmedo suele
   seguir a otro. {"No hay cambios de dispersión con el tiempo en el registro completo" if not met_hetero else "La dispersión cambia con el tiempo en " + ", ".join(met_hetero)}
-  (Breusch-Pagan), y varios residuos no son normales (Shapiro-Wilk). Con dependencia, el error estándar usual
+  (Breusch-Pagan). Con dependencia, el error estándar usual
   subestima la incertidumbre, así que la inferencia se apoya en el de <b>Newey-West</b> ({CITA_NEWEY}), robusto a
   autocorrelación y heterocedasticidad: su intervalo es, en la mediana, {met_hac_mas_ancho:.1f} veces el usual. En
   Mann-Kendall, la p de la serie original sale de <b>permutar años completos</b> ({MET_REMUESTREOS} veces: los doce meses de
@@ -3696,7 +3690,7 @@ a {{ color: var(--acento); }}
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: OLS</th>
     <th class="num">X: OLS con meses</th><th class="num">a: OLS</th><th class="num">z: OLS</th>
-    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th><th class="num">Shapiro-Wilk p</th></tr></thead>
+    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th></tr></thead>
     <tbody>
 {met_ols_filas}
     </tbody>
@@ -4169,8 +4163,7 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Residuos en mm/mes en la recta y en unidades de ln Q en los logaritmos (+0.30 es un caudal un 35 % mayor
   que el estimado). <i>p</i> del término cuadrático con error de Newey-West (<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>; {mod_diag.rezagos_newey_west.iloc[0]:.0f} rezagos), tomando los meses con
-  Q en orden aunque haya vacíos entre ellos. Kruskal-Wallis (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>) y Shapiro-Wilk
-  (<a class="cita" href="#ref-shapiro1965">Shapiro y Wilk, 1965</a>). Pruebas al {MOD_ALFA * 100:.0f} %.</p>
+  Q en orden aunque haya vacíos entre ellos. Kruskal-Wallis (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>). Pruebas al {MOD_ALFA * 100:.0f} %.</p>
   <ul>
     <li><b>Es casi una recta, pero se curva hacia arriba</b>: el término cuadrático es significativo. Con mucha lluvia,
     Q sube más rápido de lo que dice la recta.</li>
@@ -4336,7 +4329,7 @@ a {{ color: var(--acento); }}
   ({mod_rmse("PL", MOD_SOLO_LLUVIA):.1f} contra {mod_rmse("PL", MOD_COMPETIDOR):.1f} mm/mes con PL), menos de lo que cambia
   el error de M4 de un bloque a otro ({_fi.loc["PL", "rmse_bloques_solo_lluvia_min"]:.1f} a
   {_fi.loc["PL", "rmse_bloques_solo_lluvia_max"]:.1f}). El desempate lo dan los supuestos, que M4 cumple mejor (el error de
-  M2 crece con la lluvia y sus residuos no son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses
+  M2 crece con la lluvia), y el rango: M2 da caudales negativos si la lluvia de dos meses
   seguidos baja de {_fi.loc["PL", "lluvia_q_cero_m2"]:.1f} mm/mes con PL o de {_fi.loc["PI", "lluvia_q_cero_m2"]:.1f} con
   PI, y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M5 es
   M4 más la ETP: yerra menos que M4 en la validación cruzada ({mod_rmse("PL", MOD_ELEGIDO):.1f} contra

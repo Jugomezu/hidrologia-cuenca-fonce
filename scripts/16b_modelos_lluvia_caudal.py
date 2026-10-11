@@ -11,7 +11,7 @@ de un mes y el caudal de ese mismo mes, con las dos fuentes de lluvia en paralel
                 tamaño del residuo y la lluvia.
   - calendario: ¿queda en los residuos parte del ciclo anual? Kruskal-Wallis de los residuos por mes.
   - memoria:    ¿se parecen los residuos de dos meses seguidos? ¿Los explica la lluvia del mes anterior?
-  - residuos:   ¿son normales (Shapiro-Wilk)? ¿Son simétricos?
+  - residuos:   ¿son simétricos?
 
 Todo se hace en dos escalas: la lineal (Q contra P) y la logarítmica (ln Q contra ln P). El logaritmo es
 la alternativa usual cuando la dispersión crece con el nivel: convierte un error proporcional en uno
@@ -212,7 +212,7 @@ def diagnostico(fuente, escala):
         "mes_residuo_medio_min": int(medias_mes.idxmin()), "residuo_medio_min": medias_mes.min(),
         "autocorr_residuo_1_mes": pares.corr().iloc[0, 1], "n_pares_consecutivos": len(pares),
         "corr_residuo_lluvia_mes_anterior": r_ant, "corr_residuo_lluvia_mes_anterior_p": p_ant,
-        "shapiro_residuo_p": stats.shapiro(e).pvalue, "asimetria_residuo": stats.skew(e),
+        "asimetria_residuo": stats.skew(e),
         "minimo_lluvia_mm": lluvia[fuente].min(), "minimo_caudal_mm": caudal.min(),
     }
 
@@ -325,7 +325,6 @@ for fuente in FUENTES:
                 np.array_split(e[np.argsort(X[:, 1])], 3)),
             "kruskal_residuo_por_mes_p": stats.kruskal(*[g.to_numpy() for _, g in residuo.groupby(residuo.index.month)]).pvalue,
             "autocorr_residuo_1_mes": pd.concat([en_serie, en_serie.shift(1)], axis=1).dropna().corr().iloc[0, 1],
-            "shapiro_residuo_p": stats.shapiro(e).pvalue,
             "estimados_negativos": int((estimado < 0).sum()),
         })
 parametros, ajustes = pd.DataFrame(filas_parametros), pd.DataFrame(filas_ajuste)
@@ -402,7 +401,7 @@ for fuente in FUENTES:
         "autocorr_residuo_1_mes": fila_aj.autocorr_residuo_1_mes,
         "varianza_tercio_lluvioso_sobre_seco": fila_aj.varianza_tercio_lluvioso_sobre_seco,
         "spearman_abs_residuo_ajustado_p": stats.spearmanr(np.abs(residuo), ajustado)[1],
-        "shapiro_residuo_p": fila_aj.shapiro_residuo_p, "asimetria_residuo": stats.skew(residuo),
+        "asimetria_residuo": stats.skew(residuo),
         "kruskal_residuo_por_mes_p": fila_aj.kruskal_residuo_por_mes_p,
         "pluviometros_min_por_mes": int(pluvio.pivot(index="periodo", columns="codigo", values="precipitacion_mm")[DENTRO]
                                         .reindex(MUESTRA).notna().sum(axis=1).min()) if fuente == "PL" else np.nan,

@@ -874,7 +874,7 @@ for _f in MOD_FUENTES:
     assert _log.varianza_tercio_lluvioso_sobre_seco < 1                      # en logaritmos se invierte
     assert _lin.kruskal_residuo_por_mes_p < MOD_ALFA                         # queda el calendario
     assert _lin.corr_residuo_lluvia_mes_anterior_p < MOD_ALFA                # la lluvia del mes anterior explica el residuo
-    assert _lin.shapiro_residuo_p < MOD_ALFA and _lin.asimetria_residuo > 0  # residuos de la recta: asimétricos
+    assert _lin.asimetria_residuo > 0                                        # residuos de la recta: asimétricos
 assert (mod_diag.loc[("PL", "lineal"), "corr_residuo_lluvia_mes_anterior"]
         > mod_diag.loc[("PI", "lineal"), "corr_residuo_lluvia_mes_anterior"])
 # el residuo medio de la recta con PL es más alto en diciembre y más bajo en marzo (el texto los nombra)
@@ -925,15 +925,15 @@ mod_elasticidad = {f: {"mes": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0"]
                        "anterior": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b1"] - 1,
                        "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1,
                        "etp": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "c"] - 1} for f in MOD_FUENTES}
-# la ficha dice qué supuestos se cumplen (la normalidad, según lo que salga); la varianza constante, en firme
+# la ficha dice qué supuestos se cumplen; la varianza constante, en firme
 assert mod_ficha.loc["PL", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert mod_ficha.loc["PI", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert (mod_ajuste.loc[(list(MOD_FUENTES), MOD_ELEGIDO), "estimados_negativos"] == 0).all()
 # M2 con PI da caudal negativo dentro del rango de lluvia que ya se observó; con PL, por debajo de ese rango no
 assert mod_ficha.loc["PI", "lluvia_q_cero_m2"] > mod_ficha.loc["PI", "lluvia_mes_min"]
-# M2 no cumple sus supuestos como M4: su error crece con la lluvia y sus residuos no son normales
+# M2 no cumple sus supuestos como M4: su error crece con la lluvia
 assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_seco"] > P2_RAZON_VARIANZA
-           and mod_ajuste.loc[(f, MOD_COMPETIDOR), "shapiro_residuo_p"] < MOD_ALFA for f in MOD_FUENTES)
+           for f in MOD_FUENTES)
 # los residuos de M5 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
 mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
 assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
@@ -2117,7 +2117,7 @@ assert all(tend_todos[(v, per)]["X"]["p_mk"] >= TEND_ALFA for v in ("PI", "Q") f
 # 1. OLS (paramétrico): X = b0 + b1·t + e (y lo mismo para a y z). Para X además el ajuste con una constante por
 #    mes (efectos estacionales). Se reportan pendiente, IC 95 %, período, n y el diagnóstico de los residuos:
 #    autocorrelación (lag 1 y Ljung-Box con MET_LB_REZAGOS rezagos), cambio de la dispersión con el tiempo
-#    (Breusch-Pagan: e² contra t) y normalidad (Shapiro-Wilk). Si hay dependencia o heterocedasticidad, la
+#    (Breusch-Pagan: e² contra t). Si hay dependencia o heterocedasticidad, la
 #    inferencia se apoya en el error de Newey-West (HAC), que corrige las dos.
 # 2. Monotónica no paramétrica: Mann-Kendall con pendiente de Sen. Para X, la variante estacional (cada mes solo
 #    contra el mismo mes de otros años). Dependencia: en la secuencia de meses la p se obtiene PERMUTANDO AÑOS
@@ -2325,14 +2325,13 @@ for _v in LARGO_VARS:
             r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
             fila[f"ols_{_k}"] = {"pend": b[1] * 10, "ic_cl": 1.96 * se_cl[1] * 10, "ic_hac": 1.96 * se_hac[1] * 10,
                                  "p_cl": float(2 * stats.t.sf(abs(b[1] / se_cl[1]), len(_y) - 2)), "p_hac": p_hac[1],
-                                 "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t),
-                                 "p_sw": float(stats.shapiro(e)[1])}
+                                 "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t)}
         # X con efectos estacionales (una constante por mes)
         b, se_cl, se_hac, p_hac, e = _ols_completo(_rep["X"].to_numpy(), np.column_stack([_t, _ind]))
         r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
         fila["ols_Xmes"] = {"pend": b[0] * 10, "ic_cl": 1.96 * se_cl[0] * 10, "ic_hac": 1.96 * se_hac[0] * 10,
                             "p_cl": float(2 * stats.t.sf(abs(b[0] / se_cl[0]), len(_t) - 13)), "p_hac": p_hac[0],
-                            "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t), "p_sw": float(stats.shapiro(e)[1])}
+                            "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t)}
         # Mann-Kendall: estacional en X (p por permutación de años), con Hamed-Rao en a y z
         pend, p, lo, hi = _mk_estacional_perm(_t, _rep["X"].to_numpy(), _meses, _anios)
         fila["mk_X"] = {"pend": pend * 10, "p": p, "lo": lo * 10, "hi": hi * 10}
@@ -2406,7 +2405,6 @@ assert all(f["ols_Xmes"]["pend"] * f["ols_a"]["pend"] > 0 or abs(f["ols_a"]["pen
 # lo que el texto de los tres métodos afirma; si los datos dejan de respaldarlo, el script se detiene
 _mc = {v: f for (v, per), f in met_global.items() if per == "completo"}
 assert all(f["ols_a"]["p_lb"] < TEND_ALFA for f in _mc.values())
-assert sum(f["ols_a"]["p_sw"] < TEND_ALFA for f in _mc.values()) >= 2
 assert not met_quiebres
 for _v in ("T mín", "T media", "T máx"):
     _f = _mc[_v]

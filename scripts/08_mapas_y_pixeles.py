@@ -54,8 +54,12 @@ madre = cuencas[cuencas.gauge_id == ID_PRINCIPAL]
 aforo_sg = aforos[aforos.gauge_id == ID_PRINCIPAL]
 
 cat_pluvio = pd.read_csv(CAT_PLUVIO)
+# Nombres corregidos de las estaciones (los mismos de scripts/18_calculos_informe.py, decididos el 2026-10-11)
+CORRECCION_NOMBRES = {"Pavas Las": "Las Pavas", "Valle de San Jose": "Valle de San José",
+                      "Escuela Agricola Mogotes": "Escuela Agrícola Mogotes"}
 cat_pluvio["etiqueta"] = (cat_pluvio["nombre"].str.replace(r"\s*\[\d+\]", "", regex=True)
-                          .str.title().str.replace(" De ", " de "))
+                          .str.title().str.replace(" De ", " de ")
+                          .replace(CORRECCION_NOMBRES))
 pluvio = gpd.GeoDataFrame(
     cat_pluvio[cat_pluvio.dentro_cuenca].copy(),
     geometry=gpd.points_from_xy(cat_pluvio.loc[cat_pluvio.dentro_cuenca, "longitud"],

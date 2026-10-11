@@ -69,8 +69,12 @@ mensual = pd.read_csv(RAIZ / "out/pluviometros_fonce_mensual_depurado.csv")
 # Media mensual x 12: no se suman años incompletos, que subestimarían el total.
 catalogo = catalogo.merge(mensual.groupby("codigo").precipitacion_mm.mean().rename("p_mes"), on="codigo")
 catalogo["p_anual"] = catalogo.p_mes * 12
+# Nombres corregidos de las estaciones (los mismos de scripts/18_calculos_informe.py, decididos el 2026-10-11)
+CORRECCION_NOMBRES = {"Pavas Las": "Las Pavas", "Valle de San Jose": "Valle de San José",
+                      "Escuela Agricola Mogotes": "Escuela Agrícola Mogotes"}
 catalogo["etiqueta"] = (catalogo.nombre.str.replace(r"\s*\[\d+\]", "", regex=True)
-                        .str.title().str.replace(" De ", " de "))
+                        .str.title().str.replace(" De ", " de ")
+                        .replace(CORRECCION_NOMBRES))
 
 est = gpd.GeoDataFrame(catalogo[catalogo.dentro_cuenca].copy(),
                        geometry=gpd.points_from_xy(catalogo.loc[catalogo.dentro_cuenca, "longitud"],

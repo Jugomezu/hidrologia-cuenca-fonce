@@ -1992,7 +1992,8 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
   <ul>
     <li><b>La lluvia de arriba no se mide:</b> ningún pluviómetro está por encima de {n(mapa_plu_alta.altitud)} m. Una
     estación en el páramo es lo que más reduciría la incertidumbre entre PI y PL.</li>
-    <li><b>La incertidumbre del caudal no se conoce:</b> no se tienen los aforos ni la curva de calibración de San Gil.</li>
+    <li><b>La incertidumbre del caudal no se conoce:</b> no se tienen los aforos ni la curva de calibración de San Gil, así
+    que Q se trata como exacto, mientras que la lluvia se trabaja con dos fuentes.</li>
     <li><b>Las subcuencas tienen caudal medido y no se usan</b> para el caudal; servirían para ver de dónde viene el agua
     de San Gil.</li>
     <li><b>Un modelo con dos almacenamientos</b> (rápido y lento) para probar la hipótesis H′.</li>
@@ -2820,7 +2821,9 @@ a {{ color: var(--acento); }}
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
   {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
-  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios.</p>
+  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. Q sale de la curva de calibración del IDEAM,
+  que pasa del nivel del río al caudal; el error de esa curva no se conoce, sobre todo en caudales altos, donde hay menos
+  aforos, y en este informe Q se trata como exacto (ver «Limitaciones y trabajo futuro»).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estadístico</th><th class="num">PI (mm/mes)</th><th class="num">PL (mm/mes)</th>

@@ -1752,7 +1752,7 @@ SINT_FILAS = [
      f"El atraso es mucho mayor que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas); la lluvia del "
      f"mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el {fou_alta_lluvia:.0f} % de la varianza de "
      f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).",
-     "Ninguna todavía: el informe no cita una fuente sobre el almacenamiento en esta cuenca.",
+     "Ninguna: se infiere del atraso del río.",
      "El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones "
      "de agua, que también podrían cambiar la respuesta del río."),
     ("Los años con El Niño son más secos",
@@ -1774,7 +1774,7 @@ SINT_FILAS = [
      "qué año se quite.",
      "El calentamiento global.",
      "Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).",
-     "Ninguna todavía.",
+     "Ninguna: los datos muestran que sube, no por qué.",
      "Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia "
      "podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa."),
     ("La lluvia y el caudal no tienen tendencia",

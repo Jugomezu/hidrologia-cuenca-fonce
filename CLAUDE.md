@@ -32,7 +32,7 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
      esa ventana.
    - **Para cambios de largo plazo (tendencias), el registro completo de cada variable desde 1981, cuando
      exista.** Q de CAMELS-COL y los pluviómetros llegan hasta 1981; IMERG empieza en 1998 y no se extiende;
-     ERA5-Land hoy solo está descargado para 1998–2022. La menor duración de IMERG no recorta los otros
+     la temperatura de ERA5-Land está descargada para 1981–2022, pero la ETP solo se calculó para 1998–2022. La menor duración de IMERG no recorta los otros
      registros.
    - En el registro largo se reportan las fechas, los meses válidos, los vacíos y los cambios de fuente de
      cada serie; «serie completa» no significa rellenar faltantes. Los datos anteriores a 1998 no han pasado

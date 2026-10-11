@@ -230,6 +230,10 @@ CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
 CITA_MUNOZ = '<a class="cita" href="#ref-munoz2019">Muñoz-Sabater et al., 2019</a>'
 CITA_SGC = '<a class="cita" href="#ref-sgc2023">Servicio Geológico Colombiano, 2023</a>'
 CITA_MAPBIOMAS = '<a class="cita" href="#ref-mapbiomas2025">Fundación Gaia Amazonas, 2025</a>'
+CITA_IGAC = '<a class="cita" href="#ref-igac">IGAC</a>'
+CITA_COPERNICUS_DEM = '<a class="cita" href="#ref-copernicus-dem">ESA, Copernicus DEM</a>'
+CITA_NATURAL_EARTH = '<a class="cita" href="#ref-naturalearth">Natural Earth</a>'
+CITA_ALOS = '<a class="cita" href="#ref-alos">ALOS PALSAR</a>'
 CITA_STRAHLER = '<a class="cita" href="#ref-strahler1952">Strahler, 1952</a>'
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
@@ -2179,8 +2183,8 @@ a {{ color: var(--acento); }}
       del valle del Magdalena y, en el borde del mapa, el flanco de la cordillera Central; al oriente de la cordillera,
       los Llanos. El triángulo es la estación de aforo de San Gil, la salida de la cuenca.</p>
       <dl class="lista-datos">
-        <dt>Relieve</dt><dd>Copernicus DEM GLO-90 (ESA): celdas de 3″ (unos 90 m), promediadas a {ubic_paso_seg:.0f}″ para la figura</dd>
-        <dt>Límites</dt><dd>Natural Earth, escala 1:10 m: países y departamentos; Santander, con línea más gruesa</dd>
+        <dt>Relieve</dt><dd>Copernicus DEM GLO-90 ({CITA_COPERNICUS_DEM}): celdas de 3″ (unos 90 m), promediadas a {ubic_paso_seg:.0f}″ para la figura</dd>
+        <dt>Límites</dt><dd>{CITA_NATURAL_EARTH}, escala 1:10 m: países y departamentos; Santander, con línea más gruesa</dd>
         <dt>Recuadro</dt><dd>{abs(ubic_limites.left):.1f}° a {abs(ubic_limites.right):.1f}° W, {ubic_limites.bottom:.1f}° a {ubic_limites.top:.1f}° N</dd>
         <dt>Elevación en el recuadro</dt><dd>{n(ubic_elev_min)}–{n(ubic_elev_max)} m</dd>
       </dl>
@@ -2234,7 +2238,7 @@ a {{ color: var(--acento); }}
       <p class="nota">Se descargó un octavo pluviómetro, Mamonal El Hacienda, que queda fuera de la divisoria, en la vertiente del
       Chicamocha. No aparece en el mapa ni entra en el promedio de la cuenca.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>ALOS PALSAR</dd>
+        <dt>Fuente</dt><dd>{CITA_ALOS}</dd>
         <dt>Resolución</dt><dd>12.5 m original; remuestreado a 50 m para la figura</dd>
         <dt>Proyección</dt><dd>UTM 19N (EPSG:32619); áreas y longitudes, en el elipsoide o en EPSG:3116</dd>
         <dt>Elevación en la cuenca</dt><dd>{n(elev_min)}–{n(elev_max)} m, media {n(elev_media)} m</dd>
@@ -2344,7 +2348,7 @@ a {{ color: var(--acento); }}
       <p>Cada color es un grupo litológico; las líneas finas separan las unidades del mapa, rotuladas con su símbolo
       cuando ocupan más del 2 % de la cuenca, y las gruesas son fallas.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>Mapa Geológico de Colombia 2023, SGC, escala 1:1 500 000 (capas de unidades y de fallas)</dd>
+        <dt>Fuente</dt><dd>Mapa Geológico de Colombia 2023 ({CITA_SGC}), escala 1:1 500 000 (capas de unidades y de fallas)</dd>
         <dt>Grupos</dt><dd>por la letra del símbolo de cada unidad (S sedimentaria, M metamórfica, P plutónica, V
         volcánica, VC volcanoclástica; minúscula, depósito cuaternario)</dd>
         <dt>Áreas</dt><dd>medidas en EPSG:3116</dd>
@@ -2392,7 +2396,7 @@ a {{ color: var(--acento); }}
       <h3>Figura 6 · Coberturas de la cuenca en 2022</h3>
       <p>Cada color es una clase de MapBiomas; la leyenda da el porcentaje de la cuenca que ocupa.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>MapBiomas Colombia, colección 3, año 2022: clasificación de imágenes Landsat, celdas de 30 m</dd>
+        <dt>Fuente</dt><dd>MapBiomas Colombia, colección 3, año 2022 ({CITA_MAPBIOMAS}): clasificación de imágenes Landsat, celdas de 30 m</dd>
         <dt>Recorte</dt><dd>celdas cuyo centro cae dentro del polígono del proyecto</dd>
         <dt>Áreas</dt><dd>de cada celda, medida en el elipsoide WGS84</dd>
       </dl>
@@ -2429,7 +2433,7 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   <dl class="lista-datos">
-    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
+    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000 ({CITA_IGAC})</dd>
     <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
   </dl>
 
@@ -4836,6 +4840,9 @@ a {{ color: var(--acento); }}
     <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:
     Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
     Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
+    <li id="ref-alos">ALOS PALSAR, modelo digital de elevación de 12.5 m (Agencia Japonesa de Exploración Aeroespacial,
+    JAXA). El proyecto usa un recorte de un mosaico nacional del equipo; <b>falta registrar de dónde se descargó</b>
+    (portal, producto exacto, fecha y licencia; ver <code>DATOS_FUENTES.md</code>).</li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
@@ -4864,6 +4871,9 @@ a {{ color: var(--acento); }}
     <li id="ref-enfield1999">Enfield, D. B., Mestas-Nuñez, A. M., Mayer, D. A., y Cid-Serrano, L. (1999). How ubiquitous is
     the dipole relationship in tropical Atlantic sea surface temperatures? <i>Journal of Geophysical Research: Oceans</i>,
     104(C4), 7841–7848. <a href="https://doi.org/10.1029/1998JC900109">https://doi.org/10.1029/1998JC900109</a></li>
+    <li id="ref-copernicus-dem">European Space Agency (ESA). <i>Copernicus DEM GLO-90</i>, modelo digital de superficie
+    global de 3″. Copia pública del Registry of Open Data on AWS, descargada el 2026-10-09. Licencia y DOI sin verificar
+    (ver <code>DATOS_FUENTES.md</code>).</li>
     <li id="ref-mapbiomas2025">Fundación Gaia Amazonas. (2025). <i>Proyecto MapBiomas Colombia Colección 3.0 – Mapeo anual
     de cobertura y uso del suelo</i>. Recuperado el 2026-10-09 de
     <a href="https://storage.googleapis.com/mapbiomas-public/initiatives/colombia/collection_3/coverage/colombia_coverage_2022.tif">storage.googleapis.com/mapbiomas-public</a>.</li>
@@ -4895,6 +4905,9 @@ a {{ color: var(--acento); }}
     <li id="ref-hyndman1996">Hyndman, R. J., y Fan, Y. (1996). Sample quantiles in statistical packages.
     <i>The American Statistician</i>, 50(4), 361–365.
     <a href="https://doi.org/10.1080/00031305.1996.10473566">https://doi.org/10.1080/00031305.1996.10473566</a></li>
+    <li id="ref-igac">Instituto Geográfico Agustín Codazzi (IGAC). Mapas de suelos del territorio colombiano, escala
+    1:100 000, y clases de capacidad de uso de las tierras (2014). Tomados de los atributos de CAMELS-COL
+    (<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>), no descargados directamente.</li>
     <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).
@@ -4918,6 +4931,8 @@ a {{ color: var(--acento); }}
     <li id="ref-nash1970">Nash, J. E., y Sutcliffe, J. V. (1970). River flow forecasting through conceptual models part I —
     A discussion of principles. <i>Journal of Hydrology</i>, 10(3), 282–290.
     <a href="https://doi.org/10.1016/0022-1694(70)90255-6">https://doi.org/10.1016/0022-1694(70)90255-6</a></li>
+    <li id="ref-naturalearth">Natural Earth. <i>1:10m Cultural Vectors</i>, versión 5.1.1: países y divisiones de primer
+    nivel. Copia oficial en Amazon S3, descargada el 2026-10-09. <a href="https://www.naturalearthdata.com">naturalearthdata.com</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703–708.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>

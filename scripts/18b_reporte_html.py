@@ -2882,7 +2882,7 @@ a {{ color: var(--acento); }}
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
-    seguidos, la memoria de la cuenca que se vio en «Cómo se relacionan las variables entre sí».</li>
+    seguidos, la memoria de la cuenca, que se mide más adelante en «Cómo se relacionan las variables entre sí».</li>
     <li><b>Noches cálidas en meses secos:</b> los {len(t_min_alta)} meses con T mín atípicamente alta son
     {lista_meses(t_min_alta)}, y en ellos PL estuvo en promedio en
     {_media_z(t_min_alta, "PL"):+.1f} y Q en {_media_z(t_min_alta, "Q"):+.1f}: menos lluvia y menos caudal

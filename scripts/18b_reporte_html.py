@@ -4520,7 +4520,9 @@ a {{ color: var(--acento); }}
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
   Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
-  <p><b>Por qué El Niño trae menos lluvia.</b> Según {CITA_CORDOBA}, cuando se calienta el Pacífico ecuatorial el aire
+  <p><b>Por qué El Niño trae menos lluvia.</b> Una advertencia sobre la fuente: {CITA_CORDOBA} estudian El Niño Modoki, una
+  variante de El Niño en que el calentamiento se concentra en el Pacífico central; aquí se usa como aproximación para El Niño
+  en general, el que mide el ONI. Según ese trabajo, cuando se calienta el Pacífico ecuatorial el aire
   asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
   llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
   al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó

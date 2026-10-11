@@ -1966,8 +1966,7 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     variabilidad entre años.</li>
     <li><b>Tendencias.</b> La temperatura sube {fis_t_decada:+.2f} °C por década; la lluvia y el caudal no tienen una
     tendencia significativa, lo que no prueba que no la haya.</li>
-    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «Una hipótesis para las
-    relaciones y las tendencias»).</li>
+    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «La hipótesis H frente a los resultados»).</li>
   </ol>
 
   <h3>Limitaciones y trabajo futuro</h3>
@@ -2327,8 +2326,7 @@ a {{ color: var(--acento); }}
   <h2>Coberturas, suelos y geología</h2>
   <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
   guarda. Aquí solo se usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca
-  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una
-  hipótesis para las relaciones y las tendencias»).</p>
+  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «La hipótesis H frente a los resultados»).</p>
 
   <h3>Geología</h3>
   <p>La geología sale del Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano (SGC), recortado con el

@@ -1953,7 +1953,7 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
     <li><b>Secciones nuevas:</b> «Forma y relieve de la cuenca» (la morfometría ya calculada, que no estaba en el informe),
     un veredicto sobre la hipótesis H, conclusiones numeradas y limitaciones.</li>
     <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
-    manda; CAMELS-COL ya no se presenta como confirmación; el rezago de Q frente al ONI es de 1 a 2 meses en todas partes;
+    manda; CAMELS-COL ya no se presenta como confirmación; el rezago del caudal (Q) frente al ONI es de 1 a 2 meses en todas partes;
     los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
     se corrigieron el porcentaje de Mérida, la frase de abril y mayo, el salto de Valle de San José, y el nombre del script
     del pie de página.</li>
@@ -2152,12 +2152,9 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(sg['area'])} km²</b><span>área de drenaje</span></div>
     <div class="cifra"><b>{n(elev_min)}–{n(elev_max)} m</b><span>rango de elevación (DEM)</span></div>
     <div class="cifra"><b>{n(elev_media)} m</b><span>elevación media (DEM)</span></div>
-    <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual PL 1998–2022</span></div>
-    <div class="cifra"><b>{n(alt_pi_anual)} mm</b><span>lluvia anual PI 1998–2022</span></div>
+    <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual de los pluviómetros del IDEAM (PL), 1998–2022</span></div>
+    <div class="cifra"><b>{n(alt_pi_anual)} mm</b><span>lluvia anual del satélite IMERG (PI), 1998–2022</span></div>
   </div>
-  <p class="intro">Tres siglas en todo el informe: <b>PL</b> es la lluvia de los pluviómetros del IDEAM (el promedio de
-  las {len(DENTRO)} estaciones dentro de la cuenca), <b>PI</b> la del satélite IMERG promediada sobre la cuenca y
-  <b>Q</b> el caudal en San Gil.</p>
 </header>
 
 <section>

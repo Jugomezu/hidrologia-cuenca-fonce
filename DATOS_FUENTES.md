@@ -1017,32 +1017,18 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
   referencia.
 
 
-## SOI - Indice de Oscilacion del Sur (NOAA Climate Prediction Center)
-
-- **Producto:** SOI (Southern Oscillation Index): diferencia de la presion al nivel del mar estandarizada entre Tahiti
-  y Darwin. El archivo trae la anomalia en hPa y la version estandarizada; se usa la **estandarizada**. SOI negativo
-  acompana a El Nino.
-- **Fuente:** https://www.cpc.ncep.noaa.gov/data/indices/soi
-- **Licencia:** datos publicos del gobierno de EE. UU. (dominio publico).
-- **Descargado:** 2026-10-11, con `scripts/17b_soi_tna.py` (se baja solo si no existe en `data/`).
-- **Destino local:** `data/noaa/soi.txt` (909 meses con dato, 1951-01 a 2026-09; los meses sin dato vienen como
-  -999.9) y `out/soi_tna_mensual_1981_2022.csv` (504 meses, sin vacios, con el TNA).
-- **SHA-256 de `data/noaa/soi.txt`:** `720365224dd280be7b6c1c6f9ef3dc11d03c2cf404b2d0bf07a68f4f4e8d35ae`
-- **Control de calidad (2026-10-11):** en 1981-2022 el SOI correlaciona -0.75 con el ONI del proyecto (lo esperado:
-  son las dos caras del ENSO, con signo opuesto).
-- **Nota:** la NOAA puede revisar los valores recientes; la copia local con su SHA-256 es la referencia. Ese mismo dia
-  se bajo tambien la NAO de la NOAA CPC; el usuario la cambio por el TNA y la NAO no se usa ni se conserva.
-
 ## TNA - indice del Atlantico tropical norte (NOAA PSL)
 
 - **Producto:** Tropical Northern Atlantic Index (TNA; Enfield et al., 1999): anomalia mensual de la temperatura
   superficial del mar en 5.5° N-23.5° N, 15° O-57.5° O, calculada por NOAA PSL con HadISST1.1 y climatologia 1991-2020.
 - **Fuente:** https://psl.noaa.gov/data/correlation/tna.data
 - **Licencia:** datos publicos del gobierno de EE. UU. (dominio publico).
-- **Descargado:** 2026-10-11, con `scripts/17b_soi_tna.py` (se baja solo si no existe en `data/`). El usuario lo eligio
-  ese dia en lugar de la NAO para representar al Atlantico.
+- **Descargado:** 2026-10-11, con `scripts/17b_tna.py` (se baja solo si no existe en `data/`). El usuario lo eligio
+  ese dia en lugar de la NAO para representar al Atlantico, y lo compara con el ONI (los dos son anomalias de la SST en
+  un recuadro tropical). Ese dia tambien se bajaron la NAO y el SOI de la NOAA CPC; el usuario los descarto y no se
+  usan ni se conservan.
 - **Destino local:** `data/noaa/tna.txt` (943 meses con dato, 1948-01 a 2026-07; faltantes como -99.99) y
-  `out/soi_tna_mensual_1981_2022.csv` (504 meses, sin vacios, con el SOI).
+  `out/tna_mensual_1981_2022.csv` (504 meses, sin vacios).
 - **SHA-256 de `data/noaa/tna.txt`:** `387c4125f377e57bcb683a849aefcd76da7d7f3cdcb2ac68ab086ceadf300e8b`
 - **Control de calidad (2026-10-11):** en 1981-2022 el TNA correlaciona 0.04 con el ONI del mismo mes y 0.23 con el ONI
   de 5 meses antes (el Atlantico tropical norte se calienta despues de El Nino).

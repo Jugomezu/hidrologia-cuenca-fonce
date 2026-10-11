@@ -3780,21 +3780,20 @@ _salida.attrs = {"descripcion": "Correlación, a través de los años, de la ano
 _salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
 _cc.close()
 
-# ---------------------------------------------------------------- Q frente al SOI, el TNA y el ONI, con rezagos
+# ---------------------------------------------------------------- Q frente al ONI y al TNA, con rezagos
 # Correlación de Pearson entre la anomalía mensual de Q (cada mes menos su media de 1998-2022, _fou_transformar
 # «anomalía», sin quitar la tendencia) y cada índice desplazado de -12 a +12 meses. Convención: en el rezago k se
 # compara Q del mes t con el índice del mes t-k; k > 0 quiere decir que el índice va ANTES que Q.
 # Decisiones del usuario (2026-10-11): anomalías de Q (no la serie original, que la domina el ciclo de las dos
-# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación que pidió es SOI (Pacífico) contra TNA
-# (Atlántico tropical norte; reemplazó a la NAO, que no pasaba la corrección en ningún rezago), y el ONI se presenta
-# aparte con los mismos rezagos.
+# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación es ONI (Pacífico, Niño 3.4) contra TNA
+# (Atlántico tropical norte): los dos son anomalías de la SST en un recuadro tropical, así que son análogos. El usuario
+# empezó con SOI contra NAO, cambió la NAO por el TNA y luego quitó el SOI (índice de presión, no análogo al TNA).
 # Como el TNA también responde al ENSO (el Atlántico tropical norte se calienta meses después de El Niño), el usuario
 # decidió (2026-10-11, recomendación del agente) calcular además la correlación PARCIAL de Q con el TNA quitando el
 # efecto del ONI: a la anomalía de Q y al TNA desplazado se les quita, por regresión lineal, lo que explica el ONI de
 # IND_REZAGO_CONTROL mes(es) antes (el rezago en que el ONI correlaciona más con Q; se comprueba abajo), y se
 # correlacionan los residuos. Es lo que el Atlántico aporta aparte de lo que el ENSO explica directamente en Q.
-# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_soi_tna.py): el SOI ya es estandarizado y el TNA y
-# el ONI ya son anomalías. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
+# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_tna.py): los dos ya son anomalías, en °C. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
 # rezagos negativos llegan solo hasta 2022, así que en ellos se pierden algunos pares al final (n se reporta).
 # Significancia: las anomalías de meses seguidos se parecen (persistencia), así que la prueba t con todos los pares
 # exagera. Se usa el tamaño efectivo de Bretherton et al. (1999), n_ef = n (1 - a·b) / (1 + a·b), con a y b la
@@ -3803,12 +3802,12 @@ _cc.close()
 # criterio de las tendencias por mes).
 IND_REZAGOS = range(-12, 13)
 IND_Q_FDR = INC_Q_FDR
-IND_NOMBRES = ("SOI", "TNA", "ONI")
+IND_NOMBRES = ("ONI", "TNA")
 IND_PARCIAL = "TNA sin el ONI"
 IND_REZAGO_CONTROL = 1             # meses: el ONI que se quita en la parcial
 
-_ind = pd.read_csv("out/soi_tna_mensual_1981_2022.csv")
-_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"soi": "SOI", "tna": "TNA"})
+_ind = pd.read_csv("out/tna_mensual_1981_2022.csv")
+_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"tna": "TNA"})
 _oni_l = pd.read_csv("out/oni_mensual_1981_2022.csv")
 _ind["ONI"] = pd.Series(_oni_l["oni"].to_numpy(dtype=float), index=pd.PeriodIndex(_oni_l["periodo"], freq="M"))
 assert _ind.notna().all().all()
@@ -3865,21 +3864,20 @@ for _n, _d in ind_max.items():
     print(f"  {_n}: r = {_d['r']:+.2f} en el rezago {int(_d['rezago']):+d} (n = {int(_d['n'])}, n efectivo = "
           f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: {ind_sig[_n]}")
 
-# lo que el texto del informe afirma, en «Q frente al SOI, el TNA y el ONI»
+# lo que el texto del informe afirma, en «Q frente al ONI y al TNA»
 # el ONI que se quita en la parcial es el de su correlación más fuerte con Q
 assert int(ind_max["ONI"]["rezago"]) == IND_REZAGO_CONTROL
-# el texto dice que el SOI pesa más que el TNA (mayor |r| máximo), aunque los dos pasan la corrección
-assert ind_sig["SOI"] and ind_sig["TNA"] and abs(ind_max["SOI"]["r"]) > abs(ind_max["TNA"]["r"])
+# el texto dice que el ONI pesa más que el TNA (mayor |r| máximo), aunque los dos pasan la corrección
+assert ind_sig["ONI"] and ind_sig["TNA"] and abs(ind_max["ONI"]["r"]) > abs(ind_max["TNA"]["r"])
 # el texto dice que, sin el ONI, el TNA baja y ya no pasa la corrección en ningún rezago
 assert abs(ind_max[IND_PARCIAL]["r"]) < abs(ind_max["TNA"]["r"]) and not ind_sig[IND_PARCIAL]
-# el texto dice que el SOI y el TNA van con signo positivo en su pico (más caudal) y el ONI con signo negativo, y que
-# en los tres el pico está con el índice antes que Q
-assert ind_max["SOI"]["r"] > 0 and ind_max["TNA"]["r"] > 0 and ind_max[IND_PARCIAL]["r"] > 0 and ind_max["ONI"]["r"] < 0
+# el texto dice que el TNA va con signo positivo en su pico (más caudal) y el ONI con signo negativo (menos caudal),
+# y que en los dos el pico está con el índice antes que Q
+assert ind_max["TNA"]["r"] > 0 and ind_max[IND_PARCIAL]["r"] > 0 and ind_max["ONI"]["r"] < 0
 assert all(ind_max[n]["rezago"] > 0 for n in IND_NOMBRES)
 # el texto dice que con el TNA del mismo mes casi no hay relación: |r| < 0.1 en el rezago 0
 assert abs(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0]) < 0.1
-# el SOI y el ONI, en la misma ventana, sin rezago (las dos caras del ENSO), y el TNA frente al ONI de meses antes
-ind_corr_soi_oni = float(_ind["SOI"].reindex(PERIODOS).corr(_ind["ONI"].reindex(PERIODOS)))
+# el TNA frente al ONI de meses antes (el Atlántico tropical norte responde al ENSO)
 ind_tna_oni = {k: float(_ind["TNA"].reindex(PERIODOS).corr(_ind["ONI"].shift(k).reindex(PERIODOS))) for k in range(0, 13)}
 ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
 # el texto dice que el TNA responde al ONI de meses antes con correlación positiva

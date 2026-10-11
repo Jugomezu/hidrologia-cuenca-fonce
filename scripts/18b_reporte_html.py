@@ -215,7 +215,6 @@ CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
-CITA_SOI = '<a class="cita" href="#ref-noaa-soi">NOAA CPC</a>'
 CITA_TNA = '<a class="cita" href="#ref-noaa-tna">NOAA PSL</a>'
 CITA_ENFIELD = '<a class="cita" href="#ref-enfield1999">Enfield et al., 1999</a>'
 CITA_BRETHERTON = '<a class="cita" href="#ref-bretherton1999">Bretherton et al., 1999</a>'
@@ -1637,10 +1636,10 @@ assert n34_rob_en_temporadas > n34_rob_total / 2                                
 # la corrección en más meses con el índice un mes antes
 assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
 assert n34_fdr_l[1] > n34_fdr_l[0]
-# «Q frente al SOI, el TNA y el ONI»: la curva de r contra el rezago de cada índice y los textos
-# colores de los índices (paleta de Okabe e Ito, como COLOR_VAR; el ONI usa el color de la tinta). La parcial del TNA
-# va con el color del TNA y trazo punteado.
-COLOR_INDICE = {"SOI": "#E69F00", "TNA": "#56B4E9", IND_PARCIAL: "#56B4E9"}
+# «Q frente al ONI y al TNA»: la curva de r contra el rezago de cada índice y los textos
+# colores: el ONI con el de la tinta y el TNA con el azul cielo de la paleta de Okabe e Ito (como COLOR_VAR); la
+# parcial del TNA va con el color del TNA y trazo punteado
+COLOR_INDICE = {"TNA": "#56B4E9", IND_PARCIAL: "#56B4E9"}
 
 
 def _rango_rezagos(ks):
@@ -1663,9 +1662,6 @@ ind_n = (int(ind_corr.n.min()), int(ind_corr.n.max()))
 ind_n_ef = {n: (float(ind_corr[ind_corr.indice == n].n_efectivo.min()), float(ind_corr[ind_corr.indice == n].n_efectivo.max()))
             for n in IND_NOMBRES}
 ind_tna_0 = float(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0])
-# el texto compara el ONI con el SOI: cuál de los dos tiene el |r| máximo mayor
-ind_oni_vs_soi = ("un poco más fuerte que" if abs(ind_txt["ONI"]["r"]) > abs(ind_txt["SOI"]["r"]) else
-                  "un poco más débil que")
 _mes = lambda k: "mes" if abs(k) == 1 else "meses"
 # para «¿El ENSO explica las tendencias?»: remite a «Sensibilidad a años extremos», sin recalcular
 assert all(tend_sin_anio[v]["n_sig"] == 0 for v in ("PL*", "PI", "Q"))         # «ninguna versión es significativa»
@@ -4431,16 +4427,15 @@ a {{ color: var(--acento); }}
   cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
   a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
 
-  <h3>Q frente al SOI, el TNA y el ONI</h3>
-  <div{revision("subsección nueva: Q frente al SOI, el TNA y el ONI")}>
-  <p>Dos índices, uno de cada océano: el <b>Índice de Oscilación del Sur (SOI)</b>, la diferencia de presión al nivel
-  del mar entre Tahití y Darwin, que es la cara atmosférica del ENSO en el Pacífico (negativo con El Niño;
-  {CITA_SOI}), y el <b>índice del Atlántico tropical norte (TNA)</b>, la anomalía de la SST entre 5.5° N y 23.5° N y
-  entre 15° O y 57.5° O ({CITA_ENFIELD}; {CITA_TNA}). La pregunta es cuál de los dos pesa más sobre el caudal de la
-  cuenca. Se correlaciona la <b>anomalía de Q</b> (cada mes menos su media de {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}),
-  todos los meses juntos, con cada índice desplazado de {min(IND_REZAGOS)} a {max(IND_REZAGOS):+d} meses. En el rezago k
-  se compara Q de un mes con el índice k meses antes: k &gt; 0 quiere decir que el índice va primero. Los índices se
-  usan como los publica la NOAA: el SOI ya viene estandarizado y el TNA es una anomalía.</p>
+  <h3>Q frente al ONI y al TNA: ¿Pacífico o Atlántico?</h3>
+  <div{revision("subsección nueva: Q frente al ONI y al TNA")}>
+  <p>Dos índices análogos, uno de cada océano: el <b>ONI</b> ({CITA_ONI}), la anomalía de la SST en la región Niño 3.4
+  del Pacífico, y el <b>índice del Atlántico tropical norte (TNA)</b>, la anomalía de la SST entre 5.5° N y 23.5° N y
+  entre 15° O y 57.5° O ({CITA_ENFIELD}; {CITA_TNA}). Los dos son la temperatura del mar en un recuadro tropical, menos
+  su media; la pregunta es cuál de los dos pesa más sobre el caudal de la cuenca. Se correlaciona la <b>anomalía de
+  Q</b> (cada mes menos su media de {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}), todos los meses juntos, con cada índice
+  desplazado de {min(IND_REZAGOS)} a {max(IND_REZAGOS):+d} meses. En el rezago k se compara Q de un mes con el índice
+  k meses antes: k &gt; 0 quiere decir que el índice va primero.</p>
   <p>El TNA no es independiente del ENSO: el Atlántico tropical norte se calienta meses después de El Niño (en
   {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}, el TNA se correlaciona en {ind_tna_oni[ind_tna_oni_k]:+.2f} con el ONI de
   {ind_tna_oni_k} meses antes). Para separar lo que el Atlántico aporta por sí solo se calcula también la
@@ -4449,37 +4444,30 @@ a {{ color: var(--acento); }}
   correlaciona lo que queda.</p>
   <p class="nota">Pares por rezago: entre {ind_n[0]} y {ind_n[1]} (los meses con Q). Los meses seguidos se parecen, así
   que no son datos independientes: la prueba t usa el <b>n efectivo</b> de {CITA_BRETHERTON}, que con la autocorrelación
-  de un mes de las dos series baja a entre {ind_n_ef["SOI"][0]:.0f} y {ind_n_ef["SOI"][1]:.0f} con el SOI y entre
-  {ind_n_ef["TNA"][0]:.0f} y {ind_n_ef["TNA"][1]:.0f} con el TNA, que es muy persistente. Sobre los {len(IND_REZAGOS)}
-  rezagos de cada curva se controla la tasa de falsos descubrimientos ({CITA_BH}), con q &lt; {IND_Q_FDR:.2f}.</p>
-  <div id="g-ind-soi-tna" class="grafico" style="min-height:0; height:380px"></div>
+  de un mes de las dos series baja a entre {ind_n_ef["ONI"][0]:.0f} y {ind_n_ef["ONI"][1]:.0f} con el ONI y entre
+  {ind_n_ef["TNA"][0]:.0f} y {ind_n_ef["TNA"][1]:.0f} con el TNA: los dos son muy persistentes. Sobre los
+  {len(IND_REZAGOS)} rezagos de cada curva se controla la tasa de falsos descubrimientos ({CITA_BH}), con
+  q &lt; {IND_Q_FDR:.2f}.</p>
+  <div id="g-ind-oni-tna" class="grafico" style="min-height:0; height:400px"></div>
   <p class="nota">r entre la anomalía de Q y cada índice según el rezago; en punteado, el TNA sin el ONI. Punto lleno:
   pasa la corrección; punto vacío: no pasa.</p>
-  <p><b>El SOI pesa más que el TNA.</b> Con el SOI, la correlación más fuerte es r = {ind_txt["SOI"]["r"]:+.2f}, con el
-  índice {ind_txt["SOI"]["k"]} {_mes(ind_txt["SOI"]["k"])} antes que Q: en un año de SOI alto (La Niña) el río lleva más
-  agua. Equivale a un {ind_txt["SOI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la corrección
-  {ind_txt["SOI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más fuerte es
-  r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes, y pasa la corrección
-  {ind_txt["TNA"]["rango"]}. <b>Sin el ONI, el TNA baja</b> a r = {ind_txt[IND_PARCIAL]["r"]:+.2f} como máximo
-  (rezago {ind_txt[IND_PARCIAL]["k"]:+d}, q = {ind_txt[IND_PARCIAL]["q"]:.3f}) y no pasa la corrección en ningún rezago:
-  buena parte de su relación con el caudal viene del mismo ENSO. Que el pico del SOI esté con el índice antes que Q
-  cuadra con lo que se vio con el índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga
-  varios meses a cada lado refleja que los índices y el caudal cambian despacio. Son correlaciones: los índices no
-  mueven el río, acompañan los cambios de la lluvia.</p>
-  <h3>Aparte: Q frente al ONI, con los mismos rezagos</h3>
-  <div id="g-ind-oni" class="grafico" style="min-height:0; height:340px"></div>
-  <p class="nota">r entre la anomalía de Q y el ONI según el rezago; punto lleno: pasa la misma corrección.</p>
-  <p>Con el ONI ({CITA_ONI}), la anomalía de la SST en Niño 3.4, la correlación más fuerte es
-  r = {ind_txt["ONI"]["r"]:+.2f}, con el índice {ind_txt["ONI"]["k"]} {_mes(ind_txt["ONI"]["k"])} antes,
-  y pasa la corrección {ind_txt["ONI"]["rango"]}. Es {ind_oni_vs_soi} la del SOI y de signo contrario, como se espera:
-  en {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)} el SOI y el ONI se correlacionan en {ind_corr_soi_oni:+.2f}. Los dos miden el
-  mismo fenómeno, uno en la presión del aire y el otro en la temperatura del mar.</p>
+  <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
+  índice {ind_txt["ONI"]["k"]} {_mes(ind_txt["ONI"]["k"])} antes que Q: con el Pacífico central más caliente (El Niño)
+  el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
+  corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
+  fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
+  la varianza), y pasa la corrección {ind_txt["TNA"]["rango"]}. <b>Sin el ONI, el TNA baja</b> a
+  r = {ind_txt[IND_PARCIAL]["r"]:+.2f} como máximo (rezago {ind_txt[IND_PARCIAL]["k"]:+d},
+  q = {ind_txt[IND_PARCIAL]["q"]:.3f}) y no pasa la corrección en ningún rezago: buena parte de su relación con el caudal
+  viene del mismo ENSO. Que el pico del ONI esté con el índice un mes antes que Q cuadra con lo que se vio con el
+  índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja
+  que los índices y el caudal cambian despacio. Son correlaciones: los índices no mueven el río, acompañan los cambios
+  de la lluvia.</p>
   <p><b>Conclusión.</b> La parte del caudal controlada por fenómenos climáticos globales interanuales está asociada
-  principalmente con el ENSO y el Pacífico tropical (|r| hasta {abs(ind_txt["SOI"]["r"]):.2f} con el SOI y
-  {abs(ind_txt["ONI"]["r"]):.2f} con el ONI). El Atlántico tropical norte también se correlaciona con el caudal
-  (hasta {ind_txt["TNA"]["r"]:.2f}), pero buena parte de esa relación viene del mismo ENSO: al quitar su efecto, lo que
-  queda (r hasta {ind_txt[IND_PARCIAL]["r"]:.2f}) no pasa la corrección, así que no se puede afirmar que el Atlántico
-  aporte por sí solo.</p>
+  principalmente con el ENSO y el Pacífico tropical (|r| hasta {abs(ind_txt["ONI"]["r"]):.2f} con el ONI). El Atlántico
+  tropical norte también se correlaciona con el caudal (hasta {ind_txt["TNA"]["r"]:.2f}), pero buena parte de esa
+  relación viene del mismo ENSO: al quitar su efecto, lo que queda (r hasta {ind_txt[IND_PARCIAL]["r"]:.2f}) no pasa la
+  corrección, así que no se puede afirmar que el Atlántico aporte por sí solo.</p>
   </div>
 
   <h3>¿Y los mapas?</h3>
@@ -4657,8 +4645,6 @@ a {{ color: var(--acento); }}
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
-    <li id="ref-noaa-soi">NOAA Climate Prediction Center. <i>Southern Oscillation Index (SOI), estandarizado</i>.
-    Descargado el 2026-10-11. <a href="https://www.cpc.ncep.noaa.gov/data/indices/soi">https://www.cpc.ncep.noaa.gov/data/indices/soi</a></li>
     <li id="ref-noaa-tna">NOAA Physical Sciences Laboratory. <i>Tropical Northern Atlantic Index (TNA)</i>, con HadISST1.1.
     Descargado el 2026-10-11. <a href="https://psl.noaa.gov/data/correlation/tna.data">https://psl.noaa.gov/data/correlation/tna.data</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
@@ -5231,7 +5217,7 @@ a {{ color: var(--acento); }}
     ], anual, CONF);
   }}
 
-  // Q frente al SOI, el TNA y el ONI: r contra el rezago; punto lleno si pasa la corrección (FDR)
+  // Q frente al ONI y al TNA: r contra el rezago; punto lleno si pasa la corrección (FDR)
   const IND = {ind_json};
 
   function trazaIndice(nombre, color, punteado) {{
@@ -5243,7 +5229,8 @@ a {{ color: var(--acento); }}
       hovertemplate: "rezago %{{x:+d}}: r = %{{y:+.2f}} (n = %{{customdata[0]}}, q = %{{customdata[1]:.3f}}, %{{customdata[2]}})<extra>" + nombre + "</extra>" }};
   }}
 
-  function disposicionIndice() {{
+  function dibujarIndices() {{
+    if (!window.Plotly) return;
     const d = base();
     d.hovermode = "closest";
     d.margin = {{ t: 46, r: 10, b: 50, l: 54 }};
@@ -5254,15 +5241,8 @@ a {{ color: var(--acento); }}
     d.yaxis.range = [-0.6, 0.6];
     d.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: {{ color: css("--tinta"), width: 1 }} }},
                 {{ type: "line", yref: "paper", x0: 0, x1: 0, y0: 0, y1: 1, line: {{ color: css("--tenue"), width: 1, dash: "dot" }} }}];
-    return d;
-  }}
-
-  function dibujarIndices() {{
-    if (!window.Plotly) return;
-    Plotly.react("g-ind-soi-tna", [trazaIndice("SOI", IND.colores.SOI), trazaIndice("TNA", IND.colores.TNA),
-                                   trazaIndice(IND.parcial, IND.colores[IND.parcial], true)],
-                 disposicionIndice(), CONF);
-    Plotly.react("g-ind-oni", [trazaIndice("ONI", css("--tinta"))], disposicionIndice(), CONF);
+    Plotly.react("g-ind-oni-tna", [trazaIndice("ONI", css("--tinta")), trazaIndice("TNA", IND.colores.TNA),
+                                   trazaIndice(IND.parcial, IND.colores[IND.parcial], true)], d, CONF);
   }}
 
   // P/ETP por mes del calendario, con PL y con PI lado a lado; la línea en 1 separa el déficit del excedente

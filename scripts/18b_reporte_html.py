@@ -1940,23 +1940,12 @@ alt_veredicto_h = f"""<div class="aviso">
   </div>"""
 
 # ---------------------------------------------------------------- resumen, cambios y conclusiones
-alt_resumen = f"""<p>La cuenca del Fonce hasta San Gil ({n(sg["area"], 2)} km², de {n(elev_min)} a {n(elev_max)} m) es
-  alargada y empinada. Según los pluviómetros (PL) recibe {n(alt_pl_anual)} mm/año, y según el satélite
-  (PI), {n(alt_pi_anual)}, un {abs(sesgo_pi_pl):.1f} % menos. No hay forma de saber cuál acierta, y por eso todo se calcula
-  con las dos; cuando hay que escoger, manda PL. Sale como caudal (Q) el {fis_coef["pl"] * 100:.0f} % de la lluvia con PL
-  ({coef_periodo * 100:.0f} % con PI).</p>
-  <p>Llueve en dos temporadas al año ({pico_pl[0]} y {pico_pl[1]} son los picos con PL) y el río las sigue con unos
-  {desfase["Q_PL"]:.0f} días de atraso. La cuenca guarda agua y la suelta despacio. Entre un año y otro, la única señal que resiste las pruebas es El Niño: con el Pacífico central
-  caliente llueve menos y, 1 a 2 meses después, baja el caudal. La temperatura sube {fis_t_decada:+.2f} °C por década; la
-  lluvia y el caudal no tienen una tendencia significativa.</p>"""
-assert morf_pendiente > 15                                           # «empinada»
-
 alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una revisión adversarial del informe: lo que
   le faltaba, sus errores y sus incoherencias. No reemplaza al informe principal. Cada cambio lo decidió el equipo, problema por
   problema.</p>
   <ul>
     <li><b>Secciones nuevas:</b> «Forma y relieve de la cuenca» (la morfometría ya calculada, que no estaba en el informe),
-    este resumen, un veredicto sobre la hipótesis H y conclusiones numeradas.</li>
+    un veredicto sobre la hipótesis H, conclusiones numeradas y limitaciones.</li>
     <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
     manda; CAMELS-COL ya no se presenta como confirmación; el rezago de Q frente al ONI es de 1 a 2 meses en todas partes;
     los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
@@ -2164,11 +2153,6 @@ a {{ color: var(--acento); }}
   las {len(DENTRO)} estaciones dentro de la cuenca), <b>PI</b> la del satélite IMERG promediada sobre la cuenca y
   <b>Q</b> el caudal en San Gil.</p>
 </header>
-
-<section>
-  <h2>Resumen</h2>
-  {alt_resumen}
-</section>
 
 <section>
   <h2>Qué cambia en esta versión</h2>

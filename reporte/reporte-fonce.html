@@ -3236,40 +3236,47 @@ section, section h3 { scroll-margin-top: 20px; }
   cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
   a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
 
-  <h3>Q frente al SOI, el NAO y el ONI</h3>
+  <h3>Q frente al ONI y al TNA: ¿Pacífico o Atlántico?</h3>
   <div>
-  <p>Dos índices de circulación que no son la SST: el <b>Índice de Oscilación del Sur (SOI)</b>, la diferencia de
-  presión al nivel del mar entre Tahití y Darwin, que es la cara atmosférica del ENSO (negativo con El Niño), y la
-  <b>Oscilación del Atlántico Norte (NAO)</b>, el contraste de presión entre Islandia y las Azores (<a class="cita" href="#ref-noaa-soi-nao">NOAA CPC</a>). La
-  pregunta es cuál de los dos pesa más sobre el caudal de la cuenca. Se correlaciona la <b>anomalía de Q</b> (cada mes
-  menos su media de 1998–2022), todos los meses juntos, con cada índice desplazado de
-  -12 a +12 meses. En el rezago k se compara Q de un mes con el índice k meses antes:
-  k &gt; 0 quiere decir que el índice va primero. Los índices se usan como los publica la NOAA: el SOI y la NAO ya
-  vienen estandarizados.</p>
+  <p>Dos índices análogos, uno de cada océano: el <b>ONI</b> (<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>), la anomalía de la SST en la región Niño 3.4
+  del Pacífico, y el <b>índice del Atlántico tropical norte (TNA)</b>, la anomalía de la SST entre 5.5° N y 23.5° N y
+  entre 15° O y 57.5° O (<a class="cita" href="#ref-enfield1999">Enfield et al., 1999</a>; <a class="cita" href="#ref-noaa-tna">NOAA PSL</a>). Los dos son la temperatura del mar en un recuadro tropical, menos
+  su media; la pregunta es cuál de los dos pesa más sobre el caudal de la cuenca. Se correlaciona la <b>anomalía de
+  Q</b> (cada mes menos su media de 1998–2022), todos los meses juntos, con cada índice
+  desplazado de -12 a +12 meses. En el rezago k se compara Q de un mes con el índice
+  k meses antes: k &gt; 0 quiere decir que el índice va primero.</p>
+  <p>El TNA no es independiente del ENSO: el Atlántico tropical norte se calienta meses después de El Niño (en
+  1998–2022, el TNA se correlaciona en +0.36 con el ONI de
+  5 meses antes). Para separar lo que el Atlántico aporta por sí solo se calcula también la
+  <b>correlación parcial</b> del TNA sin el ONI: a la anomalía de Q y al TNA se les quita lo que explica el ONI de
+  1 mes antes (el rezago en que el ONI se correlaciona más con Q) y se
+  correlaciona lo que queda.</p>
   <p class="nota">Pares por rezago: entre 254 y 262 (los meses con Q). Los meses seguidos se parecen, así
   que no son datos independientes: la prueba t usa el <b>n efectivo</b> de <a class="cita" href="#ref-bretherton1999">Bretherton et al., 1999</a>, que con la autocorrelación
-  de un mes de las dos series baja a entre 125 y 129 con el SOI y entre
-  193 y 199 con la NAO. Sobre los 25 rezagos de cada índice se
-  controla la tasa de falsos descubrimientos (<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>), con q &lt; 0.05.</p>
-  <div id="g-ind-soi-nao" class="grafico" style="min-height:0; height:380px"></div>
-  <p class="nota">r entre la anomalía de Q y cada índice según el rezago. Punto lleno: pasa la corrección; punto vacío:
-  no pasa.</p>
-  <p><b>El SOI pesa mucho más que la NAO.</b> Con el SOI, la correlación más fuerte es r = +0.41,
-  con el índice 2 meses antes que Q: en un año de SOI alto (La Niña) el río lleva más agua. Equivale a
-  un 17 % de la varianza de la anomalía de Q, y pasa la corrección de -4 a +7 meses. Con la
-  NAO, la mayor es r = -0.21 (rezago +12) y no pasa la corrección en ningún
-  rezago: no se distingue del azar. Que el pico esté con el índice antes que Q cuadra con lo que se vio con el índice
-  Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja que el
-  SOI y el caudal cambian despacio. Es una correlación: el SOI no mueve el río, acompaña los cambios de la lluvia que
-  trae el ENSO.</p>
-  <h3>Aparte: Q frente al ONI, con los mismos rezagos</h3>
-  <div id="g-ind-oni" class="grafico" style="min-height:0; height:340px"></div>
-  <p class="nota">r entre la anomalía de Q y el ONI según el rezago; punto lleno: pasa la misma corrección.</p>
-  <p>Con el ONI (<a class="cita" href="#ref-noaa-oni">NOAA CPC</a>), la anomalía de la SST en Niño 3.4, la correlación más fuerte es
-  r = -0.46, con el índice 1 mes antes,
-  y pasa la corrección de -4 a +6 meses. Es un poco más fuerte que la del SOI y de signo contrario, como se espera:
-  en 1998–2022 el SOI y el ONI se correlacionan en -0.75. Los dos miden el mismo
-  fenómeno, uno en la presión del aire y el otro en la temperatura del mar.</p>
+  de un mes de las dos series baja a entre 89 y 93 con el ONI y entre
+  100 y 106 con el TNA: los dos son muy persistentes. Sobre los
+  25 rezagos de cada curva se controla la tasa de falsos descubrimientos (<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>), con
+  q &lt; 0.05.</p>
+  <div id="g-ind-oni-tna" class="grafico" style="min-height:0; height:400px"></div>
+  <p class="nota">r entre la anomalía de Q y cada índice según el rezago; en punteado, el TNA sin el ONI. Punto lleno:
+  pasa la corrección; punto vacío: no pasa.</p>
+  <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = -0.46, con el
+  índice 1 mes antes que Q: con el Pacífico central más caliente (El Niño)
+  el río lleva menos agua. Equivale a un 21 % de la varianza de la anomalía de Q, y pasa la
+  corrección de -4 a +6 meses. Con el TNA del mismo mes casi no hay relación (r = -0.10); la más
+  fuerte es r = +0.36, con el TNA 11 meses antes (13 % de
+  la varianza), y pasa la corrección de +4 a +12 meses. <b>Sin el ONI, el TNA baja</b> a
+  r = +0.25 como máximo (rezago +5,
+  q = 0.055) y no pasa la corrección en ningún rezago: buena parte de su relación con el caudal
+  viene del mismo ENSO. Que el pico del ONI esté con el índice un mes antes que Q cuadra con lo que se vio con el
+  índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja
+  que los índices y el caudal cambian despacio. Son correlaciones: los índices no mueven el río, acompañan los cambios
+  de la lluvia.</p>
+  <p><b>Conclusión.</b> La parte del caudal controlada por fenómenos climáticos globales interanuales está asociada
+  principalmente con el ENSO y el Pacífico tropical (|r| hasta 0.46 con el ONI). El Atlántico
+  tropical norte también se correlaciona con el caudal (hasta 0.36), pero buena parte de esa
+  relación viene del mismo ENSO: al quitar su efecto, lo que queda (r hasta 0.25) no pasa la
+  corrección, así que no se puede afirmar que el Atlántico aporte por sí solo.</p>
   </div>
 
   <h3>¿Y los mapas?</h3>
@@ -3311,6 +3318,13 @@ section, section h3 { scroll-margin-top: 20px; }
   que inhibe la convección, y puede debilitarse el chorro del Chocó. De los 6 meses robustos,
   5 caen en las dos temporadas en que <a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a> hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto).</p>
+  <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
+  correlaciona en -0.46 con el ONI de 1 mes antes, y el
+  Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
+  el efecto del ONI. El mecanismo es el de la circulación de Walker (<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>): con El Niño el Pacífico ecuatorial
+  se calienta, el aire asciende sobre ese océano y desciende sobre Colombia. Ese aire que baja inhibe la convección, así
+  que llueve menos en la cuenca y, con el atraso del almacenamiento, baja el caudal. Con La Niña ocurren anomalías
+  contrarias (<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>).</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
   coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
   marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
@@ -3337,7 +3351,7 @@ section, section h3 { scroll-margin-top: 20px; }
 <tr><td><b>Llueve menos arriba</b></td><td>-222 mm/año por cada 1 000 m con IMERG (30 celdas) y -297 con los pluviómetros (7 estaciones).</td><td>Óptimo pluviográfico: por encima de unos 1 500 m, el aire que sube ya se quedó sin vapor que condensar.</td><td>El 90 % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca llueve menos arriba»).</td><td><a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a></td><td>Ningún pluviómetro mide por encima de 2 625 m, donde está el 30 % de la cuenca: arriba, la pendiente depende solo del satélite.</td></tr>
 <tr><td><b>Cuenca húmeda</b></td><td>P/ETP anual de 2.01 con PL y 1.77 con PI; enero, el mes de menor P/ETP, queda en 1.01 con PL y 0.71 con PI.</td><td>La lluvia supera a la demanda de evaporación, que casi no cambia en el año: el ciclo lo pone la lluvia.</td><td>La ETP varía un 21 % de su media a lo largo del año; la lluvia, un 97 % con PL y un 102 % con PI («¿Húmeda o árida? La lluvia contra la ETP»).</td><td><a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>; <a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a></td><td>La fuente cambia el borde: con PI, enero tiene déficit, y con PL no. La ETP es potencial y de Hargreaves; las clases de UNEP se definieron con Thornthwaite. No hay una medida de la evapotranspiración real.</td></tr>
 <tr><td><b>El río va atrasado y suavizado respecto a la lluvia</b></td><td>Q llega 17 días después que PL (IC 95 %: 13 a 21) y 14 después que PI.</td><td>Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.</td><td>El atraso es mucho mayor que el tiempo de concentración (4 a 20 horas); la lluvia del mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el 54 % de la varianza de la lluvia y el 37 % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).</td><td>Ninguna todavía: el informe no cita una fuente sobre el almacenamiento en esta cuenca.</td><td>El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones de agua, que también podrían cambiar la respuesta del río.</td></tr>
-<tr><td><b>Los años con El Niño son más secos</b></td><td>Correlación negativa y robusta con el índice Niño 3.4 en junio con PL, junio, agosto y diciembre con PI y enero y marzo con Q.</td><td>Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección.</td><td>De los 6 meses robustos, 5 caen en las temporadas que señala la fuente; Q pasa la corrección en más meses con el índice un mes antes; el año más seco, 2015, tuvo 12 meses de El Niño («La cuenca frente a los campos climáticos»).</td><td><a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>; <a class="cita" href="#ref-poveda2004">Poveda, 2004</a></td><td>Son 25 años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo.</td></tr>
+<tr><td><b>Los años con El Niño son más secos</b></td><td>Correlación negativa y robusta con el índice Niño 3.4 en junio con PL, junio, agosto y diciembre con PI y enero y marzo con Q.</td><td>Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve menos y, con el atraso del almacenamiento, baja el caudal.</td><td>De los 6 meses robustos, 5 caen en las temporadas que señala la fuente; Q pasa la corrección en más meses con el índice un mes antes; el año más seco, 2015, tuvo 12 meses de El Niño; la anomalía de Q se correlaciona en -0.46 con el ONI de 1 mes antes, más que con el TNA (+0.36), que sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).</td><td><a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>; <a class="cita" href="#ref-poveda2004">Poveda, 2004</a></td><td>Son 25 años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo.</td></tr>
 <tr><td><b>La temperatura sube</b></td><td>+0.14 °C por década en la temperatura media (ERA5-Land, registro completo), significativa sin importar qué año se quite.</td><td>El calentamiento global.</td><td>Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).</td><td>Ninguna todavía.</td><td>Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa.</td></tr>
 <tr><td><b>La lluvia y el caudal no tienen tendencia</b></td><td>Q: -0.8 m³/s por década (p = 0.719). PL* y PI no son significativas con ningún método, representación ni período.</td><td>Sin un cambio de la lluvia, el río no tiene por qué cambiar; el calentamiento sube la ETP muy poco.</td><td>Quitando un año a la vez, ninguna versión es significativa; la ETP sube solo un 0.52 % por década («Sensibilidad a años extremos»; «Significativo no es lo mismo que importante»).</td><td>No aplica: es la ausencia de un cambio.</td><td>Que no sea significativa no prueba que no haya cambio. La lluvia de marzo sube (+33 mm/mes por década con PL*) y el caudal de marzo no la sigue.</td></tr>
     </tbody>
@@ -3399,6 +3413,9 @@ section, section h3 { scroll-margin-top: 20px; }
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-enfield1999">Enfield, D. B., Mestas-Nuñez, A. M., Mayer, D. A., y Cid-Serrano, L. (1999). How ubiquitous is
+    the dipole relationship in tropical Atlantic sea surface temperatures? <i>Journal of Geophysical Research: Oceans</i>,
+    104(C4), 7841–7848. <a href="https://doi.org/10.1029/1998JC900109">https://doi.org/10.1029/1998JC900109</a></li>
     <li id="ref-gupta2009">Gupta, H. V., Kling, H., Yilmaz, K. K., y Martinez, G. F. (2009). Decomposition of the mean
     squared error and NSE performance criteria: implications for improving hydrological modelling. <i>Journal of
     Hydrology</i>, 377(1–2), 80–91. <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">https://doi.org/10.1016/j.jhydrol.2009.08.003</a></li>
@@ -3450,10 +3467,8 @@ section, section h3 { scroll-margin-top: 20px; }
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
-    <li id="ref-noaa-soi-nao">NOAA Climate Prediction Center. <i>Southern Oscillation Index (SOI), estandarizado</i> y
-    <i>North Atlantic Oscillation (NAO), índice mensual</i>. Descargados el 2026-10-11.
-    <a href="https://www.cpc.ncep.noaa.gov/data/indices/soi">https://www.cpc.ncep.noaa.gov/data/indices/soi</a> y
-    <a href="https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii">https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii</a></li>
+    <li id="ref-noaa-tna">NOAA Physical Sciences Laboratory. <i>Tropical Northern Atlantic Index (TNA)</i>, con HadISST1.1.
+    Descargado el 2026-10-11. <a href="https://psl.noaa.gov/data/correlation/tna.data">https://psl.noaa.gov/data/correlation/tna.data</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
     <i>Journal of the Royal Statistical Society, Series C (Applied Statistics)</i>, 28(2), 126–135.
     <a href="https://doi.org/10.2307/2346729">https://doi.org/10.2307/2346729</a></li>
@@ -3532,7 +3547,7 @@ section, section h3 { scroll-margin-top: 20px; }
   <ul>
     <li><b>Cifras:</b> ninguna se escribe a mano. Todas se calculan en <code>scripts/18_calculos_informe.py</code> a
     partir de los datos descargados (procedencia y SHA-256 en <code>DATOS_FUENTES.md</code>), y las afirmaciones sobre
-    los datos están protegidas por 237 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
+    los datos están protegidas por 241 comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
     faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
@@ -4056,19 +4071,20 @@ section, section h3 { scroll-margin-top: 20px; }
     ], anual, CONF);
   }
 
-  // Q frente al SOI, el NAO y el ONI: r contra el rezago; punto lleno si pasa la corrección (FDR)
-  const IND = {"NAO": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [-0.022, 0.015, -0.051, -0.013, 0.069, 0.031, -0.088, -0.067, 0.014, 0.03, 0.016, 0.012, 0.16, 0.082, 0.0, -0.064, -0.126, -0.064, -0.062, -0.116, -0.119, -0.01, -0.082, -0.169, -0.211], "sig": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.9287, 0.9287, 0.7964, 0.9287, 0.6913, 0.9287, 0.6913, 0.6913, 0.9287, 0.9287, 0.9287, 0.9287, 0.1985, 0.6913, 0.9944, 0.6913, 0.4309, 0.6913, 0.6913, 0.4309, 0.4309, 0.9287, 0.6913, 0.1985, 0.0713]}, "ONI": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [-0.109, -0.091, -0.083, -0.083, -0.092, -0.117, -0.163, -0.219, -0.272, -0.316, -0.36, -0.4, -0.435, -0.455, -0.453, -0.432, -0.399, -0.355, -0.299, -0.233, -0.163, -0.099, -0.043, -0.0, 0.043], "sig": [false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.4672, 0.5031, 0.5042, 0.5042, 0.5031, 0.4361, 0.216, 0.0786, 0.0239, 0.0077, 0.002, 0.0005, 0.0001, 0.0001, 0.0001, 0.0001, 0.0005, 0.002, 0.0113, 0.0581, 0.216, 0.4956, 0.7182, 0.9968, 0.7182]}, "SOI": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [-0.002, 0.049, -0.011, 0.019, 0.126, 0.085, 0.13, 0.185, 0.201, 0.233, 0.353, 0.349, 0.374, 0.392, 0.415, 0.355, 0.342, 0.268, 0.246, 0.239, 0.171, 0.102, 0.046, -0.054, -0.02], "sig": [false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.9867, 0.7183, 0.9407, 0.9076, 0.249, 0.4763, 0.2413, 0.0719, 0.0485, 0.0188, 0.0002, 0.0002, 0.0001, 0.0001, 0.0, 0.0002, 0.0003, 0.0066, 0.0137, 0.0161, 0.0945, 0.3654, 0.7183, 0.716, 0.9076]}, "colores": {"SOI": "#E69F00", "NAO": "#56B4E9"}};
+  // Q frente al ONI y al TNA: r contra el rezago; punto lleno si pasa la corrección (FDR)
+  const IND = {"ONI": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [-0.109, -0.091, -0.083, -0.083, -0.092, -0.117, -0.163, -0.219, -0.272, -0.316, -0.36, -0.4, -0.435, -0.455, -0.453, -0.432, -0.399, -0.355, -0.299, -0.233, -0.163, -0.099, -0.043, -0.0, 0.043], "sig": [false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.4513, 0.4902, 0.4919, 0.4919, 0.4902, 0.4173, 0.2099, 0.0688, 0.0192, 0.0057, 0.0013, 0.0004, 0.0001, 0.0001, 0.0001, 0.0001, 0.0004, 0.002, 0.0111, 0.0573, 0.2099, 0.4902, 0.7177, 0.9968, 0.7177]}, "TNA": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [-0.096, -0.133, -0.148, -0.163, -0.144, -0.134, -0.101, -0.127, -0.14, -0.146, -0.13, -0.116, -0.098, 0.026, 0.137, 0.206, 0.262, 0.316, 0.314, 0.292, 0.275, 0.315, 0.341, 0.363, 0.343], "sig": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, true, true, true, true, true, true, true], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.3442, 0.2429, 0.2429, 0.2223, 0.2429, 0.2429, 0.3442, 0.2504, 0.2429, 0.2429, 0.2452, 0.2921, 0.3442, 0.7917, 0.2429, 0.0962, 0.0229, 0.0055, 0.0055, 0.0099, 0.0167, 0.0055, 0.0042, 0.0042, 0.0042]}, "TNA sin el ONI": {"k": [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], "r": [0.005, -0.03, -0.039, -0.048, -0.021, -0.004, 0.05, 0.032, 0.02, 0.01, 0.014, 0.011, 0.002, 0.095, 0.171, 0.204, 0.228, 0.245, 0.206, 0.154, 0.117, 0.155, 0.185, 0.232, 0.239], "sig": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false], "n": [254, 255, 256, 257, 258, 259, 259, 259, 259, 259, 260, 261, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262, 262], "q": [0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.9836, 0.5799, 0.1573, 0.0789, 0.0554, 0.0554, 0.0789, 0.1871, 0.4076, 0.1871, 0.1166, 0.0554, 0.0554]}, "colores": {"TNA": "#56B4E9", "TNA sin el ONI": "#56B4E9"}, "parcial": "TNA sin el ONI"};
 
-  function trazaIndice(nombre, color) {
+  function trazaIndice(nombre, color, punteado) {
     const d = IND[nombre];
     return { type: "scatter", mode: "lines+markers", name: nombre, x: d.k, y: d.r,
-      line: { color: color, width: 2 },
+      line: { color: color, width: 2, dash: punteado ? "dot" : "solid" },
       marker: { size: 8, color: d.sig.map(s => s ? color : css("--fondo")), line: { color: color, width: 1.6 } },
       customdata: d.k.map((k, i) => [d.n[i], d.q[i], d.sig[i] ? "pasa" : "no pasa"]),
       hovertemplate: "rezago %{x:+d}: r = %{y:+.2f} (n = %{customdata[0]}, q = %{customdata[1]:.3f}, %{customdata[2]})<extra>" + nombre + "</extra>" };
   }
 
-  function disposicionIndice() {
+  function dibujarIndices() {
+    if (!window.Plotly) return;
     const d = base();
     d.hovermode = "closest";
     d.margin = { t: 46, r: 10, b: 50, l: 54 };
@@ -4079,14 +4095,8 @@ section, section h3 { scroll-margin-top: 20px; }
     d.yaxis.range = [-0.6, 0.6];
     d.shapes = [{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: { color: css("--tinta"), width: 1 } },
                 { type: "line", yref: "paper", x0: 0, x1: 0, y0: 0, y1: 1, line: { color: css("--tenue"), width: 1, dash: "dot" } }];
-    return d;
-  }
-
-  function dibujarIndices() {
-    if (!window.Plotly) return;
-    Plotly.react("g-ind-soi-nao", [trazaIndice("SOI", IND.colores.SOI), trazaIndice("NAO", IND.colores.NAO)],
-                 disposicionIndice(), CONF);
-    Plotly.react("g-ind-oni", [trazaIndice("ONI", css("--tinta"))], disposicionIndice(), CONF);
+    Plotly.react("g-ind-oni-tna", [trazaIndice("ONI", css("--tinta")), trazaIndice("TNA", IND.colores.TNA),
+                                   trazaIndice(IND.parcial, IND.colores[IND.parcial], true)], d, CONF);
   }
 
   // P/ETP por mes del calendario, con PL y con PI lado a lado; la línea en 1 separa el déficit del excedente

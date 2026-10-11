@@ -1662,7 +1662,7 @@ ind_n = (int(ind_corr.n.min()), int(ind_corr.n.max()))
 ind_n_ef = {n: (float(ind_corr[ind_corr.indice == n].n_efectivo.min()), float(ind_corr[ind_corr.indice == n].n_efectivo.max()))
             for n in IND_NOMBRES}
 ind_tna_0 = float(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0])
-_mes = lambda k: "mes" if abs(k) == 1 else "meses"
+_palabra_mes = lambda k: "mes" if abs(k) == 1 else "meses"
 # para «¿El ENSO explica las tendencias?»: remite a «Sensibilidad a años extremos», sin recalcular
 assert all(tend_sin_anio[v]["n_sig"] == 0 for v in ("PL*", "PI", "Q"))         # «ninguna versión es significativa»
 if tend_sin_anio_comun is not None:
@@ -1735,10 +1735,13 @@ SINT_FILAS = [
     ("Los años con El Niño son más secos",
      f"Correlación negativa y robusta con el índice Niño 3.4 en {n34_robustos['PL']} con PL, {n34_robustos['PI']} con PI y "
      f"{n34_robustos['Q']} con Q.",
-     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección.",
+     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve "
+     "menos y, con el atraso del almacenamiento, baja el caudal.",
      f"De los {n34_rob_total} meses robustos, {n34_rob_en_temporadas} caen en las temporadas que señala la fuente; Q pasa la "
      f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
-     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño («La cuenca frente a los campos climáticos»).",
+     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño; la anomalía de Q se correlaciona en {ind_txt['ONI']['r']:+.2f} con "
+     f"el ONI de {ind_txt['ONI']['k']} {_palabra_mes(ind_txt['ONI']['k'])} antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
+     "sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).",
      f"{CITA_CORDOBA}; {CITA_POVEDA}",
      f"Son {pe_n_anios} años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la "
      "coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo."),
@@ -4440,7 +4443,7 @@ a {{ color: var(--acento); }}
   {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}, el TNA se correlaciona en {ind_tna_oni[ind_tna_oni_k]:+.2f} con el ONI de
   {ind_tna_oni_k} meses antes). Para separar lo que el Atlántico aporta por sí solo se calcula también la
   <b>correlación parcial</b> del TNA sin el ONI: a la anomalía de Q y al TNA se les quita lo que explica el ONI de
-  {IND_REZAGO_CONTROL} {_mes(IND_REZAGO_CONTROL)} antes (el rezago en que el ONI se correlaciona más con Q) y se
+  {IND_REZAGO_CONTROL} {_palabra_mes(IND_REZAGO_CONTROL)} antes (el rezago en que el ONI se correlaciona más con Q) y se
   correlaciona lo que queda.</p>
   <p class="nota">Pares por rezago: entre {ind_n[0]} y {ind_n[1]} (los meses con Q). Los meses seguidos se parecen, así
   que no son datos independientes: la prueba t usa el <b>n efectivo</b> de {CITA_BRETHERTON}, que con la autocorrelación
@@ -4452,7 +4455,7 @@ a {{ color: var(--acento); }}
   <p class="nota">r entre la anomalía de Q y cada índice según el rezago; en punteado, el TNA sin el ONI. Punto lleno:
   pasa la corrección; punto vacío: no pasa.</p>
   <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
-  índice {ind_txt["ONI"]["k"]} {_mes(ind_txt["ONI"]["k"])} antes que Q: con el Pacífico central más caliente (El Niño)
+  índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q: con el Pacífico central más caliente (El Niño)
   el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
   corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
   fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
@@ -4509,6 +4512,13 @@ a {{ color: var(--acento); }}
   que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {n34_rob_total} meses robustos,
   {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto).</p>
+  <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
+  correlaciona en {ind_txt["ONI"]["r"]:+.2f} con el ONI de {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes, y el
+  Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
+  el efecto del ONI. El mecanismo es el de la circulación de Walker ({CITA_CORDOBA}): con El Niño el Pacífico ecuatorial
+  se calienta, el aire asciende sobre ese océano y desciende sobre Colombia. Ese aire que baja inhibe la convección, así
+  que llueve menos en la cuenca y, con el atraso del almacenamiento, baja el caudal. Con La Niña ocurren anomalías
+  contrarias ({CITA_POVEDA}).</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
   coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
   marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en

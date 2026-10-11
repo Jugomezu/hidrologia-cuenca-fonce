@@ -2148,7 +2148,7 @@ a {{ color: var(--acento); }}
   <p>La pregunta se responde en tres partes, en el orden del informe:</p>
   <ol>
     <li><b>¿Cuánta agua le cae a la cuenca, y qué tan bien la miden PI y PL?</b> Se responde de «Contexto geográfico» a
-    «Comparando PI con PL» y en el control de calidad de los datos.</li>
+    «Comparando PI con PL», con el control de calidad de los datos antes de usarlos.</li>
     <li><b>¿Cómo se vuelve caudal esa lluvia?</b> Se responde de «Cómo se relacionan las variables entre sí» a «El ciclo
     anual», y en «¿Sirve la lluvia para estimar el caudal?».</li>
     <li><b>¿Qué mueve el caudal entre años y a largo plazo?</b> Se responde de «Anomalías y anomalías estandarizadas» a
@@ -2452,177 +2452,6 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
-  <h2>En esta cuenca llueve menos arriba</h2>
-  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
-  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
-  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
-  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
-  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
-
-  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
-  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
-  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
-    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
-  </div>
-
-  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
-  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
-  círculo hueco es la estación fuera de la divisoria.</p>
-
-  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
-  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
-  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido; ver «Comparando PI con PL»), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
-  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
-  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
-  que la altitud sola no explica.</p>
-
-  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
-  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
-  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
-  </div>
-
-  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
-  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
-  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
-  estaciones apartadas.</p>
-
-  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
-  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
-  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
-  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
-  (r² = {aj_limpio['r2']:.2f}).</p>
-
-  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
-  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
-  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
-
-  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
-  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
-  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
-  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
-  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
-
-  <figure>
-    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
-    <figcaption>
-      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
-      oriental, la parte más alta y escarpada de la cuenca.</p>
-      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
-      que la contiene, porque están anidadas unas dentro de otras.</p>
-    </figcaption>
-  </figure>
-
-  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
-
-  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
-  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
-  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
-  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
-
-  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
-  {sub_seca.estaciones_en_subcuenca} estaciones del
-  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
-  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
-  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
-  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
-  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
-
-  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
-  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
-  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
-  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
-  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
-
-  <h3>La lluvia contra la altura</h3>
-  <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas
-  ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>. Por qué la lluvia
-  disminuye con la altura en esta cuenca se explica en «Explicaciones físicas» (el óptimo pluviográfico).</p>
-
-  <div class="tabla-caja">
-  <table>
-    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
-    <tbody>
-{filas_grad}
-    </tbody>
-  </table>
-  </div>
-
-  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
-  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
-  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
-</section>
-
-<section>
-  <h2>Comparando PI con PL</h2>
-  <p>Las dos fuentes de lluvia: <b>PI</b>, la de IMERG, que el satélite estima sobre celdas de unos
-  {n(mapa_km2_pixel)} km², y <b>PL</b>, el promedio de los <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la
-  divisoria (datos <b>preliminares</b>), con los que tengan dato cada mes, sin rellenar. En las gráficas, los
-  pluviómetros sueltos van tenues y su promedio a plena opacidad.</p>
-  <p class="aviso"><b>De PL se excluyen 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses): sus totales saltan a
-  {n(enc_raros[2016])}, {n(enc_raros[2017])} y {n(enc_raros[2018])} mm, contra unos {n(enc_normal)} en el resto de su
-  serie, y nada más acompaña el salto (en 2017, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio con esos años y
-  {exc_2017['depurado']:+.1f} % sin ellos, mientras PI sale {exc_2017['pi']:+.1f} %). Es un problema de registro.</p>
-  <p class="nota">La precipitación CHIRPS que trae CAMELS-COL se retiró: no aporta un punto de vista
-  independiente de las otras dos y arrastra los huecos del caudal.</p>
-  <div class="tabla-caja">
-  <table>
-    <thead><tr><th>Fuente comparada con IMERG</th><th class="num">Meses comparables</th><th class="num">IMERG (mm/mes)</th>
-    <th class="num">La otra fuente (mm/mes)</th><th class="num">Diferencia de IMERG</th><th class="num">Correlación mensual</th></tr></thead>
-    <tbody>
-{filas_cmp}
-    </tbody>
-  </table>
-  </div>
-  <div class="dos-graficos">
-    <div>
-      <h3>Serie mensual, {mes_ini} a {mes_fin}</h3>
-      <div id="g-series" class="grafico"></div>
-    </div>
-    <div>
-      <h3>Ciclo anual medio</h3>
-      <div id="g-ciclo" class="grafico"></div>
-    </div>
-  </div>
-  <p class="nota">Las dos figuras comparten la leyenda de arriba. Pasa el cursor por encima para ver los
-  valores de un mes; arrastra sobre el gráfico para acercarte y haz doble clic para volver.</p>
-  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud:</b> coinciden en la forma del ciclo
-  anual y mes a mes (correlación {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un
-  {abs(cmp_stats[NOM_RED]["sesgo"]):.1f} % por debajo de PL</b> ({n(cmp_stats[NOM_RED]["imerg"])} contra
-  {n(cmp_stats[NOM_RED]["pluv"])} mm/mes). Los pluviómetros sueltos van de
-  {n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
-  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
-  ladera: por eso se usa su promedio.</p>
-
-  <h3>Mes a mes, uno contra otro</h3>
-  <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
-  concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
-  en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses PI queda por debajo de PL.</p>
-  <div class="cifras" style="margin-bottom:14px">
-    <div class="cifra"><b>{p2_pipl["sesgo"]:+.1f} mm/mes</b><span>sesgo medio (PI − PL)</span></div>
-    <div class="cifra"><b>{p2_pipl["mae"]:.1f} mm/mes</b><span>error absoluto medio (MAE)</span></div>
-    <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
-  </div>
-  <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
-  <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
-  pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
-  en promedio, se aleja de PL hacia los dos lados.</p>
-  <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
-  la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
-  PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
-</section>
-
-<section>
   <h2>Qué meses tienen dato y cuáles no</h2>
   <p>Cada franja es un mes de una fuente, y en las series diarias su color es el <b>porcentaje de días del mes
   con registro</b>: así se distingue un mes completo de uno al que le faltan unos días.</p>
@@ -2812,6 +2641,177 @@ a {{ color: var(--acento); }}
   <p class="nota">El registro lo arma <code>scripts/07d_trazabilidad.py</code> a partir de lo que producen los
   demás scripts, así que sus cifras cambian si cambian los datos.</p>
   </details>
+</section>
+
+<section>
+  <h2>En esta cuenca llueve menos arriba</h2>
+  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
+  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
+  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
+  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
+  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
+
+  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
+  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
+  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
+    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
+  </div>
+
+  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
+  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
+  círculo hueco es la estación fuera de la divisoria.</p>
+
+  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
+  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
+  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido; ver «Comparando PI con PL»), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
+  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
+  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
+  que la altitud sola no explica.</p>
+
+  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
+  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
+  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
+  </div>
+
+  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
+  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
+  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
+  estaciones apartadas.</p>
+
+  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
+  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
+  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
+  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
+  (r² = {aj_limpio['r2']:.2f}).</p>
+
+  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
+  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
+  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
+
+  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
+  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
+  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
+  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
+  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
+
+  <figure>
+    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
+    <figcaption>
+      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
+      oriental, la parte más alta y escarpada de la cuenca.</p>
+      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
+      que la contiene, porque están anidadas unas dentro de otras.</p>
+    </figcaption>
+  </figure>
+
+  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
+
+  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
+  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
+  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
+  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
+
+  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
+  {sub_seca.estaciones_en_subcuenca} estaciones del
+  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
+  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
+  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
+  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
+  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
+
+  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
+  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
+  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
+  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
+  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
+
+  <h3>La lluvia contra la altura</h3>
+  <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas
+  ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>. Por qué la lluvia
+  disminuye con la altura en esta cuenca se explica en «Explicaciones físicas» (el óptimo pluviográfico).</p>
+
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
+    <tbody>
+{filas_grad}
+    </tbody>
+  </table>
+  </div>
+
+  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
+  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
+  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
+</section>
+
+<section>
+  <h2>Comparando PI con PL</h2>
+  <p>Las dos fuentes de lluvia: <b>PI</b>, la de IMERG, que el satélite estima sobre celdas de unos
+  {n(mapa_km2_pixel)} km², y <b>PL</b>, el promedio de los <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la
+  divisoria (datos <b>preliminares</b>), con los que tengan dato cada mes, sin rellenar. En las gráficas, los
+  pluviómetros sueltos van tenues y su promedio a plena opacidad.</p>
+  <p class="aviso"><b>De PL se excluyen 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses): sus totales saltan a
+  {n(enc_raros[2016])}, {n(enc_raros[2017])} y {n(enc_raros[2018])} mm, contra unos {n(enc_normal)} en el resto de su
+  serie, y nada más acompaña el salto (en 2017, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio con esos años y
+  {exc_2017['depurado']:+.1f} % sin ellos, mientras PI sale {exc_2017['pi']:+.1f} %). Es un problema de registro.</p>
+  <p class="nota">La precipitación CHIRPS que trae CAMELS-COL se retiró: no aporta un punto de vista
+  independiente de las otras dos y arrastra los huecos del caudal.</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Fuente comparada con IMERG</th><th class="num">Meses comparables</th><th class="num">IMERG (mm/mes)</th>
+    <th class="num">La otra fuente (mm/mes)</th><th class="num">Diferencia de IMERG</th><th class="num">Correlación mensual</th></tr></thead>
+    <tbody>
+{filas_cmp}
+    </tbody>
+  </table>
+  </div>
+  <div class="dos-graficos">
+    <div>
+      <h3>Serie mensual, {mes_ini} a {mes_fin}</h3>
+      <div id="g-series" class="grafico"></div>
+    </div>
+    <div>
+      <h3>Ciclo anual medio</h3>
+      <div id="g-ciclo" class="grafico"></div>
+    </div>
+  </div>
+  <p class="nota">Las dos figuras comparten la leyenda de arriba. Pasa el cursor por encima para ver los
+  valores de un mes; arrastra sobre el gráfico para acercarte y haz doble clic para volver.</p>
+  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud:</b> coinciden en la forma del ciclo
+  anual y mes a mes (correlación {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un
+  {abs(cmp_stats[NOM_RED]["sesgo"]):.1f} % por debajo de PL</b> ({n(cmp_stats[NOM_RED]["imerg"])} contra
+  {n(cmp_stats[NOM_RED]["pluv"])} mm/mes). Los pluviómetros sueltos van de
+  {n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
+  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
+  ladera: por eso se usa su promedio.</p>
+
+  <h3>Mes a mes, uno contra otro</h3>
+  <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
+  concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
+  en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses PI queda por debajo de PL.</p>
+  <div class="cifras" style="margin-bottom:14px">
+    <div class="cifra"><b>{p2_pipl["sesgo"]:+.1f} mm/mes</b><span>sesgo medio (PI − PL)</span></div>
+    <div class="cifra"><b>{p2_pipl["mae"]:.1f} mm/mes</b><span>error absoluto medio (MAE)</span></div>
+    <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
+  </div>
+  <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
+  <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
+  pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
+  en promedio, se aleja de PL hacia los dos lados.</p>
+  <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
+  la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
+  PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
 </section>
 
 <section>
@@ -4339,83 +4339,13 @@ a {{ color: var(--acento); }}
 
 
 <section>
-  <h2>Campos climáticos globales</h2>
-  <div{revision("campos climáticos")}>
-  <p>Para buscar qué patrones del océano y de la atmósfera acompañan a la lluvia y al caudal de la cuenca se usan tres
-  <b>campos mensuales globales</b>, no índices: un índice como el ONI resume una región en un número, y un campo deja
-  ver dónde está la señal. <b>La temperatura superficial del mar (SST)</b> es la fuente de la variabilidad de gran
-  escala del ENSO. <b>El viento a 850 hPa</b> y
-  <b>la humedad específica a 850 hPa</b> dicen por dónde viaja el vapor de agua en los niveles bajos, que es el que
-  llega a la cuenca como lluvia; su producto, <b>q·V</b>, es el transporte de humedad. No se usan la presión al nivel
-  del mar ni la altura geopotencial a 500 hPa.</p>
-
-  <div class="tabla-caja"><table>
-    <thead><tr><th>Campo</th><th>Fuente y versión</th><th>Variable y nivel</th><th>Unidades</th><th>Malla</th>
-    <th>Máscara</th></tr></thead>
-    <tbody>
-      <tr><td>SST</td><td>ERSST v5, NOAA (<a href="#ref-huang2017">Huang et al., 2017</a>)</td><td>temperatura del agua en
-      superficie</td><td>°C</td><td>2° (la nativa)</td><td>tierra vacía</td></tr>
-      <tr><td>Viento</td><td rowspan="2">ERA5 medias mensuales, ECMWF (<a href="#ref-hersbach2020">Hersbach et al.,
-      2020</a>), copia de NCAR GDEX (<a href="#ref-ecmwf2017">ECMWF, 2017</a>)</td><td>componente zonal u (+ hacia el
-      este) y meridional v (+ hacia el norte), 850 hPa</td><td>m/s</td><td rowspan="2">0.25° → 2°</td>
-      <td rowspan="2">850 hPa bajo el terreno</td></tr>
-      <tr><td>Humedad</td><td>humedad específica q, 850 hPa</td><td>g/kg</td></tr>
-      <tr><td>Transporte</td><td>calculado</td><td>q·u y q·v con las medias mensuales</td><td>(g/kg)·(m/s)</td>
-      <td>2°</td><td>la de u, v y q</td></tr>
-    </tbody>
-  </table></div>
-  <p class="nota">Período {cam_anios[0]}–{cam_anios[1]} ({cam_n_meses} meses), malla común de {cam_malla[0]} × {cam_malla[1]}
-  cajas de 2° (la de ERSST). ERA5 se baja a 0.25° y se lleva a 2° con un <b>promedio por bloques ponderado por el área</b>
-  de cada celda, que conserva la media en lugar de tomar muestras como una interpolación. La humedad viene en kg/kg y
-  se pasa a g/kg. El transporte con medias mensuales pierde el que hacen los eventos de días dentro del mes (la media
-  de q·u no es la media de q por la de u); a escala mensual y de gran escala es una aproximación usual. ERA5 se tomó
-  de la copia del NCAR porque la cola del servicio de Copernicus tenía los pedidos detenidos; es el mismo producto.</p>
-
-  <h3>850 hPa queda bajo los Andes</h3>
-  <p>Un nivel de presión no es una altura fija: donde el terreno es alto, la presión en la superficie es menor que
-  850 hPa y ese nivel queda <b>bajo tierra</b>, con valores que el modelo extrapola. Una caja de 2° queda vacía en un
-  mes si <b>cualquiera</b> de sus celdas de 0.25° tiene ese mes una presión superficial menor que 850 hPa. Con esa regla
-  estricta, el {cam_850_completas_pct:.0f} % del área del planeta tiene los {cam_n_meses} meses,
-  el {cam_850_nunca_pct:.0f} % no tiene ninguno y {cam_850_parcial} cajas pierden algunos meses. <b>La caja de la cuenca
-  ({cam_caja_cuenca["lat"]:.0f}° N, {360 - cam_caja_cuenca["lon"]:.0f}° O) no tiene ningún mes a 850 hPa</b>, y
-  tampoco {cam_caja_cuenca["vecinas_sin_850"]} de sus 8 vecinas: en promedio el {cam_caja_cuenca["bajo_tierra"] * 100:.0f} % de su área
-  está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
-  {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
-  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
-
-  <h3>Los campos</h3>
-  <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
-  850 hPa, de {cam_rango["q850"][0]:.1f} a {cam_rango["q850"][1]:.1f} g/kg. La cuenca va marcada en fucsia.</p>
-  <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
-  <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
-
-  <h3>El transporte de humedad, mes a mes</h3>
-  <p>Cerca de la cuenca el transporte cambia mucho a lo largo del año, y distinto a cada lado de la cordillera. <b>Al
-  oriente</b> ({360 - cam_caja_cuenca["lon_este"]:.0f}° O, sobre los llanos) es máximo en
-  {MESES_LARGOS_ES[cam_transporte["este"]["mes_max"] - 1]}, con {cam_transporte["este"]["mag"].max():.0f} (g/kg)·(m/s) hacia
-  {cam_transporte["este"]["rumbo_max"]}, y casi desaparece en {MESES_LARGOS_ES[cam_transporte["este"]["mes_min"] - 1]}
-  ({cam_transporte["este"]["mag"].min():.0f}). <b>Al occidente</b> ({360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, del lado del
-  Pacífico) el transporte entra hacia el continente, hacia el este, de
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][0] - 1]} a
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][-1] - 1]}, y el resto del año va hacia el oeste.</p>
-  <div class="placa"><img src="{img('campos_transporte_mensual.png')}" alt="Doce mapas del norte de Sudamérica, el Caribe y el Pacífico oriental, uno por mes, con la humedad específica a 850 hPa en colores y flechas del transporte de humedad; la cordillera de los Andes en gris"></div>
-  <p class="nota">Cada panel es la media de los {cam_anios[1] - cam_anios[0] + 1} años de ese mes. Una caja queda en gris si
-  850 hPa estuvo bajo el terreno en alguno de esos meses. Los mapas describen el promedio; cómo se relacionan con la
-  lluvia y el caudal de la cuenca, año a año, es otra pregunta.</p>
-  <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
-  que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
-  {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
-  </div>
-</section>
-
-<section>
   <h2>Explicaciones físicas</h2>
   <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
   literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
   cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
   <p{revision("lo que agrega la sección")}>Después de los mecanismos, la sección resume cómo la cuenca transforma la
-  lluvia que recibe, clasifica los meses del año y propone una hipótesis para contrastar con las relaciones entre variables
-  y con las tendencias.</p>
+  lluvia que recibe, clasifica los meses del año y revisa la hipótesis H de «Qué se quiere saber» frente a las relaciones
+  entre variables y las tendencias.</p>
 
   <div{revision("la ZCIT según Poveda (2004)")}>
   <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
@@ -4622,6 +4552,76 @@ a {{ color: var(--acento); }}
   </div>
 </section>
 
+
+<section>
+  <h2>Campos climáticos globales</h2>
+  <div{revision("campos climáticos")}>
+  <p>Para buscar qué patrones del océano y de la atmósfera acompañan a la lluvia y al caudal de la cuenca se usan tres
+  <b>campos mensuales globales</b>, no índices: un índice como el ONI resume una región en un número, y un campo deja
+  ver dónde está la señal. <b>La temperatura superficial del mar (SST)</b> es la fuente de la variabilidad de gran
+  escala del ENSO. <b>El viento a 850 hPa</b> y
+  <b>la humedad específica a 850 hPa</b> dicen por dónde viaja el vapor de agua en los niveles bajos, que es el que
+  llega a la cuenca como lluvia; su producto, <b>q·V</b>, es el transporte de humedad. No se usan la presión al nivel
+  del mar ni la altura geopotencial a 500 hPa.</p>
+
+  <div class="tabla-caja"><table>
+    <thead><tr><th>Campo</th><th>Fuente y versión</th><th>Variable y nivel</th><th>Unidades</th><th>Malla</th>
+    <th>Máscara</th></tr></thead>
+    <tbody>
+      <tr><td>SST</td><td>ERSST v5, NOAA (<a href="#ref-huang2017">Huang et al., 2017</a>)</td><td>temperatura del agua en
+      superficie</td><td>°C</td><td>2° (la nativa)</td><td>tierra vacía</td></tr>
+      <tr><td>Viento</td><td rowspan="2">ERA5 medias mensuales, ECMWF (<a href="#ref-hersbach2020">Hersbach et al.,
+      2020</a>), copia de NCAR GDEX (<a href="#ref-ecmwf2017">ECMWF, 2017</a>)</td><td>componente zonal u (+ hacia el
+      este) y meridional v (+ hacia el norte), 850 hPa</td><td>m/s</td><td rowspan="2">0.25° → 2°</td>
+      <td rowspan="2">850 hPa bajo el terreno</td></tr>
+      <tr><td>Humedad</td><td>humedad específica q, 850 hPa</td><td>g/kg</td></tr>
+      <tr><td>Transporte</td><td>calculado</td><td>q·u y q·v con las medias mensuales</td><td>(g/kg)·(m/s)</td>
+      <td>2°</td><td>la de u, v y q</td></tr>
+    </tbody>
+  </table></div>
+  <p class="nota">Período {cam_anios[0]}–{cam_anios[1]} ({cam_n_meses} meses), malla común de {cam_malla[0]} × {cam_malla[1]}
+  cajas de 2° (la de ERSST). ERA5 se baja a 0.25° y se lleva a 2° con un <b>promedio por bloques ponderado por el área</b>
+  de cada celda, que conserva la media en lugar de tomar muestras como una interpolación. La humedad viene en kg/kg y
+  se pasa a g/kg. El transporte con medias mensuales pierde el que hacen los eventos de días dentro del mes (la media
+  de q·u no es la media de q por la de u); a escala mensual y de gran escala es una aproximación usual. ERA5 se tomó
+  de la copia del NCAR porque la cola del servicio de Copernicus tenía los pedidos detenidos; es el mismo producto.</p>
+
+  <h3>850 hPa queda bajo los Andes</h3>
+  <p>Un nivel de presión no es una altura fija: donde el terreno es alto, la presión en la superficie es menor que
+  850 hPa y ese nivel queda <b>bajo tierra</b>, con valores que el modelo extrapola. Una caja de 2° queda vacía en un
+  mes si <b>cualquiera</b> de sus celdas de 0.25° tiene ese mes una presión superficial menor que 850 hPa. Con esa regla
+  estricta, el {cam_850_completas_pct:.0f} % del área del planeta tiene los {cam_n_meses} meses,
+  el {cam_850_nunca_pct:.0f} % no tiene ninguno y {cam_850_parcial} cajas pierden algunos meses. <b>La caja de la cuenca
+  ({cam_caja_cuenca["lat"]:.0f}° N, {360 - cam_caja_cuenca["lon"]:.0f}° O) no tiene ningún mes a 850 hPa</b>, y
+  tampoco {cam_caja_cuenca["vecinas_sin_850"]} de sus 8 vecinas: en promedio el {cam_caja_cuenca["bajo_tierra"] * 100:.0f} % de su área
+  está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
+  {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
+  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
+
+  <h3>Los campos</h3>
+  <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
+  850 hPa, de {cam_rango["q850"][0]:.1f} a {cam_rango["q850"][1]:.1f} g/kg. La cuenca va marcada en fucsia.</p>
+  <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
+  <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
+
+  <h3>El transporte de humedad, mes a mes</h3>
+  <p>Cerca de la cuenca el transporte cambia mucho a lo largo del año, y distinto a cada lado de la cordillera. <b>Al
+  oriente</b> ({360 - cam_caja_cuenca["lon_este"]:.0f}° O, sobre los llanos) es máximo en
+  {MESES_LARGOS_ES[cam_transporte["este"]["mes_max"] - 1]}, con {cam_transporte["este"]["mag"].max():.0f} (g/kg)·(m/s) hacia
+  {cam_transporte["este"]["rumbo_max"]}, y casi desaparece en {MESES_LARGOS_ES[cam_transporte["este"]["mes_min"] - 1]}
+  ({cam_transporte["este"]["mag"].min():.0f}). <b>Al occidente</b> ({360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, del lado del
+  Pacífico) el transporte entra hacia el continente, hacia el este, de
+  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][0] - 1]} a
+  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][-1] - 1]}, y el resto del año va hacia el oeste.</p>
+  <div class="placa"><img src="{img('campos_transporte_mensual.png')}" alt="Doce mapas del norte de Sudamérica, el Caribe y el Pacífico oriental, uno por mes, con la humedad específica a 850 hPa en colores y flechas del transporte de humedad; la cordillera de los Andes en gris"></div>
+  <p class="nota">Cada panel es la media de los {cam_anios[1] - cam_anios[0] + 1} años de ese mes. Una caja queda en gris si
+  850 hPa estuvo bajo el terreno en alguno de esos meses. Los mapas describen el promedio; cómo se relacionan con la
+  lluvia y el caudal de la cuenca, año a año, es otra pregunta.</p>
+  <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
+  que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
+  {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
+  </div>
+</section>
 
 <section>
   <h2>La cuenca frente a los campos climáticos</h2>

@@ -161,6 +161,11 @@ entregar, pero ya no se modifica; todo lo nuevo va a los scripts y al informe.
     `scripts/18b_reporte_html.py` con los cálculos de `scripts/18_calculos_informe.py`. Todo lo que vaya al informe, de cualquier
     punto y de cualquier persona, entra como una sección de esos dos scripts. El HTML no se edita a mano. **No se hacen informes, visores ni páginas HTML aparte.** El visor
     `reporte/punto2_i.html` del Punto 2, anterior a esta regla, se integró al informe y se borró el 2026-10-04.
+    **Excepción** (decidida por el usuario el 2026-10-11): `reporte/reporte-fonce-por-puntos.html`, que escribe
+    `scripts/18c_reporte_por_puntos.py`. No es otro informe: son las mismas secciones de `reporte/reporte-fonce.html`,
+    sin cambiarles el texto, reordenadas por los puntos del taller, con encabezados de punto (también excepción a la
+    regla 16) y recuadros «Pendiente» para lo que el taller pide y el informe no tiene. Se regenera corriendo 18c
+    después de 18b; el contenido se sigue editando solo en 18 y 18b.
 
 ## Estructura
 

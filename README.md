@@ -72,6 +72,12 @@ El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo gen
 figuras y Plotly van dentro (sin conexión, solo cambian las tipografías por otras de reemplazo). Cómo
 editarlo: sección 9.
 
+**Versión por puntos del taller** (excepción a la regla 22, 2026-10-11):
+[`reporte/reporte-fonce-por-puntos.html`](reporte/reporte-fonce-por-puntos.html) tiene las mismas secciones del
+informe, sin cambiarles el texto, reordenadas por punto, con recuadros «Pendiente» para lo que el taller pide y el
+informe todavía no tiene. La escribe `scripts/18c_reporte_por_puntos.py`, que se corre después de 18b. No se publica
+en GitHub Pages.
+
 **Publicado en GitHub Pages:** <https://jugomezu.github.io/hidrologia-cuenca-fonce/reporte-fonce.html>. Lo publica
 `.github/workflows/pages.yml` cada vez que el informe cambia en `main`: sube solo `reporte/reporte-fonce.html`, sin
 tocarlo, y una página de entrada que redirige a él. Las páginas viejas de `reporte/` no se publican.

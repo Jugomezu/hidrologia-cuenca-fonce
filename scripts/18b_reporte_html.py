@@ -1955,8 +1955,8 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
     <li><b>Correcciones:</b> el coeficiente de escorrentía principal ahora es el de PL, como dice la regla de la fuente que
     manda; CAMELS-COL ya no se presenta como confirmación; el rezago de Q frente al ONI es de 1 a 2 meses en todas partes;
     los meses robustos con El Niño se comparan con lo esperable por azar; los meses secos ya no se leen como de La Niña;
-    se corrigieron el porcentaje de Mérida, la frase de abril y mayo, el salto de Valle de San José, el nombre del script
-    del pie de página y el nombre de una autora.</li>
+    se corrigieron el porcentaje de Mérida, la frase de abril y mayo, el salto de Valle de San José, y el nombre del script
+    del pie de página.</li>
     <li><b>Nombres:</b> «Anomalías en las series» pasa a «Saltos y errores de registro», y «Registro de anomalías» a
     «Registro de problemas de los datos», porque «anomalía» ya significa otra cosa en el informe (la diferencia con el
     mes típico).</li>
@@ -4085,7 +4085,7 @@ a {{ color: var(--acento); }}
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
   y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual») y, en la escala interanual, con el
   espectro cruzado (ver «¿Cuadra con el ENSO?»). La FFT con Hann se calcula en el tramo
-  continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de Andrea Gómez, integrado a los scripts del proyecto.</p>
+  continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q).</p>
 
   <div{_cambio('Nuevo · conclusión')}>
   <h3>Conclusión</h3>

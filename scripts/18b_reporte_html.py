@@ -2792,7 +2792,7 @@ a {{ color: var(--acento); }}
   {an_sesgo.median():.1f} % en la mediana y un {an_sesgo.max():.1f} % como máximo (estimado en los meses en que
   están todos): incertidumbre declarada, no se corrige.</p>
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
-  <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
+  <p class="aviso"><b>Con todas las exclusiones, PI queda por debajo de PL (ver «Comparando PI con PL»).</b> Los
   tramos excluidos: {exc_lista}.</p>
   </details>
 </section>
@@ -3451,8 +3451,7 @@ a {{ color: var(--acento); }}
 
   <p>Las dos fuentes tienen la misma forma: PL pone sus picos en {regimen["PL"]["picos"][0]} y
   {regimen["PL"]["picos"][1]}, y PI en {regimen["PI"]["picos"][0]} y {regimen["PI"]["picos"][1]}. Se separan en la
-  magnitud: la red mide más en {ciclo_meses_red_mayor} de los 12 meses (el sesgo del
-  {abs(cmp_stats[NOM_RED]['sesgo']):.1f} %).
+  magnitud: PL mide más en {ciclo_meses_red_mayor} de los 12 meses (ver «Comparando PI con PL»).
   {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if regimen["PL"]["picos"] == regimen["PI"]["picos"] else "En el calendario difieren a lo sumo en un mes de pico."}</p>
 
 </section>

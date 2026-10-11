@@ -78,7 +78,6 @@ pl.index = pl.index.to_period("M").astype(str)
 imerg = pd.read_csv(OUT / "imerg_mensual_fonce.csv")
 pi = imerg[imerg.id_estacion == ID_PRINCIPAL].set_index("periodo").p_imerg_mm
 par = pd.concat([pi.rename("PI"), pl.rename("PL")], axis=1).loc["1998-01":"2022-12"].dropna()
-sesgo_pi_pl = (par.PI.mean() / par.PL.mean() - 1) * 100
 
 sesgo_cob = cobertura.sesgo_estimado_pct.abs()
 
@@ -146,7 +145,7 @@ registro = [
                       "es la explicación principal",
          decision="se conserva", efecto="la razón PI / PL no es homogénea antes y después de 2014", estado="incierto",
          evidencia="4.3"),
-    dict(anomalia=f"PI queda {abs(sesgo_pi_pl):.1f} % por debajo de PL", serie="PI y PL",
+    dict(anomalia="PI queda por debajo de PL (ver «Comparando PI con PL»)", serie="PI y PL",
          comprobacion=f"promedio de los {len(par)} meses: {par.PI.mean():.1f} mm/mes con PI y {par.PL.mean():.1f} con PL",
          decision="no se corrige ninguna: todo análisis de lluvia se hace con PI y con PL; si hay que escoger, "
                   "manda PL",

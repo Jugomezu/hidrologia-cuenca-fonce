@@ -227,7 +227,7 @@ CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</
 CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
 # citas de la versión alterna (2026-10-11): los métodos de las secciones nuevas y las fuentes que faltaban
 CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
-CITA_MUNOZ = '<a class="cita" href="#ref-munoz2021">Muñoz-Sabater et al., 2021</a>'
+CITA_MUNOZ = '<a class="cita" href="#ref-munoz2019">Muñoz-Sabater et al., 2019</a>'
 CITA_SGC = '<a class="cita" href="#ref-sgc2023">Servicio Geológico Colombiano, 2023</a>'
 CITA_MAPBIOMAS = '<a class="cita" href="#ref-mapbiomas2025">Fundación Gaia Amazonas, 2025</a>'
 CITA_STRAHLER = '<a class="cita" href="#ref-strahler1952">Strahler, 1952</a>'
@@ -551,8 +551,10 @@ filas_cc = "\n".join(
     for f, c, res, d in cc[["fuente", "chequeo", "resultado", "detalle"]].itertuples(index=False))
 filas_naturaleza = "\n".join(
     f"<tr><td><b>{html.escape(v)}</b></td><td>{html.escape(fu)}</td><td>{html.escape(ti)}</td>"
-    f"<td class='detalle'>{html.escape(co)}</td><td class='detalle'>{html.escape(re_)}</td></tr>"
+    f"<td class='detalle'>{html.escape(co).replace('(Muñoz-Sabater et al.)', f'({CITA_MUNOZ})')}</td>"
+    f"<td class='detalle'>{html.escape(re_)}</td></tr>"
     for v, fu, ti, co, re_ in cc_naturaleza.itertuples(index=False))
+assert CITA_MUNOZ in filas_naturaleza            # la cita de ERA5-Land de esa tabla lleva a su entrada
 
 CLASE_ESTADO = {"corregido": "", "incierto": "res-revisar", "descartado": "res-nd"}
 filas_reg = "\n".join(
@@ -4910,9 +4912,9 @@ a {{ color: var(--acento); }}
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
     Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
-    <li id="ref-munoz2021">Muñoz-Sabater, J., et al. (2021). ERA5-Land: a state-of-the-art global reanalysis dataset for
-    land applications. <i>Earth System Science Data</i>, 13(9), 4349–4383.
-    <a href="https://doi.org/10.5194/essd-13-4349-2021">https://doi.org/10.5194/essd-13-4349-2021</a></li>
+    <li id="ref-munoz2019">Muñoz-Sabater, J., et al. (2019). <i>ERA5-Land hourly data from 1950 to present</i>
+    [conjunto de datos]. Copernicus Climate Change Service (C3S) Climate Data Store (CDS).
+    <a href="https://doi.org/10.24381/cds.e2161bac">https://doi.org/10.24381/cds.e2161bac</a></li>
     <li id="ref-nash1970">Nash, J. E., y Sutcliffe, J. V. (1970). River flow forecasting through conceptual models part I —
     A discussion of principles. <i>Journal of Hydrology</i>, 10(3), 282–290.
     <a href="https://doi.org/10.1016/0022-1694(70)90255-6">https://doi.org/10.1016/0022-1694(70)90255-6</a></li>

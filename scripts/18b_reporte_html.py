@@ -3024,7 +3024,7 @@ a {{ color: var(--acento); }}
   {etp_ra_cociente_mes.min():.2f} a {etp_ra_cociente_mes.max():.2f} según el mes), es un factor de escala.</p>
   <p><b>El valor recalculado es el plausible:</b> {n(etp_anual.mswx)} a {n(etp_anual.era)} mm/año, dentro del rango
   de 1 200 a 1 400 mm/año que el artículo de CAMELS-COL da para Colombia ({CITA_JIMENEZ}) y por encima de lo que la
-  cuenca pierde en el balance (PL − Q = {n(etp_pl_menos_q)} mm/año). Los {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(etp_pl_anual) + " mm/año)" if etp_anual.camels > etp_pl_anual else ""}.</p>
+  cuenca pierde en el balance (PL − Q = {n(etp_pl_menos_q)} mm/año). Los {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(alt_pl_anual) + " mm/año)" if etp_anual.camels > alt_pl_anual else ""}.</p>
   <p><b>Con MSWX o con ERA5-Land da casi lo mismo</b> ({etp_era_vs_mswx:+.1f} %, r = {etp_r_era_mswx:.2f} mes a
   mes), aunque ERA5-Land es más fría: también tiene más amplitud diaria, y en la fórmula de Hargreaves las
   dos cosas se compensan.</p>
@@ -3574,8 +3574,8 @@ a {{ color: var(--acento); }}
   <div role="tabpanel" id="panel-anomc" aria-labelledby="pestana-anomc-0">
     <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:440px"></div>
   </div>
-  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes,
-  {n(anom_tipico_pl)} mm en el año). Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
+  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes).
+  Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
   <p><b>PL y PI no se separan igual todos los años.</b> En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, PL suma en promedio
   {anom_pl_pi_habitual:.2f} veces lo de PI. En los años contrastantes:
   {"; ".join(f"{a}, {r['razon']:.2f} ({n(r['pl_total'])} contra {n(r['pi_total'])} mm)" for a, r in anom_pl_pi.items())}.
@@ -4829,7 +4829,7 @@ a {{ color: var(--acento); }}
   columna de rocas plutónicas trae el {geo_sedimentaria:.1f} % que, según el mapa del SGC, es roca sedimentaria, y la
   volcanoclástica repite la volcánica en las {geo_n_cuencas} cuencas del archivo (ver «Coberturas, suelos y geología»). La ETP
   sale {etp_cociente.median():.2f} veces la de su propia fórmula, {n(etp_anual.camels)} mm/año, más que la lluvia
-  ({n(etp_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
+  ({n(alt_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
   del proyecto. Del resto de CAMELS-COL, el caudal pasó el control de calidad del proyecto.</p>
   <p><b>De los campos climáticos globales solo sirvió El Niño.</b> En los mapas de correlación, solo
   {rob_mapas["con_fdr"]} de los {rob_mapas["total"]} paneles mensuales tienen alguna caja que pase la corrección por pruebas

@@ -3917,6 +3917,9 @@ assert abs(alt_pi_med_may - alt_pi_med_oct) / max(alt_pi_med_may, alt_pi_med_oct
 assert all(abs(MESES_LARGOS_ES.index(a) - MESES_LARGOS_ES.index(b)) <= 1
            for a, b in zip(regimen["PL"]["picos"], regimen["PI"]["picos"]))
 alt_pi_anual = float(comp["IMERG"].mean() * 12)
+# Una sola lluvia anual (decisión del usuario, 2026-10-11): donde no hace falta emparejar meses con Q, el informe
+# usa la de los 300 meses. El texto de la ETP dice que la de CAMELS-COL supera a esa lluvia: se comprueba.
+assert etp_anual.camels > alt_pl_anual
 
 # ---------------------------------------------------------------- correcciones de la revisión
 # rezago del ONI frente a Q: el 1 y el 2 están casi empatados (la explicación física decía «2 meses» y la sección de

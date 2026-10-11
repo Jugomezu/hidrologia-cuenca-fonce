@@ -1931,7 +1931,7 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
 
 # ---------------------------------------------------------------- veredicto sobre la hipótesis H
 alt_veredicto_h = f"""<div class="aviso">
-  <p><b>Veredicto de esta versión: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
+  <p><b>Veredicto: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
   ciclo anual, la del mes anterior agrega información, y el caudal no tiene tendencia sin un cambio de la lluvia. Lo que
   la contradice, por su propio criterio: los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por mes
   del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). Una lectura
@@ -1986,7 +1986,7 @@ pagina = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reporte cuenca del Fonce (versión alterna)</title>
+<title>Reporte cuenca del Fonce</title>
 <meta name="author" content="{html.escape(", ".join(AUTORES))}">
 <script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2111,7 +2111,7 @@ a {{ color: var(--acento); }}
 
 <div class="envoltura">
 <header>
-  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca · versión alterna</p>
+  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca</p>
   <h1>Cuenca del río Fonce hasta San Gil</h1>
   <div{revision("autores")}>
     <p class="intro"><b>Autores:</b> {html.escape(", ".join(AUTORES))}</p>

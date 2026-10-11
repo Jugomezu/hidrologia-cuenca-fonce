@@ -3898,7 +3898,7 @@ a {{ color: var(--acento); }}
     su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
     de Colombia, que trae dos temporadas de lluvias al año ({CITA_MESA}; {CITA_POVEDA}). La banda semianual tiene el
     {fou[(_fc, "PL", "original")]["bandas"]["semianual"]:.0f} % de la varianza de PL, el {fou[(_fc, "PI", "original")]["bandas"]["semianual"]:.0f} % de la de PI
-    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
+    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. No son los mismos porcentajes de «El régimen»:
     allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
     <li{_cambio('Nuevo · la temperatura')}><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en {fou[(_fc, "T", "original")]["pico"]:.0f} meses,
     pero la banda anual tiene solo el {fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} % de su varianza y la interanual, el
@@ -3911,7 +3911,7 @@ a {{ color: var(--acento); }}
     <li{_cambio('Nuevo · las dos fuentes de lluvia')}><b>PI y PL coinciden en el pico de 6 meses, pero no en la banda de 12</b>:
     la semianual tiene el {fou_fuentes["PL"]["semianual"]:.1f} % de la varianza de PL y el {fou_fuentes["PI"]["semianual"]:.1f} % de la de
     PI, pero la anual tiene el {fou_fuentes["PI"]["anual"]:.1f} % en PI y apenas el {fou_fuentes["PL"]["anual"]:.1f} % en PL. El satélite
-    ve un ciclo de 12 meses que los pluviómetros casi no tienen; coincide con «El régimen», donde el armónico de 12 meses explica el
+    ve un ciclo de 12 meses que los pluviómetros casi no tienen. «El régimen» apunta a lo mismo, con otra medida: el armónico de 12 meses explica el
     {regimen["PI"]["var1"]:.0f} % de la forma del año típico de PI y el {regimen["PL"]["var1"]:.0f} % de la de PL. En las anomalías, en
     cambio, las dos fuentes se reparten la varianza casi igual: ninguna banda difiere más de {fou_fuentes_anom_dif:.1f} puntos
     porcentuales (alta frecuencia: {fou_fuentes_anom["PL"]["alta"]:.1f} % en PL y {fou_fuentes_anom["PI"]["alta"]:.1f} % en PI). {fou_fuentes_oni_txt}

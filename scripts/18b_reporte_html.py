@@ -3764,9 +3764,9 @@ a {{ color: var(--acento); }}
   {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos
   ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
   porque no se sabe cuál valor es el rellenado. Coromoro (desde 2003) y Valle de San José (desde 1998) tienen un salto de
-  nivel marcado como incierto; su efecto se prueba abajo. Es una prueba sobre el registro largo: en 1998–2022, la de
-  «Saltos y errores de registro» no encuentra salto en Valle de San José, y por eso esa estación no está en el «Registro
-  de problemas de los datos».</p>
+  nivel marcado como incierto; su efecto se prueba abajo. El salto de Valle de San José aparece en el registro largo
+  (1981–2022), no en 1998–2022: allí la prueba de «Saltos y errores de registro» no lo encuentra, y por eso esa estación
+  no está en el «Registro de problemas de los datos».</p>
 
   <h3>Tres maneras de medir una tendencia</h3>
   <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>

@@ -544,9 +544,6 @@ filas_ceros = "\n".join(
     for pl_, m, mn, pr, pi_, dif in an_ceros[["pluviometro", "periodo", "otros_minimo_mm", "otros_promedio_mm",
                                                "pi_mm", "dificil_de_creer"]].itertuples(index=False))
 
-exc_lista = "; ".join(
-    f"{_nombre_pluvio[c]} de {fmt_mes_an(d)} a {fmt_mes_an(h)}" if d != h else f"{_nombre_pluvio[c]} en {fecha_anomala(d)}"
-    for c, d, h in exclusiones[["codigo", "desde", "hasta"]].itertuples(index=False))
 
 CLASE_RESULTADO = {"sin problemas": "", "anotado": "res-anotado", "revisar": "res-revisar", "no disponible": "res-nd"}
 filas_cc = "\n".join(
@@ -2636,7 +2633,7 @@ a {{ color: var(--acento); }}
 
   <div id="g-calidad" class="grafico" style="min-height:{150 + 26 * len(cal_filas)}px"></div>
   <p class="nota">Las fuentes mensuales (IMERG y los pluviómetros) solo están o no están: verde o rojo pleno. Los
-  meses excluidos de PL aparecen vacíos: {exc_lista}.</p>
+  meses excluidos de PL (ver «Registro de problemas de los datos») aparecen vacíos.</p>
 
   <div class="tabla-caja">
   <table>
@@ -2793,7 +2790,7 @@ a {{ color: var(--acento); }}
   están todos): incertidumbre declarada, no se corrige.</p>
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
   <p class="aviso"><b>Con todas las exclusiones, PI queda por debajo de PL (ver «Comparando PI con PL»).</b> Los
-  tramos excluidos: {exc_lista}.</p>
+  tramos excluidos están en el «Registro de problemas de los datos».</p>
   </details>
 </section>
 

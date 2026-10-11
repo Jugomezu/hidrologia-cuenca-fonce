@@ -3525,35 +3525,36 @@ a {{ color: var(--acento); }}
   Shapiro-Wilk ({CITA_SHAPIRO}) rechaza la normalidad en {(", ".join(anz_no_normales[:-1]) + " y " + anz_no_normales[-1]) if len(anz_no_normales) > 1 else (anz_no_normales[0] if anz_no_normales else "ninguna")}.
   Por lo mismo, z <b>no es el SPI</b>: el índice estandarizado de precipitación ajusta primero una distribución a la
   lluvia y la transforma después en una normal, cosa que aquí no se hace.</p>
-  <p class="nota">Las anomalías de «Revisión de outliers» y «Años que se salen de lo normal» son otras: se miden respecto a la
-  mediana y en rangos intercuartiles, para buscar extremos sin que los propios extremos muevan la referencia. Se usan
-  tal como estaban.</p>
+  <p class="nota">«Revisión de outliers» y «Años que se salen de lo normal» usan otra medida, que el informe llama
+  <b>desvío</b> para no confundirla con la anomalía: la distancia a la mediana del mes, en rangos intercuartiles. Sirve
+  para buscar extremos sin que los propios extremos muevan la referencia.</p>
 </section>
 
 <section>
   <h2>Años que se salen de lo normal</h2>
-  <p>La <b>anomalía</b> de un mes es cuánto se aleja del valor normal de su mes del calendario, en rangos
-  intercuartiles (la misma medida de «Revisión de outliers»): un abril más seco o más lluvioso que un abril
-  normal. Quita el ciclo anual y deja la variación de un año a otro.</p>
+  <p>Esta sección usa el <b>desvío</b> de cada mes: cuánto se aleja de la mediana de su mes del calendario, en rangos
+  intercuartiles (la misma medida de «Revisión de outliers»), como un abril más seco o más lluvioso que un abril
+  normal. Es distinto de la anomalía de la sección anterior, que resta la media. Quita el ciclo anual y deja la
+  variación de un año a otro.</p>
   <h3>Las nubes del caudal, sin el calendario</h3>
   <p>Con los valores tal cual, parte de la relación entre lluvia y caudal viene de que comparten el calendario.
-  Con anomalías, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
+  Con desvíos, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
   PI con Q de {anom_rho["PI–Q"]["tal cual"]:.2f} a {anom_rho["PI–Q"]["anomalías"]:.2f} y la de PI con PL de
   {anom_rho["PI–PL"]["tal cual"]:.2f} a {anom_rho["PI–PL"]["anomalías"]:.2f}. <b>Un mes más lluvioso de lo normal trae más
   caudal de lo normal</b>, y con PL la relación se pierde menos que con PI. Son un poco distintas de las de «Cómo se
   relacionan las variables entre sí» (PL con Q, de {rho('PL', 'Q'):.2f} a {rho('PL', 'Q', anomalias=True):.2f}) porque allí
-  solo entran los meses en que las siete variables tienen dato y la anomalía es la resta de la media del mes; aquí entra
-  cada mes en que el par tiene dato, y la anomalía se mide en rangos intercuartiles.</p>
+  solo entran los meses en que las siete variables tienen dato y se usa la anomalía, la resta de la media del mes; aquí
+  entra cada mes en que el par tiene dato, y se usa el desvío.</p>
   <div id="g-anom-dispersion" class="grafico" style="min-height:0; height:440px; max-width:620px"></div>
   <p class="nota">Cada punto es un mes; en color, los años contrastantes.</p>
   <h3>Los años contrastantes</h3>
-  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según el promedio de las anomalías de PL y
+  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según el promedio de los desvíos de PL y
   PI, para quedarse con años en que las dos fuentes de lluvia coinciden{(": con PL sola habría entrado " + ", ".join(f"{a} (PI {anom_anual.PI[a]:+.2f})" for a in anom_solo_pl)) if anom_solo_pl else ""}.
-  La anomalía de Q solo se calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL
+  El desvío anual de Q solo se calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL
   (ρ = {anom_rho_anual_pl_q:.2f}).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Año</th><th class="num">Anomalía PL</th><th class="num">PI</th><th class="num">Q</th>
+    <thead><tr><th>Año</th><th class="num">Desvío PL</th><th class="num">PI</th><th class="num">Q</th>
     <th class="num">PL del año (mm)</th><th class="num">Meses sobre lo normal</th><th>Picos</th><th class="num">A₂/A₁</th>
     <th>ENSO (meses)</th></tr></thead>
     <tbody>
@@ -5555,8 +5556,8 @@ a {{ color: var(--acento); }}
     const d1 = base();
     d1.hovermode = "closest";
     d1.margin = {{ t: 64, r: 10, b: 48, l: 58 }};
-    d1.xaxis.title = {{ text: "anomalía de PL (rangos intercuartiles)", font: {{ size: 11, color: GRIS }} }};
-    d1.yaxis.title.text = "anomalía de Q (rangos intercuartiles)";
+    d1.xaxis.title = {{ text: "desvío de PL (rangos intercuartiles)", font: {{ size: 11, color: GRIS }} }};
+    d1.yaxis.title.text = "desvío de Q (rangos intercuartiles)";
     d1.yaxis.rangemode = "normal";
     d1.xaxis.zeroline = true; d1.yaxis.zeroline = true;
     d1.xaxis.zerolinecolor = GRIS; d1.yaxis.zerolinecolor = GRIS;

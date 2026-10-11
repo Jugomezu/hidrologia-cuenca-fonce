@@ -3887,8 +3887,8 @@ assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
 
 # ======================================================================================================
 # Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.
-# Morfometría (ya calculada por 13-15), PL con Thiessen y corrección por altura (07e), caudales diarios (16c) y
-# el balance de largo plazo en el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
+# Morfometría (ya calculada por 13-15), PL con Thiessen y corrección por altura (07e) y el balance de largo plazo en
+# el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
 # ======================================================================================================
 # ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
 morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
@@ -3930,35 +3930,6 @@ assert th_pct["pl_thiessen"] > 0 > th_pct["pl_thiessen_altura"]
 assert max(abs(th_pct["pl_thiessen"]), abs(th_pct["pl_thiessen_altura"])) < abs(sesgo_pi_pl) / 2
 assert th_poligonos.loc[th_peso_max, "nombre"] == "ENCINO"
 assert all(th_brecha_pi[c] < 0 for c in TH_COLUMNAS)                           # PI queda por debajo de las tres
-
-# ---------------------------------------------------------------- caudales diarios (16c_caudales_diarios.py)
-cd_firmas = pd.read_csv("out/caudales_firmas.csv").set_index("ventana")
-cd_retorno = pd.read_csv("out/caudales_periodos_retorno.csv").set_index("periodo_retorno_anios")
-cd_extremos = pd.read_csv("out/caudales_extremos_anuales.csv").set_index("anio")
-cd_curva = pd.read_csv("out/caudales_curva_duracion.csv")
-cd_base = pd.read_csv("out/caudales_flujo_base_diario.csv", parse_dates=["fecha"]).set_index("fecha")
-cd_c = cd_firmas.loc["1998–2022"]
-cd_l = cd_firmas.loc["1981–2022"]
-# la curva de duración, adelgazada para la gráfica: un punto por cada 0.5 % de excedencia en cada ventana
-cd_curva_json = {v: {"p": [round(float(x) * 100, 2) for x in np.arange(0.0025, 1, 0.005)],
-                     "q": [round(float(np.interp(x, g.excedencia, g.caudal_m3s)), 1) for x in np.arange(0.0025, 1, 0.005)]}
-                 for v, g in cd_curva.groupby("ventana")}
-# mes del calendario de los máximos anuales
-cd_mes_max = pd.to_datetime(cd_extremos.fecha_maximo).dt.month.value_counts().sort_index()
-cd_mes_min = pd.to_datetime(cd_extremos.fecha_minimo_7_dias).dt.month.value_counts().sort_index()
-# flujo base de un año ilustrativo: el año completo más reciente, para la gráfica
-cd_anio_base = int(cd_extremos.index.max())
-_b = cd_base.loc[str(cd_anio_base)]
-cd_base_json = {"x": [str(d.date()) for d in _b.index], "q": _b.caudal_m3s.round(1).tolist(),
-                "b": _b.flujo_base_m3s.round(1).tolist()}
-cd_max_registro = cd_extremos.maximo_diario_m3s.idxmax()
-# lo que afirma el texto
-assert abs(cd_c.bfi - cd_c.camels_bfi) < 0.02                       # «el BFI coincide con el de CAMELS-COL»
-assert abs(cd_c.pendiente_curva - cd_c.camels_pendiente_curva) < 0.02
-assert cd_c.bfi > 0.5                                                # «más de la mitad del caudal es flujo base»
-assert 0.97 < cd_retorno.r_ajuste.iloc[0]                            # «Gumbel se ajusta bien»
-assert cd_mes_max.idxmax() in (4, 5, 10, 11, 12)                     # los máximos caen en las temporadas lluviosas
-assert set(cd_mes_min.index) <= {1, 2, 3, 4, 7, 8, 9}                # los mínimos, en las secas
 
 # ---------------------------------------------------------------- balance de largo plazo: Budyko
 # Con los meses en que hay Q, la evapotranspiración real media es E = P − Q (a largo plazo el almacenamiento se

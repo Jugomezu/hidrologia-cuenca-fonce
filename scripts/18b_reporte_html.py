@@ -2138,6 +2138,32 @@ a {{ color: var(--acento); }}
 </div>
 
 <section>
+  <h2>Qué se quiere saber</h2>
+  <p>Este informe busca responder una pregunta: <b>¿qué controla el caudal del Fonce en San Gil, y cómo cambia de un mes
+  a otro, de un año a otro y en los {max(ANIOS_ESTUDIO) - int(LARGO_DESDE[:4]) + 1} años desde {LARGO_DESDE[:4]}?</b>
+  Para responderla se usan el caudal medido en San Gil (<b>Q</b>); dos fuentes de lluvia, que se llevan en paralelo: el
+  satélite IMERG (<b>PI</b>) y los pluviómetros del IDEAM dentro de la cuenca (<b>PL</b>); y la temperatura de
+  ERA5-Land. Las comparaciones entre variables usan {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}, el período en que existen
+  todas. Las tendencias usan el registro largo de cada variable.</p>
+  <p>La pregunta se responde en tres partes, en el orden del informe:</p>
+  <ol>
+    <li><b>¿Cuánta agua le cae a la cuenca, y qué tan bien la miden PI y PL?</b> Se responde de «Contexto geográfico» a
+    «Comparando PI con PL» y en el control de calidad de los datos.</li>
+    <li><b>¿Cómo se vuelve caudal esa lluvia?</b> Se responde de «Cómo se relacionan las variables entre sí» a «El ciclo
+    anual», y en «¿Sirve la lluvia para estimar el caudal?».</li>
+    <li><b>¿Qué mueve el caudal entre años y a largo plazo?</b> Se responde de «Anomalías y anomalías estandarizadas» a
+    «Interpretación física de los patrones».</li>
+  </ol>
+  <p>La respuesta que el informe pone a prueba es la hipótesis <b>H</b>: el caudal de San Gil lo controla la lluvia sobre
+  la cuenca, amortiguada por un almacenamiento del orden de un mes. La evapotranspiración, casi constante en el año, no
+  explica ni su ciclo ni sus diferencias entre años.</p>
+  <p>Si H es cierta, se debería ver tres cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
+  mes anterior agrega información; que un cambio de largo plazo de la lluvia aparece en el caudal; y que el calentamiento
+  no mueve el caudal. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
+  la lluvia no explica conservara el ciclo anual. El veredicto está en «Síntesis física y conclusiones».</p>
+</section>
+
+<section>
   <h2>Contexto geográfico</h2>
   <p>La cuenca del Fonce está en Santander, en el flanco occidental de la <b>cordillera Oriental</b> de Colombia, el
   que mira al valle del Magdalena. El centroide de su polígono queda en {centroide_lat:.2f}° N,
@@ -4566,9 +4592,9 @@ a {{ color: var(--acento); }}
   </div>
 
   <div{revision("subsección nueva: la hipótesis")}>
-  <h3>Una hipótesis para las relaciones y las tendencias</h3>
-  <p><b>H:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un almacenamiento del orden de
-  un mes. La evapotranspiración, casi constante en el año, no explica ni su ciclo ni sus diferencias entre años.</p>
+  <h3>La hipótesis H frente a los resultados</h3>
+  <p><b>H</b>, planteada en «Qué se quiere saber»: la lluvia controla el caudal, amortiguada por un almacenamiento de un
+  mes.</p>
   <p>Si H es cierta, debería cumplirse:</p>
   <ol>
     <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes

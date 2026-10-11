@@ -2734,7 +2734,9 @@ a {{ color: var(--acento); }}
   ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
   diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
   <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
-  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
+  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión. La revisión ya
+  excluyó su tramo 2016–2018 (ver «Registro de problemas de los datos»); el resto de su serie se conserva, por la razón
+  de arriba: excluirla escondería información.</p>
 
   <h3>La lluvia contra la altura</h3>
   <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas

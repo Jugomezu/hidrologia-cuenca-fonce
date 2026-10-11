@@ -2156,10 +2156,11 @@ a {{ color: var(--acento); }}
   </ol>
   <p>La respuesta que el informe pone a prueba es la hipótesis <b>H</b>: el caudal de San Gil lo controla la lluvia sobre
   la cuenca, amortiguada por un almacenamiento del orden de un mes. La evapotranspiración, casi constante en el año, no
-  explica ni su ciclo ni sus diferencias entre años.</p>
-  <p>Si H es cierta, se debería ver tres cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
-  mes anterior agrega información; que un cambio de largo plazo de la lluvia aparece en el caudal; y que el calentamiento
-  no mueve el caudal. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
+  explica ni su ciclo ni sus diferencias entre años. Entre años, se espera además que el ENSO tenga algún efecto sobre
+  la cuenca, a través de la lluvia.</p>
+  <p>Si H es cierta, se debería ver cuatro cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
+  mes anterior agrega información; que un cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento
+  no mueve el caudal; y que la lluvia y el caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
   la lluvia no explica conservara el ciclo anual. El veredicto está en «Síntesis física y conclusiones».</p>
 </section>
 
@@ -4594,7 +4595,7 @@ a {{ color: var(--acento); }}
   <div{revision("subsección nueva: la hipótesis")}>
   <h3>La hipótesis H frente a los resultados</h3>
   <p><b>H</b>, planteada en «Qué se quiere saber»: la lluvia controla el caudal, amortiguada por un almacenamiento de un
-  mes.</p>
+  mes, y el ENSO influye en la cuenca a través de la lluvia.</p>
   <p>Si H es cierta, debería cumplirse:</p>
   <ol>
     <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes

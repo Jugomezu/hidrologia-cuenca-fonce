@@ -1977,7 +1977,7 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno, no separa el
     flujo base del caudal (eso necesita datos diarios) y no puede ver la respuesta del río a una tormenta. Que Q vaya
     detrás de la lluvia se mide en días, pero a partir de meses.</li>
-    <li><b>ERA5-Land solo está descargado para 1998–2022</b>: la ETP y la temperatura no tienen registro largo.</li>
+    <li><b>La ETP solo se calculó para 1998–2022</b>: no tiene registro largo, aunque la temperatura de ERA5-Land sí llega a 1981.</li>
   </ul>"""
 assert _k("PL", MOD_ELEGIDO).kge > _k("PL", MOD_REFERENCIA).kge                # «mejor que la climatología con PL»
 

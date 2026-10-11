@@ -1960,7 +1960,7 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
     <li><b>Nombres:</b> «Anomalías en las series» pasa a «Saltos y errores de registro», y «Registro de anomalías» a
     «Registro de problemas de los datos», porque «anomalía» ya significa otra cosa en el informe (la diferencia con el
     mes típico).</li>
-    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas y los métodos de la morfometría.</li>
+    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas, el IGAC, Copernicus DEM, Natural Earth, ALOS PALSAR y los métodos de la morfometría.</li>
     <li><b>Las cifras anuales de lluvia cambian según los meses que se promedian</b> (los {len(PERIODOS)} de 1998–2022 o
     solo los que tienen caudal): cada tabla dice su ventana.</li>
   </ul>

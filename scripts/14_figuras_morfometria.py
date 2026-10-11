@@ -99,7 +99,7 @@ fig, ax = plt.subplots(figsize=(7.4, 6.6), constrained_layout=True)
 ax.fill_between(hips.fraccion_area_encima, hips.altura_relativa, 0, color=VERDE, alpha=0.25, zorder=1)
 ax.plot(hips.fraccion_area_encima, hips.altura_relativa, color=VERDE, linewidth=2.2, zorder=2)
 ax.plot([0, 1], [1, 0], color=GRIS, linewidth=1, linestyle="--", zorder=1,
-        label="diagonal (integral = 0,5)")
+        label="diagonal (integral = 0.5)")
 
 ax.set_xlim(0, 1)
 ax.set_ylim(0, 1)
@@ -115,7 +115,7 @@ eje_alturas.spines["top"].set_visible(False)
 
 ax.text(0.58, 0.62,
         f"integral hipsométrica = {integral_hips:.2f}\n\n"
-        "por debajo de ~0,35–0,40:\ncuenca madura, en fase de\nequilibrio, ya erosionada\n(no juvenil)",
+        "por debajo de ~0.35–0.40:\ncuenca madura, en fase de\nequilibrio, ya erosionada\n(no juvenil)",
         transform=ax.transAxes, fontsize=9.5, va="top", ha="left",
         bbox=dict(boxstyle="round,pad=0.45", facecolor="white", edgecolor="#D1D5DB"))
 

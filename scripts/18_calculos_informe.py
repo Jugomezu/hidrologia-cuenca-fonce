@@ -3882,3 +3882,132 @@ ind_tna_oni = {k: float(_ind["TNA"].reindex(PERIODOS).corr(_ind["ONI"].shift(k).
 ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
 # el texto dice que el TNA responde al ONI de meses antes con correlación positiva
 assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
+
+
+# ======================================================================================================
+# Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.
+# Morfometría (ya calculada por 13-15), PL con Thiessen y corrección por altura (07e), caudales diarios (16c) y
+# el balance de largo plazo en el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
+# ======================================================================================================
+from scipy.optimize import brentq
+
+# ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
+morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
+morf_tc = pd.read_csv("out/tiempos_concentracion.csv").set_index("formula")
+morf_cauces = pd.read_csv("out/comparacion_cauces.csv")
+morf_gravelius = float(morf.loc["índice de Gravelius", "valor"])
+morf_forma = float(morf.loc["factor de forma de Horton", "valor"])
+morf_integral = float(morf.loc["integral hipsométrica", "valor"])
+morf_pendiente = float(morf.loc["pendiente media del terreno", "valor"])
+morf_tc_medido = morf_tc.con_pendiente_medida_h
+morf_tc_publicado = morf_tc.publicado_camels_h
+# el texto dice que la cuenca es alargada (Gravelius > 1.75, la clase más alargada de la escala usual) y que los
+# tiempos de concentración con la pendiente medida son de horas, contra días con la pendiente publicada
+assert morf_gravelius > 1.75 and morf_forma < 0.3
+assert morf_tc_medido.max() < 24 and morf_tc_publicado.max() > 48
+assert (desfase_tc[0], desfase_tc[1]) == (morf_tc_medido.min(), morf_tc_medido.max())
+
+# ---------------------------------------------------------------- PL con Thiessen y corrección por altura (07e)
+th_mensual = pd.read_csv("out/pl_thiessen_mensual.csv")
+th_mensual["periodo"] = pd.PeriodIndex(th_mensual.periodo, freq="M")
+th_mensual = th_mensual.set_index("periodo")
+th_poligonos = pd.read_csv("out/pl_thiessen_poligonos.csv").set_index("codigo")
+TH_COLUMNAS = {"pl_promedio_simple": "PL (promedio simple)", "pl_thiessen": "PL con Thiessen",
+               "pl_thiessen_altura": "PL con Thiessen y altura"}
+th_anual = {c: float(th_mensual[c].mean() * 12) for c in TH_COLUMNAS}
+th_pct = {c: (th_anual[c] / th_anual["pl_promedio_simple"] - 1) * 100 for c in TH_COLUMNAS}
+th_pi_anual = float(comp["IMERG"].mean() * 12)
+th_brecha_pi = {c: (th_pi_anual / th_anual[c] - 1) * 100 for c in TH_COLUMNAS}
+# coeficiente de escorrentía y correlación con Q de cada versión, en los meses con Q
+_th_q = pd.concat([th_mensual[list(TH_COLUMNAS)], q_camels.rename("Q"),
+                   comp["IMERG"].rename("PI")], axis=1).dropna()
+th_coef = {c: float(_th_q.Q.sum() / _th_q[c].sum()) for c in list(TH_COLUMNAS) + ["PI"]}
+th_rho_q = {c: float(_th_q[c].corr(_th_q.Q, method="spearman")) for c in list(TH_COLUMNAS) + ["PI"]}
+th_peso_max = th_poligonos.peso.idxmax()
+assert np.isclose(th_anual["pl_promedio_simple"], comp["RED"].mean() * 12)    # el promedio simple es la PL de siempre
+# lo que afirma el texto: Thiessen sube PL (Encino, la estación más lluviosa, pesa más), la corrección por altura
+# la baja, y ninguna de las dos versiones se aleja de la PL de siempre tanto como PI
+assert th_pct["pl_thiessen"] > 0 > th_pct["pl_thiessen_altura"]
+assert max(abs(th_pct["pl_thiessen"]), abs(th_pct["pl_thiessen_altura"])) < abs(sesgo_pi_pl) / 2
+assert th_poligonos.loc[th_peso_max, "nombre"] == "ENCINO"
+assert all(th_brecha_pi[c] < 0 for c in TH_COLUMNAS)                           # PI queda por debajo de las tres
+
+# ---------------------------------------------------------------- caudales diarios (16c_caudales_diarios.py)
+cd_firmas = pd.read_csv("out/caudales_firmas.csv").set_index("ventana")
+cd_retorno = pd.read_csv("out/caudales_periodos_retorno.csv").set_index("periodo_retorno_anios")
+cd_extremos = pd.read_csv("out/caudales_extremos_anuales.csv").set_index("anio")
+cd_curva = pd.read_csv("out/caudales_curva_duracion.csv")
+cd_base = pd.read_csv("out/caudales_flujo_base_diario.csv", parse_dates=["fecha"]).set_index("fecha")
+cd_c = cd_firmas.loc["1998–2022"]
+cd_l = cd_firmas.loc["1981–2022"]
+# la curva de duración, adelgazada para la gráfica: un punto por cada 0.5 % de excedencia en cada ventana
+cd_curva_json = {v: {"p": [round(float(x) * 100, 2) for x in np.arange(0.0025, 1, 0.005)],
+                     "q": [round(float(np.interp(x, g.excedencia, g.caudal_m3s)), 1) for x in np.arange(0.0025, 1, 0.005)]}
+                 for v, g in cd_curva.groupby("ventana")}
+# mes del calendario de los máximos anuales
+cd_mes_max = pd.to_datetime(cd_extremos.fecha_maximo).dt.month.value_counts().sort_index()
+cd_mes_min = pd.to_datetime(cd_extremos.fecha_minimo_7_dias).dt.month.value_counts().sort_index()
+# flujo base de un año ilustrativo: el año completo más reciente, para la gráfica
+cd_anio_base = int(cd_extremos.index.max())
+_b = cd_base.loc[str(cd_anio_base)]
+cd_base_json = {"x": [str(d.date()) for d in _b.index], "q": _b.caudal_m3s.round(1).tolist(),
+                "b": _b.flujo_base_m3s.round(1).tolist()}
+cd_max_registro = cd_extremos.maximo_diario_m3s.idxmax()
+# lo que afirma el texto
+assert abs(cd_c.bfi - cd_c.camels_bfi) < 0.02                       # «el BFI coincide con el de CAMELS-COL»
+assert abs(cd_c.pendiente_curva - cd_c.camels_pendiente_curva) < 0.02
+assert cd_c.bfi > 0.5                                                # «más de la mitad del caudal es flujo base»
+assert 0.97 < cd_retorno.r_ajuste.iloc[0]                            # «Gumbel se ajusta bien»
+assert cd_mes_max.idxmax() in (4, 5, 10, 11, 12)                     # los máximos caen en las temporadas lluviosas
+assert set(cd_mes_min.index) <= {1, 2, 3, 4, 7, 8, 9}                # los mínimos, en las secas
+
+# ---------------------------------------------------------------- balance de largo plazo: Budyko
+# Con los meses en que hay Q, la evapotranspiración real media es E = P − Q (a largo plazo el almacenamiento se
+# compensa). Se ubica la cuenca en el marco de Budyko (1974): índice de aridez φ = ETP/P contra E/P. La curva de
+# Budyko da el E/P esperable para una cuenca con ese φ; el parámetro ω de Fu (1981) resume cuánto se aparta: la curva
+# de Budyko equivale a ω ≈ 2.6; valores más altos indican más evapotranspiración que la esperable y más bajos, menos.
+def _budyko(phi):
+    return np.sqrt(phi * np.tanh(1 / phi) * (1 - np.exp(-phi)))
+
+
+def _fu(phi, w):
+    return 1 + phi - (1 + phi ** w) ** (1 / w)
+
+
+_vm = pd.read_csv("out/variables_mensuales.csv", index_col=0)
+_vm.index = pd.PeriodIndex(_vm.index, freq="M")
+_vm["PL_TH"] = th_mensual.pl_thiessen_altura.reindex(_vm.index)
+BUD_FUENTES = {"PL": "PL", "PL_TH": "PL con Thiessen y altura", "PI": "PI"}
+bud = {}
+for _f in BUD_FUENTES:
+    _p, _q, _e = _vm[_f].mean() * 12, _vm.Q.mean() * 12, _vm.ETP.mean() * 12
+    _phi = _e / _p
+    _ep = (_p - _q) / _p
+    bud[_f] = {"p": _p, "q": _q, "etp": _e, "et_real": _p - _q, "phi": _phi, "ep": _ep,
+               "ep_budyko": float(_budyko(_phi)), "omega": float(brentq(lambda w: _fu(_phi, w) - _ep, 1.0001, 20))}
+bud_n = len(_vm)
+bud_curva_json = {"phi": [round(float(x), 3) for x in np.linspace(0.2, 1.6, 57)],
+                  "budyko": [round(float(_budyko(x)), 4) for x in np.linspace(0.2, 1.6, 57)]}
+# la lluvia con la que la cuenca caería justo sobre la curva de Budyko, con el Q y la ETP observados: no es un dato,
+# es la lluvia que haría coherente el balance si la cuenca se comportara como la curva media
+bud_p_curva = float(brentq(lambda p: (p - bud["PL"]["q"]) / p - _budyko(bud["PL"]["etp"] / p),
+                           bud["PL"]["q"] * 1.05, bud["PL"]["q"] * 5))
+# lo que afirma el texto: con las tres lluvias la cuenca queda bajo el límite de energía (E < ETP) y de agua (E < P);
+# con PL queda por encima de la curva (evapotranspira más de lo esperable) y con PI por debajo, así que la lluvia que
+# haría coincidir el balance con la curva queda entre las dos
+assert all(b["et_real"] < b["etp"] and 0 < b["ep"] < 1 for b in bud.values())
+assert bud["PL"]["ep"] > bud["PL"]["ep_budyko"] and bud["PI"]["ep"] < bud["PI"]["ep_budyko"]
+assert bud["PI"]["p"] < bud_p_curva < bud["PL"]["p"]
+
+# ---------------------------------------------------------------- correcciones de la revisión
+# rezago del ONI frente a Q: el 1 y el 2 están casi empatados (la explicación física decía «2 meses» y la sección de
+# los índices «1 mes»)
+alt_oni_r = {k: float(ind_corr[(ind_corr.indice == "ONI") & (ind_corr.rezago == k)].r.iloc[0]) for k in (1, 2)}
+assert abs(alt_oni_r[1] - alt_oni_r[2]) < 0.01
+# meses robustos con El Niño frente a lo esperable por azar: las dos temporadas de Córdoba-Machado et al. son 6 de los
+# 12 meses; la probabilidad de que k o más de n meses caigan en ellas por azar (binomial con p = 1/2)
+alt_p_binom = None      # se calcula en 18b, donde están n34_rob_total y n34_rob_en_temporadas
+# la hipótesis H y su criterio de refutación: los residuos del modelo elegido conservan el calendario
+_ficha = pd.read_csv("out/modelos_ficha.csv").set_index("fuente")
+alt_kw_residuo = {f: float(_ficha.loc[f, "kruskal_residuo_por_mes_p"]) for f in ("PL", "PI")}
+assert all(p < 0.05 for p in alt_kw_residuo.values())        # «los residuos conservan estacionalidad»

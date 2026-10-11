@@ -1960,8 +1960,7 @@ alt_cambios = f"""<p>Esta es una <b>versión alterna</b>, armada a partir de una
     <li><b>Nombres:</b> «Anomalías en las series» pasa a «Saltos y errores de registro», y «Registro de anomalías» a
     «Registro de problemas de los datos», porque «anomalía» ya significa otra cosa en el informe (la diferencia con el
     mes típico).</li>
-    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas y los métodos de la morfometría, y se
-    completaron las páginas de Mann, Newey y West y Scargle.</li>
+    <li><b>Citas:</b> se agregaron las de ERA5-Land, el mapa geológico del SGC, MapBiomas y los métodos de la morfometría.</li>
     <li><b>Las cifras anuales de lluvia cambian según los meses que se promedian</b> (los {len(PERIODOS)} de 1998–2022 o
     solo los que tienen caudal): cada tabla dice su ventana.</li>
   </ul>
@@ -4919,7 +4918,7 @@ a {{ color: var(--acento); }}
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
     <li id="ref-lomb1976">Lomb, N. R. (1976). Least-squares frequency analysis of unequally spaced data. <i>Astrophysics and
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
-    <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245–259.
+    <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
     <a href="https://doi.org/10.2307/1907187">https://doi.org/10.2307/1907187</a></li>
     <li id="ref-mesa1997"{_cambio('Nuevo')}>Mesa, O. J., Poveda, G., y Carvajal, L. F. (1997). <i>Introducción al clima de Colombia</i>.
     Universidad Nacional de Colombia, Medellín.</li>
@@ -4934,7 +4933,7 @@ a {{ color: var(--acento); }}
     <li id="ref-naturalearth">Natural Earth. <i>1:10m Cultural Vectors</i>, versión 5.1.1: países y divisiones de primer
     nivel. Copia oficial en Amazon S3, descargada el 2026-10-09. <a href="https://www.naturalearthdata.com">naturalearthdata.com</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
-    autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703–708.
+    autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
@@ -4948,7 +4947,7 @@ a {{ color: var(--acento); }}
     Naturales</i>, 28(107), 201–221.
     <a href="https://doi.org/10.18257/raccefyn.28(107).2004.1991">https://doi.org/10.18257/raccefyn.28(107).2004.1991</a></li>
     <li id="ref-scargle1982">Scargle, J. D. (1982). Studies in astronomical time series analysis. II. Statistical aspects of
-    spectral analysis of unevenly spaced data. <i>The Astrophysical Journal</i>, 263, 835–853.
+    spectral analysis of unevenly spaced data. <i>The Astrophysical Journal</i>, 263, 835 y siguientes.
     <a href="https://doi.org/10.1086/160554">https://doi.org/10.1086/160554</a></li>
     <li id="ref-sen1968">Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
     <i>Journal of the American Statistical Association</i>, 63(324), 1379–1389.

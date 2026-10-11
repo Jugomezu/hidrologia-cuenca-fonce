@@ -4176,10 +4176,9 @@ a {{ color: var(--acento); }}
   {fou_coh_oni_txt}</p>
   <p>La correlación simple con el ONI de unos meses antes dice lo mismo. El rezago en que es más negativa es: {fou_corr_oni_txt}.
   El almacenamiento atrasa al río también en la escala del ENSO.</p>
-  <p class="nota"><b>Si la coherencia no es significativa y la correlación sí, no se contradicen.</b> La coherencia mira
-  solo la banda de 3 a 7 años y se compara con un umbral exigente, simulado con series que tienen la misma memoria y los
-  mismos vacíos; la correlación de «Q frente al ONI y al TNA» usa todas las escalas de tiempo a la vez, incluida la de
-  un mes a otro. Una relación repartida entre varias escalas puede pasar una prueba y no la otra.</p>
+  <p class="nota"><b>Si la coherencia no es significativa y la correlación sí, no se contradicen:</b> la coherencia está
+  limitada a la banda interanual (3 a 7 años), mientras que la correlación de «Q frente al ONI y al TNA» abarca todo el
+  rango de escalas de tiempo.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Par</th><th>Ventana</th><th class="num">Coherencia (3–7 años)</th><th class="num">Umbral 95 %</th>

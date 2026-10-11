@@ -1750,7 +1750,7 @@ SINT_FILAS = [
      f"De los {n34_rob_total} meses robustos, {n34_rob_en_temporadas} caen en las temporadas que señala la fuente; Q pasa la "
      f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
      f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño; la anomalía de Q se correlaciona en {ind_txt['ONI']['r']:+.2f} con "
-     f"el ONI de {ind_txt['ONI']['k']} {_palabra_mes(ind_txt['ONI']['k'])} antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
+     f"el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
      "sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).",
      f"{CITA_CORDOBA}; {CITA_POVEDA}",
      f"Son {pe_n_anios} años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la "
@@ -1825,7 +1825,8 @@ alt_bal_pl_anual = float(_bal_pl.p.mean() * 12)
 assert len(_bal_pl) == bal_n and fis_coef["pl"] < coef_periodo      # «PI mide menos lluvia, su cociente sale mayor»
 alt_area_camels = float(morf.loc["área", "publicado_camels"])
 # E3: el rezago de la sección de Fourier también es 1 o 2 meses
-assert fis_q_rezago_oni in (1, 2) and ind_txt["ONI"]["k"] in (1, 2)
+assert fis_q_rezago_oni in (1, 2) and ind_txt["ONI"]["k"] == 1                # el texto dice «1 a 2 meses» y nombra el 1 primero
+assert abs(ind_txt["ONI"]["r"] - alt_oni_r[1]) < 1e-9
 # E5: los meses del calendario con relación robusta, contados una sola vez, frente a lo esperable por azar (las dos
 # temporadas de la fuente son 6 de los 12 meses: probabilidad 1/2 para cada mes)
 _rob_meses = set(_n34_rob.mes)
@@ -4839,7 +4840,8 @@ a {{ color: var(--acento); }}
   <p class="nota">r entre la anomalía de Q y cada índice según el rezago; en punteado, el TNA sin el ONI. Punto lleno:
   pasa la corrección; punto vacío: no pasa.</p>
   <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
-  índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q: con el Pacífico central más caliente (El Niño)
+  índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q, casi igual que con 2 meses (r = {alt_oni_r[2]:+.2f}):
+  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos. Con el Pacífico central más caliente (El Niño)
   el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
   corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
   fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
@@ -4897,7 +4899,7 @@ a {{ color: var(--acento); }}
   {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto). {alt_binom_txt}</p>
   <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
-  correlaciona en {ind_txt["ONI"]["r"]:+.2f} con el ONI de {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes, y el
+  correlaciona en {alt_oni_r[1]:+.2f} con el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, y el
   Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
   el efecto del ONI. El mecanismo, la circulación de Walker, es el de «Por qué El Niño trae menos lluvia», arriba.</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura

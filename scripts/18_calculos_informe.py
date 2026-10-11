@@ -17,6 +17,7 @@ from itertools import combinations
 from pathlib import Path
 from scipy import stats
 from scipy.signal import csd, lfilter, lombscargle, periodogram, welch
+from scipy.optimize import brentq
 import numpy as np
 import pandas as pd
 import rasterio
@@ -3889,8 +3890,6 @@ assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
 # Morfometría (ya calculada por 13-15), PL con Thiessen y corrección por altura (07e), caudales diarios (16c) y
 # el balance de largo plazo en el marco de Budyko. Todo sale de out/; lo que el texto afirma se protege con assert.
 # ======================================================================================================
-from scipy.optimize import brentq
-
 # ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
 morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
 morf_tc = pd.read_csv("out/tiempos_concentracion.csv").set_index("formula")

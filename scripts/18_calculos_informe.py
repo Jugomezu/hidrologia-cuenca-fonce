@@ -3780,26 +3780,35 @@ _salida.attrs = {"descripcion": "Correlación, a través de los años, de la ano
 _salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
 _cc.close()
 
-# ---------------------------------------------------------------- Q frente al SOI, el NAO y el ONI, con rezagos
+# ---------------------------------------------------------------- Q frente al SOI, el TNA y el ONI, con rezagos
 # Correlación de Pearson entre la anomalía mensual de Q (cada mes menos su media de 1998-2022, _fou_transformar
 # «anomalía», sin quitar la tendencia) y cada índice desplazado de -12 a +12 meses. Convención: en el rezago k se
 # compara Q del mes t con el índice del mes t-k; k > 0 quiere decir que el índice va ANTES que Q.
 # Decisiones del usuario (2026-10-11): anomalías de Q (no la serie original, que la domina el ciclo de las dos
-# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación que pidió es SOI contra NAO, y el ONI se
-# presenta aparte con los mismos rezagos.
-# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_soi_nao.py): el SOI y el NAO ya son estandarizados
-# y el ONI ya es una anomalía. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
+# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación que pidió es SOI (Pacífico) contra TNA
+# (Atlántico tropical norte; reemplazó a la NAO, que no pasaba la corrección en ningún rezago), y el ONI se presenta
+# aparte con los mismos rezagos.
+# Como el TNA también responde al ENSO (el Atlántico tropical norte se calienta meses después de El Niño), el usuario
+# decidió (2026-10-11, recomendación del agente) calcular además la correlación PARCIAL de Q con el TNA quitando el
+# efecto del ONI: a la anomalía de Q y al TNA desplazado se les quita, por regresión lineal, lo que explica el ONI de
+# IND_REZAGO_CONTROL mes(es) antes (el rezago en que el ONI correlaciona más con Q; se comprueba abajo), y se
+# correlacionan los residuos. Es lo que el Atlántico aporta aparte de lo que el ENSO explica directamente en Q.
+# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_soi_tna.py): el SOI ya es estandarizado y el TNA y
+# el ONI ya son anomalías. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
 # rezagos negativos llegan solo hasta 2022, así que en ellos se pierden algunos pares al final (n se reporta).
 # Significancia: las anomalías de meses seguidos se parecen (persistencia), así que la prueba t con todos los pares
 # exagera. Se usa el tamaño efectivo de Bretherton et al. (1999), n_ef = n (1 - a·b) / (1 + a·b), con a y b la
-# autocorrelación de un mes de cada serie, y sobre los 25 rezagos de cada índice se aplica el FDR de
-# Benjamini-Hochberg con q < IND_Q_FDR (el mismo criterio de las tendencias por mes).
+# autocorrelación de un mes de cada serie (en la parcial, la de cada residuo, y un grado de libertad menos por el
+# control), y sobre los 25 rezagos de cada curva se aplica el FDR de Benjamini-Hochberg con q < IND_Q_FDR (el mismo
+# criterio de las tendencias por mes).
 IND_REZAGOS = range(-12, 13)
 IND_Q_FDR = INC_Q_FDR
-IND_NOMBRES = ("SOI", "NAO", "ONI")
+IND_NOMBRES = ("SOI", "TNA", "ONI")
+IND_PARCIAL = "TNA sin el ONI"
+IND_REZAGO_CONTROL = 1             # meses: el ONI que se quita en la parcial
 
-_ind = pd.read_csv("out/soi_nao_mensual_1981_2022.csv")
-_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"soi": "SOI", "nao": "NAO"})
+_ind = pd.read_csv("out/soi_tna_mensual_1981_2022.csv")
+_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"soi": "SOI", "tna": "TNA"})
 _oni_l = pd.read_csv("out/oni_mensual_1981_2022.csv")
 _ind["ONI"] = pd.Series(_oni_l["oni"].to_numpy(dtype=float), index=pd.PeriodIndex(_oni_l["periodo"], freq="M"))
 assert _ind.notna().all().all()
@@ -3811,43 +3820,67 @@ def _autocorr1(s):
     return float(s.corr(s.shift(1)))
 
 
+def _residuo(y, z):
+    """Lo que queda de y después de quitarle, por mínimos cuadrados, una recta en z (con constante)."""
+    X = np.column_stack([np.ones(len(z)), z])
+    return y - X @ np.linalg.lstsq(X, y, rcond=None)[0]
+
+
+def _fila_corr(nombre, k, y, x, controles=0):
+    """r de Pearson entre y y x (Series con el mismo índice, sin vacíos), con n, n efectivo y p de la prueba t."""
+    r = float(np.corrcoef(y, x)[0, 1])
+    a, b = _autocorr1(y.reindex(PERIODOS)), _autocorr1(x.reindex(PERIODOS))
+    n = len(y)
+    n_ef = n * (1 - a * b) / (1 + a * b)
+    # con controles, la prueba t pierde un grado de libertad por cada uno: se corre con n_ef - controles
+    return {"indice": nombre, "rezago": k, "r": r, "n": n, "n_efectivo": n_ef,
+            "p": float(_p_correlacion(r, n_ef - controles))}
+
+
+_control = _ind["ONI"].shift(IND_REZAGO_CONTROL).reindex(PERIODOS)
 ind_corr = []
-for _nombre in IND_NOMBRES:
-    _s = _ind[_nombre]
-    _a = _autocorr1(_s)
-    for _k in IND_REZAGOS:
-        _x = _s.shift(_k).reindex(PERIODOS)            # índice del mes t-k junto a Q del mes t
+for _k in IND_REZAGOS:
+    for _nombre in IND_NOMBRES:
+        _x = _ind[_nombre].shift(_k).reindex(PERIODOS)            # índice del mes t-k junto a Q del mes t
         _ok = ind_q_anom.notna() & _x.notna()
-        _r = float(np.corrcoef(ind_q_anom[_ok], _x[_ok])[0, 1])
-        _b = _autocorr1(ind_q_anom)
-        _n = int(_ok.sum())
-        _n_ef = _n * (1 - _a * _b) / (1 + _a * _b)
-        ind_corr.append({"indice": _nombre, "rezago": _k, "r": _r, "n": _n, "n_efectivo": _n_ef,
-                         "p": float(_p_correlacion(_r, _n_ef))})
-ind_corr = pd.DataFrame(ind_corr)
+        ind_corr.append(_fila_corr(_nombre, _k, ind_q_anom[_ok], _x[_ok]))
+    # la parcial: TNA y Q sin lo que explica el ONI de IND_REZAGO_CONTROL meses antes
+    _x = _ind["TNA"].shift(_k).reindex(PERIODOS)
+    _ok = ind_q_anom.notna() & _x.notna() & _control.notna()
+    _ey = pd.Series(_residuo(ind_q_anom[_ok].to_numpy(), _control[_ok].to_numpy()), index=_x[_ok].index)
+    _ex = pd.Series(_residuo(_x[_ok].to_numpy(), _control[_ok].to_numpy()), index=_x[_ok].index)
+    ind_corr.append(_fila_corr(IND_PARCIAL, _k, _ey, _ex, controles=1))
+ind_corr = pd.DataFrame(ind_corr).sort_values(["indice", "rezago"], ignore_index=True)
 ind_corr["q"] = ind_corr.groupby("indice")["p"].transform(lambda p: _benjamini_hochberg(p.to_numpy()))
 ind_corr["significativa"] = ind_corr.q < IND_Q_FDR
 ind_corr.to_csv("out/correlacion_q_indices_rezagos.csv", index=False, float_format="%.4f")
 
-# el rezago de la correlación más fuerte (mayor |r|) de cada índice
-ind_max = {n: ind_corr.loc[ind_corr[ind_corr.indice == n].r.abs().idxmax()].to_dict() for n in IND_NOMBRES}
-# ¿cuál pesa más, SOI o NAO? se comparan sus |r| máximos y la fracción de varianza de Q que explicaría cada uno (r²)
-ind_mas_fuerte = max(("SOI", "NAO"), key=lambda n: abs(ind_max[n]["r"]))
-ind_mas_debil = "NAO" if ind_mas_fuerte == "SOI" else "SOI"
+# el rezago de la correlación más fuerte (mayor |r|) de cada curva
+ind_max = {n: ind_corr.loc[ind_corr[ind_corr.indice == n].r.abs().idxmax()].to_dict()
+           for n in IND_NOMBRES + (IND_PARCIAL,)}
+ind_sig = {n: [int(k) for k in ind_corr[(ind_corr.indice == n) & ind_corr.significativa].rezago]
+           for n in IND_NOMBRES + (IND_PARCIAL,)}
 print("Q (anomalía) frente a los índices, 1998-2022: correlación más fuerte de cada uno")
 for _n, _d in ind_max.items():
     print(f"  {_n}: r = {_d['r']:+.2f} en el rezago {int(_d['rezago']):+d} (n = {int(_d['n'])}, n efectivo = "
-          f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: "
-          f"{ind_corr[(ind_corr.indice == _n) & ind_corr.significativa].rezago.tolist()}")
+          f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: {ind_sig[_n]}")
 
-# lo que el texto del informe afirma, en «Q frente al SOI, el NAO y el ONI»
-ind_sig = {n: [int(k) for k in ind_corr[(ind_corr.indice == n) & ind_corr.significativa].rezago] for n in IND_NOMBRES}
-# el texto dice que el SOI pesa más que el NAO: el SOI pasa la corrección en algún rezago, el NAO en ninguno, y el
-# |r| máximo del SOI es mayor
-assert ind_sig["SOI"] and not ind_sig["NAO"] and ind_mas_fuerte == "SOI"
-# el texto dice que el SOI va con signo positivo (La Niña, más caudal) y el ONI con signo negativo en su pico
-assert ind_max["SOI"]["r"] > 0 and ind_max["ONI"]["r"] < 0
-# el texto dice que en los dos el pico está con el índice antes que Q
-assert ind_max["SOI"]["rezago"] > 0 and ind_max["ONI"]["rezago"] > 0
-# el SOI y el ONI, en la misma ventana, sin rezago: las dos caras del ENSO
+# lo que el texto del informe afirma, en «Q frente al SOI, el TNA y el ONI»
+# el ONI que se quita en la parcial es el de su correlación más fuerte con Q
+assert int(ind_max["ONI"]["rezago"]) == IND_REZAGO_CONTROL
+# el texto dice que el SOI pesa más que el TNA (mayor |r| máximo), aunque los dos pasan la corrección
+assert ind_sig["SOI"] and ind_sig["TNA"] and abs(ind_max["SOI"]["r"]) > abs(ind_max["TNA"]["r"])
+# el texto dice que, sin el ONI, el TNA baja y ya no pasa la corrección en ningún rezago
+assert abs(ind_max[IND_PARCIAL]["r"]) < abs(ind_max["TNA"]["r"]) and not ind_sig[IND_PARCIAL]
+# el texto dice que el SOI y el TNA van con signo positivo en su pico (más caudal) y el ONI con signo negativo, y que
+# en los tres el pico está con el índice antes que Q
+assert ind_max["SOI"]["r"] > 0 and ind_max["TNA"]["r"] > 0 and ind_max[IND_PARCIAL]["r"] > 0 and ind_max["ONI"]["r"] < 0
+assert all(ind_max[n]["rezago"] > 0 for n in IND_NOMBRES)
+# el texto dice que con el TNA del mismo mes casi no hay relación: |r| < 0.1 en el rezago 0
+assert abs(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0]) < 0.1
+# el SOI y el ONI, en la misma ventana, sin rezago (las dos caras del ENSO), y el TNA frente al ONI de meses antes
 ind_corr_soi_oni = float(_ind["SOI"].reindex(PERIODOS).corr(_ind["ONI"].reindex(PERIODOS)))
+ind_tna_oni = {k: float(_ind["TNA"].reindex(PERIODOS).corr(_ind["ONI"].shift(k).reindex(PERIODOS))) for k in range(0, 13)}
+ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
+# el texto dice que el TNA responde al ONI de meses antes con correlación positiva
+assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0

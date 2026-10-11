@@ -1017,27 +1017,21 @@ con la de ERA5-Land, y escribe `out/etp_hargreaves_fonce.csv`.
   referencia.
 
 
-## SOI y NAO - indices de circulacion (NOAA Climate Prediction Center)
+## SOI - Indice de Oscilacion del Sur (NOAA Climate Prediction Center)
 
-- **Productos:**
-  - SOI (Southern Oscillation Index): diferencia de la presion al nivel del mar estandarizada entre Tahiti y
-    Darwin. El archivo trae la anomalia en hPa y la version estandarizada; se usa la **estandarizada**.
-    SOI negativo acompana a El Nino.
-  - NAO (North Atlantic Oscillation): indice mensual estandarizado de la NOAA (componentes principales rotadas
-    de la altura de 500 hPa, base 1950-2000).
-- **Fuentes:** https://www.cpc.ncep.noaa.gov/data/indices/soi y
-  https://www.cpc.ncep.noaa.gov/products/precip/CWlink/pna/norm.nao.monthly.b5001.current.ascii
+- **Producto:** SOI (Southern Oscillation Index): diferencia de la presion al nivel del mar estandarizada entre Tahiti
+  y Darwin. El archivo trae la anomalia en hPa y la version estandarizada; se usa la **estandarizada**. SOI negativo
+  acompana a El Nino.
+- **Fuente:** https://www.cpc.ncep.noaa.gov/data/indices/soi
 - **Licencia:** datos publicos del gobierno de EE. UU. (dominio publico).
-- **Descargado:** 2026-10-11, con `scripts/17b_soi_nao.py` (se baja solo si no existe en `data/`).
+- **Descargado:** 2026-10-11, con `scripts/17b_soi_tna.py` (se baja solo si no existe en `data/`).
 - **Destino local:** `data/noaa/soi.txt` (909 meses con dato, 1951-01 a 2026-09; los meses sin dato vienen como
-  -999.9), `data/noaa/nao.txt` (921 meses, 1950-01 a 2026-09) y `out/soi_nao_mensual_1981_2022.csv`
-  (504 meses, sin vacios).
+  -999.9) y `out/soi_tna_mensual_1981_2022.csv` (504 meses, sin vacios, con el TNA).
 - **SHA-256 de `data/noaa/soi.txt`:** `720365224dd280be7b6c1c6f9ef3dc11d03c2cf404b2d0bf07a68f4f4e8d35ae`
-- **SHA-256 de `data/noaa/nao.txt`:** `0f0e6be989132c40e4ed5e60f3a5f961eb31525efd110188a84288595d834f35`
 - **Control de calidad (2026-10-11):** en 1981-2022 el SOI correlaciona -0.75 con el ONI del proyecto (lo esperado:
-  son las dos caras del ENSO, con signo opuesto) y el NAO 0.04 (independiente del ENSO).
-- **Nota:** la NOAA puede revisar los valores recientes; la copia local con su SHA-256 es la referencia.
-
+  son las dos caras del ENSO, con signo opuesto).
+- **Nota:** la NOAA puede revisar los valores recientes; la copia local con su SHA-256 es la referencia. Ese mismo dia
+  se bajo tambien la NAO de la NOAA CPC; el usuario la cambio por el TNA y la NAO no se usa ni se conserva.
 
 ## TNA - indice del Atlantico tropical norte (NOAA PSL)
 

@@ -3779,3 +3779,63 @@ _salida.attrs = {"descripcion": "Correlación, a través de los años, de la ano
                  "n_minimo": CORR_N_MINIMO, "q_fdr": CORR_Q_FDR, "generado_por": "scripts/18_calculos_informe.py"}
 _salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
 _cc.close()
+
+# ---------------------------------------------------------------- Q frente al SOI, el NAO y el ONI, con rezagos
+# Correlación de Pearson entre la anomalía mensual de Q (cada mes menos su media de 1998-2022, _fou_transformar
+# «anomalía», sin quitar la tendencia) y cada índice desplazado de -12 a +12 meses. Convención: en el rezago k se
+# compara Q del mes t con el índice del mes t-k; k > 0 quiere decir que el índice va ANTES que Q.
+# Decisiones del usuario (2026-10-11): anomalías de Q (no la serie original, que la domina el ciclo de las dos
+# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación que pidió es SOI contra NAO, y el ONI se
+# presenta aparte con los mismos rezagos.
+# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_soi_nao.py): el SOI y el NAO ya son estandarizados
+# y el ONI ya es una anomalía. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
+# rezagos negativos llegan solo hasta 2022, así que en ellos se pierden algunos pares al final (n se reporta).
+# Significancia: las anomalías de meses seguidos se parecen (persistencia), así que la prueba t con todos los pares
+# exagera. Se usa el tamaño efectivo de Bretherton et al. (1999), n_ef = n (1 - a·b) / (1 + a·b), con a y b la
+# autocorrelación de un mes de cada serie, y sobre los 25 rezagos de cada índice se aplica el FDR de
+# Benjamini-Hochberg con q < IND_Q_FDR (el mismo criterio de las tendencias por mes).
+IND_REZAGOS = range(-12, 13)
+IND_Q_FDR = INC_Q_FDR
+IND_NOMBRES = ("SOI", "NAO", "ONI")
+
+_ind = pd.read_csv("out/soi_nao_mensual_1981_2022.csv")
+_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"soi": "SOI", "nao": "NAO"})
+_oni_l = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_ind["ONI"] = pd.Series(_oni_l["oni"].to_numpy(dtype=float), index=pd.PeriodIndex(_oni_l["periodo"], freq="M"))
+assert _ind.notna().all().all()
+ind_q_anom = _fou_transformar(variables_resumen["Q"], "anomalía").reindex(PERIODOS)
+
+
+def _autocorr1(s):
+    """Autocorrelación de un mes con los pares de meses seguidos que tienen dato."""
+    return float(s.corr(s.shift(1)))
+
+
+ind_corr = []
+for _nombre in IND_NOMBRES:
+    _s = _ind[_nombre]
+    _a = _autocorr1(_s)
+    for _k in IND_REZAGOS:
+        _x = _s.shift(_k).reindex(PERIODOS)            # índice del mes t-k junto a Q del mes t
+        _ok = ind_q_anom.notna() & _x.notna()
+        _r = float(np.corrcoef(ind_q_anom[_ok], _x[_ok])[0, 1])
+        _b = _autocorr1(ind_q_anom)
+        _n = int(_ok.sum())
+        _n_ef = _n * (1 - _a * _b) / (1 + _a * _b)
+        ind_corr.append({"indice": _nombre, "rezago": _k, "r": _r, "n": _n, "n_efectivo": _n_ef,
+                         "p": float(_p_correlacion(_r, _n_ef))})
+ind_corr = pd.DataFrame(ind_corr)
+ind_corr["q"] = ind_corr.groupby("indice")["p"].transform(lambda p: _benjamini_hochberg(p.to_numpy()))
+ind_corr["significativa"] = ind_corr.q < IND_Q_FDR
+ind_corr.to_csv("out/correlacion_q_indices_rezagos.csv", index=False, float_format="%.4f")
+
+# el rezago de la correlación más fuerte (mayor |r|) de cada índice
+ind_max = {n: ind_corr.loc[ind_corr[ind_corr.indice == n].r.abs().idxmax()].to_dict() for n in IND_NOMBRES}
+# ¿cuál pesa más, SOI o NAO? se comparan sus |r| máximos y la fracción de varianza de Q que explicaría cada uno (r²)
+ind_mas_fuerte = max(("SOI", "NAO"), key=lambda n: abs(ind_max[n]["r"]))
+ind_mas_debil = "NAO" if ind_mas_fuerte == "SOI" else "SOI"
+print("Q (anomalía) frente a los índices, 1998-2022: correlación más fuerte de cada uno")
+for _n, _d in ind_max.items():
+    print(f"  {_n}: r = {_d['r']:+.2f} en el rezago {int(_d['rezago']):+d} (n = {int(_d['n'])}, n efectivo = "
+          f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: "
+          f"{ind_corr[(ind_corr.indice == _n) & ind_corr.significativa].rezago.tolist()}")

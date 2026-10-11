@@ -2325,7 +2325,7 @@ a {{ color: var(--acento); }}
   <h3>La cuenca y sus subcuencas</h3>
   <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
   Las cinco estaciones aguas arriba dividen la cuenca en subcuencas de tamaños muy distintos: Mérida, sobre el mismo Fonce,
-  drena el {alt_merida_pct:.0f} % de la cuenca; Monchía y Mogoticos son pequeñas.</p>
+  tiene el {alt_merida_pct:.0f} % del área de la cuenca; Monchía y Mogoticos son pequeñas.</p>
   <div class="tabla-caja">
   <table>
     <thead><tr><th>Código IDEAM</th><th>Estación</th><th>Río</th><th class="num">Área (km²)</th><th class="num">% de San Gil</th>

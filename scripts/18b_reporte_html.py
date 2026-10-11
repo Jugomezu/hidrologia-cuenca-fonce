@@ -184,7 +184,7 @@ _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0
                       f'vertical-align:-0.1em; background:{COLOR_VAR[v]}"></span>')
 nota_colores = (
     "Cada variable tiene un solo color en todas las figuras: "
-    f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI, azul; "
+    f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI (la lluvia del satélite IMERG), azul; "
     f"{_muestra('Q')} Q, verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
     f"{_muestra('T media')} T media y {_muestra('T máx')} T máx más oscura (la de MSWX, del mismo color con otro trazo); "
     f"{_muestra('ETP')} ETP, violeta.")
@@ -2153,7 +2153,6 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(elev_min)}–{n(elev_max)} m</b><span>rango de elevación (DEM)</span></div>
     <div class="cifra"><b>{n(elev_media)} m</b><span>elevación media (DEM)</span></div>
     <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual de los pluviómetros del IDEAM (PL), 1998–2022</span></div>
-    <div class="cifra"><b>{n(alt_pi_anual)} mm</b><span>lluvia anual del satélite IMERG (PI), 1998–2022</span></div>
   </div>
 </header>
 

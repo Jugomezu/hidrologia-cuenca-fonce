@@ -13,6 +13,7 @@ Dentro de la f-string, las llaves de CSS y de JavaScript van dobladas ({{ y }});
 expresiones de Python.
 """
 import base64, hashlib, html, json
+from math import comb
 from pathlib import Path
 from runpy import run_path
 import pandas as pd
@@ -183,8 +184,8 @@ _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0
                       f'vertical-align:-0.1em; background:{COLOR_VAR[v]}"></span>')
 nota_colores = (
     "Cada variable tiene un solo color en todas las figuras: "
-    f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI, azul; "
-    f"{_muestra('Q')} Q, verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
+    f"{_muestra('PL')} PL (también PL* y los pluviómetros sueltos), naranja; {_muestra('PI')} PI (la lluvia del satélite IMERG), azul; "
+    f"{_muestra('Q')} Q (el caudal en San Gil), verde; la temperatura de ERA5-Land en púrpura, {_muestra('T mín')} T mín más clara, "
     f"{_muestra('T media')} T media y {_muestra('T máx')} T máx más oscura (la de MSWX, del mismo color con otro trazo); "
     f"{_muestra('ETP')} ETP, violeta.")
 
@@ -215,12 +216,25 @@ CITA_HIRSCH = '<a class="cita" href="#ref-hirsch1982">Hirsch et al., 1982</a>'
 CITA_LOESS = '<a class="cita" href="#ref-cleveland1979">Cleveland, 1979</a>'
 CITA_HAMED = '<a class="cita" href="#ref-hamed1998">Hamed y Rao, 1998</a>'
 CITA_BH = '<a class="cita" href="#ref-benjamini1995">Benjamini y Hochberg, 1995</a>'
+CITA_TNA = '<a class="cita" href="#ref-noaa-tna">NOAA PSL</a>'
+CITA_ENFIELD = '<a class="cita" href="#ref-enfield1999">Enfield et al., 1999</a>'
+CITA_BRETHERTON = '<a class="cita" href="#ref-bretherton1999">Bretherton et al., 1999</a>'
 CITA_LOMB = '<a class="cita" href="#ref-lomb1976">Lomb, 1976</a>'
 CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
 CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a>'
 CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
+# citas de la versión alterna (2026-10-11): los métodos de las secciones nuevas y las fuentes que faltaban
+CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
+CITA_MUNOZ = '<a class="cita" href="#ref-munoz2019">Muñoz-Sabater et al., 2019</a>'
+CITA_SGC = '<a class="cita" href="#ref-sgc2023">Servicio Geológico Colombiano, 2023</a>'
+CITA_MAPBIOMAS = '<a class="cita" href="#ref-mapbiomas2025">Fundación Gaia Amazonas, 2025</a>'
+CITA_IGAC = '<a class="cita" href="#ref-igac">IGAC</a>'
+CITA_COPERNICUS_DEM = '<a class="cita" href="#ref-copernicus-dem">ESA, Copernicus DEM</a>'
+CITA_NATURAL_EARTH = '<a class="cita" href="#ref-naturalearth">Natural Earth</a>'
+CITA_ALOS = '<a class="cita" href="#ref-alos">ALOS PALSAR</a>'
+CITA_STRAHLER = '<a class="cita" href="#ref-strahler1952">Strahler, 1952</a>'
 
 # Resaltado en verde de lo que cambió en la revisión del PR #19 (2026-10-08), para quien lo revise. Se apaga con False
 # cuando el revisor lo apruebe, como se hizo con el resaltado amarillo en el PR #16.
@@ -381,7 +395,7 @@ pq_explicaciones = f"""<ul class="tratamiento">
     bosque puede superarla; además es una estimación, no una medida.</li>
     <li><b>No haber existido:</b> lluvia sobrestimada o caudal subestimado. Para PL hay una causa conocida: en
     esos años le falta {pq_seca_nombre}, la estación más seca, en {_lista_y([f"{k} meses de {a}" for a, k in pq_falta_seca.items()])},
-    y sin ella PL queda alta (el sesgo de cobertura de «Anomalías en las series»).</li>
+    y sin ella PL queda alta (el sesgo de cobertura de «Saltos y errores de registro»).</li>
   </ul>
   <p class="nota">Ninguna de las cuatro está comprobada.</p>
   {pq_recarga}"""
@@ -530,9 +544,6 @@ filas_ceros = "\n".join(
     for pl_, m, mn, pr, pi_, dif in an_ceros[["pluviometro", "periodo", "otros_minimo_mm", "otros_promedio_mm",
                                                "pi_mm", "dificil_de_creer"]].itertuples(index=False))
 
-exc_lista = "; ".join(
-    f"{_nombre_pluvio[c]} de {fmt_mes_an(d)} a {fmt_mes_an(h)}" if d != h else f"{_nombre_pluvio[c]} en {fecha_anomala(d)}"
-    for c, d, h in exclusiones[["codigo", "desde", "hasta"]].itertuples(index=False))
 
 CLASE_RESULTADO = {"sin problemas": "", "anotado": "res-anotado", "revisar": "res-revisar", "no disponible": "res-nd"}
 filas_cc = "\n".join(
@@ -541,8 +552,10 @@ filas_cc = "\n".join(
     for f, c, res, d in cc[["fuente", "chequeo", "resultado", "detalle"]].itertuples(index=False))
 filas_naturaleza = "\n".join(
     f"<tr><td><b>{html.escape(v)}</b></td><td>{html.escape(fu)}</td><td>{html.escape(ti)}</td>"
-    f"<td class='detalle'>{html.escape(co)}</td><td class='detalle'>{html.escape(re_)}</td></tr>"
+    f"<td class='detalle'>{html.escape(co).replace('(Muñoz-Sabater et al.)', f'({CITA_MUNOZ})')}</td>"
+    f"<td class='detalle'>{html.escape(re_)}</td></tr>"
     for v, fu, ti, co, re_ in cc_naturaleza.itertuples(index=False))
+assert CITA_MUNOZ in filas_naturaleza            # la cita de ERA5-Land de esa tabla lleva a su entrada
 
 CLASE_ESTADO = {"corregido": "", "incierto": "res-revisar", "descartado": "res-nd"}
 filas_reg = "\n".join(
@@ -1629,10 +1642,50 @@ n34_rob_total = len(_n34_rob)
 n34_rob_fuera = "; ".join(f"{_lista_meses(sorted(g.mes))} con {v}"
                           for v, g in _n34_rob[~_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA)].groupby("cuenca"))
 assert n34_rob_en_temporadas > n34_rob_total / 2                                # el texto dice «la mayoría»
+# Cada mes del calendario se cuenta una sola vez, aunque sea robusto con varias variables (junio lo es con PL y con PI).
+# Las dos temporadas de la fuente son 6 de los 12 meses: por azar, cada mes caería en ellas con probabilidad 1/2, así
+# que se da la probabilidad binomial de llegar a k o más de n meses por azar (decidido por Juan, 2026-10-11)
+_rob_meses = set(_n34_rob.mes)
+alt_binom_n = len(_rob_meses)
+alt_binom_k = len(_rob_meses & N34_TEMPORADAS_CORDOBA)
+alt_p_binom = sum(comb(alt_binom_n, j) for j in range(alt_binom_k, alt_binom_n + 1)) / 2 ** alt_binom_n
+alt_binom_txt = (
+    f"Esas dos temporadas son la mitad del año, así que por azar ya caería ahí la mitad de los meses: llegar a "
+    f"{alt_binom_k} de {alt_binom_n} o más por puro azar tiene una probabilidad de {alt_p_binom:.2f}. Es coherente con la "
+    f"fuente, pero no la prueba.")
+assert alt_p_binom > 0.05                                           # «coherente con la fuente, pero no la prueba»
+assert alt_binom_k > alt_binom_n / 2
 # lo que afirma la interpretación física: marzo es robusto con Q y queda fuera de las dos temporadas, y Q pasa
 # la corrección en más meses con el índice un mes antes
 assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
 assert n34_fdr_l[1] > n34_fdr_l[0]
+# «Q frente al ONI y al TNA»: la curva de r contra el rezago de cada índice y los textos
+# colores: el ONI con el de la tinta y el TNA con el azul cielo de la paleta de Okabe e Ito (como COLOR_VAR); la
+# parcial del TNA va con el color del TNA y trazo punteado
+COLOR_INDICE = {"TNA": "#56B4E9", IND_PARCIAL: "#56B4E9"}
+
+
+def _rango_rezagos(ks):
+    """Rezagos significativos como texto: «de −4 a +7 meses» si son seguidos; si no, la lista."""
+    if not ks:
+        return "ninguno"
+    if ks == list(range(ks[0], ks[-1] + 1)):
+        return f"de {ks[0]:+d} a {ks[-1]:+d} meses"
+    return ", ".join(f"{k:+d}" for k in ks) + " meses"
+
+
+ind_json = json.dumps({n: {"k": [int(k) for k in g.rezago], "r": g.r.round(3).tolist(),
+                           "sig": g.significativa.astype(bool).tolist(), "n": [int(x) for x in g.n],
+                           "q": g.q.round(4).tolist()}
+                       for n, g in ind_corr.groupby("indice")} | {"colores": COLOR_INDICE, "parcial": IND_PARCIAL},
+                      ensure_ascii=False)
+ind_txt = {n: {"r": d["r"], "k": int(d["rezago"]), "n": int(d["n"]), "n_ef": d["n_efectivo"], "q": d["q"],
+               "r2": 100 * d["r"] ** 2, "rango": _rango_rezagos(ind_sig[n])} for n, d in ind_max.items()}
+ind_n = (int(ind_corr.n.min()), int(ind_corr.n.max()))
+ind_n_ef = {n: (float(ind_corr[ind_corr.indice == n].n_efectivo.min()), float(ind_corr[ind_corr.indice == n].n_efectivo.max()))
+            for n in IND_NOMBRES}
+ind_tna_0 = float(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0])
+_palabra_mes = lambda k: "mes" if abs(k) == 1 else "meses"
 # para «¿El ENSO explica las tendencias?»: remite a «Sensibilidad a años extremos», sin recalcular
 assert all(tend_sin_anio[v]["n_sig"] == 0 for v in ("PL*", "PI", "Q"))         # «ninguna versión es significativa»
 if tend_sin_anio_comun is not None:
@@ -1705,10 +1758,14 @@ SINT_FILAS = [
     ("Los años con El Niño son más secos",
      f"Correlación negativa y robusta con el índice Niño 3.4 en {n34_robustos['PL']} con PL, {n34_robustos['PI']} con PI y "
      f"{n34_robustos['Q']} con Q.",
-     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección.",
-     f"De los {n34_rob_total} meses robustos, {n34_rob_en_temporadas} caen en las temporadas que señala la fuente; Q pasa la "
+     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve "
+     "menos y, con el atraso del almacenamiento, baja el caudal.",
+     f"De los {alt_binom_n} meses del calendario con relación robusta, {alt_binom_k} caen en las temporadas que señala la "
+     f"fuente (por azar caería la mitad: es coherente, no una prueba); Q pasa la "
      f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
-     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño («La cuenca frente a los campos climáticos»).",
+     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño; la anomalía de Q se correlaciona en {ind_txt['ONI']['r']:+.2f} con "
+     f"el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
+     "sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).",
      f"{CITA_CORDOBA}; {CITA_POVEDA}",
      f"Son {pe_n_anios} años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la "
      "coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo."),
@@ -1738,16 +1795,198 @@ assert rho("PI", "Q") < rho("PL", "Q")                                          
 assert _k("PI", MOD_ELEGIDO).kge < _k("PL", MOD_ELEGIDO).kge and mod_pi_kge_bajo_m0["vc"]
 assert etp_anual.camels > etp_pl_anual                                           # «la ETP de CAMELS-COL supera a la lluvia»
 assert rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
+# Versión alterna (2026-10-11): tres filas más, con los resultados de las secciones nuevas y del modelo lluvia–caudal
+SINT_FILAS += [
+    ("La lluvia del mes y del anterior estiman el caudal mensual",
+     f"KGE fuera del ajuste de {_k('PL', MOD_ELEGIDO).kge:.2f} con PL y {_k('PI', MOD_ELEGIDO).kge:.2f} con PI, frente a "
+     f"{_k('PL', MOD_REFERENCIA).kge:.2f} de la climatología.",
+     "El caudal es la lluvia reciente amortiguada por el almacenamiento.",
+     "Sumar la lluvia del mes anterior baja el error en la validación cruzada («¿Sirve la lluvia para estimar el "
+     "caudal?»; «Validación fuera del ajuste»).",
+     "No aplica: es un ajuste estadístico propio.",
+     f"Los residuos conservan el calendario (Kruskal-Wallis por mes, p {fmt_p_eq(alt_kw_residuo['PL'])} con PL): apunta a que al modelo le "
+     "falta un almacenamiento más lento que un mes. Con PI, el modelo no supera a la climatología."),
+]
 sint_filas = "\n".join(f"<tr><td><b>{fila[0]}</b></td>" + "".join(f"<td>{c}</td>" for c in fila[1:]) + "</tr>"
                        for fila in SINT_FILAS)
 
+
+# ======================================================================================================
+# Versión alterna del informe (2026-10-11). Textos de las secciones nuevas (forma y relieve), del resumen y las conclusiones, y de las correcciones que pidió la revisión
+# adversarial. Las cifras salen de 18_calculos_informe.py; lo que el texto afirma se protege con assert.
+# ======================================================================================================
+
+# ---------------------------------------------------------------- correcciones de texto
+# E1: la fase del ENSO de los meses de lluvia extrema va junto a ellos, y la de los secos se dice aparte
+alt_lectura_lluvia = lectura_enso_lluvia.replace("Todos", "De esos meses lluviosos, todos", 1)
+_seco_fases = pd.Series([oni_fase.get(p, "neutro") for p in seco_confirmado], dtype=object).value_counts()
+alt_seco_txt = ("" if _seco_fases.empty else
+                "Por fase del ENSO, los secos se reparten así: "
+                + ", ".join(f"{k} en {'fase neutra' if f == 'neutro' else f}" for f, k in _seco_fases.items()) + "."
+                + (" No todos cayeron en El Niño." if set(_seco_fases.index) != {"El Niño"} else ""))
+# E2: la lluvia con PL en los mismos meses del balance con PI
+alt_bal_pl_anual = float(_bal_pl.p.mean() * 12)
+assert len(_bal_pl) == bal_n and fis_coef["pl"] < coef_periodo      # «PI mide menos lluvia, su cociente sale mayor»
+alt_area_camels = float(morf.loc["área", "publicado_camels"])
+# E3: el rezago de la sección de Fourier también es 1 o 2 meses
+assert fis_q_rezago_oni in (1, 2) and ind_txt["ONI"]["k"] == 1                # el texto dice «1 a 2 meses» y nombra el 1 primero
+assert abs(ind_txt["ONI"]["r"] - alt_oni_r[1]) < 1e-9
+# E6: ¿pasa Q la corrección en mayo con el índice un mes antes?
+alt_mayo_l1 = bool(_n34[(_n34.rezago == 1) & (_n34.cuenca == "Q") & (_n34.mes == 5)].sobrevive_fdr.any())
+alt_mayo_l0 = bool(_n34[(_n34.rezago == 0) & (_n34.mes.isin([4, 5]))].sobrevive_fdr.any())
+assert not alt_mayo_l0                                              # «sin rezago, abril y mayo no pasan»
+alt_mayo_txt = "; con el índice un mes antes, Q sí pasa en mayo" if alt_mayo_l1 else ""
+# E9: cuánto drena Mérida
+alt_merida_pct = float(m.loc[24027070, "area"] / sg["area"] * 100)
+assert alt_merida_pct < 90                                          # no es «casi toda»
+
+# ---------------------------------------------------------------- forma y relieve de la cuenca
+def _morf_valor(v):
+    """Un valor de la tabla de morfometría con los decimales que le sirven a su tamaño."""
+    if pd.isna(v):
+        return "—"
+    v = float(v)
+    if abs(v) < 0.001:
+        return f"{v:.7f}"
+    if abs(v) < 1:
+        return f"{v:.3f}"
+    if abs(v) < 100:
+        return f"{v:.2f}"
+    return n(v) if v.is_integer() else n(v, 2)
+
+
+NOMBRE_TC = {"Kirpich": "Kirpich", "Chow": "Chow", "Johnstone": "Johnstone",
+             "Engi_Corps": "Cuerpo de Ingenieros (<code>Engi_Corps</code>)"}
+assert set(NOMBRE_TC) == set(morf_tc.index)
+_ts = "pendiente del cauce (Taylor-Schwarz)"
+alt_ts_razon = float(morf.loc[_ts, "valor"] / morf.loc[_ts, "publicado_camels"])
+assert alt_ts_razon > 100                                           # «cientos de veces menor»
+assert 0.35 < morf_integral < 0.40                                  # clase de Strahler y «cerca del borde inferior»
+_cauce = morf_cauces.set_index("magnitud").loc["longitud del cauce principal (km)"]
+alt_filas_morf = "\n".join(
+    f"<tr><td>{html.escape(mag)}</td><td class='num'>{_morf_valor(r.valor)}</td><td>{html.escape(str(r.unidad))}</td>"
+    f"<td>{html.escape(str(r.origen))}</td><td class='num'>{_morf_valor(r.publicado_camels)}</td></tr>"
+    for mag, r in morf.iterrows())
+alt_filas_tc = "\n".join(
+    f"<tr><td>{NOMBRE_TC[f]}</td><td class='num'>{r.con_pendiente_medida_h:.1f}</td>"
+    f"<td class='num'>{r.con_equi_slope_camels_h:.1f}</td><td class='num'>{r.publicado_camels_h:.1f}</td></tr>"
+    for f, r in morf_tc.iterrows())
+alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué tan rápido llega el agua a la salida. Las
+  magnitudes de esta sección se midieron sobre el polígono del proyecto y el DEM ALOS PALSAR de 12.5 m
+  (<code>scripts/13_morfometria.py</code> a <code>15</code>); al lado va lo que publica CAMELS-COL.</p>
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{morf_gravelius:.2f}</b><span>índice de Gravelius</span></div>
+    <div class="cifra"><b>{morf_forma:.2f}</b><span>factor de forma de Horton</span></div>
+    <div class="cifra"><b>{morf_pendiente:.1f}°</b><span>pendiente media del terreno</span></div>
+    <div class="cifra"><b>{morf_integral:.2f}</b><span>integral hipsométrica</span></div>
+  </div>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Magnitud</th><th class="num">Proyecto</th><th>Unidad</th><th>De dónde sale</th>
+    <th class="num">Publicado por CAMELS-COL</th></tr></thead>
+    <tbody>
+{alt_filas_morf}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">La red de drenaje de CAMELS-COL tiene solo los cauces principales, así que la longitud de red por km² no
+  es la densidad de drenaje real y no se interpreta. La longitud del cauce principal depende de la red que se use:
+  {_cauce.red_de_camels:.1f} km con la de CAMELS-COL, {_cauce.derivado_del_dem:.1f} km con la derivada del DEM y
+  {_cauce.publicado_camels:.1f} km según CAMELS-COL.</p>
+  <p><b>Una cuenca alargada.</b> El índice de Gravelius, {morf_gravelius:.2f}, compara el perímetro con el de un círculo de
+  la misma área; por encima de 1.75 está la clase más alargada de la escala usual. El factor de forma de Horton dice lo
+  mismo: la longitud de la cuenca al cuadrado es {1 / morf_forma:.1f} veces su área. En una cuenca alargada, el agua del
+  extremo lejano llega bastante después que la del cercano, y eso tiende a repartir las crecientes en el tiempo.</p>
+  <p><b>Empinada, y en una etapa intermedia de erosión.</b> La pendiente media del terreno es de {morf_pendiente:.1f}°. La
+  integral hipsométrica, {morf_integral:.2f}, es el área bajo la curva hipsométrica (qué fracción de la cuenca queda por
+  encima de cada altura); según la lectura de {CITA_STRAHLER}, entre 0.35 y 0.6 corresponde a una cuenca en equilibrio,
+  «madura». Esta queda cerca del borde inferior de esa clase.</p>
+  <div class="placa"><img src="{img('curva_hipsometrica.png')}" alt="Curva hipsométrica de la cuenca de San Gil: fracción del área por encima de cada altura"></div>
+  <div class="placa"><img src="{img('perfil_cauce.png')}" alt="Perfil longitudinal del cauce principal del Fonce, de la cabecera a San Gil"></div>
+
+  <h3>Tiempo de concentración</h3>
+  <p>El tiempo de concentración es lo que tarda en llegar a la salida el agua que cae en el punto más lejano. Con la
+  pendiente del cauce medida sobre el DEM, las cuatro fórmulas que usa CAMELS-COL ({CITA_KIRPICH} y otras tres) dan
+  entre {morf_tc_medido.min():.1f} y {morf_tc_medido.max():.1f} horas. CAMELS-COL publica entre
+  {morf_tc_publicado.min():.0f} y {morf_tc_publicado.max():.0f} horas. La diferencia sale de la pendiente: la de
+  Taylor-Schwarz que publica CAMELS-COL es {_morf_valor(morf.loc[_ts, "publicado_camels"])} m/m, unas
+  {alt_ts_razon:.0f} veces menor que la medida en el mismo cauce ({_morf_valor(morf.loc[_ts, "valor"])} m/m), algo
+  imposible para un río que baja {n(morf.loc["desnivel del cauce", "valor"])} m en
+  {morf.loc["longitud del cauce principal", "valor"]:.0f} km. Parece un error de unidades de la fuente; no se pudo
+  confirmar. El informe usa la pendiente medida.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Fórmula</th><th class="num">Con la pendiente medida (h)</th>
+    <th class="num">Con la pendiente de CAMELS-COL (h)</th><th class="num">Publicado por CAMELS-COL (h)</th></tr></thead>
+    <tbody>
+{alt_filas_tc}
+    </tbody>
+  </table>
+  </div>
+  <div class="placa"><img src="{img('tiempos_concentracion.png')}" alt="Tiempos de concentración de cuatro fórmulas, con la pendiente medida y con la publicada por CAMELS-COL"></div>
+  <p><b>Lo que importa para el resto del informe:</b> aun el tiempo más largo, {morf_tc_medido.max():.1f} horas, es mucho
+  menor que el atraso del río frente a la lluvia en el ciclo anual, unos {desfase["Q_PL"]:.0f} días (ver «Desfase
+  estacional»). Ese atraso no es el tiempo de viaje del agua por los cauces: es agua que la cuenca guarda y suelta
+  después.</p>"""
+
+# ---------------------------------------------------------------- veredicto sobre la hipótesis H
+alt_veredicto_h = f"""<div class="aviso">
+  <p><b>Veredicto de esta versión: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
+  ciclo anual, la del mes anterior agrega información, y el caudal no tiene tendencia sin un cambio de la lluvia. Lo que
+  la contradice, por su propio criterio: los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por mes
+  del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). Una lectura
+  posible, que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al
+  río entre temporadas y que el modelo no representa.</p>
+  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un
+  almacenamiento rápido, de un mes, y otro más lento. Para probarla haría falta un modelo con dos
+  almacenamientos y comprobar que sus residuos ya no conservan el calendario.</p>
+  </div>"""
+
+# ---------------------------------------------------------------- conclusiones
+alt_conclusiones = f"""<h3>Conclusiones</h3>
+  <ol>
+    <li><b>Régimen bimodal.</b> La lluvia y el caudal tienen dos temporadas al año, por el doble paso de la ZCIT; los
+    picos de PL están en {pico_pl[0]} y {pico_pl[1]}.</li>
+    <li><b>Balance.</b> Sale como caudal el {fis_coef["pl"] * 100:.0f} % de la lluvia con PL ({coef_periodo * 100:.0f} %
+    con PI).</li>
+    <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
+    concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
+    despacio.</li>
+    <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
+    PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}); con PI, no. Pero al modelo le falta el almacenamiento lento.</li>
+    <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
+    después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI). Con {pe_n_anios} años no se le puede atribuir toda la
+    variabilidad entre años.</li>
+    <li><b>Tendencias.</b> La temperatura sube {fis_t_decada:+.2f} °C por década; la lluvia y el caudal no tienen una
+    tendencia significativa, lo que no prueba que no la haya.</li>
+    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «Una hipótesis para las
+    relaciones y las tendencias»).</li>
+  </ol>
+
+  <h3>Limitaciones y trabajo futuro</h3>
+  <ul>
+    <li><b>La lluvia de arriba no se mide:</b> ningún pluviómetro está por encima de {n(mapa_plu_alta.altitud)} m. Una
+    estación en el páramo es lo que más reduciría la incertidumbre entre PI y PL.</li>
+    <li><b>La incertidumbre del caudal no se conoce:</b> no se tienen los aforos ni la curva de calibración de San Gil, así
+    que Q se trata como exacto, mientras que la lluvia se trabaja con dos fuentes.</li>
+    <li><b>Las subcuencas tienen caudal medido y no se usan</b> para el caudal; servirían para ver de dónde viene el agua
+    de San Gil.</li>
+    <li><b>Un modelo con dos almacenamientos</b> (rápido y lento) para probar la hipótesis H′.</li>
+    <li><b>Todo el trabajo es de resolución mensual.</b> Las crecientes y los estiajes, que duran horas o días (el
+    tiempo de concentración es de {morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas), quedan aplanados en el
+    promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno, no separa el
+    flujo base del caudal (eso necesita datos diarios) y no puede ver la respuesta del río a una tormenta. Que Q vaya
+    detrás de la lluvia se mide en días, pero a partir de meses.</li>
+    <li><b>ERA5-Land solo está descargado para 1998–2022</b>: la ETP y la temperatura no tienen registro largo.</li>
+  </ul>"""
+assert _k("PL", MOD_ELEGIDO).kge > _k("PL", MOD_REFERENCIA).kge                # «mejor que la climatología con PL»
 
 pagina = f"""<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reporte cuenca del Fonce</title>
+<title>Reporte cuenca del Fonce (versión alterna)</title>
 <meta name="author" content="{html.escape(", ".join(AUTORES))}">
 <script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1872,7 +2111,7 @@ a {{ color: var(--acento); }}
 
 <div class="envoltura">
 <header>
-  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca</p>
+  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca · versión alterna</p>
   <h1>Cuenca del río Fonce hasta San Gil</h1>
   <div{revision("autores")}>
     <p class="intro"><b>Autores:</b> {html.escape(", ".join(AUTORES))}</p>
@@ -1883,7 +2122,7 @@ a {{ color: var(--acento); }}
     <div class="cifra"><b>{n(sg['area'])} km²</b><span>área de drenaje</span></div>
     <div class="cifra"><b>{n(elev_min)}–{n(elev_max)} m</b><span>rango de elevación (DEM)</span></div>
     <div class="cifra"><b>{n(elev_media)} m</b><span>elevación media (DEM)</span></div>
-    <div class="cifra"><b>{n(p_imerg[24027010])} mm</b><span>lluvia anual IMERG 1998–2022</span></div>
+    <div class="cifra"><b>{n(alt_pl_anual)} mm</b><span>lluvia anual de los pluviómetros del IDEAM (PL), 1998–2022</span></div>
   </div>
 </header>
 
@@ -1904,8 +2143,8 @@ a {{ color: var(--acento); }}
       del valle del Magdalena y, en el borde del mapa, el flanco de la cordillera Central; al oriente de la cordillera,
       los Llanos. El triángulo es la estación de aforo de San Gil, la salida de la cuenca.</p>
       <dl class="lista-datos">
-        <dt>Relieve</dt><dd>Copernicus DEM GLO-90 (ESA): celdas de 3″ (unos 90 m), promediadas a {ubic_paso_seg:.0f}″ para la figura</dd>
-        <dt>Límites</dt><dd>Natural Earth, escala 1:10 m: países y departamentos; Santander, con línea más gruesa</dd>
+        <dt>Relieve</dt><dd>Copernicus DEM GLO-90 ({CITA_COPERNICUS_DEM}): celdas de 3″ (unos 90 m), promediadas a {ubic_paso_seg:.0f}″ para la figura</dd>
+        <dt>Límites</dt><dd>{CITA_NATURAL_EARTH}, escala 1:10 m: países y departamentos; Santander, con línea más gruesa</dd>
         <dt>Recuadro</dt><dd>{abs(ubic_limites.left):.1f}° a {abs(ubic_limites.right):.1f}° W, {ubic_limites.bottom:.1f}° a {ubic_limites.top:.1f}° N</dd>
         <dt>Elevación en el recuadro</dt><dd>{n(ubic_elev_min)}–{n(ubic_elev_max)} m</dd>
       </dl>
@@ -1924,7 +2163,7 @@ a {{ color: var(--acento); }}
   <h3>La cuenca y sus subcuencas</h3>
   <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
   Las cinco estaciones aguas arriba dividen la cuenca en subcuencas de tamaños muy distintos: Mérida, sobre el mismo Fonce,
-  drena casi toda la cuenca; Monchía y Mogoticos son pequeñas.</p>
+  tiene el {alt_merida_pct:.0f} % del área de la cuenca; Monchía y Mogoticos son pequeñas.</p>
   <div class="tabla-caja">
   <table>
     <thead><tr><th>Código IDEAM</th><th>Estación</th><th>Río</th><th class="num">Área (km²)</th><th class="num">% de San Gil</th>
@@ -1959,7 +2198,7 @@ a {{ color: var(--acento); }}
       <p class="nota">Se descargó un octavo pluviómetro, Mamonal El Hacienda, que queda fuera de la divisoria, en la vertiente del
       Chicamocha. No aparece en el mapa ni entra en el promedio de la cuenca.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>ALOS PALSAR</dd>
+        <dt>Fuente</dt><dd>{CITA_ALOS}</dd>
         <dt>Resolución</dt><dd>12.5 m original; remuestreado a 50 m para la figura</dd>
         <dt>Proyección</dt><dd>UTM 19N (EPSG:32619); áreas y longitudes, en el elipsoide o en EPSG:3116</dd>
         <dt>Elevación en la cuenca</dt><dd>{n(elev_min)}–{n(elev_max)} m, media {n(elev_media)} m</dd>
@@ -2046,6 +2285,11 @@ a {{ color: var(--acento); }}
 </script>
 
 <section>
+  <h2>Forma y relieve de la cuenca</h2>
+  {alt_morfometria}
+</section>
+
+<section>
   <h2>Coberturas, suelos y geología</h2>
   <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
   guarda. Aquí solo se usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca
@@ -2064,7 +2308,7 @@ a {{ color: var(--acento); }}
       <p>Cada color es un grupo litológico; las líneas finas separan las unidades del mapa, rotuladas con su símbolo
       cuando ocupan más del 2 % de la cuenca, y las gruesas son fallas.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>Mapa Geológico de Colombia 2023, SGC, escala 1:1 500 000 (capas de unidades y de fallas)</dd>
+        <dt>Fuente</dt><dd>Mapa Geológico de Colombia 2023 ({CITA_SGC}), escala 1:1 500 000 (capas de unidades y de fallas)</dd>
         <dt>Grupos</dt><dd>por la letra del símbolo de cada unidad (S sedimentaria, M metamórfica, P plutónica, V
         volcánica, VC volcanoclástica; minúscula, depósito cuaternario)</dd>
         <dt>Áreas</dt><dd>medidas en EPSG:3116</dd>
@@ -2112,7 +2356,7 @@ a {{ color: var(--acento); }}
       <h3>Figura 6 · Coberturas de la cuenca en 2022</h3>
       <p>Cada color es una clase de MapBiomas; la leyenda da el porcentaje de la cuenca que ocupa.</p>
       <dl class="lista-datos">
-        <dt>Fuente</dt><dd>MapBiomas Colombia, colección 3, año 2022: clasificación de imágenes Landsat, celdas de 30 m</dd>
+        <dt>Fuente</dt><dd>MapBiomas Colombia, colección 3, año 2022 ({CITA_MAPBIOMAS}): clasificación de imágenes Landsat, celdas de 30 m</dd>
         <dt>Recorte</dt><dd>celdas cuyo centro cae dentro del polígono del proyecto</dd>
         <dt>Áreas</dt><dd>de cada celda, medida en el elipsoide WGS84</dd>
       </dl>
@@ -2149,7 +2393,7 @@ a {{ color: var(--acento); }}
   </table>
   </div>
   <dl class="lista-datos">
-    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000</dd>
+    <dt>Suelos</dt><dd>Mapas de suelos del territorio colombiano del IGAC, escala 1:100 000 ({CITA_IGAC})</dd>
     <dt>Capacidad de uso</dt><dd>Clases 1 a 8 del IGAC (2014); la 1 tiene las menores limitaciones de uso y la 8, las mayores</dd>
   </dl>
 
@@ -2357,7 +2601,7 @@ a {{ color: var(--acento); }}
 
   <div id="g-calidad" class="grafico" style="min-height:{150 + 26 * len(cal_filas)}px"></div>
   <p class="nota">Las fuentes mensuales (IMERG y los pluviómetros) solo están o no están: verde o rojo pleno. Los
-  meses excluidos de PL aparecen vacíos: {exc_lista}.</p>
+  meses excluidos de PL (ver «Registro de problemas de los datos») aparecen vacíos.</p>
 
   <div class="tabla-caja">
   <table>
@@ -2437,7 +2681,7 @@ a {{ color: var(--acento); }}
 
 <section>
   <details class="plegable" open>
-  <summary><h2>Anomalías en las series</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
+  <summary><h2>Saltos y errores de registro</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Un cambio de estación, de instrumento o de producto deja un <b>escalón</b>: desde cierta fecha la serie
   mide sistemáticamente más o menos que sus vecinas. Para buscarlo, cada pluviómetro se compara con el promedio
   de los demás, y PI y Q con PL.</p>
@@ -2513,14 +2757,14 @@ a {{ color: var(--acento); }}
   {an_sesgo.median():.1f} % en la mediana y un {an_sesgo.max():.1f} % como máximo (estimado en los meses en que
   están todos): incertidumbre declarada, no se corrige.</p>
 {nota_enso.replace("sin color, ninguno de los dos", "en negrita sin color, ninguno de los dos")}
-  <p class="aviso"><b>Con todas las exclusiones, PI queda un {abs(sesgo_pi_pl):.1f} % por debajo de PL.</b> Los
-  tramos excluidos: {exc_lista}.</p>
+  <p class="aviso"><b>Con todas las exclusiones, PI queda por debajo de PL (ver «Comparando PI con PL»).</b> Los
+  tramos excluidos están en el «Registro de problemas de los datos».</p>
   </details>
 </section>
 
 <section>
   <details class="plegable" open>
-  <summary><h2>Registro de anomalías</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
+  <summary><h2>Registro de problemas de los datos</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Lo que apareció raro en los datos, con qué se comprobó, qué se decidió y su efecto. De las {len(reg)} anomalías, <b>{reg_conteo.get("corregido", 0)}
   quedaron corregidas</b> (se excluyó el tramo o se cambió la fuente o el cálculo), <b>{reg_conteo.get("incierto", 0)}
   quedan inciertas</b> (el dato se conserva, pero no hay forma de saber si está bien, y la duda se arrastra) y
@@ -2543,7 +2787,11 @@ a {{ color: var(--acento); }}
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
   {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
-  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios.</p>
+  <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. La temperatura es una sola variable, pero
+  va en tres columnas. La ETP no está en la tabla: se calcula con la temperatura (Hargreaves) y tiene su propia
+  sección, «La evapotranspiración potencial (ETP)». Q sale de la curva de calibración del IDEAM,
+  que pasa del nivel del río al caudal; el error de esa curva no se conoce, sobre todo en caudales altos, donde hay menos
+  aforos, y en este informe Q se trata como exacto (ver «Limitaciones y trabajo futuro»).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Estadístico</th><th class="num">PI (mm/mes)</th><th class="num">PL (mm/mes)</th>
@@ -2616,8 +2864,8 @@ a {{ color: var(--acento); }}
   <ul class="tratamiento">
     <li><b>Lluvia extrema que el río confirma:</b> {lista_meses(lluvia_confirmada)}. En esos meses la lluvia
     atípica viene con caudal por encima de lo normal (z ≥ {UMBRAL_RESPUESTA:.0f}) en el mismo mes o el
-    siguiente. Meses secos confirmados de la misma forma: {lista_meses(seco_confirmado)}.
-    <p class="lectura">{lectura_enso_lluvia}</p></li>
+    siguiente. {alt_lectura_lluvia}
+    <p class="lectura">Meses secos confirmados de la misma forma: {lista_meses(seco_confirmado)}. {alt_seco_txt}</p></li>
     <li><b>Posibles errores de PI:</b> {lista_meses(error_pi)}. Solo el satélite se sale de lo normal; la red
     está dentro de ±1 y el río no acompaña. Son el tipo de mes en que conviene creerle a PL.</li>
     <li><b>Un caso que no cumple el criterio pero salta a la vista: {fecha_enso(_F99)}.</b> Es el febrero más
@@ -2739,7 +2987,7 @@ a {{ color: var(--acento); }}
   {etp_ra_cociente_mes.min():.2f} a {etp_ra_cociente_mes.max():.2f} según el mes), es un factor de escala.</p>
   <p><b>El valor recalculado es el plausible:</b> {n(etp_anual.mswx)} a {n(etp_anual.era)} mm/año, dentro del rango
   de 1 200 a 1 400 mm/año que el artículo de CAMELS-COL da para Colombia ({CITA_JIMENEZ}) y por encima de lo que la
-  cuenca pierde en el balance (PL − Q = {n(etp_pl_menos_q)} mm/año). Los {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(etp_pl_anual) + " mm/año)" if etp_anual.camels > etp_pl_anual else ""}.</p>
+  cuenca pierde en el balance (PL − Q = {n(etp_pl_menos_q)} mm/año). Los {n(etp_anual.camels)} mm/año de CAMELS-COL{" superan incluso a la lluvia (PL = " + n(alt_pl_anual) + " mm/año)" if etp_anual.camels > alt_pl_anual else ""}.</p>
   <p><b>Con MSWX o con ERA5-Land da casi lo mismo</b> ({etp_era_vs_mswx:+.1f} %, r = {etp_r_era_mswx:.2f} mes a
   mes), aunque ERA5-Land es más fría: también tiene más amplitud diaria, y en la fórmula de Hargreaves las
   dos cosas se compensan.</p>
@@ -2833,9 +3081,9 @@ a {{ color: var(--acento); }}
   <p>Dividido por el área de la cuenca ({n(AREA_SG_KM2)} km²), el caudal queda como lámina de agua, en mm, y se
   compara con la lluvia en el mismo eje.</p>
   <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{n(bal_p_anual)} mm/año</b><span>lluvia (PI), en los meses con caudal</span></div>
+    <div class="cifra"><b>{n(alt_bal_pl_anual)} mm/año</b><span>lluvia con PL, en los meses con caudal (PI: {n(bal_p_anual)})</span></div>
     <div class="cifra"><b>{n(bal_q_anual)} mm/año</b><span>caudal</span></div>
-    <div class="cifra"><b>{coef_periodo:.2f}</b><span>coeficiente de escorrentía</span></div>
+    <div class="cifra"><b>{fis_coef["pl"]:.2f}</b><span>coeficiente de escorrentía con PL (con PI: {coef_periodo:.2f})</span></div>
     <div class="cifra"><b>{bal_n}</b><span>meses con ambos datos</span></div>
   </div>
   <div id="g-balance" class="grafico" style="min-height:400px"></div>
@@ -2845,11 +3093,13 @@ a {{ color: var(--acento); }}
   en azul punteado. Donde el caudal se interrumpe
   es porque ese mes no cumple la regla de los cuatro días faltantes.</p>
   </div>
-  <p><b>Sale como caudal cerca del {coef_periodo * 100:.0f} % de la lluvia</b>; el resto se evapora o queda
-  almacenado.</p>
-  <p class="nota"><b>CAMELS-COL lo confirma por su cuenta:</b> publica para San Gil un <code>runoff_ratio</code> de
-  {float(firmas_sg.runoff_ratio):.2f} y {n(float(firmas_sg.q_mean) * 365)} mm/año de caudal; aquí, por otro camino,
-  salen {coef_periodo:.2f} y {n(bal_q_anual)} mm/año.</p>
+  <p><b>Sale como caudal cerca del {fis_coef["pl"] * 100:.0f} % de la lluvia con PL</b> (el {coef_periodo * 100:.0f} %
+  con PI, que mide menos lluvia); el resto se evapora o queda almacenado. Como manda PL, la cifra principal es la de PL.</p>
+  <p class="nota"><b>CAMELS-COL no sirve para decidir entre las dos.</b> Publica para San Gil un <code>runoff_ratio</code>
+  (coeficiente de escorrentía) de {float(firmas_sg.runoff_ratio):.2f} y {n(float(firmas_sg.q_mean) * 365)} mm/año de caudal
+  (aquí, {n(bal_q_anual)} mm/año), pero calculado con una tercera lluvia, la de CHIRPS, y con su propia área
+  ({n(alt_area_camels)} km²). Que su cociente quede cerca del de PI no confirma a PI: es otra estimación de la lluvia,
+  con sus propios errores.</p>
 
   <p class="aviso">Meses en que salió más agua de la que cayó (coeficiente &gt; 1): <b>{bal_sobre1_pl} con PL</b>
   (máximo {bal_max_pl:.2f} en {fmt_mes(bal_max_mes_pl)}) y {bal_sobre1} con PI (máximo {bal_max:.2f} en
@@ -3154,17 +3404,20 @@ a {{ color: var(--acento); }}
   <p>El mes más seco de PI es {ciclo_valle_imerg} y el caudal toca fondo en {ciclo_valle_q}.</p>
 
   <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{ciclo_pico_imerg}</b><span>pico de lluvia · IMERG</span></div>
-    <div class="cifra"><b>{ciclo_pico_red}</b><span>pico de lluvia · red</span></div>
-    <div class="cifra"><b>{ciclo_pico_q}</b><span>pico de caudal</span></div>
-    <div class="cifra"><b>{ciclo_valle_q}</b><span>caudal mínimo</span></div>
+    <div class="cifra"><b>{regimen["PI"]["max"]}</b><span>pico de lluvia · PI</span></div>
+    <div class="cifra"><b>{regimen["PL"]["max"]}</b><span>pico de lluvia · PL</span></div>
+    <div class="cifra"><b>{regimen["Q"]["max"]}</b><span>pico de caudal · Q</span></div>
+    <div class="cifra"><b>{regimen["Q"]["min"]}</b><span>caudal mínimo · Q</span></div>
   </div>
+  <p class="nota">Los meses de pico y de mínimo son los de «El régimen»: la mediana de cada mes con todos los meses
+  válidos de cada variable. La gráfica, en cambio, promedia los {ciclo_n} meses comunes. En PI, mayo y octubre quedan
+  casi empatados ({n(alt_pi_med_may, 1)} y {n(alt_pi_med_oct, 1)} mm/mes de mediana), así que con otra selección de meses
+  el pico puede pasar de uno al otro.</p>
 
-  <p>Las dos fuentes tienen la misma forma: la red pone sus picos en {ciclo_picos_red[0]} y
-  {ciclo_picos_red[1]}, y el satélite en {ciclo_picos_imerg[0]} y {ciclo_picos_imerg[1]}. Se separan en la
-  magnitud: la red mide más en {ciclo_meses_red_mayor} de los 12 meses (el sesgo del
-  {abs(cmp_stats[NOM_RED]['sesgo']):.1f} %).
-  {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if ciclo_picos_red == ciclo_picos_imerg else "En el calendario difieren a lo sumo en un mes de pico."}</p>
+  <p>Las dos fuentes tienen la misma forma: PL pone sus picos en {regimen["PL"]["picos"][0]} y
+  {regimen["PL"]["picos"][1]}, y PI en {regimen["PI"]["picos"][0]} y {regimen["PI"]["picos"][1]}. Se separan en la
+  magnitud: PL mide más en {ciclo_meses_red_mayor} de los 12 meses (ver «Comparando PI con PL»).
+  {"<b>Para decidir cuándo pasan las cosas en esta cuenca, da igual cuál de las dos se use.</b>" if regimen["PL"]["picos"] == regimen["PI"]["picos"] else "En el calendario difieren a lo sumo en un mes de pico."}</p>
 
 </section>
 
@@ -3283,8 +3536,8 @@ a {{ color: var(--acento); }}
   <div role="tabpanel" id="panel-anomc" aria-labelledby="pestana-anomc-0">
     <div id="g-anom-ciclo" class="grafico" style="min-height:0; height:440px"></div>
   </div>
-  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes,
-  {n(anom_tipico_pl)} mm en el año). Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
+  <p class="nota">Primera pestaña: PL mes a mes de cada año contrastante, contra el año típico (la mediana de cada mes).
+  Segunda: cada año por separado, PL (línea continua) contra PI (discontinua).</p>
   <p><b>PL y PI no se separan igual todos los años.</b> En {ANIOS_ESTUDIO[0]}–{ANIOS_ESTUDIO[-1]}, PL suma en promedio
   {anom_pl_pi_habitual:.2f} veces lo de PI. En los años contrastantes:
   {"; ".join(f"{a}, {r['razon']:.2f} ({n(r['pl_total'])} contra {n(r['pi_total'])} mm)" for a, r in anom_pl_pi.items())}.
@@ -3354,7 +3607,9 @@ a {{ color: var(--acento); }}
   {len(pl_estrella_rachas)} racha{"s" if len(pl_estrella_rachas) != 1 else ""} de valores repetidos
   ({"; ".join(f"{COD_PLUVIO[r.codigo].split(' (')[0]}, {r.meses} meses desde {fmt_mes(pd.Period(r.desde, 'M'))} con {r.valor_mm:.0f} mm" for r in pl_estrella_rachas.itertuples())}),
   porque no se sabe cuál valor es el rellenado. Coromoro (desde 2003) y Valle de San José (desde 1998) tienen un salto de
-  nivel marcado como incierto; su efecto se prueba abajo.</p>
+  nivel marcado como incierto; su efecto se prueba abajo. El salto de Valle de San José aparece en el registro largo
+  (1981–2022), no en 1998–2022: allí la prueba de «Saltos y errores de registro» no lo encuentra, y por eso esa estación
+  no está en el «Registro de problemas de los datos».</p>
 
   <h3>Tres maneras de medir una tendencia</h3>
   <p>Se usan tres aproximaciones, que responden preguntas distintas:</p>
@@ -3766,6 +4021,9 @@ a {{ color: var(--acento); }}
   {fou_coh_oni_txt}</p>
   <p>La correlación simple con el ONI de unos meses antes dice lo mismo. El rezago en que es más negativa es: {fou_corr_oni_txt}.
   El almacenamiento atrasa al río también en la escala del ENSO.</p>
+  <p class="nota"><b>Si la coherencia no es significativa y la correlación sí, no se contradicen:</b> la coherencia está
+  limitada a la banda interanual (3 a 7 años), mientras que la correlación de «Q frente al ONI y al TNA» abarca todo el
+  rango de escalas de tiempo.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Par</th><th>Ventana</th><th class="num">Coherencia (3–7 años)</th><th class="num">Umbral 95 %</th>
@@ -3793,7 +4051,7 @@ a {{ color: var(--acento); }}
   <p class="nota"><b>Lo que el espectro no dice.</b> El espectro de potencia descarta la fase, así que no da el desfase entre la lluvia
   y el caudal: eso se mide con los armónicos (ver «Desfase estacional» en «El ciclo anual») y, en la escala interanual, con el
   espectro cruzado (ver «¿Cuadra con el ENSO?»). La FFT con Hann se calcula en el tramo
-  continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q). Análisis de angomezma-cyber, integrado a los scripts del proyecto.</p>
+  continuo más largo de cada serie ({fou[(_fc, "Q", "original")]["n_fft"]} meses para Q).</p>
 
   <div{_cambio('Nuevo · conclusión')}>
   <h3>Conclusión</h3>
@@ -4228,21 +4486,27 @@ a {{ color: var(--acento); }}
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
   Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
-  <p><b>Por qué El Niño trae menos lluvia.</b> Según {CITA_CORDOBA}, cuando se calienta el Pacífico ecuatorial el aire
+  <p><b>Por qué El Niño trae menos lluvia.</b> Una advertencia sobre la fuente: {CITA_CORDOBA} estudian El Niño Modoki, una
+  variante de El Niño en que el calentamiento se concentra en el Pacífico central; aquí se usa como aproximación para El Niño
+  en general, el que mide el ONI. Según ese trabajo, cuando se calienta el Pacífico ecuatorial el aire
   asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
   llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
   al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
   podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
-  disminución es mayor de diciembre a febrero y de junio a agosto: de los {n34_rob_total} meses en que la relación con el
-  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), {n34_rob_en_temporadas} caen en esas dos temporadas; fuera de
-  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).</p>
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los {alt_binom_n} meses del calendario en que la relación
+  con el índice Niño 3.4 resultó robusta con alguna de las tres variables (PL, Q o PI), {alt_binom_k} caen en esas dos
+  temporadas; fuera de
+  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).
+  {alt_binom_txt}</p>
   <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
   <ul>
     <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
     en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
     {fis_coh_oni[("extendida 1981–2022", "PL*")]["coh"]:.2f} y Q {fis_coh_oni[("extendida 1981–2022", "Q")]["coh"]:.2f}; ver
     «¿Cuadra con el ENSO? Coherencia y fase con el ONI»);</li>
-    <li>Q va unos {fis_q_rezago_oni} meses detrás del ONI (el rezago en que su correlación es más negativa);</li>
+    <li>Q va 1 a 2 meses detrás del ONI: la correlación de su anomalía es casi la misma con el ONI de 1 mes antes
+    (r = {alt_oni_r[1]:+.2f}) y de 2 meses antes (r = {alt_oni_r[2]:+.2f}), así que con estos datos no se distingue
+    entre los dos;</li>
     <li>el año más seco con las dos fuentes es {fis_anio_seco} ({anom_anios[fis_anio_seco]["nino"]} meses de El Niño), y el
     más húmedo con las dos juntas, {fis_anio_humedo} ({anom_anios[fis_anio_humedo]["nina"]} meses de La Niña; ver «Los años
     contrastantes»).</li>
@@ -4322,6 +4586,7 @@ a {{ color: var(--acento); }}
   <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
   acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con
   la lluvia conservaran estacionalidad.</p>
+  {alt_veredicto_h}
   </div>
 </section>
 
@@ -4395,7 +4660,51 @@ a {{ color: var(--acento); }}
   {n34_fdr_l[0]} sin rezago.</p>
   <p><b>Lo que se puede afirmar:</b> cuando el Pacífico central está más caliente que lo normal, llueve menos en la
   cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
-  a marzo; en abril y mayo no pasa la corrección con ninguna de las tres variables.</p>
+  a marzo; en abril y mayo no pasa la corrección sin rezago con ninguna de las tres variables{alt_mayo_txt}.</p>
+
+  <h3>Q frente al ONI y al TNA: ¿Pacífico o Atlántico?</h3>
+  <div{revision("subsección nueva: Q frente al ONI y al TNA")}>
+  <p>Dos índices análogos, uno de cada océano: el <b>ONI</b> ({CITA_ONI}), la anomalía de la SST en la región Niño 3.4
+  del Pacífico, y el <b>índice del Atlántico tropical norte (TNA)</b>, la anomalía de la SST entre 5.5° N y 23.5° N y
+  entre 15° O y 57.5° O ({CITA_ENFIELD}; {CITA_TNA}). Los dos son la temperatura del mar en un recuadro tropical, menos
+  su media; la pregunta es cuál de los dos pesa más sobre el caudal de la cuenca. Se correlaciona la <b>anomalía de
+  Q</b> (cada mes menos su media de {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}), todos los meses juntos, con cada índice
+  desplazado de {min(IND_REZAGOS)} a {max(IND_REZAGOS):+d} meses. En el rezago k se compara Q de un mes con el índice
+  k meses antes: k &gt; 0 quiere decir que el índice va primero.</p>
+  <p>El TNA no es independiente del ENSO: el Atlántico tropical norte se calienta meses después de El Niño (en
+  {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}, el TNA se correlaciona en {ind_tna_oni[ind_tna_oni_k]:+.2f} con el ONI de
+  {ind_tna_oni_k} meses antes). Para separar lo que el Atlántico aporta por sí solo se calcula también la
+  <b>correlación parcial</b> del TNA sin el ONI: a la anomalía de Q y al TNA se les quita lo que explica el ONI de
+  {IND_REZAGO_CONTROL} {_palabra_mes(IND_REZAGO_CONTROL)} antes (el rezago en que el ONI se correlaciona más con Q) y se
+  correlaciona lo que queda.</p>
+  <p class="nota">Pares por rezago: entre {ind_n[0]} y {ind_n[1]} (los meses con Q). Los meses seguidos se parecen, así
+  que no son datos independientes: la prueba t usa el <b>n efectivo</b> de {CITA_BRETHERTON}, que con la autocorrelación
+  de un mes de las dos series baja a entre {ind_n_ef["ONI"][0]:.0f} y {ind_n_ef["ONI"][1]:.0f} con el ONI y entre
+  {ind_n_ef["TNA"][0]:.0f} y {ind_n_ef["TNA"][1]:.0f} con el TNA: los dos son muy persistentes. Sobre los
+  {len(IND_REZAGOS)} rezagos de cada curva se controla la tasa de falsos descubrimientos ({CITA_BH}), con
+  q &lt; {IND_Q_FDR:.2f}.</p>
+  <div id="g-ind-oni-tna" class="grafico" style="min-height:0; height:400px"></div>
+  <p class="nota">r entre la anomalía de Q y cada índice según el rezago; en punteado, el TNA sin el ONI. Punto lleno:
+  pasa la corrección; punto vacío: no pasa.</p>
+  <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
+  índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q, casi igual que con 2 meses (r = {alt_oni_r[2]:+.2f}):
+  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos. Con el Pacífico central más caliente (El Niño)
+  el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
+  corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
+  fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
+  la varianza), y pasa la corrección {ind_txt["TNA"]["rango"]}. <b>Sin el ONI, el TNA baja</b> a
+  r = {ind_txt[IND_PARCIAL]["r"]:+.2f} como máximo (rezago {ind_txt[IND_PARCIAL]["k"]:+d},
+  q = {ind_txt[IND_PARCIAL]["q"]:.3f}) y no pasa la corrección en ningún rezago: buena parte de su relación con el caudal
+  viene del mismo ENSO. Que el pico del ONI esté con el índice un mes antes que Q cuadra con lo que se vio con el
+  índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja
+  que los índices y el caudal cambian despacio. Son correlaciones: los índices no mueven el río, acompañan los cambios
+  de la lluvia.</p>
+  <p><b>Conclusión.</b> La parte del caudal controlada por fenómenos climáticos globales interanuales está asociada
+  principalmente con el ENSO y el Pacífico tropical (|r| hasta {abs(ind_txt["ONI"]["r"]):.2f} con el ONI). El Atlántico
+  tropical norte también se correlaciona con el caudal (hasta {ind_txt["TNA"]["r"]:.2f}), pero buena parte de esa
+  relación viene del mismo ENSO: al quitar su efecto, lo que queda (r hasta {ind_txt[IND_PARCIAL]["r"]:.2f}) no pasa la
+  corrección, así que no se puede afirmar que el Atlántico aporte por sí solo.</p>
+  </div>
 
   <h3>¿Y los mapas?</h3>
   <p>Los puntos negros de los mapas marcan las cajas que pasan la misma corrección dentro de cada panel (Benjamini y
@@ -4433,9 +4742,13 @@ a {{ color: var(--acento); }}
   pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
   {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
   está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
-  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {n34_rob_total} meses robustos,
-  {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
-  (diciembre a febrero y junio a agosto).</p>
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {alt_binom_n} meses del calendario con
+  relación robusta, {alt_binom_k} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
+  (diciembre a febrero y junio a agosto). {alt_binom_txt}</p>
+  <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
+  correlaciona en {alt_oni_r[1]:+.2f} con el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, y el
+  Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
+  el efecto del ONI. El mecanismo, la circulación de Walker, es el de «Por qué El Niño trae menos lluvia», arriba.</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
   coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
   marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
@@ -4478,13 +4791,14 @@ a {{ color: var(--acento); }}
   columna de rocas plutónicas trae el {geo_sedimentaria:.1f} % que, según el mapa del SGC, es roca sedimentaria, y la
   volcanoclástica repite la volcánica en las {geo_n_cuencas} cuencas del archivo (ver «Coberturas, suelos y geología»). La ETP
   sale {etp_cociente.median():.2f} veces la de su propia fórmula, {n(etp_anual.camels)} mm/año, más que la lluvia
-  ({n(etp_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
+  ({n(alt_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
   del proyecto. Del resto de CAMELS-COL, el caudal pasó el control de calidad del proyecto.</p>
   <p><b>De los campos climáticos globales solo sirvió El Niño.</b> En los mapas de correlación, solo
   {rob_mapas["con_fdr"]} de los {rob_mapas["total"]} paneles mensuales tienen alguna caja que pase la corrección por pruebas
   múltiples, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar un solo año (ver «¿Y los mapas?»). Con
   {pe_n_anios} años, las manchas de los mapas no se distinguen del azar. Lo único que resistió fue la relación con el índice
   Niño 3.4, que se resume en una sola serie.</p>
+  {alt_conclusiones}
 </section>
 
 <section>
@@ -4493,12 +4807,18 @@ a {{ color: var(--acento); }}
     <li id="ref-allen1998">Allen, R. G., Pereira, L. S., Raes, D., y Smith, M. (1998). <i>Crop evapotranspiration:
     Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
     Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
+    <li id="ref-alos">ALOS PALSAR, modelo digital de elevación de 12.5 m (Agencia Japonesa de Exploración Aeroespacial,
+    JAXA). El proyecto usa un recorte de un mosaico nacional del equipo; <b>falta registrar de dónde se descargó</b>
+    (portal, producto exacto, fecha y licencia; ver <code>DATOS_FUENTES.md</code>).</li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
     <li id="ref-benjamini1995">Benjamini, Y., y Hochberg, Y. (1995). Controlling the false discovery rate: a practical and
     powerful approach to multiple testing. <i>Journal of the Royal Statistical Society Series B</i>, 57(1), 289–300.
     <a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x">https://doi.org/10.1111/j.2517-6161.1995.tb02031.x</a></li>
+    <li id="ref-bretherton1999">Bretherton, C. S., Widmann, M., Dymnikov, V. P., Wallace, J. M., y Bladé, I. (1999). The
+    effective number of spatial degrees of freedom of a time-varying field. <i>Journal of Climate</i>, 12(7), 1990–2009.
+    <a href="https://doi.org/10.1175/1520-0442(1999)012%3C1990:TENOSD%3E2.0.CO;2">https://doi.org/10.1175/1520-0442(1999)012&lt;1990:TENOSD&gt;2.0.CO;2</a></li>
     <li id="ref-cleveland1979">Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
     <i>Journal of the American Statistical Association</i>, 74(368), 829–836.
     <a href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></li>
@@ -4515,6 +4835,15 @@ a {{ color: var(--acento); }}
     <li id="ref-ecmwf2017">European Centre for Medium-Range Weather Forecasts. (2017). <i>ERA5 Reanalysis Monthly
     Means</i> [conjunto de datos]. NSF National Center for Atmospheric Research, Geoscience Data Exchange.
     <a href="https://doi.org/10.5065/D63B5XW1">https://doi.org/10.5065/D63B5XW1</a></li>
+    <li id="ref-enfield1999">Enfield, D. B., Mestas-Nuñez, A. M., Mayer, D. A., y Cid-Serrano, L. (1999). How ubiquitous is
+    the dipole relationship in tropical Atlantic sea surface temperatures? <i>Journal of Geophysical Research: Oceans</i>,
+    104(C4), 7841–7848. <a href="https://doi.org/10.1029/1998JC900109">https://doi.org/10.1029/1998JC900109</a></li>
+    <li id="ref-copernicus-dem">European Space Agency (ESA). <i>Copernicus DEM GLO-90</i>, modelo digital de superficie
+    global de 3″. Copia pública del Registry of Open Data on AWS, descargada el 2026-10-09. Licencia y DOI sin verificar
+    (ver <code>DATOS_FUENTES.md</code>).</li>
+    <li id="ref-mapbiomas2025">Fundación Gaia Amazonas. (2025). <i>Proyecto MapBiomas Colombia Colección 3.0 – Mapeo anual
+    de cobertura y uso del suelo</i>. Recuperado el 2026-10-09 de
+    <a href="https://storage.googleapis.com/mapbiomas-public/initiatives/colombia/collection_3/coverage/colombia_coverage_2022.tif">storage.googleapis.com/mapbiomas-public</a>.</li>
     <li id="ref-gupta2009">Gupta, H. V., Kling, H., Yilmaz, K. K., y Martinez, G. F. (2009). Decomposition of the mean
     squared error and NSE performance criteria: implications for improving hydrological modelling. <i>Journal of
     Hydrology</i>, 377(1–2), 80–91. <a href="https://doi.org/10.1016/j.jhydrol.2009.08.003">https://doi.org/10.1016/j.jhydrol.2009.08.003</a></li>
@@ -4543,10 +4872,15 @@ a {{ color: var(--acento); }}
     <li id="ref-hyndman1996">Hyndman, R. J., y Fan, Y. (1996). Sample quantiles in statistical packages.
     <i>The American Statistician</i>, 50(4), 361–365.
     <a href="https://doi.org/10.1080/00031305.1996.10473566">https://doi.org/10.1080/00031305.1996.10473566</a></li>
+    <li id="ref-igac">Instituto Geográfico Agustín Codazzi (IGAC). Mapas de suelos del territorio colombiano, escala
+    1:100 000, y clases de capacidad de uso de las tierras (2014). Tomados de los atributos de CAMELS-COL
+    (<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>), no descargados directamente.</li>
     <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).
     <a href="https://doi.org/10.5194/essd-2025-200">https://doi.org/10.5194/essd-2025-200</a></li>
+    <li id="ref-kirpich1940">Kirpich, Z. P. (1940). Time of concentration of small agricultural watersheds. <i>Civil
+    Engineering</i>, 10(6), 362.</li>
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
@@ -4558,14 +4892,21 @@ a {{ color: var(--acento); }}
     Universidad Nacional de Colombia, Medellín.</li>
     <li id="ref-middleton1997"{revision("nuevo")}>Middleton, N., y Thomas, D. (eds.) (1997). <i>World Atlas of
     Desertification</i> (2.ª ed.). UNEP / Arnold, Londres.</li>
+    <li id="ref-munoz2019">Muñoz-Sabater, J., et al. (2019). <i>ERA5-Land hourly data from 1950 to present</i>
+    [conjunto de datos]. Copernicus Climate Change Service (C3S) Climate Data Store (CDS).
+    <a href="https://doi.org/10.24381/cds.e2161bac">https://doi.org/10.24381/cds.e2161bac</a></li>
     <li id="ref-nash1970">Nash, J. E., y Sutcliffe, J. V. (1970). River flow forecasting through conceptual models part I —
     A discussion of principles. <i>Journal of Hydrology</i>, 10(3), 282–290.
     <a href="https://doi.org/10.1016/0022-1694(70)90255-6">https://doi.org/10.1016/0022-1694(70)90255-6</a></li>
+    <li id="ref-naturalearth">Natural Earth. <i>1:10m Cultural Vectors</i>, versión 5.1.1: países y divisiones de primer
+    nivel. Copia oficial en Amazon S3, descargada el 2026-10-09. <a href="https://www.naturalearthdata.com">naturalearthdata.com</a></li>
     <li id="ref-newey1987">Newey, W. K., y West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and
     autocorrelation consistent covariance matrix. <i>Econometrica</i>, 55(3), 703 y siguientes.
     <a href="https://doi.org/10.2307/1913610">https://doi.org/10.2307/1913610</a></li>
     <li id="ref-noaa-oni">NOAA Climate Prediction Center. <i>Oceanic Niño Index (ONI)</i>. Descargado el
     2026-09-28. <a href="https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt">https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt</a></li>
+    <li id="ref-noaa-tna">NOAA Physical Sciences Laboratory. <i>Tropical Northern Atlantic Index (TNA)</i>, con HadISST1.1.
+    Descargado el 2026-10-11. <a href="https://psl.noaa.gov/data/correlation/tna.data">https://psl.noaa.gov/data/correlation/tna.data</a></li>
     <li id="ref-pettitt1979">Pettitt, A. N. (1979). A non-parametric approach to the change-point problem.
     <i>Journal of the Royal Statistical Society, Series C (Applied Statistics)</i>, 28(2), 126–135.
     <a href="https://doi.org/10.2307/2346729">https://doi.org/10.2307/2346729</a></li>
@@ -4579,14 +4920,20 @@ a {{ color: var(--acento); }}
     <li id="ref-sen1968">Sen, P. K. (1968). Estimates of the regression coefficient based on Kendall's tau.
     <i>Journal of the American Statistical Association</i>, 63(324), 1379–1389.
     <a href="https://doi.org/10.1080/01621459.1968.10480934">https://doi.org/10.1080/01621459.1968.10480934</a></li>
+    <li id="ref-sgc2023">Servicio Geológico Colombiano. (2023). <i>Mapa Geológico de Colombia 2023</i>, escala 1:1 500 000.
+    <a href="https://www2.sgc.gov.co/MGC/Paginas/mgc_1_5M2023.aspx">www2.sgc.gov.co</a></li>
     <li id="ref-shapiro1965">Shapiro, S. S., y Wilk, M. B. (1965). An analysis of variance test for normality (complete
     samples). <i>Biometrika</i>, 52(3–4), 591–611.
     <a href="https://doi.org/10.1093/biomet/52.3-4.591">https://doi.org/10.1093/biomet/52.3-4.591</a></li>
+    <li id="ref-strahler1952">Strahler, A. N. (1952). Hypsometric (area-altitude) analysis of erosional topography.
+    <i>Geological Society of America Bulletin</i>, 63(11), 1117–1142.
+    <a href="https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2">https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2</a></li>
     <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
     based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
   </ol>
-  <p class="nota">Las fuentes de datos (CAMELS-COL, IMERG, ERA5-Land, IDEAM, DEM) están al pie de la página.</p>
+  <p class="nota">Las fuentes de datos principales están al pie de la página; la lista completa, con todas las fuentes de
+  datos que usa el informe, es esta bibliografía.</p>
 </section>
 
 <section>
@@ -4643,7 +4990,7 @@ a {{ color: var(--acento); }}
     los datos están protegidas por {ia_n_assert} comprobaciones automáticas (<code>assert</code>) en los dos scripts del
     informe: si los datos dejan de sostener una frase, el script se detiene.</li>
     <li><b>Datos:</b> los controles de «Control de calidad básico» (fechas, unidades, rangos físicos, códigos de
-    faltante), las pruebas de «Anomalías en las series» y el «Registro de anomalías», que deja constancia de lo
+    faltante), las pruebas de «Saltos y errores de registro» y el «Registro de problemas de los datos», que deja constancia de lo
     comprobado, lo decidido y su efecto.</li>
     <li><b>Cálculos contra referencias externas:</b> la radiación de la ETP contra el ejemplo de FAO-56 («La
     evapotranspiración potencial»), IMERG contra su archivo empaquetado, la temperatura de ERSST contra el ONI de la
@@ -4693,7 +5040,7 @@ a {{ color: var(--acento); }}
     <li><b>Pluviómetros:</b> IDEAM, portal DHIME (<code>atencionciudadano.ideam.gov.co</code>), precipitación total mensual 1998–2022, nivel preliminar y definitivo.</li>
     <li><b>El Niño y La Niña:</b> ONI de la NOAA; ver la bibliografía.</li>
   </ul>
-  <p style="margin-top:14px">Generado con <code>scripts/08_mapas_y_pixeles.py</code> y <code>scripts/18_reporte_html.py</code>.</p>
+  <p style="margin-top:14px">Generado con <code>scripts/08_mapas_y_pixeles.py</code>, <code>scripts/18_calculos_informe.py</code> y <code>scripts/18b_reporte_html.py</code>.</p>
 </footer>
 <script>
 (function () {{
@@ -5134,6 +5481,34 @@ a {{ color: var(--acento); }}
       {{ type: "scatter", mode: "lines+markers", name: "ETP", x: PQ.anios, y: PQ.etp_anual,
          line: {{ color: COLOR_VAR.ETP, width: 2.4 }}, hovertemplate: "%{{y:.0f}} mm<extra>ETP</extra>" }}
     ], anual, CONF);
+  }}
+
+  // Q frente al ONI y al TNA: r contra el rezago; punto lleno si pasa la corrección (FDR)
+  const IND = {ind_json};
+
+  function trazaIndice(nombre, color, punteado) {{
+    const d = IND[nombre];
+    return {{ type: "scatter", mode: "lines+markers", name: nombre, x: d.k, y: d.r,
+      line: {{ color: color, width: 2, dash: punteado ? "dot" : "solid" }},
+      marker: {{ size: 8, color: d.sig.map(s => s ? color : css("--fondo")), line: {{ color: color, width: 1.6 }} }},
+      customdata: d.k.map((k, i) => [d.n[i], d.q[i], d.sig[i] ? "pasa" : "no pasa"]),
+      hovertemplate: "rezago %{{x:+d}}: r = %{{y:+.2f}} (n = %{{customdata[0]}}, q = %{{customdata[1]:.3f}}, %{{customdata[2]}})<extra>" + nombre + "</extra>" }};
+  }}
+
+  function dibujarIndices() {{
+    if (!window.Plotly) return;
+    const d = base();
+    d.hovermode = "closest";
+    d.margin = {{ t: 46, r: 10, b: 50, l: 54 }};
+    d.xaxis.title = {{ text: "rezago k (meses); k > 0: el índice va antes que Q", font: {{ size: 10.5 }} }};
+    d.xaxis.dtick = 2;
+    d.yaxis.title.text = "r con la anomalía de Q";
+    d.yaxis.rangemode = "normal";
+    d.yaxis.range = [-0.6, 0.6];
+    d.shapes = [{{ type: "line", xref: "paper", x0: 0, x1: 1, y0: 0, y1: 0, line: {{ color: css("--tinta"), width: 1 }} }},
+                {{ type: "line", yref: "paper", x0: 0, x1: 0, y0: 0, y1: 1, line: {{ color: css("--tenue"), width: 1, dash: "dot" }} }}];
+    Plotly.react("g-ind-oni-tna", [trazaIndice("ONI", css("--tinta")), trazaIndice("TNA", IND.colores.TNA),
+                                   trazaIndice(IND.parcial, IND.colores[IND.parcial], true)], d, CONF);
   }}
 
   // P/ETP por mes del calendario, con PL y con PI lado a lado; la línea en 1 separa el déficit del excedente
@@ -5733,6 +6108,7 @@ a {{ color: var(--acento); }}
     dibujarFourier();
     dibujarPQ();
     dibujarPEMes();
+    dibujarIndices();
     dibujarCicloAnual();
     dibujarGradiente();
   }}

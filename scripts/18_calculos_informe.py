@@ -3779,3 +3779,156 @@ _salida.attrs = {"descripcion": "Correlación, a través de los años, de la ano
                  "n_minimo": CORR_N_MINIMO, "q_fdr": CORR_Q_FDR, "generado_por": "scripts/18_calculos_informe.py"}
 _salida.to_netcdf("out/correlaciones_campos.nc", encoding={k: {"zlib": True, "complevel": 4} for k in _vars})
 _cc.close()
+
+# ---------------------------------------------------------------- Q frente al ONI y al TNA, con rezagos
+# Correlación de Pearson entre la anomalía mensual de Q (cada mes menos su media de 1998-2022, _fou_transformar
+# «anomalía», sin quitar la tendencia) y cada índice desplazado de -12 a +12 meses. Convención: en el rezago k se
+# compara Q del mes t con el índice del mes t-k; k > 0 quiere decir que el índice va ANTES que Q.
+# Decisiones del usuario (2026-10-11): anomalías de Q (no la serie original, que la domina el ciclo de las dos
+# temporadas de lluvia); ventana común 1998-2022 (regla 6); la comparación es ONI (Pacífico, Niño 3.4) contra TNA
+# (Atlántico tropical norte): los dos son anomalías de la SST en un recuadro tropical, así que son análogos. El usuario
+# empezó con SOI contra NAO, cambió la NAO por el TNA y luego quitó el SOI (índice de presión, no análogo al TNA).
+# Como el TNA también responde al ENSO (el Atlántico tropical norte se calienta meses después de El Niño), el usuario
+# decidió (2026-10-11, recomendación del agente) calcular además la correlación PARCIAL de Q con el TNA quitando el
+# efecto del ONI: a la anomalía de Q y al TNA desplazado se les quita, por regresión lineal, lo que explica el ONI de
+# IND_REZAGO_CONTROL mes(es) antes (el rezago en que el ONI correlaciona más con Q; se comprueba abajo), y se
+# correlacionan los residuos. Es lo que el Atlántico aporta aparte de lo que el ENSO explica directamente en Q.
+# Los índices llegan como los publica la NOAA (17_oni_enso.py y 17b_tna.py): los dos ya son anomalías, en °C. Se leen desde 1981 para que los rezagos positivos usen meses reales antes de 1998; los
+# rezagos negativos llegan solo hasta 2022, así que en ellos se pierden algunos pares al final (n se reporta).
+# Significancia: las anomalías de meses seguidos se parecen (persistencia), así que la prueba t con todos los pares
+# exagera. Se usa el tamaño efectivo de Bretherton et al. (1999), n_ef = n (1 - a·b) / (1 + a·b), con a y b la
+# autocorrelación de un mes de cada serie (en la parcial, la de cada residuo, y un grado de libertad menos por el
+# control), y sobre los 25 rezagos de cada curva se aplica el FDR de Benjamini-Hochberg con q < IND_Q_FDR (el mismo
+# criterio de las tendencias por mes).
+IND_REZAGOS = range(-12, 13)
+IND_Q_FDR = INC_Q_FDR
+IND_NOMBRES = ("ONI", "TNA")
+IND_PARCIAL = "TNA sin el ONI"
+IND_REZAGO_CONTROL = 1             # meses: el ONI que se quita en la parcial
+
+_ind = pd.read_csv("out/tna_mensual_1981_2022.csv")
+_ind = _ind.set_index(pd.PeriodIndex(_ind.pop("periodo"), freq="M")).rename(columns={"tna": "TNA"})
+_oni_l = pd.read_csv("out/oni_mensual_1981_2022.csv")
+_ind["ONI"] = pd.Series(_oni_l["oni"].to_numpy(dtype=float), index=pd.PeriodIndex(_oni_l["periodo"], freq="M"))
+assert _ind.notna().all().all()
+ind_q_anom = _fou_transformar(variables_resumen["Q"], "anomalía").reindex(PERIODOS)
+
+
+def _autocorr1(s):
+    """Autocorrelación de un mes con los pares de meses seguidos que tienen dato."""
+    return float(s.corr(s.shift(1)))
+
+
+def _residuo(y, z):
+    """Lo que queda de y después de quitarle, por mínimos cuadrados, una recta en z (con constante)."""
+    X = np.column_stack([np.ones(len(z)), z])
+    return y - X @ np.linalg.lstsq(X, y, rcond=None)[0]
+
+
+def _fila_corr(nombre, k, y, x, controles=0):
+    """r de Pearson entre y y x (Series con el mismo índice, sin vacíos), con n, n efectivo y p de la prueba t."""
+    r = float(np.corrcoef(y, x)[0, 1])
+    a, b = _autocorr1(y.reindex(PERIODOS)), _autocorr1(x.reindex(PERIODOS))
+    n = len(y)
+    n_ef = n * (1 - a * b) / (1 + a * b)
+    # con controles, la prueba t pierde un grado de libertad por cada uno: se corre con n_ef - controles
+    return {"indice": nombre, "rezago": k, "r": r, "n": n, "n_efectivo": n_ef,
+            "p": float(_p_correlacion(r, n_ef - controles))}
+
+
+_control = _ind["ONI"].shift(IND_REZAGO_CONTROL).reindex(PERIODOS)
+ind_corr = []
+for _k in IND_REZAGOS:
+    for _nombre in IND_NOMBRES:
+        _x = _ind[_nombre].shift(_k).reindex(PERIODOS)            # índice del mes t-k junto a Q del mes t
+        _ok = ind_q_anom.notna() & _x.notna()
+        ind_corr.append(_fila_corr(_nombre, _k, ind_q_anom[_ok], _x[_ok]))
+    # la parcial: TNA y Q sin lo que explica el ONI de IND_REZAGO_CONTROL meses antes
+    _x = _ind["TNA"].shift(_k).reindex(PERIODOS)
+    _ok = ind_q_anom.notna() & _x.notna() & _control.notna()
+    _ey = pd.Series(_residuo(ind_q_anom[_ok].to_numpy(), _control[_ok].to_numpy()), index=_x[_ok].index)
+    _ex = pd.Series(_residuo(_x[_ok].to_numpy(), _control[_ok].to_numpy()), index=_x[_ok].index)
+    ind_corr.append(_fila_corr(IND_PARCIAL, _k, _ey, _ex, controles=1))
+ind_corr = pd.DataFrame(ind_corr).sort_values(["indice", "rezago"], ignore_index=True)
+ind_corr["q"] = ind_corr.groupby("indice")["p"].transform(lambda p: _benjamini_hochberg(p.to_numpy()))
+ind_corr["significativa"] = ind_corr.q < IND_Q_FDR
+ind_corr.to_csv("out/correlacion_q_indices_rezagos.csv", index=False, float_format="%.4f")
+
+# el rezago de la correlación más fuerte (mayor |r|) de cada curva
+ind_max = {n: ind_corr.loc[ind_corr[ind_corr.indice == n].r.abs().idxmax()].to_dict()
+           for n in IND_NOMBRES + (IND_PARCIAL,)}
+ind_sig = {n: [int(k) for k in ind_corr[(ind_corr.indice == n) & ind_corr.significativa].rezago]
+           for n in IND_NOMBRES + (IND_PARCIAL,)}
+print("Q (anomalía) frente a los índices, 1998-2022: correlación más fuerte de cada uno")
+for _n, _d in ind_max.items():
+    print(f"  {_n}: r = {_d['r']:+.2f} en el rezago {int(_d['rezago']):+d} (n = {int(_d['n'])}, n efectivo = "
+          f"{_d['n_efectivo']:.0f}, q = {_d['q']:.3g}); rezagos significativos: {ind_sig[_n]}")
+
+# lo que el texto del informe afirma, en «Q frente al ONI y al TNA»
+# el ONI que se quita en la parcial es el de su correlación más fuerte con Q
+assert int(ind_max["ONI"]["rezago"]) == IND_REZAGO_CONTROL
+# el texto dice que el ONI pesa más que el TNA (mayor |r| máximo), aunque los dos pasan la corrección
+assert ind_sig["ONI"] and ind_sig["TNA"] and abs(ind_max["ONI"]["r"]) > abs(ind_max["TNA"]["r"])
+# el texto dice que, sin el ONI, el TNA baja y ya no pasa la corrección en ningún rezago
+assert abs(ind_max[IND_PARCIAL]["r"]) < abs(ind_max["TNA"]["r"]) and not ind_sig[IND_PARCIAL]
+# el texto dice que el TNA va con signo positivo en su pico (más caudal) y el ONI con signo negativo (menos caudal),
+# y que en los dos el pico está con el índice antes que Q
+assert ind_max["TNA"]["r"] > 0 and ind_max[IND_PARCIAL]["r"] > 0 and ind_max["ONI"]["r"] < 0
+assert all(ind_max[n]["rezago"] > 0 for n in IND_NOMBRES)
+# el texto dice que con el TNA del mismo mes casi no hay relación: |r| < 0.1 en el rezago 0
+assert abs(ind_corr[(ind_corr.indice == "TNA") & (ind_corr.rezago == 0)].r.iloc[0]) < 0.1
+# el TNA frente al ONI de meses antes (el Atlántico tropical norte responde al ENSO)
+ind_tna_oni = {k: float(_ind["TNA"].reindex(PERIODOS).corr(_ind["ONI"].shift(k).reindex(PERIODOS))) for k in range(0, 13)}
+ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
+# el texto dice que el TNA responde al ONI de meses antes con correlación positiva
+assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
+
+
+# ======================================================================================================
+# Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.
+# Morfometría (ya calculada por 13-15) y correcciones de la revisión. Todo sale de out/; lo que el texto afirma se
+# protege con assert.
+# ======================================================================================================
+# ---------------------------------------------------------------- forma y relieve (13_morfometria.py, 15)
+morf = pd.read_csv("out/morfometria_fonce.csv").set_index("magnitud")
+morf_tc = pd.read_csv("out/tiempos_concentracion.csv").set_index("formula")
+morf_cauces = pd.read_csv("out/comparacion_cauces.csv")
+morf_gravelius = float(morf.loc["índice de Gravelius", "valor"])
+morf_forma = float(morf.loc["factor de forma de Horton", "valor"])
+morf_integral = float(morf.loc["integral hipsométrica", "valor"])
+morf_pendiente = float(morf.loc["pendiente media del terreno", "valor"])
+morf_tc_medido = morf_tc.con_pendiente_medida_h
+morf_tc_publicado = morf_tc.publicado_camels_h
+# el texto dice que la cuenca es alargada (Gravelius > 1.75, la clase más alargada de la escala usual) y que los
+# tiempos de concentración con la pendiente medida son de horas, contra días con la pendiente publicada
+assert morf_gravelius > 1.75 and morf_forma < 0.3
+assert morf_tc_medido.max() < 24 and morf_tc_publicado.max() > 48
+assert (desfase_tc[0], desfase_tc[1]) == (morf_tc_medido.min(), morf_tc_medido.max())
+
+# ---------------------------------------------------------------- lluvia anual de la portada y el resumen
+alt_pl_anual = float(comp["RED"].mean() * 12)        # PL: promedio simple de la red, los 300 meses de 1998-2022
+# Pico del año típico (decisión del usuario, 2026-10-11): las tarjetas de «El año típico» usan los meses de
+# «El régimen» (mediana de cada mes, todos los meses válidos), no el promedio de los meses comunes. El texto dice
+# que en PI mayo y octubre quedan casi empatados y que PL y PI difieren a lo sumo en un mes de pico: se comprueba.
+alt_pi_med_may = float(regimen["PI"]["medianas"][4])
+alt_pi_med_oct = float(regimen["PI"]["medianas"][9])
+assert regimen["PI"]["max"] in ("mayo", "octubre")
+assert abs(alt_pi_med_may - alt_pi_med_oct) / max(alt_pi_med_may, alt_pi_med_oct) < 0.05   # «casi empatados»: menos de 5 %
+assert all(abs(MESES_LARGOS_ES.index(a) - MESES_LARGOS_ES.index(b)) <= 1
+           for a, b in zip(regimen["PL"]["picos"], regimen["PI"]["picos"]))
+# Una sola lluvia anual (decisión del usuario, 2026-10-11): donde no hace falta emparejar meses con Q, el informe
+# usa la de los 300 meses. El texto de la ETP dice que la de CAMELS-COL supera a esa lluvia: se comprueba.
+assert etp_anual.camels > alt_pl_anual
+
+# ---------------------------------------------------------------- correcciones de la revisión
+# rezago del ONI frente a Q: el 1 y el 2 están casi empatados (la explicación física decía «2 meses» y la sección de
+# los índices «1 mes»)
+alt_oni_r = {k: float(ind_corr[(ind_corr.indice == "ONI") & (ind_corr.rezago == k)].r.iloc[0]) for k in (1, 2)}
+assert abs(alt_oni_r[1] - alt_oni_r[2]) < 0.01
+# meses robustos con El Niño frente a lo esperable por azar: las dos temporadas de Córdoba-Machado et al. son 6 de los
+# 12 meses; la probabilidad de que k o más de n meses caigan en ellas por azar (binomial con p = 1/2)
+alt_p_binom = None      # se calcula en 18b, donde están n34_rob_total y n34_rob_en_temporadas
+# la hipótesis H y su criterio de refutación: los residuos del modelo elegido conservan el calendario
+_ficha = pd.read_csv("out/modelos_ficha.csv").set_index("fuente")
+alt_kw_residuo = {f: float(_ficha.loc[f, "kruskal_residuo_por_mes_p"]) for f in ("PL", "PI")}
+assert all(p < 0.05 for p in alt_kw_residuo.values())        # «los residuos conservan estacionalidad»

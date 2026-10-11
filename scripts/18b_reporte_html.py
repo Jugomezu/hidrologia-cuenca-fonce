@@ -1642,6 +1642,19 @@ n34_rob_total = len(_n34_rob)
 n34_rob_fuera = "; ".join(f"{_lista_meses(sorted(g.mes))} con {v}"
                           for v, g in _n34_rob[~_n34_rob.mes.isin(N34_TEMPORADAS_CORDOBA)].groupby("cuenca"))
 assert n34_rob_en_temporadas > n34_rob_total / 2                                # el texto dice «la mayoría»
+# Cada mes del calendario se cuenta una sola vez, aunque sea robusto con varias variables (junio lo es con PL y con PI).
+# Las dos temporadas de la fuente son 6 de los 12 meses: por azar, cada mes caería en ellas con probabilidad 1/2, así
+# que se da la probabilidad binomial de llegar a k o más de n meses por azar (decidido por Juan, 2026-10-11)
+_rob_meses = set(_n34_rob.mes)
+alt_binom_n = len(_rob_meses)
+alt_binom_k = len(_rob_meses & N34_TEMPORADAS_CORDOBA)
+alt_p_binom = sum(comb(alt_binom_n, j) for j in range(alt_binom_k, alt_binom_n + 1)) / 2 ** alt_binom_n
+alt_binom_txt = (
+    f"Esas dos temporadas son la mitad del año, así que por azar ya caería ahí la mitad de los meses: llegar a "
+    f"{alt_binom_k} de {alt_binom_n} o más por puro azar tiene una probabilidad de {alt_p_binom:.2f}. Es coherente con la "
+    f"fuente, pero no la prueba.")
+assert alt_p_binom > 0.05                                           # «coherente con la fuente, pero no la prueba»
+assert alt_binom_k > alt_binom_n / 2
 # lo que afirma la interpretación física: marzo es robusto con Q y queda fuera de las dos temporadas, y Q pasa
 # la corrección en más meses con el índice un mes antes
 assert 3 in set(_n34_rob[_n34_rob.cuenca == "Q"].mes) and 3 not in N34_TEMPORADAS_CORDOBA
@@ -1747,7 +1760,8 @@ SINT_FILAS = [
      f"{n34_robustos['Q']} con Q.",
      "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve "
      "menos y, con el atraso del almacenamiento, baja el caudal.",
-     f"De los {n34_rob_total} meses robustos, {n34_rob_en_temporadas} caen en las temporadas que señala la fuente; Q pasa la "
+     f"De los {alt_binom_n} meses del calendario con relación robusta, {alt_binom_k} caen en las temporadas que señala la "
+     f"fuente (por azar caería la mitad: es coherente, no una prueba); Q pasa la "
      f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
      f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño; la anomalía de Q se correlaciona en {ind_txt['ONI']['r']:+.2f} con "
      f"el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
@@ -1827,18 +1841,6 @@ alt_area_camels = float(morf.loc["área", "publicado_camels"])
 # E3: el rezago de la sección de Fourier también es 1 o 2 meses
 assert fis_q_rezago_oni in (1, 2) and ind_txt["ONI"]["k"] == 1                # el texto dice «1 a 2 meses» y nombra el 1 primero
 assert abs(ind_txt["ONI"]["r"] - alt_oni_r[1]) < 1e-9
-# E5: los meses del calendario con relación robusta, contados una sola vez, frente a lo esperable por azar (las dos
-# temporadas de la fuente son 6 de los 12 meses: probabilidad 1/2 para cada mes)
-_rob_meses = set(_n34_rob.mes)
-alt_binom_n = len(_rob_meses)
-alt_binom_k = len(_rob_meses & N34_TEMPORADAS_CORDOBA)
-alt_p_binom = sum(comb(alt_binom_n, j) for j in range(alt_binom_k, alt_binom_n + 1)) / 2 ** alt_binom_n
-alt_binom_txt = (
-    f"Pero esas dos temporadas son la mitad del año: por azar ya caería ahí la mitad de los meses. Contando cada mes del "
-    f"calendario una sola vez (un mismo mes puede ser robusto con varias variables), son {alt_binom_k} de {alt_binom_n}, y "
-    f"la probabilidad de llegar a eso o a más por puro azar es {alt_p_binom:.2f}. Es coherente con la fuente, no una "
-    f"prueba de ella.")
-assert alt_p_binom > 0.05                                           # «coherente con la fuente, no una prueba»
 # E6: ¿pasa Q la corrección en mayo con el índice un mes antes?
 alt_mayo_l1 = bool(_n34[(_n34.rezago == 1) & (_n34.cuenca == "Q") & (_n34.mes == 5)].sobrevive_fdr.any())
 alt_mayo_l0 = bool(_n34[(_n34.rezago == 0) & (_n34.mes.isin([4, 5]))].sobrevive_fdr.any())
@@ -4646,8 +4648,9 @@ a {{ color: var(--acento); }}
   llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
   al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
   podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
-  disminución es mayor de diciembre a febrero y de junio a agosto: de los {n34_rob_total} meses en que la relación con el
-  índice Niño 3.4 resultó robusta (sumando PL, Q y PI), {n34_rob_en_temporadas} caen en esas dos temporadas; fuera de
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los {alt_binom_n} meses del calendario en que la relación
+  con el índice Niño 3.4 resultó robusta con alguna de las tres variables (PL, Q o PI), {alt_binom_k} caen en esas dos
+  temporadas; fuera de
   ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).
   {alt_binom_txt}</p>
   <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
@@ -4894,8 +4897,8 @@ a {{ color: var(--acento); }}
   pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
   {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
   está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
-  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {n34_rob_total} meses robustos,
-  {n34_rob_en_temporadas} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
+  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {alt_binom_n} meses del calendario con
+  relación robusta, {alt_binom_k} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto). {alt_binom_txt}</p>
   <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
   correlaciona en {alt_oni_r[1]:+.2f} con el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, y el

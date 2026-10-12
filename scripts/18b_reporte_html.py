@@ -2656,11 +2656,12 @@ a {{ color: var(--acento); }}
   <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
   {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
   {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
-  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
+  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con una segunda fuente.</p>
 
   <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
-  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
-  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
+  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa, que no
+  depende de dónde están los pluviómetros, pero <b>no es del todo independiente</b> de ellos: IMERG se ajusta con
+  redes de pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
 
   <div class="cifras" style="margin: 18px 0 6px">
     <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>

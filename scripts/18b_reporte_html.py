@@ -197,6 +197,7 @@ def marca(texto, etiqueta):
 
 # ---------------------------------------------------------------- crítica 4: el ENSO a través de la lluvia
 C2, C3 = "Crítica 2 · Flujo base", "Crítica 3 · Llueve menos arriba"
+C5 = "Crítica 5 · De dónde viene la humedad"
 MARCA_FIN = "</mark>" if RESALTAR_CRITICAS else ""
 
 
@@ -252,6 +253,7 @@ UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C"
 
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
+CITA_HOYOS = '<a class="cita" href="#ref-hoyos2018">Hoyos et al., 2018</a>'
 CITA_CORDOBA = '<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
 CITA_LADSON = '<a class="cita" href="#ref-ladson2013">Ladson et al., 2013</a>'
@@ -1454,6 +1456,8 @@ clas_filas = "\n".join(
     for r in clas_tabla)
 # la temporada «seco relativo»: el mes de menor mediana de PL, para compararlo con el mínimo del año
 _sr = clas_fila["seco relativo"]
+# «Las dos épocas coinciden con las dos temporadas secas»: diciembre a febrero y junio a agosto (Hoyos et al., 2018)
+assert set(clas_fila["seco"]["meses"]) & {12, 1, 2} and set(_sr["meses"]) & {6, 7, 8}
 fis_sr_mes_min = MESES_LARGOS_ES[min(_sr["meses"], key=lambda m: regimen["PL"]["medianas"][m - 1]) - 1]
 # los meses en que P − Q supera a la ETP (con PL), con el nombre completo
 fis_meses_guarda = nombre_meses([MESES_ES.index(m) + 1 for m in pq_meses_guarda])
@@ -2046,6 +2050,11 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Las subcuencas tienen caudal medido y no se usan</b> para el caudal; servirían para ver de dónde viene el agua
     de San Gil.</li>
     <li><b>Un modelo con dos almacenamientos</b> (rápido y lento) para probar la hipótesis H′.</li>
+    <li>{marca_ini(C5)}<b>Si la cuenca es más seca que la otra ladera</b> no se comprobó: haría falta comparar la lluvia del
+    Fonce con la de cuencas de la vertiente que mira a los Llanos, a alturas parecidas (ver «Contexto geográfico»).{MARCA_FIN}</li>
+    <li>{marca_ini(C5)}<b>El transporte de humedad sobre la cuenca no se ve a 850 hPa</b>, que queda bajo tierra en la
+    cordillera. El flujo de vapor integrado en toda la columna (IVT), que es lo que usan {CITA_HOYOS} con ERA-Interim, no
+    tiene ese problema: con el de ERA5 se podría ver el transporte sobre la propia cuenca.{MARCA_FIN}</li>
     <li><b>Todo el trabajo es de resolución mensual.</b> Las crecientes y los estiajes, que duran horas o días (el
     tiempo de concentración es de {morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas), quedan aplanados en el
     promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno y no puede ver
@@ -2267,9 +2276,10 @@ a {{ color: var(--acento); }}
   <p><b>A sotavento de los alisios.</b> En las laderas que reciben los vientos alisios de frente, a barlovento, la
   lluvia tiende a ser mucho mayor que en sus vecinas del lado opuesto, a sotavento: del orden del doble
   ({CITA_MESA_P90}). Los alisios llegan del oriente, y la mayor parte de la cuenca está en el flanco occidental de la
-  cordillera, a sotavento. De ahí sale una hipótesis que este trabajo no comprueba: la vertiente oriental de la
-  cordillera, la que mira a los Llanos, debería recibir bastante más lluvia que el Fonce. La vecina inmediata al
-  oriente, la vertiente del Chicamocha, no sirve para compararla, porque también es interandina.</p>
+  cordillera, a sotavento. {marca_ini(C5)}Eso no la hace seca: con P/ETP = {pe_indice["pl"]["ie"]:.2f} con PL es húmeda
+  (ver «¿Húmeda o árida? La lluvia contra la ETP»). Lo que sugiere es una comparación: la vertiente oriental de la
+  cordillera, la que mira a los Llanos, posiblemente recibe más lluvia que el Fonce. Este trabajo no lo comprueba (ver
+  «Limitaciones y trabajo futuro»).{MARCA_FIN} La vecina inmediata al oriente, la vertiente del Chicamocha, no sirve para compararla, porque también es interandina.</p>
 
   <h3>La cuenca y sus subcuencas</h3>
   <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
@@ -4512,12 +4522,21 @@ a {{ color: var(--acento); }}
   {pe_mes.loc[1, "pi"]:.2f} con PI (ver «¿Húmeda o árida? La lluvia contra la ETP»). La de {_sr["nombre"]} es un descenso
   entre los dos picos, con excedente todos los meses (P/ETP {_rango_txt(*_sr["pe"]["pl"])} con PL y
   {_rango_txt(*_sr["pe"]["pi"])} con PI).</p>
-  <p><b>La humedad de la Amazonía.</b> Según {CITA_POVEDA}, «los vientos alisios del sureste transportan gran cantidad de
-  humedad hacia los Andes» desde la cuenca Amazónica, y la relaciona con la lluvia del «pie de monte Andino», la
-  vertiente que da a la Amazonía. La cuenca está en el flanco opuesto, el que mira al valle del Magdalena, así que no se
-  puede suponer que esa humedad sea su fuente principal. Con los datos del proyecto tampoco se puede contrastar a escala de la
-  cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver «850 hPa queda bajo los Andes»
-  en «Campos climáticos globales»). Queda como contexto, no como resultado.</p>
+  <div{critica(C5)}>
+  <p><b>De dónde viene la humedad.</b> El Fonce drena al Magdalena, en la región interandina. {CITA_HOYOS} rastrean con
+  tres modelos de transporte el origen de la humedad que llueve sobre el norte de Colombia, una región que incluye la
+  interandina, y encuentran que la fuente cambia con la temporada: de diciembre a febrero viene sobre todo del Atlántico
+  tropical norte y del Caribe; de marzo a mayo, del Orinoco, del reciclaje sobre el continente y del Atlántico tropical;
+  de junio a agosto, de la Amazonía y del Atlántico tropical sur; y de septiembre a noviembre, otra vez del reciclaje y
+  del Orinoco. El Pacífico, por el chorro del Chocó, llega sobre todo a la costa occidental en octubre y noviembre. Según
+  el mismo trabajo, de diciembre a febrero la cordillera Oriental hace de barrera y reduce la humedad que entra a la
+  región interandina, y de junio a agosto esa región pierde más humedad de la que recibe. Las dos épocas coinciden con
+  las dos temporadas secas de la cuenca, {clas_fila["seco"]["nombre"]} y {_sr["nombre"]} (ver «Las dos temporadas secas no
+  son iguales»). Dos advertencias: el estudio describe una región mucho mayor que la cuenca, y sus autores advierten que
+  la resolución de los tres modelos limita cómo representan el relieve empinado. Con los datos del proyecto no se puede
+  contrastar a escala de la cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver
+  «850 hPa queda bajo los Andes» en «Campos climáticos globales»).</p>
+  </div>
   <p><b>Convección y relieve.</b> Según {CITA_POVEDA}, en la región Andina «el valle del Río Magdalena y el Norte de
   Antioquia presentan la mayor cantidad» de sistemas convectivos de mesoescala, y la cuenca está en el flanco de la
   cordillera que mira a ese valle (ver «Contexto geográfico»). Dos rasgos de los datos son coherentes con una lluvia de
@@ -4736,7 +4755,9 @@ a {{ color: var(--acento); }}
   tampoco {cam_caja_cuenca["vecinas_sin_850"]} de sus 8 vecinas: en promedio el {cam_caja_cuenca["bajo_tierra"] * 100:.0f} % de su área
   está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
   {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
-  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
+  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera. {marca_ini(C5)}De dónde viene
+  la humedad que llueve en la cuenca se discute con {CITA_HOYOS} en «De dónde viene la humedad», en «Explicaciones
+  físicas».{MARCA_FIN}</p>
 
   <h3>Los campos</h3>
   <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
@@ -4744,19 +4765,6 @@ a {{ color: var(--acento); }}
   <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
   <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
 
-  <h3>El transporte de humedad, mes a mes</h3>
-  <p>Cerca de la cuenca el transporte cambia mucho a lo largo del año, y distinto a cada lado de la cordillera. <b>Al
-  oriente</b> ({360 - cam_caja_cuenca["lon_este"]:.0f}° O, sobre los llanos) es máximo en
-  {MESES_LARGOS_ES[cam_transporte["este"]["mes_max"] - 1]}, con {cam_transporte["este"]["mag"].max():.0f} (g/kg)·(m/s) hacia
-  {cam_transporte["este"]["rumbo_max"]}, y casi desaparece en {MESES_LARGOS_ES[cam_transporte["este"]["mes_min"] - 1]}
-  ({cam_transporte["este"]["mag"].min():.0f}). <b>Al occidente</b> ({360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, del lado del
-  Pacífico) el transporte entra hacia el continente, hacia el este, de
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][0] - 1]} a
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][-1] - 1]}, y el resto del año va hacia el oeste.</p>
-  <div class="placa"><img src="{img('campos_transporte_mensual.png')}" alt="Doce mapas del norte de Sudamérica, el Caribe y el Pacífico oriental, uno por mes, con la humedad específica a 850 hPa en colores y flechas del transporte de humedad; la cordillera de los Andes en gris"></div>
-  <p class="nota">Cada panel es la media de los {cam_anios[1] - cam_anios[0] + 1} años de ese mes. Una caja queda en gris si
-  850 hPa estuvo bajo el terreno en alguno de esos meses. Los mapas describen el promedio; cómo se relacionan con la
-  lluvia y el caudal de la cuenca, año a año, es otra pregunta.</p>
   <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
   que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
   {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
@@ -5031,6 +5039,9 @@ a {{ color: var(--acento); }}
     <li id="ref-igac">Instituto Geográfico Agustín Codazzi (IGAC). Mapas de suelos del territorio colombiano, escala
     1:100 000, y clases de capacidad de uso de las tierras (2014). Tomados de los atributos de CAMELS-COL
     (<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>), no descargados directamente.</li>
+    <li id="ref-hoyos2018">Hoyos, I., Dominguez, F., Cañón-Barriga, J., Martínez, J. A., Nieto, R., Gimeno, L., y
+    Dirmeyer, P. A. (2018). Moisture origin and transport processes in Colombia, northern South America. <i>Climate
+    Dynamics</i>, 50(3–4), 971–990. <a href="https://doi.org/10.1007/s00382-017-3653-6">https://doi.org/10.1007/s00382-017-3653-6</a></li>
     <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).

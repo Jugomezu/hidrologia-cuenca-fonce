@@ -3,8 +3,6 @@
 Lee los campos en la malla de 2° que produce scripts/19_campos_climaticos.py y dibuja:
   - campos_sst_media.png           SST media 1998-2022 (ERSST v5).
   - campos_humedad_transporte.png  humedad específica media a 850 hPa y el transporte medio de humedad q·V (ERA5).
-  - campos_transporte_mensual.png  humedad específica y transporte de humedad a 850 hPa de cada mes del calendario
-                                   (media de los 25 años), en el norte de Sudamérica, el Caribe y el Pacífico oriental.
 
 Las funciones `dibujar_campo` y `dibujar_correlacion` son las mismas que usarán los mapas de correlación del Punto 5,
 para que todos compartan las mismas convenciones:
@@ -40,8 +38,6 @@ GRIS_SIN_DATO = "#d9d9d9"
 COSTA = "#3a3a3a"
 CUENCA = "#e6007e"
 PASO_FLECHAS = 3              # se dibuja una flecha cada 3 cajas (6°) para que el campo se lea
-PASO_FLECHAS_REGION = 2       # en el mapa regional, una flecha cada 2 cajas (4°)
-REGION = (240, 330, -30, 30)  # longitud de 120° O a 30° O y latitud de 30° S a 30° N (0-360 °E)
 DPI = 160
 
 
@@ -140,32 +136,6 @@ def main():
     fig.savefig(FIGURAS / "campos_humedad_transporte.png", dpi=DPI, bbox_inches="tight")
     plt.close(fig)
 
-    # 3) transporte de humedad por mes del calendario, en la región de la cuenca. Cada panel es la media de los 25
-    #    años de ese mes; una caja queda en gris si 850 hPa estuvo bajo tierra en alguno de esos 25 meses.
-    q_mes = ds.q850.groupby("tiempo.month").mean("tiempo", skipna=False)
-    qu_mes = ds.qu850.groupby("tiempo.month").mean("tiempo", skipna=False)
-    qv_mes = ds.qv850.groupby("tiempo.month").mean("tiempo", skipna=False)
-    meses = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
-             "noviembre", "diciembre"]
-    cmap_q = ListedColormap(plt.get_cmap("YlGnBu")(np.linspace(0.08, 1, 256)))
-    fig, ejes = plt.subplots(4, 3, figsize=(13, 13.5), constrained_layout=True)
-    LON, LAT = np.meshgrid(lon, lat)
-    sel = (slice(None, None, PASO_FLECHAS_REGION), slice(None, None, PASO_FLECHAS_REGION))
-    for k, ax in enumerate(ejes.flat):
-        ax.set_facecolor(GRIS_SIN_DATO)
-        m = ax.pcolormesh(bordes(lon), bordes(lat), np.ma.masked_invalid(q_mes.isel(month=k).values), cmap=cmap_q,
-                          vmin=0, vmax=18, shading="flat")
-        marco(ax, lat, lon, tierra, meses[k], extension=REGION, pasos=(30, 15), tam_titulo=11)
-        flechas = ax.quiver(LON[sel], LAT[sel], qu_mes.isel(month=k).values[sel], qv_mes.isel(month=k).values[sel],
-                            color="#222222", scale=1800, width=0.004, headwidth=3.5)
-    ax.quiverkey(flechas, 0.62, 0.06, 100, "100 (g/kg)·(m/s)", labelpos="E", coordinates="axes",
-                 fontproperties={"size": 8})
-    barra = fig.colorbar(m, ax=ejes, orientation="horizontal", fraction=0.025, pad=0.01, aspect=50)
-    barra.set_label("humedad específica a 850 hPa (g/kg); flechas: transporte de humedad q·V a 850 hPa", fontsize=10)
-    fig.suptitle(f"Humedad y transporte de humedad a 850 hPa, cada mes del calendario (media {anios}, ERA5). "
-                 "Gris: 850 hPa bajo el terreno", fontsize=12, x=0.01, ha="left")
-    fig.savefig(FIGURAS / "campos_transporte_mensual.png", dpi=DPI, bbox_inches="tight")
-    plt.close(fig)
     print("figuras en", FIGURAS.relative_to(RAIZ))
 
 

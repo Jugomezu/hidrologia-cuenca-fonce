@@ -793,8 +793,9 @@ propios (ver la seccion siguiente).
 - **Producto:** modelo digital de elevacion ALOS PALSAR, 12.5 m, en UTM 19N (EPSG:32619), int16, nodata
   -32768. Es lo unico que se sabe con certeza del archivo: el mosaico no trae metadatos de origen.
 - **Origen:** mosaico nacional `Dem_Colombia-002.tif` (112 928 x 151 485 pixeles) de la carpeta compartida
-  del equipo en Google Drive (`G:/Shared drives/DEM_Colombia/`). **Falta registrar de donde se bajo ese
-  mosaico** (portal, producto exacto, fecha, licencia): pendiente de confirmar con quien lo armo.
+  del equipo en Google Drive (`G:/Shared drives/DEM_Colombia/`). Segun el equipo (2026-10-11), es un recurso que
+  ya se tenia recortado para Colombia; el producto ALOS PALSAR se puede descargar del Alaska Satellite Facility
+  (ASF). No se registraron la fecha de descarga ni el producto exacto del mosaico.
 - **Lo que usa el proyecto:** un recorte, `data/dem/dem_fonce_alos_12m.tif` (7 177 x 9 811 pixeles,
   x 1 216-90 881 m, y 631 358-753 958 m), hecho por `scripts/03_recorte_dem.py` el 2026-09-27. Cubre la
   cuenca de San Gil con 2 km de margen y todas las celdas de IMERG y ERA5-Land que la tocan. Se corta en

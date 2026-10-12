@@ -1,0 +1,3 @@
+fuente,n_meses,parcial_q_etp,parcial_q_etp_p,c,c_ic95_inferior,c_ic95_superior,c_p,delta_bic_m5_menos_m4,rmse_m4,nse_m4,kge_m4,rmse_m5,nse_m5,kge_m5,rmse_particion_m4,rmse_particion_m5,kruskal_residuo_por_mes_p_m4,kruskal_residuo_por_mes_p_m5,residuo_mes_max_abs_m4,residuo_mes_max_abs_m5,mes_residuo_max_abs_m4,mes_residuo_max_abs_m5
+PL,261,-0.382519,0.0,-1.550819,-1.860922,-1.240716,0.0,-90.250908,24.572006,0.785857,0.78088,21.158393,0.841223,0.857926,24.467858,20.80856,0.0,0.002661,0.204906,0.099637,9,9
+PI,261,-0.421854,0.0,-2.506444,-2.882262,-2.130626,0.0,-108.217993,36.607699,0.524701,0.547817,29.279412,0.695949,0.743929,35.13882,29.960617,0.0,0.0,0.323922,0.24767,7,3

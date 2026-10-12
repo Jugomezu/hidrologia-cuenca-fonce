@@ -206,13 +206,12 @@ orientaciones = pd.DataFrame({"rumbo": RUMBOS, "fraccion_area": conteo_orient / 
 
 # ------------------------------------------------------------------ 4. tiempos de concentración
 def tiempos_de_concentracion(longitud_km, desnivel_m, pendiente, area_km2):
-    """Las cuatro fórmulas que usa CAMELS-COL, en horas."""
+    """Tres de las fórmulas que usa CAMELS-COL, en horas."""
     L_m, L_km = longitud_km * 1000, longitud_km
     return {
         "Kirpich": 0.0195 * L_m ** 0.77 * pendiente ** -0.385 / 60,
         "Chow": 0.1602 * (L_km / np.sqrt(pendiente)) ** 0.64,
         "Johnstone": 0.4623 * L_km ** 0.5 * (pendiente * 100) ** -0.25,
-        "Engi_Corps": 0.3 * (L_km / pendiente ** 0.25) ** 0.76,
     }
 
 
@@ -220,7 +219,7 @@ tc_camels_slope = tiempos_de_concentracion(longitud_cauce_km, desnivel_cauce_m,
                                            float(fisio_sg["equi_slope"]), area_km2)
 tc_medida = tiempos_de_concentracion(longitud_cauce_km, desnivel_cauce_m, pendiente_taylor, area_km2)
 tc_publicado = {"Kirpich": float(fisio_sg["tc_kirpich"]), "Chow": float(fisio_sg["tc_chow"]),
-                "Johnstone": float(fisio_sg["tc_Johnstone"]), "Engi_Corps": float(fisio_sg["tc_Engi_Corps"])}
+                "Johnstone": float(fisio_sg["tc_Johnstone"])}
 tc = pd.DataFrame({"publicado_camels_h": tc_publicado,
                    "con_equi_slope_camels_h": tc_camels_slope,
                    "con_pendiente_medida_h": tc_medida}).rename_axis("formula").reset_index()

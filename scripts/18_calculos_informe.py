@@ -107,9 +107,21 @@ q_mes_ok = a_mensual(cam["caudal"], "mean").notna()
 # ---------------------------------------------------------------- IMERG vs pluviómetros
 # Los 8 pluviómetros del IDEAM con serie mensual en 1998-2022. Solo los 7 que caen dentro de la
 # divisoria entran al promedio de la red; Mamonal El Hacienda está en la vertiente del Chicamocha.
+# El catálogo del IDEAM trae los nombres en mayúsculas, sin tildes y con el artículo al final («PAVAS LAS [24020220]»).
+# En el informe van sin el código, en minúsculas, y con estas correcciones (decididas por el usuario el 2026-10-11).
+CORRECCION_NOMBRES = {"Pavas Las": "Las Pavas", "Valle de San Jose": "Valle de San José",
+                      "Escuela Agricola Mogotes": "Escuela Agrícola Mogotes"}
+
+
+def nombre_estacion(nombre_ideam):
+    """«PAVAS LAS [24020220]» -> «Las Pavas»: el nombre de una estación tal como se escribe en el informe."""
+    base = pd.Series([nombre_ideam]).str.replace(r"\s*\[\d+\]", "", regex=True).str.strip().iloc[0]
+    base = base.title().replace(" De ", " de ")
+    return CORRECCION_NOMBRES.get(base, base)
+
+
 cat_plu = pd.read_csv("out/pluviometros_fonce_catalogo.csv").set_index("codigo")
-cat_plu["etiqueta"] = (cat_plu["nombre"].str.replace(r"\s*\[\d+\]", "", regex=True)
-                       .str.title().str.replace(" De ", " de "))
+cat_plu["etiqueta"] = cat_plu["nombre"].map(nombre_estacion)
 DENTRO = cat_plu.index[cat_plu["dentro_cuenca"]].tolist()
 COD_PLUVIO = {c: f"{cat_plu.loc[c, 'etiqueta']} ({cat_plu.loc[c, 'altitud']:,.0f} m)".replace(",", " ")
               for c in DENTRO}
@@ -185,12 +197,9 @@ _centroide_sg = _poligono_sg.to_crs(3116).centroid.to_crs(4326).iloc[0]
 centroide_lat, centroide_lon = float(_centroide_sg.y), float(_centroide_sg.x)
 
 # óptimo pluviográfico: según Mesa et al. (1997, p. 90), la lluvia máxima ocurre normalmente a no más de 1 500 m.
-# Qué parte de la cuenca queda por encima, leída de la curva hipsométrica del proyecto (13_morfometria.py)
-ALTURA_OPTIMO_M = 1500
+# Es una cifra general y aproximada; el óptimo de esta cuenca se toma de sus pluviómetros (más abajo, con el gradiente)
+ALTURA_OPTIMO_MESA_M = 1500
 _hipso = pd.read_csv("out/curva_hipsometrica_fonce.csv")
-frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fraccion_area_encima))
-# el texto dice que la cuenca empieza por debajo de esa altura y que la mayor parte queda por encima
-assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
 
 # ---------------------------------------------------------------- coberturas, suelos y geología (CAMELS-COL)
 # Porcentajes del área de San Gil que publica CAMELS-COL (Jiménez et al., 2025, secciones 3.2.3 a 3.2.5).
@@ -323,6 +332,13 @@ exclusiones = pd.read_csv("out/pluviometros_exclusiones.csv", dtype={"evidencia"
 exc_meses = int(exclusiones[exclusiones.codigo == 24020040].meses_excluidos.sum())      # los de Encino
 mes_ini, mes_fin = str(comp.index.min()), str(comp.index.max())
 
+
+# ---------------------------------------------------------------- flujo base (caudal diario)
+# Flujo base (scripts/16c_flujo_base.py): Lyne-Hollick con la receta de Ladson et al. (2013)
+_bfi = pd.read_csv("out/flujo_base_bfi.csv").set_index("periodo")
+bfi = float(_bfi.loc["1998-2022", "bfi_ladson"])          # el período del informe (regla 6)
+bfi_camels = float(_bfi.loc["1998-2022", "bfi_camels_col"])
+assert 0.5 < bfi < bfi_camels                               # «más de la mitad» y «menos que el publicado»
 
 # ---------------------------------------------------------------- lluvia y caudal en las mismas unidades
 # El caudal viene en m3/s; dividido por el área de la cuenca queda como lámina (mm), comparable
@@ -825,10 +841,11 @@ assert ev_correccion["ols"]["rmse"] > 0.9 * ev_correccion["sin"]["rmse"]
 
 # ---------------------------------------------------------------- modelos para estimar Q con la lluvia (Punto 2)
 # Los calcula 16b_modelos_lluvia_caudal.py: el diagnóstico, cinco modelos (M0 a M4), sus errores fuera del ajuste
-# (partición 1998-2014 / 2015-2022 y validación cruzada con 5 bloques de 5 años) y la ficha del elegido, M4. Aquí
+# (partición 1998-2014 / 2015-2022 y validación cruzada con 5 bloques de 5 años), M5 (M4 más la ETP) y la ficha del
+# elegido, M5 (desde el 2026-10-11; antes M4, que queda como el mejor modelo solo con lluvia). Aquí
 # solo se leen y se comprueba lo que afirman los textos. Lluvia y Q en mm/mes.
 MOD_ALFA = 0.05                                   # el mismo nivel de 16b
-MOD_ELEGIDO, MOD_COMPETIDOR, MOD_REFERENCIA = "M4", "M2", "M0"
+MOD_ELEGIDO, MOD_SOLO_LLUVIA, MOD_COMPETIDOR, MOD_REFERENCIA = "M5", "M4", "M2", "M0"
 MOD_CON_LLUVIA = ("M1", "M2", "M3", "M4")
 MOD_FUENTES = ("PL", "PI")                     # regla 11: las dos en paralelo; manda PL
 mod_diag = pd.read_csv("out/modelos_diagnostico.csv").set_index(["fuente", "escala"])
@@ -861,7 +878,7 @@ for _f in MOD_FUENTES:
     assert _log.varianza_tercio_lluvioso_sobre_seco < 1                      # en logaritmos se invierte
     assert _lin.kruskal_residuo_por_mes_p < MOD_ALFA                         # queda el calendario
     assert _lin.corr_residuo_lluvia_mes_anterior_p < MOD_ALFA                # la lluvia del mes anterior explica el residuo
-    assert _lin.shapiro_residuo_p < MOD_ALFA and _lin.asimetria_residuo > 0  # residuos de la recta: asimétricos
+    assert _lin.asimetria_residuo > 0                                        # residuos de la recta: asimétricos
 assert (mod_diag.loc[("PL", "lineal"), "corr_residuo_lluvia_mes_anterior"]
         > mod_diag.loc[("PI", "lineal"), "corr_residuo_lluvia_mes_anterior"])
 # el residuo medio de la recta con PL es más alto en diciembre y más bajo en marzo (el texto los nombra)
@@ -874,60 +891,83 @@ for _f in MOD_FUENTES:
     assert (mod_bloques.loc[(_f, "M2")] < mod_bloques.loc[(_f, "M1")]).all()
     # el logaritmo no baja el error
     assert mod_rmse(_f, "M3") >= mod_rmse(_f, "M1") and mod_rmse(_f, "M4") >= mod_rmse(_f, "M2")
-    # la curvatura sigue con el rezago incluido
-    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "cuadratico_p_hac"] < MOD_ALFA
-    assert mod_ajuste.loc[(_f, MOD_ELEGIDO), "kruskal_residuo_por_mes_p"] < MOD_ALFA
+    # la curvatura sigue con el rezago incluido, y queda calendario en los residuos, también con la ETP
+    for _m in (MOD_SOLO_LLUVIA, MOD_ELEGIDO):
+        assert mod_ajuste.loc[(_f, _m), "cuadratico_p_hac"] < MOD_ALFA
+        assert mod_ajuste.loc[(_f, _m), "kruskal_residuo_por_mes_p"] < MOD_ALFA
 # con PI, cada modelo yerra más que con PL, y el mejor con PI no alcanza a la recta con PL
 assert all(mod_rmse("PI", m) > mod_rmse("PL", m) for m in MOD_CON_LLUVIA)
 assert max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA) < mod_vc.loc[("PL", "M1"), "nse"]
-# KGE fuera del ajuste (Gupta et al., 2009; lo calcula 16b con r, α y β por separado), para M4 y la climatología
-MOD_TOLERANCIA_VOLUMEN = 0.05     # el texto dice que M4 reproduce el volumen fuera del ajuste: |β − 1| < 5 %
-mod_kge = {(f, m, esq): tabla.loc[(f, m)] for f in MOD_FUENTES for m in (MOD_REFERENCIA, MOD_ELEGIDO)
+# KGE fuera del ajuste (Gupta et al., 2009; lo calcula 16b con r, α y β por separado), para la climatología, M4 (el
+# mejor solo con lluvia) y M5 (el elegido); los textos de esta parte hablan de M4
+MOD_TOLERANCIA_VOLUMEN = 0.05     # el texto dice que M4 y M5 reproducen el volumen fuera del ajuste: |β − 1| < 5 %
+mod_kge = {(f, m, esq): tabla.loc[(f, m)] for f in MOD_FUENTES for m in (MOD_REFERENCIA, MOD_SOLO_LLUVIA, MOD_ELEGIDO)
            for esq, tabla in (("vc", mod_vc), ("partición", mod_part))}
 for _esq in ("vc", "partición"):
     # con PL, M4 supera a la climatología en NSE y en KGE
-    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].kge > mod_kge[("PL", MOD_REFERENCIA, _esq)].kge
-    assert mod_kge[("PL", MOD_ELEGIDO, _esq)].nse > mod_kge[("PL", MOD_REFERENCIA, _esq)].nse
+    assert mod_kge[("PL", MOD_SOLO_LLUVIA, _esq)].kge > mod_kge[("PL", MOD_REFERENCIA, _esq)].kge
+    assert mod_kge[("PL", MOD_SOLO_LLUVIA, _esq)].nse > mod_kge[("PL", MOD_REFERENCIA, _esq)].nse
     for _f in MOD_FUENTES:
-        assert abs(mod_kge[(_f, MOD_ELEGIDO, _esq)].kge_beta - 1) < MOD_TOLERANCIA_VOLUMEN
+        for _m in (MOD_SOLO_LLUVIA, MOD_ELEGIDO):
+            assert abs(mod_kge[(_f, _m, _esq)].kge_beta - 1) < MOD_TOLERANCIA_VOLUMEN
 # con PI, M4 se correlaciona menos con Q que con PL y reproduce menos su variabilidad (el texto lo dice)
-assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_r"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_r"]
-assert mod_vc.loc[("PI", MOD_ELEGIDO), "kge_alfa"] < mod_vc.loc[("PL", MOD_ELEGIDO), "kge_alfa"]
+assert mod_vc.loc[("PI", MOD_SOLO_LLUVIA), "kge_r"] < mod_vc.loc[("PL", MOD_SOLO_LLUVIA), "kge_r"]
+assert mod_vc.loc[("PI", MOD_SOLO_LLUVIA), "kge_alfa"] < mod_vc.loc[("PL", MOD_SOLO_LLUVIA), "kge_alfa"]
 # ¿queda M4 con PI por debajo de la climatología en KGE? El texto lo dice según lo que salga, en cada esquema
-mod_pi_kge_bajo_m0 = {esq: mod_kge[("PI", MOD_ELEGIDO, esq)].kge < mod_kge[("PI", MOD_REFERENCIA, esq)].kge
+mod_pi_kge_bajo_m0 = {esq: mod_kge[("PI", MOD_SOLO_LLUVIA, esq)].kge < mod_kge[("PI", MOD_REFERENCIA, esq)].kge
+                      for esq in ("vc", "partición")}
+# ¿y M5 con PI? (el texto lo dice según lo que salga)
+mod_pi_m5_sobre_m0 = {esq: mod_kge[("PI", MOD_ELEGIDO, esq)].kge > mod_kge[("PI", MOD_REFERENCIA, esq)].kge
                       for esq in ("vc", "partición")}
 
 # qué modelos no superan a la climatología (el texto lo dice según lo que salga)
 mod_no_superan = {f: [m for m in MOD_CON_LLUVIA if mod_rmse(f, m) >= mod_rmse(f, MOD_REFERENCIA)] for f in MOD_FUENTES}
 
-# la ficha de M4: cuánto cambia Q si la lluvia sube un 10 %
+# la ficha de M5: cuánto cambia Q si la lluvia o la ETP suben un 10 %
 MOD_CAMBIO_EJEMPLO = 0.10
 mod_elasticidad = {f: {"mes": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0"] - 1,
                        "anterior": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b1"] - 1,
-                       "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1} for f in MOD_FUENTES}
-# la ficha dice qué supuestos se cumplen; aquí se fija que el texto de PL coincide con las pruebas
-assert mod_ficha.loc["PL", "shapiro_residuo_p"] >= MOD_ALFA and mod_ficha.loc["PI", "shapiro_residuo_p"] < MOD_ALFA
+                       "ambos": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "b0_mas_b1"] - 1,
+                       "etp": (1 + MOD_CAMBIO_EJEMPLO) ** mod_ficha.loc[f, "c"] - 1} for f in MOD_FUENTES}
+# la ficha dice qué supuestos se cumplen; la varianza constante, en firme
 assert mod_ficha.loc["PL", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert mod_ficha.loc["PI", "spearman_abs_residuo_ajustado_p"] >= MOD_ALFA
 assert (mod_ajuste.loc[(list(MOD_FUENTES), MOD_ELEGIDO), "estimados_negativos"] == 0).all()
 # M2 con PI da caudal negativo dentro del rango de lluvia que ya se observó; con PL, por debajo de ese rango no
-assert mod_ficha.loc["PI", "lluvia_q_cero_competidor"] > mod_ficha.loc["PI", "lluvia_mes_min"]
-# M2 no cumple sus supuestos como M4: su error crece con la lluvia y sus residuos no son normales
+assert mod_ficha.loc["PI", "lluvia_q_cero_m2"] > mod_ficha.loc["PI", "lluvia_mes_min"]
+# M2 no cumple sus supuestos como M4: su error crece con la lluvia
 assert all(mod_ajuste.loc[(f, MOD_COMPETIDOR), "varianza_tercio_lluvioso_sobre_seco"] > P2_RAZON_VARIANZA
-           and mod_ajuste.loc[(f, MOD_COMPETIDOR), "shapiro_residuo_p"] < MOD_ALFA for f in MOD_FUENTES)
-# los residuos de M4 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
+           for f in MOD_FUENTES)
+# los residuos de M5 no son independientes: su autocorrelación supera la banda de 95 % de una serie sin memoria
 mod_banda_autocorr = 1.96 / np.sqrt(mod_diag.n_pares_consecutivos.min())
 assert all(mod_ajuste.loc[(f, MOD_ELEGIDO), "autocorr_residuo_1_mes"] > mod_banda_autocorr for f in MOD_FUENTES)
 
-# ¿conserva masa M4? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
+# ¿conserva masa M5? (16b): su caudal contra la lluvia y la ETP de Hargreaves con ERA5-Land
 mod_balance = pd.read_csv("out/modelos_balance.csv").set_index("fuente")
 for _f in MOD_FUENTES:
     _b = mod_balance.loc[_f]
-    # el texto dice que el volumen total casi coincide (menos de 2 %), que M4 da menos meses con Q > P que los
+    # el texto dice que el volumen total casi coincide (menos de 2 %), que M5 da menos meses con Q > P que los
     # observados y que ningún año estimado tiene más caudal que lluvia
     assert abs(_b.diferencia_volumen_pct) < 2
     assert _b.meses_q_mayor_p_estimado < _b.meses_q_mayor_p_observado
     assert _b.anios_q_mayor_p_estimado == 0
+
+# ¿agrega algo la ETP? (16b): M5 = M4 + ln ETP, y la correlación parcial de las anomalías de Q y de la ETP sin la
+# lluvia del mes ni la del anterior (decidido por el usuario el 2026-10-11, a partir de la evaluación del informe)
+MOD_CON_ETP = "M5"
+mod_etp = pd.read_csv("out/modelos_etp.csv").set_index("fuente")
+for _f in MOD_FUENTES:
+    _e = mod_etp.loc[_f]
+    # el texto dice: la parcial es negativa y significativa, c es negativo con un intervalo que no toca el 0, M5 yerra
+    # menos que M4 en los dos esquemas, tiene menor BIC y le quita calendario a los residuos
+    assert _e.parcial_q_etp < 0 and _e.parcial_q_etp_p < MOD_ALFA
+    assert _e.c_ic95_superior < 0
+    assert _e.rmse_m5 < _e.rmse_m4 and _e.rmse_particion_m5 < _e.rmse_particion_m4 and _e.delta_bic_m5_menos_m4 < 0
+    assert _e.residuo_mes_max_abs_m5 < _e.residuo_mes_max_abs_m4
+mod_etp_10 = {f: (1 + MOD_CAMBIO_EJEMPLO) ** mod_etp.loc[f, "c"] - 1 for f in MOD_FUENTES}   # Q con 10 % más ETP
+mod_etp_calendario = {f: 1 - mod_etp.loc[f, "residuo_mes_max_abs_m5"] / mod_etp.loc[f, "residuo_mes_max_abs_m4"]
+                      for f in MOD_FUENTES}                                                    # cuánto calendario quita
+mod_etp_kw_queda = {f: mod_etp.loc[f, "kruskal_residuo_por_mes_p_m5"] < MOD_ALFA for f in MOD_FUENTES}
 
 # cuánto se multiplica el coeficiente entre el mes más bajo y el más alto, con cada fuente de lluvia
 ciclo_esc_razon_imerg = ciclo_esc_max / ciclo_esc_min
@@ -1409,10 +1449,22 @@ grad_men = pd.read_csv("out/pluviometros_fonce_mensual_depurado.csv")
 _media_mes = grad_men.groupby("codigo").precipitacion_mm.mean().rename("p_mes_mm")
 grad_plu = grad_cat.merge(_media_mes, on="codigo")
 grad_plu["p_anual_mm"] = grad_plu.p_mes_mm * 12
-grad_plu["nombre_corto"] = grad_plu.nombre.str.replace(r"\s*\[\d+\]", "", regex=True).str.strip()
+grad_plu["nombre_corto"] = grad_plu.nombre.map(nombre_estacion)
 grad_plu = grad_plu.sort_values("altitud")
 grad_dentro = grad_plu[grad_plu.dentro_cuenca]
 grad_fuera = grad_plu[~grad_plu.dentro_cuenca]
+
+# El óptimo pluviográfico de la cuenca: la altitud del pluviómetro (dentro de la divisoria) que más llueve. Qué
+# parte de la cuenca queda por encima se lee de la curva hipsométrica del proyecto (13_morfometria.py)
+grad_optimo = grad_dentro.loc[grad_dentro.p_anual_mm.idxmax()]
+ALTURA_OPTIMO_M = float(grad_optimo.altitud)
+frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fraccion_area_encima))
+# el texto dice: queda por encima de la cifra general de Mesa, la cuenca empieza por debajo y la mayor parte queda
+# por encima; todas las estaciones más altas miden menos, y la lluvia sube hasta él desde la más baja
+assert ALTURA_OPTIMO_M > ALTURA_OPTIMO_MESA_M
+assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
+assert (grad_dentro[grad_dentro.altitud > ALTURA_OPTIMO_M].p_anual_mm < grad_optimo.p_anual_mm).all()
+assert grad_dentro.sort_values("altitud").p_anual_mm.iloc[0] < grad_optimo.p_anual_mm
 
 FRAC_MINIMA_GRAD = 0.30                    # solo para el dibujo: separa las celdas que apenas rozan
 grad_nucleo = grad_celdas[grad_celdas.frac_dentro > FRAC_MINIMA_GRAD]
@@ -2081,7 +2133,7 @@ assert all(tend_todos[(v, per)]["X"]["p_mk"] >= TEND_ALFA for v in ("PI", "Q") f
 # 1. OLS (paramétrico): X = b0 + b1·t + e (y lo mismo para a y z). Para X además el ajuste con una constante por
 #    mes (efectos estacionales). Se reportan pendiente, IC 95 %, período, n y el diagnóstico de los residuos:
 #    autocorrelación (lag 1 y Ljung-Box con MET_LB_REZAGOS rezagos), cambio de la dispersión con el tiempo
-#    (Breusch-Pagan: e² contra t) y normalidad (Shapiro-Wilk). Si hay dependencia o heterocedasticidad, la
+#    (Breusch-Pagan: e² contra t). Si hay dependencia o heterocedasticidad, la
 #    inferencia se apoya en el error de Newey-West (HAC), que corrige las dos.
 # 2. Monotónica no paramétrica: Mann-Kendall con pendiente de Sen. Para X, la variante estacional (cada mes solo
 #    contra el mismo mes de otros años). Dependencia: en la secuencia de meses la p se obtiene PERMUTANDO AÑOS
@@ -2289,14 +2341,13 @@ for _v in LARGO_VARS:
             r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
             fila[f"ols_{_k}"] = {"pend": b[1] * 10, "ic_cl": 1.96 * se_cl[1] * 10, "ic_hac": 1.96 * se_hac[1] * 10,
                                  "p_cl": float(2 * stats.t.sf(abs(b[1] / se_cl[1]), len(_y) - 2)), "p_hac": p_hac[1],
-                                 "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t),
-                                 "p_sw": float(stats.shapiro(e)[1])}
+                                 "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t)}
         # X con efectos estacionales (una constante por mes)
         b, se_cl, se_hac, p_hac, e = _ols_completo(_rep["X"].to_numpy(), np.column_stack([_t, _ind]))
         r1, p_lb = _ljung_box(e, MET_LB_REZAGOS)
         fila["ols_Xmes"] = {"pend": b[0] * 10, "ic_cl": 1.96 * se_cl[0] * 10, "ic_hac": 1.96 * se_hac[0] * 10,
                             "p_cl": float(2 * stats.t.sf(abs(b[0] / se_cl[0]), len(_t) - 13)), "p_hac": p_hac[0],
-                            "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t), "p_sw": float(stats.shapiro(e)[1])}
+                            "r1": r1, "p_lb": p_lb, "p_bp": _breusch_pagan(e, _t)}
         # Mann-Kendall: estacional en X (p por permutación de años), con Hamed-Rao en a y z
         pend, p, lo, hi = _mk_estacional_perm(_t, _rep["X"].to_numpy(), _meses, _anios)
         fila["mk_X"] = {"pend": pend * 10, "p": p, "lo": lo * 10, "hi": hi * 10}
@@ -2370,7 +2421,6 @@ assert all(f["ols_Xmes"]["pend"] * f["ols_a"]["pend"] > 0 or abs(f["ols_a"]["pen
 # lo que el texto de los tres métodos afirma; si los datos dejan de respaldarlo, el script se detiene
 _mc = {v: f for (v, per), f in met_global.items() if per == "completo"}
 assert all(f["ols_a"]["p_lb"] < TEND_ALFA for f in _mc.values())
-assert sum(f["ols_a"]["p_sw"] < TEND_ALFA for f in _mc.values()) >= 2
 assert not met_quiebres
 for _v in ("T mín", "T media", "T máx"):
     _f = _mc[_v]
@@ -3233,25 +3283,6 @@ cam_caja_cuenca["lon_este"] = float(_cc.lon.values[_este])
 cam_caja_cuenca["lon_oeste"] = float(_cc.lon.values[_oeste])
 cam_caja_cuenca["vecinas_sin_850"] = int(sum(_n850[_i + di, _j + dj] == 0 for di in (-1, 0, 1) for dj in (-1, 0, 1)
                                              if (di, dj) != (0, 0)))
-# transporte de humedad a 850 hPa mes a mes en esas dos cajas (la del oriente y la del occidente de la cuenca): media
-# de los 25 años de cada mes del calendario. Dirección en 8 rumbos, hacia donde va el transporte.
-def _rumbo(u, v):
-    nombres = ["el este", "el noreste", "el norte", "el noroeste", "el oeste", "el suroeste", "el sur", "el sureste"]
-    return nombres[int(np.round(np.degrees(np.arctan2(v, u)) / 45)) % 8]
-cam_transporte = {}
-for _lado, _k in (("este", _este), ("oeste", _oeste)):
-    _caja = _cc.isel(lat=_i, lon=_k)
-    _qu = _caja.qu850.groupby("tiempo.month").mean().values
-    _qv = _caja.qv850.groupby("tiempo.month").mean().values
-    _mag = np.hypot(_qu, _qv)
-    cam_transporte[_lado] = {"qu": _qu, "qv": _qv, "mag": _mag,
-                             "mes_max": int(_mag.argmax()) + 1, "mes_min": int(_mag.argmin()) + 1,
-                             "rumbo_max": _rumbo(_qu[_mag.argmax()], _qv[_mag.argmax()]),
-                             "meses_hacia_este": [m + 1 for m in range(12) if _qu[m] > 0]}
-# al occidente, los meses en que el transporte entra hacia el continente (hacia el este) forman un solo tramo
-_me = cam_transporte["oeste"]["meses_hacia_este"]
-assert _me and _me == list(range(_me[0], _me[-1] + 1))
-assert all(_qu < 0 for _qu in cam_transporte["este"]["qu"][[m - 1 for m in (12, 1, 2)]])   # al oriente, hacia el oeste en DEF
 # control de calidad de ERSST contra el ONI (scripts/19)
 _oni = pd.read_csv("out/ersst_nino34_contra_oni.csv")
 cam_oni = {"r": float(_oni.nino34_ersst_C.corr(_oni.oni_total_C)),
@@ -3401,7 +3432,7 @@ assert fis_t_decada > 0 and fis_q_global["p_hac"] >= TEND_ALFA and not inc_fdr["
 #    d) fuera del ajuste, la lluvia supera a la climatología, y la del mes anterior mejora la estimación,
 #       más con PL que con PI
 assert all(mod_rmse(f, "M1") < mod_rmse(f, MOD_REFERENCIA) for f in MOD_FUENTES)
-assert mod_rmse("PL", "M1") - mod_rmse("PL", MOD_ELEGIDO) > mod_rmse("PI", "M1") - mod_rmse("PI", MOD_ELEGIDO) > 0
+assert mod_rmse("PL", "M1") - mod_rmse("PL", MOD_SOLO_LLUVIA) > mod_rmse("PI", "M1") - mod_rmse("PI", MOD_SOLO_LLUVIA) > 0
 
 #    e) lo que dicen los textos de la ZCIT y del ENSO
 # Poveda (2004): temporadas lluviosas en abril-mayo y octubre-noviembre. El primer pico de PL, PI y Q cae en la
@@ -3882,6 +3913,72 @@ ind_tna_oni = {k: float(_ind["TNA"].reindex(PERIODOS).corr(_ind["ONI"].shift(k).
 ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
 # el texto dice que el TNA responde al ONI de meses antes con correlación positiva
 assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
+
+# El ONI es la media móvil de 3 meses centrada en el mes que lleva su nombre (17_oni_enso.py asigna DJF a enero):
+# el ONI de 1 mes antes que Q ya incluye la temperatura del mar del mismo mes de Q. No cambia ningún cálculo; el
+# texto lo dice para explicar por qué un atraso de un mes no se puede resolver con este índice.
+ONI_MESES_PROMEDIADOS = 3
+
+# Sensibilidad de la parcial del TNA (decisión del usuario, 2026-10-12, crítica 4): la parcial principal quita solo el
+# ONI de IND_REZAGO_CONTROL mes antes; aquí se repite quitando el ONI de 0 a 12 meses antes, todo el año en que el TNA
+# responde al ONI. No se guarda ni se dibuja: el texto solo da sus cifras en una nota.
+IND_REZAGOS_CONTROL_SENS = range(0, 13)    # sensibilidad: el ONI de 0 a 12 meses antes
+_controles_sens = pd.concat({j: _ind["ONI"].shift(j).reindex(PERIODOS) for j in IND_REZAGOS_CONTROL_SENS}, axis=1)
+
+
+def _residuo_varios(y, Z):
+    """Lo que queda de y después de quitarle, por mínimos cuadrados, lo que explican las columnas de Z (con constante)."""
+    X = np.column_stack([np.ones(len(y)), Z])
+    return y - X @ np.linalg.lstsq(X, y, rcond=None)[0]
+
+
+ind_sens = []
+for _k in IND_REZAGOS:
+    _x = _ind["TNA"].shift(_k).reindex(PERIODOS)
+    _ok = ind_q_anom.notna() & _x.notna() & _controles_sens.notna().all(axis=1)
+    _Z = _controles_sens[_ok].to_numpy()
+    _ey = pd.Series(_residuo_varios(ind_q_anom[_ok].to_numpy(), _Z), index=_x[_ok].index)
+    _ex = pd.Series(_residuo_varios(_x[_ok].to_numpy(), _Z), index=_x[_ok].index)
+    ind_sens.append(_fila_corr(IND_PARCIAL, _k, _ey, _ex, controles=len(IND_REZAGOS_CONTROL_SENS)))
+ind_sens = pd.DataFrame(ind_sens).sort_values("rezago", ignore_index=True)
+ind_sens["q"] = _benjamini_hochberg(ind_sens.p.to_numpy())
+ind_sens_max = ind_sens.loc[ind_sens.r.abs().idxmax()].to_dict()
+ind_sens_sig = [int(k) for k in ind_sens[ind_sens.q < IND_Q_FDR].rezago]
+ind_sens_pico_tna = ind_sens[ind_sens.rezago == int(ind_max["TNA"]["rezago"])].iloc[0].to_dict()
+# la nota dice: con la sensibilidad el TNA sin el ONI pasa la corrección en algunos rezagos seguidos, el más fuerte es
+# positivo y está entre 3 y 6 meses antes, y el pico del TNA simple no pasa
+assert ind_sens_sig and ind_sens_sig == list(range(min(ind_sens_sig), max(ind_sens_sig) + 1))
+assert ind_sens_max["r"] > 0 and 3 <= int(ind_sens_max["rezago"]) <= 6
+assert int(ind_max["TNA"]["rezago"]) not in ind_sens_sig
+assert ind_sens_max["r"] > ind_max[IND_PARCIAL]["r"]          # la nota dice que «sube»
+# la nota dice que el TNA sigue por encima de +0.2 con el ONI desde su pico hasta 12 meses antes
+IND_TNA_ONI_UMBRAL = 0.2
+assert all(ind_tna_oni[k] > IND_TNA_ONI_UMBRAL for k in range(ind_tna_oni_k, 13))
+
+# ¿Actúa El Niño solo a través de la lluvia? (crítica 4, decisión del usuario 2026-10-12). Lo calcula
+# 17c_enso_a_traves_de_lluvia.py: la correlación con el ONI de 1 mes antes de la lluvia promediada en 1, 3 y 6 meses, y
+# la parcial de Q con el ONI quitando los regresores de M4, de M5 y de M5 más la lluvia de 2 y 3 meses antes.
+enso_acum = pd.read_csv("out/enso_lluvia_acumulada.csv").set_index(["variable", "meses_promediados"])
+enso_parcial = pd.read_csv("out/enso_parcial_q_oni.csv").set_index(["fuente", "controles"])
+ENSO_CONTROL_M4, ENSO_CONTROL_M5 = "M4", "M5"
+ENSO_CONTROL_TODO = "M5 y lluvia de 2 y 3 meses antes"
+enso_r = lambda v, m=1: float(enso_acum.loc[(v, m), "r_con_oni"])
+# el texto dice: Q se correlaciona más con el ONI que la lluvia del mismo mes; promediada en 3 meses, la lluvia supera
+# a la de un mes, y en 6 meses llega a Q o más
+assert all(abs(enso_r("Q")) > abs(enso_r(f)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 3)) > abs(enso_r(f, 1)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 6)) >= abs(enso_r(f, 3)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 6)) > abs(enso_r("Q")) - 0.01 for f in ("PL", "PI"))   # «tanto como Q o más»
+# el texto dice: la ETP sube con El Niño
+assert enso_r("ETP") > 0
+# el texto dice: la parcial baja a medida que se agregan controles; con M5 sigue significativa con PL y no con PI;
+# con M5 y la lluvia de 2 y 3 meses antes, ninguna es significativa
+for _f in ("PL", "PI"):
+    _r = [abs(enso_parcial.loc[(_f, c), "r_parcial"]) for c in (ENSO_CONTROL_M4, ENSO_CONTROL_M5, ENSO_CONTROL_TODO)]
+    assert _r[0] > _r[1] > _r[2]
+    assert enso_parcial.loc[(_f, ENSO_CONTROL_M4), "p"] < 0.05
+    assert enso_parcial.loc[(_f, ENSO_CONTROL_TODO), "p"] >= 0.05
+assert enso_parcial.loc[("PL", ENSO_CONTROL_M5), "p"] < 0.05 <= enso_parcial.loc[("PI", ENSO_CONTROL_M5), "p"]
 
 
 # ======================================================================================================

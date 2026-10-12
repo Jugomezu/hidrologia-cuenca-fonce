@@ -180,6 +180,61 @@ def revision(etiqueta):
     return f' class="revision" data-etiqueta="Revisión · {html.escape(etiqueta)}"' if RESALTAR_REVISION else ""
 
 
+# Lo que cambió por la evaluación adversarial (críticas 2 a 5) va resaltado en amarillo para que el usuario lo revise
+# (pedido del usuario, 2026-10-12). Con False el informe sale sin resaltar.
+RESALTAR_CRITICAS = False
+
+
+def critica(etiqueta):
+    """Atributos de un bloque resaltado en amarillo por una crítica (o nada, si el resaltado está apagado)."""
+    return f' class="critica" data-etiqueta="{html.escape(etiqueta)}"' if RESALTAR_CRITICAS else ""
+
+
+def marca(texto, etiqueta):
+    """Un trozo de texto resaltado en amarillo por una crítica, dentro de un párrafo, una lista o una tabla."""
+    return f'<mark class="critica-txt" title="{html.escape(etiqueta)}">{texto}</mark>' if RESALTAR_CRITICAS else texto
+
+
+# ---------------------------------------------------------------- crítica 4: el ENSO a través de la lluvia
+C2, C3 = "Crítica 2 · Flujo base", "Crítica 3 · Llueve menos arriba"
+C5 = "Crítica 5 · De dónde viene la humedad"
+MARCA_FIN = "</mark>" if RESALTAR_CRITICAS else ""
+
+
+def marca_ini(etiqueta):
+    """Abre un resaltado en amarillo dentro de un texto largo; se cierra con MARCA_FIN."""
+    return f'<mark class="critica-txt" title="{html.escape(etiqueta)}">' if RESALTAR_CRITICAS else ""
+
+
+C4 = "Crítica 4 · El ENSO"
+C6 = "Revisión de 15 puntos"
+_ep = lambda f, c: enso_parcial.loc[(f, c)]
+POVEDA_PAG_ENSO = 205           # página del pasaje de Poveda (2004) sobre los mecanismos (la confirmó el usuario)
+_poveda_pag_txt = f"p. {POVEDA_PAG_ENSO}" if POVEDA_PAG_ENSO else "página por confirmar"
+_sig_sens = (min(ind_sens_sig), max(ind_sens_sig))
+enso_oni_media_txt = marca(
+    f" Además, el ONI es la media de {ONI_MESES_PROMEDIADOS} meses centrada en el mes que lleva su nombre: el de enero "
+    "promedia diciembre, enero y febrero. Así, el ONI de 1 mes antes ya incluye la temperatura del mar del mismo mes de "
+    "Q, y un atraso de un mes no se puede resolver con este índice.", C4)
+enso_lista_oni_txt = marca(f"; además, el ONI promedia {ONI_MESES_PROMEDIADOS} meses, así que tampoco resuelve un mes", C4)
+enso_tna_conclusion_txt = marca(
+    f"cuando se quita el ONI de 1 mes antes. Sí pasa, con el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes, si se "
+    "quita el ONI de todo el año anterior (ver la nota de arriba). Así que el aporte propio del Atlántico es posible, "
+    "pero depende de cómo se quite el ENSO, y no se puede afirmar con estos datos.", C4)
+enso_tna_interp_txt = marca(
+    f" de 1 mes antes (con el de todo el año anterior, el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes sí pasa; "
+    "ver «Q frente al ONI y al TNA»)", C4)
+enso_h_txt = marca(
+    f" La relación es más fuerte en Q que en la lluvia de un mes, pero se explica por la lluvia de los meses anteriores "
+    f"y por la ETP: si se quitan, la correlación parcial baja a {_ep('PL', ENSO_CONTROL_TODO).r_parcial:+.2f} con PL "
+    f"({_ep('PI', ENSO_CONTROL_TODO).r_parcial:+.2f} con PI) y deja de ser significativa (ver «¿Actúa El Niño solo a "
+    "través de la lluvia?»).", C4)
+enso_h_coherente_txt = marca(", aunque parte de la señal pasa por la ETP, como en la segunda prueba", C4)
+enso_conclusion_txt = marca(
+    "; la relación pasa por la lluvia de los meses anteriores y por la ETP: sin ellas, no queda una relación "
+    "significativa", C4)
+
+
 _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; '
                       f'vertical-align:-0.1em; background:{COLOR_VAR[v]}"></span>')
 nota_colores = (
@@ -196,8 +251,14 @@ UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C"
 
 # citas de la bibliografía (la lista completa está en la sección «Bibliografía», al final)
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
+CITA_HOYOS = '<a class="cita" href="#ref-hoyos2018">Hoyos et al., 2018</a>'
 CITA_CORDOBA = '<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>'
+CITA_THORNTHWAITE = '<a class="cita" href="#ref-thornthwaite1948">Thornthwaite, 1948</a>'
+enso_interp_mecanismo_txt = marca(
+    "con El Niño se debilitan el chorro del Chocó y el chorro ecuatorial de 700 hPa y la ZCIT se desplaza al suroeste "
+    f"({CITA_POVEDA}, {_poveda_pag_txt}), y el aire desciende sobre Colombia, lo que inhibe la convección ({CITA_CORDOBA}).", C6)
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
+CITA_LADSON = '<a class="cita" href="#ref-ladson2013">Ladson et al., 2013</a>'
 CITA_HARGREAVES = '<a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a>'
 CITA_PETTITT = '<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>'
 CITA_IMERG_DOC = '<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>'
@@ -224,6 +285,7 @@ CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
 CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a>'
+CITA_AMS_OPTIMO = '<a class="cita" href="#ref-ams-optimo">AMS, «Zone of maximum precipitation»</a>'
 CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
 # citas de la versión alterna (2026-10-11): los métodos de las secciones nuevas y las fuentes que faltaban
 CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
@@ -624,6 +686,39 @@ INDICE_HTML = """
     enlaces.push({ a, destino });
   });
 
+  // --- remisiones: un «Título» de sección o subsección en el texto se vuelve un enlace a ella ---
+  const porTitulo = new Map(enlaces.map(x => [x.a.textContent, x.a.getAttribute("href")]));
+  const caminante = document.createTreeWalker(document.querySelector(".envoltura"), NodeFilter.SHOW_TEXT, {
+    acceptNode: n => n.parentElement.closest("a, script, style, summary, h2, h3, figcaption, th")
+      ? NodeFilter.FILTER_REJECT
+      : (n.nodeValue.includes("«") ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP)
+  });
+  const conRemision = [];
+  while (caminante.nextNode()) conRemision.push(caminante.currentNode);
+  for (const nodo of conRemision) {
+    const partes = nodo.nodeValue.split(/(«[^«»]+»)/);
+    if (!partes.some(p => p.startsWith("«") && porTitulo.has(p.slice(1, -1)))) continue;
+    const trozos = document.createDocumentFragment();
+    for (const p of partes) {
+      const href = p.startsWith("«") ? porTitulo.get(p.slice(1, -1)) : null;
+      if (href) {
+        const enlace = document.createElement("a");
+        enlace.href = href; enlace.className = "remision"; enlace.textContent = p;
+        trozos.appendChild(enlace);
+      } else if (p) {
+        trozos.appendChild(document.createTextNode(p));
+      }
+    }
+    nodo.replaceWith(trozos);
+  }
+  // cualquier enlace interno (remisiones, citas, índice) despliega los bloques plegados que esconden su destino
+  document.addEventListener("click", e => {
+    const enlace = e.target.closest('a[href^="#"]');
+    if (!enlace) return;
+    let d = document.getElementById(decodeURIComponent(enlace.getAttribute("href").slice(1)));
+    while (d && (d = d.closest("details:not([open])"))) { d.open = true; d = d.parentElement; }
+  });
+
   // --- abrir y cerrar; se recuerda la preferencia (si el navegador deja guardarla) ---
   const leer = () => { try { return localStorage.getItem(CLAVE); } catch (e) { return null; } };
   const guardar = v => { try { localStorage.setItem(CLAVE, v); } catch (e) {} };
@@ -821,8 +916,7 @@ for (v, per), f in met_global.items():
         + f"<td class='num'>{_p_neg(_ic_txt(o['Xmes']['pend'], o['Xmes']['ic_hac'], d), o['Xmes']['p_hac'])} <small>(p {_p_txt(o['Xmes']['p_hac'])})</small></td>"
         + f"<td class='num'>{_p_neg(_ic_txt(o['a']['pend'], o['a']['ic_hac'], d), o['a']['p_hac'])} <small>(clásico ± {o['a']['ic_cl']:.{d}f})</small></td>"
         + f"<td class='num'>{_p_neg(_ic_txt(o['z']['pend'], o['z']['ic_hac'], 3), o['z']['p_hac'])}</td>"
-        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td>"
-        + f"<td class='num'>{_p_txt(o['a']['p_sw'])}</td></tr>")
+        + f"<td class='num'>{o['a']['r1']:.2f} / {_p_txt(o['a']['p_lb'])}</td><td class='num'>{_p_txt(o['a']['p_bp'])}</td></tr>")
     mx, ma = f["mk_X"], f["mk_a"]
     sen_x = f"{mx['pend']:+.{d}f} [{mx['lo']:+.{d}f}, {mx['hi']:+.{d}f}]"
     sen_a = f"{ma['pend']:+.{d}f} [{ma['lo']:+.{d}f}, {ma['hi']:+.{d}f}]"
@@ -1397,6 +1491,8 @@ clas_filas = "\n".join(
     for r in clas_tabla)
 # la temporada «seco relativo»: el mes de menor mediana de PL, para compararlo con el mínimo del año
 _sr = clas_fila["seco relativo"]
+# «Las dos épocas coinciden con las dos temporadas secas»: diciembre a febrero y junio a agosto (Hoyos et al., 2018)
+assert set(clas_fila["seco"]["meses"]) & {12, 1, 2} and set(_sr["meses"]) & {6, 7, 8}
 fis_sr_mes_min = MESES_LARGOS_ES[min(_sr["meses"], key=lambda m: regimen["PL"]["medianas"][m - 1]) - 1]
 # los meses en que P − Q supera a la ETP (con PL), con el nombre completo
 fis_meses_guarda = nombre_meses([MESES_ES.index(m) + 1 for m in pq_meses_guarda])
@@ -1423,37 +1519,20 @@ fis_q_abril_txt = (f"En abril, el mes siguiente, Q tampoco tiene tendencia signi
 
 # ---------------------------------------------------------------- modelos para estimar Q con la lluvia
 MOD_NOMBRE = {"M0": "climatología mensual de Q", "M1": "recta", "M2": "recta con la lluvia del mes anterior",
-              "M3": "logaritmos", "M4": "logaritmos con la lluvia del mes anterior"}
+              "M3": "logaritmos", "M4": "logaritmos con la lluvia del mes anterior",
+              "M5": "M4 más la ETP del mes"}
 MOD_ECUACION = {"M0": "Q̂ = Q medio de ese mes del calendario",
                 "M1": "Q = a + b·P<sub>t</sub>",
                 "M2": "Q = a + b<sub>0</sub>·P<sub>t</sub> + b<sub>1</sub>·P<sub>t−1</sub>",
                 "M3": "ln Q = a + b·ln P<sub>t</sub>",
-                "M4": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>"}
-_mes_corto = lambda k: MESES_ES[int(k) - 1]
+                "M4": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>",
+                "M5": "ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub> + c·ln ETP<sub>t</sub>"}
 
 # el diagnóstico: una columna por fuente y escala
-_diag_cols = [(f, e) for f in MOD_FUENTES for e in ("lineal", "logarítmica")]
-_res = lambda e, v: f"{v:+.1f}" if e == "lineal" else f"{v:+.2f}"
-_diag_ind = [
-    ("Varianza de Q que explica la recta (R²)", lambda r, e: f"{r.r2:.2f}"),
-    ("Pendiente b", lambda r, e: f"{r.pendiente_b:.2f}"),
-    ("¿Se curva? <i>p</i> del término cuadrático", lambda r, e: _p_txt(r.cuadratico_p_hac)),
-    ("Varianza del residuo: tercio más lluvioso / tercio más seco", lambda r, e: f"{r.varianza_tercio_lluvioso_sobre_seco:.2f}"),
-    ("Residuo por mes del calendario: <i>p</i> de Kruskal-Wallis", lambda r, e: _p_txt(r.kruskal_residuo_por_mes_p)),
-    ("Mes con el residuo medio más alto", lambda r, e: f"{_mes_corto(r.mes_residuo_medio_max)} ({_res(e, r.residuo_medio_max)})"),
-    ("Mes con el residuo medio más bajo", lambda r, e: f"{_mes_corto(r.mes_residuo_medio_min)} ({_res(e, r.residuo_medio_min)})"),
-    ("Correlación del residuo con el del mes siguiente", lambda r, e: f"{r.autocorr_residuo_1_mes:.2f}"),
-    ("Correlación del residuo con la lluvia del mes anterior", lambda r, e: f"{r.corr_residuo_lluvia_mes_anterior:.2f}"),
-    ("Residuos normales: <i>p</i> de Shapiro-Wilk", lambda r, e: _p_txt(r.shapiro_residuo_p)),
-    ("Asimetría del residuo", lambda r, e: f"{r.asimetria_residuo:+.2f}"),
-]
-mod_diag_filas = "\n".join(
-    f"<tr><td>{nombre}</td>" + "".join(f"<td class='num'>{f(mod_diag.loc[c], c[1])}</td>" for c in _diag_cols) + "</tr>"
-    for nombre, f in _diag_ind)
 _dl, _dg = mod_diag.loc[("PL", "lineal")], mod_diag.loc[("PL", "logarítmica")]
 _di = mod_diag.loc[("PI", "lineal")]
 
-# la comparación de los cinco modelos
+# la comparación de los seis modelos
 def _fila_modelo(f, m):
     elegido = m == MOD_ELEGIDO
     vc, pa = mod_vc.loc[(f, m)], mod_part.loc[(f, m)]
@@ -1462,6 +1541,8 @@ def _fila_modelo(f, m):
     else:
         a = mod_ajuste.loc[(f, m)]
         k, r2, dbic = f"{a.n_parametros:.0f}", f"{a.r2_en_mm:.2f}", f"{a.delta_bic_en_su_escala:.0f}"
+        if m == MOD_ELEGIDO:                # M5 no tiene ΔBIC en su escala: se da frente a M4
+            dbic = f"{mod_etp.loc[f, 'delta_bic_m5_menos_m4']:+.0f}"
     celdas = [f"{m} · {MOD_NOMBRE[m]}", MOD_ECUACION[m], k, r2, dbic, f"{vc.rmse:.1f}", f"{vc.nse:.2f}",
               f"{pa.rmse:.1f}", f"{pa.nse:.2f}"]
     celdas = [f"<b>{c}</b>" if elegido else c for c in celdas]
@@ -1469,7 +1550,7 @@ def _fila_modelo(f, m):
 
 
 mod_filas = "\n".join(
-    f"<tr><td colspan='9'><b>Con {f}</b></td></tr>\n" + "\n".join(_fila_modelo(f, m) for m in (MOD_REFERENCIA, *MOD_CON_LLUVIA))
+    f"<tr><td colspan='9'><b>Con {f}</b></td></tr>\n" + "\n".join(_fila_modelo(f, m) for m in (MOD_REFERENCIA, *MOD_CON_LLUVIA, MOD_ELEGIDO))
     for f in MOD_FUENTES)
 _bloques_txt = ", ".join(c.replace("bloque ", "") for c in mod_bloques.columns)
 _no_superan_txt = " ".join(
@@ -1477,7 +1558,7 @@ _no_superan_txt = " ".join(
      f"Con {f}, {_lista_y([m for m in ms])} no {'supera' if len(ms) == 1 else 'superan'} a la climatología.")
     for f, ms in mod_no_superan.items())
 
-# NSE, KGE y sesgo fuera del ajuste, para la climatología y M4
+# NSE, KGE y sesgo fuera del ajuste, para la climatología, M4 y M5
 _ESQUEMAS_KGE = (("vc", "validación cruzada"), ("partición", f"{EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}"))
 mod_kge_filas = "\n".join(
     f"<tr><td colspan='8'><b>Con {f}</b></td></tr>\n" + "\n".join(
@@ -1485,29 +1566,31 @@ mod_kge_filas = "\n".join(
             f"<td{' class=num' if i >= 2 else ''}>{f'<b>{c}</b>' if elegido else c}</td>" for i, c in enumerate([
                 f"{m} · {MOD_NOMBRE[m]}", nombre_esq, f"{k.nse:.2f}", f"{k.kge:.2f}", f"{k.kge_r:.2f}",
                 f"{k.kge_alfa:.2f}", f"{k.kge_beta:.3f}", f"{k.sesgo:+.1f}"])) + "</tr>")(mod_kge[(f, m, esq)], m == MOD_ELEGIDO)
-        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_ELEGIDO))
+        for esq, nombre_esq in _ESQUEMAS_KGE for m in (MOD_REFERENCIA, MOD_SOLO_LLUVIA, MOD_ELEGIDO))
     for f in MOD_FUENTES)
 _k = lambda f, m, esq="vc": mod_kge[(f, m, esq)]
-_betas_m4 = [_k(f, MOD_ELEGIDO, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
-_sesgos_m4 = [_k(f, MOD_ELEGIDO, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_betas_m4 = [_k(f, MOD_SOLO_LLUVIA, esq).kge_beta for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
+_sesgos_m4 = [_k(f, MOD_SOLO_LLUVIA, esq).sesgo for f in MOD_FUENTES for esq, _ in _ESQUEMAS_KGE]
 if mod_pi_kge_bajo_m0["vc"]:
     _pi_kge_txt = (
         f"<b>Con PI, M4 gana en NSE pero pierde en KGE frente a la climatología</b>: en la validación cruzada su NSE es "
-        f"{_k('PI', MOD_ELEGIDO).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_ELEGIDO).kge:.2f} contra "
+        f"{_k('PI', MOD_SOLO_LLUVIA).nse:.2f} contra {_k('PI', MOD_REFERENCIA).nse:.2f}, y su KGE {_k('PI', MOD_SOLO_LLUVIA).kge:.2f} contra "
         f"{_k('PI', MOD_REFERENCIA).kge:.2f}"
-        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_ELEGIDO, 'partición').kge:.2f} contra "
+        + (f" (en {_ESQUEMAS_KGE[1][1]}, {_k('PI', MOD_SOLO_LLUVIA, 'partición').kge:.2f} contra "
            f"{_k('PI', MOD_REFERENCIA, 'partición').kge:.2f})" if mod_pi_kge_bajo_m0["partición"] else "")
-        + f". La correlación de M4 es mayor (r {_k('PI', MOD_ELEGIDO).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
-        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_ELEGIDO).kge_alfa:.2f}, es decir, reproduce el "
-        f"{_k('PI', MOD_ELEGIDO).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
+        + f". La correlación de M4 es mayor (r {_k('PI', MOD_SOLO_LLUVIA).kge_r:.2f} contra {_k('PI', MOD_REFERENCIA).kge_r:.2f}), "
+        f"pero su caudal varía menos que el observado: α = {_k('PI', MOD_SOLO_LLUVIA).kge_alfa:.2f}, es decir, reproduce el "
+        f"{_k('PI', MOD_SOLO_LLUVIA).kge_alfa * 100:.0f} % de la desviación estándar de Q, contra el "
         f"{_k('PI', MOD_REFERENCIA).kge_alfa * 100:.0f} % de la climatología. El NSE junta todo el error en un solo "
         f"número; el KGE castiga por separado que el modelo varíe menos que el río.")
 else:
     _pi_kge_txt = (
         f"<b>Con PI, M4 también supera a la climatología en KGE</b> en la validación cruzada "
-        f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+        f"({_k('PI', MOD_SOLO_LLUVIA).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f}).")
+_pi_kge_txt += (f" Con la ETP (M5), PI {'sí' if mod_pi_m5_sobre_m0['vc'] else 'tampoco'} supera a la climatología en KGE "
+                f"({_k('PI', MOD_ELEGIDO).kge:.2f} contra {_k('PI', MOD_REFERENCIA).kge:.2f} en la validación cruzada).")
 
-# la ficha de M4
+# la ficha de M5
 _ic = lambda f, par: (f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'valor']:.2f} "
                       f"<small>({mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_inferior']:.2f} a "
                       f"{mod_param.loc[(f, MOD_ELEGIDO, par), 'ic95_superior']:.2f})</small>")
@@ -1516,11 +1599,12 @@ mod_param_filas = "\n".join([
     "<tr><td>a</td>" + "".join(f"<td class='num'>{_ic(f, 'a')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>0</sub>, lluvia del mes</td>" + "".join(f"<td class='num'>{_ic(f, 'b0')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>1</sub>, lluvia del mes anterior</td>" + "".join(f"<td class='num'>{_ic(f, 'b1')}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>c, ETP del mes</td>" + "".join(f"<td class='num'>{_ic(f, 'c')}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>b<sub>0</sub> + b<sub>1</sub></td>" + "".join(
         f"<td class='num'>{_fi.loc[f, 'b0_mas_b1']:.3f} <small>({_fi.loc[f, 'b0_mas_b1_ic95_inferior']:.3f} a "
         f"{_fi.loc[f, 'b0_mas_b1_ic95_superior']:.3f})</small></td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>D, factor de Duan</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'factor_duan']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
-    "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{_fi.loc[f, 'coeficiente_C']:.3f}</td>" for f in MOD_FUENTES) + "</tr>",
+    "<tr><td>C = D·e<sup>a</sup></td>" + "".join(f"<td class='num'>{n(_fi.loc[f, 'coeficiente_C'])}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>NSE en la validación cruzada</td>" + "".join(f"<td class='num'>{_fi.loc[f, 'nse_vc']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
     "<tr><td>KGE en la validación cruzada</td>" + "".join(f"<td class='num'>{mod_vc.loc[(f, MOD_ELEGIDO), 'kge']:.2f}</td>" for f in MOD_FUENTES) + "</tr>",
 ])
@@ -1535,7 +1619,6 @@ def _proporcional_txt(f):
     return "no se puede descartar que el caudal sea proporcional a la lluvia (el intervalo de b<sub>0</sub> + b<sub>1</sub> incluye el 1)"
 
 
-_cumple = lambda p: "sí" if p >= MOD_ALFA else "no"
 mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in [
     ("La relación es una recta en logaritmos",
      f"<b>No del todo</b>: queda curvatura (<i>p</i> {_p_txt(_fi.loc['PL', 'cuadratico_p_hac'])} con PL y "
@@ -1547,20 +1630,21 @@ mod_supuestos_filas = "\n".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in
     ("La varianza es constante en logaritmos",
      f"<b>Sí, aproximadamente</b>: el tamaño del residuo no se relaciona con el caudal estimado (Spearman, <i>p</i> = "
      f"{_fi.loc['PL', 'spearman_abs_residuo_ajustado_p']:.2f} con PL y {_fi.loc['PI', 'spearman_abs_residuo_ajustado_p']:.2f} con PI)."),
-    ("Los residuos son normales",
-     f"<b>Con PL, {_cumple(_fi.loc['PL', 'shapiro_residuo_p'])}</b> (Shapiro-Wilk, <i>p</i> = {_fi.loc['PL', 'shapiro_residuo_p']:.2f}); "
-     f"<b>con PI, {_cumple(_fi.loc['PI', 'shapiro_residuo_p'])}</b> (<i>p</i> = {_fi.loc['PI', 'shapiro_residuo_p']:.2f})."),
     ("No queda patrón por mes del calendario",
      f"<b>No</b>: los residuos todavía difieren de un mes a otro (Kruskal-Wallis, <i>p</i> "
      f"{_p_txt(_fi.loc['PL', 'kruskal_residuo_por_mes_p'])} con PL). La cuenca guarda agua por más de un mes y el modelo "
      f"solo mira uno atrás; no se agrega la lluvia de hace dos meses, y queda como límite del modelo."),
+    ("La ETP mide la demanda de agua de la atmósfera",
+     f"<b>No del todo</b>: la de Hargreaves se calcula con la temperatura y su amplitud diaria, que es mayor con el cielo "
+     f"despejado, así que en parte mide la nubosidad. Varió poco en el ajuste ({_fi.loc['PL', 'etp_min']:.0f} a "
+     f"{_fi.loc['PL', 'etp_max']:.0f} mm/mes)."),
     ("La lluvia se mide sin error",
      f"<b>No</b>: PL promedia entre {_fi.loc['PL', 'pluviometros_min_por_mes']:.0f} y {len(DENTRO)} pluviómetros según el mes, "
      f"ninguno por encima de {n(mapa_plu_alta.altitud)} m, y PI es una estimación de satélite. El error de la lluvia "
      f"aplana las pendientes."),
 ])
 
-# ¿conserva masa M4?
+# ¿conserva masa M5?
 _bal = mod_balance
 _bal_ind = [
     ("Lluvia media (mm/mes)", lambda f, c: f"{_bal.loc[f, 'lluvia_media']:.1f}"),
@@ -1581,11 +1665,11 @@ _bal_pl_obs, _bal_pl_est = _bal.loc["PL", "anios_p_menos_q_mayor_etp_observado"]
 _bal_pi_obs, _bal_pi_est = _bal.loc["PI", "anios_p_menos_q_mayor_etp_observado"], _bal.loc["PI", "anios_p_menos_q_mayor_etp_estimado"]
 _balance_etp_txt = (
     f"Con PL, P − Q supera a la ETP en {_anios_txt(_bal_pl_obs)} observados de {_bal.loc['PL', 'n_anios_completos']:.0f}, "
-    f"y con M4 en {_anios_txt(_bal_pl_est)}; con PI, "
-    + ("en ningún año, ni observado ni con M4. " if _bal_pi_obs == _bal_pi_est == 0 else
-       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M4. ")
+    f"y con M5 en {_anios_txt(_bal_pl_est)}; con PI, "
+    + ("en ningún año, ni observado ni con M5. " if _bal_pi_obs == _bal_pi_est == 0 else
+       f"en {_anios_txt(_bal_pi_obs)} observados y {_anios_txt(_bal_pi_est)} con M5. ")
     + ("Si P − Q supera a la ETP, la cuenca habría evaporado más de lo posible: o PL sobrestima la lluvia esos años, o la "
-       "ETP de Hargreaves se queda corta. M4 no corrige eso: lo reproduce, porque aprende de los datos."
+       "ETP de Hargreaves se queda corta. M5 no corrige eso: lo reproduce, porque aprende de los datos."
        if max(_bal_pl_obs, _bal_pl_est) > 0 else
        "Con ninguna de las dos fuentes el balance anual pide más evaporación de la posible.")
     + f" Ningún año estimado tiene más caudal que lluvia.")
@@ -1705,6 +1789,13 @@ _cajas = corr_significancia[corr_significancia.mes <= 12].cajas
 rob_cajas = (int(_cajas.min()), int(_cajas.max()))
 assert rob_mapas["con_fdr"] < rob_mapas["total"] / 2 and rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 
+# «Frecuencias: análisis de Fourier» también da el rezago con el ONI, pero con las dos series sin tendencia
+_ind_oni_fou = fou_corr_oni[("común 1998–2022", "Q")]
+ind_oni_fourier_txt = ("" if _ind_oni_fou["rezago"] == ind_txt["ONI"]["k"] else
+    f" En «Frecuencias: análisis de Fourier» la correlación más negativa es con el ONI de {_ind_oni_fou['rezago']} "
+    f"{_palabra_mes(_ind_oni_fou['rezago'])} antes (r = {_ind_oni_fou['r']:+.2f}) porque allí al ONI y a Q se les quita además "
+    "la tendencia; es la misma relación.")
+
 # ---------------------------------------------------------------- síntesis física: la tabla
 # Una fila por resultado principal del informe: qué se observó, el mecanismo que se propone, la evidencia propia que lo
 # apoya, la fuente consultada y la limitación o explicación alternativa. Las cifras son las mismas de las secciones a
@@ -1724,15 +1815,15 @@ SINT_FILAS = [
      f"Los dos picos aparecen en {est_anual['PL']['los_dos']} de {est_anual['PL']['anios']} años con PL, y caen dentro de "
      "las dos temporadas lluviosas que da la fuente («El ciclo anual»; «Frecuencias: análisis de Fourier»).",
      f"{CITA_POVEDA}; {CITA_MESA}",
-     f"Las fuentes difieren en la banda de 12 meses: {fou_fuentes['PI']['anual']:.1f} % de la varianza con PI y "
+     f"Las fuentes difieren en la banda de 12 meses {marca('del análisis de Fourier', C6)}: {fou_fuentes['PI']['anual']:.1f} % de la varianza con PI y "
      f"{fou_fuentes['PL']['anual']:.1f} % con PL, y no hay forma de saber cuál tiene la razón."),
     ("Llueve menos arriba",
      f"{aj_imerg['por_1000m']:+.0f} mm/año por cada 1 000 m con IMERG ({aj_imerg['n']} celdas) y "
      f"{aj_plu['por_1000m']:+.0f} con los pluviómetros ({aj_plu['n']} estaciones).",
-     f"Óptimo pluviográfico: por encima de unos {n(ALTURA_OPTIMO_M)} m, el aire que sube ya se quedó sin vapor que condensar.",
+     f"Óptimo pluviográfico: por encima de {marca_ini(C3)}{n(ALTURA_OPTIMO_M)} m (la altura del pluviómetro más lluvioso){MARCA_FIN}, el aire que sube ya se quedó sin vapor que condensar.",
      f"El {frac_sobre_optimo * 100:.0f} % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca "
      "llueve menos arriba»).",
-     CITA_MESA_P90,
+     f"{CITA_MESA_P90}; {marca(CITA_AMS_OPTIMO, C3)}",
      f"Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la "
      "cuenca: arriba, la pendiente depende solo del satélite."),
     ("Cuenca húmeda",
@@ -1744,29 +1835,30 @@ SINT_FILAS = [
      "lluvia contra la ETP»).",
      f"{CITA_UNEP}; {CITA_HARGREAVES}",
      "La fuente cambia el borde: con PI, enero tiene déficit, y con PL no. La ETP es potencial y de Hargreaves; las "
-     "clases de UNEP se definieron con Thornthwaite. No hay una medida de la evapotranspiración real."),
+     f"clases de UNEP se definieron con Thornthwaite {marca(f'({CITA_THORNTHWAITE})', C6)}. No hay una medida de la evapotranspiración real."),
     ("El río va atrasado y suavizado respecto a la lluvia",
      f"Q llega {desfase['Q_PL']:.0f} días después que PL (IC 95 %: {desfase_ic['Q_PL'][0]:.0f} a "
      f"{desfase_ic['Q_PL'][1]:.0f}) y {desfase['Q_PI']:.0f} después que PI.",
      "Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.",
      f"El atraso es mucho mayor que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas); la lluvia del "
      f"mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el {fou_alta_lluvia:.0f} % de la varianza de "
-     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).",
-     "Ninguna todavía: el informe no cita una fuente sobre el almacenamiento en esta cuenca.",
-     "El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones "
-     "de agua, que también podrían cambiar la respuesta del río."),
+     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»); "
+     f"{marca_ini(C2)}el flujo base es el {bfi * 100:.0f} % del caudal (BFI de {bfi:.2f}){MARCA_FIN}.",
+     marca(f"{CITA_LADSON} para el método; CAMELS-COL publica un BFI de {bfi_camels:.2f} ({CITA_JIMENEZ}).", C2),
+     marca("El flujo base dice cuánta agua sale del almacenamiento, no dónde está.", C2) + " No hay datos de humedad del suelo, del acuífero ni de captaciones "
+     "de agua, que también podrían cambiar la respuesta del río. Parte del calendario que queda en los residuos lo explica "
+     "la ETP («¿Agrega algo la evapotranspiración? M5»)."),
     ("Los años con El Niño son más secos",
      f"Correlación negativa y robusta con el índice Niño 3.4 en {n34_robustos['PL']} con PL, {n34_robustos['PI']} con PI y "
      f"{n34_robustos['Q']} con Q.",
-     "Con El Niño, la circulación de Walker hace descender el aire sobre Colombia, lo que inhibe la convección: llueve "
-     "menos y, con el atraso del almacenamiento, baja el caudal.",
-     f"De los {alt_binom_n} meses del calendario con relación robusta, {alt_binom_k} caen en las temporadas que señala la "
-     f"fuente (por azar caería la mitad: es coherente, no una prueba); Q pasa la "
-     f"corrección en más meses con el índice un mes antes; el año más seco, {fis_anio_seco}, tuvo "
-     f"{anom_anios[fis_anio_seco]['nino']} meses de El Niño; la anomalía de Q se correlaciona en {ind_txt['ONI']['r']:+.2f} con "
-     f"el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, más que con el TNA ({ind_txt['TNA']['r']:+.2f}), que "
-     "sin el ONI no pasa la corrección («La cuenca frente a los campos climáticos»).",
-     f"{CITA_CORDOBA}; {CITA_POVEDA}",
+     marca(f"Según {CITA_POVEDA} ({_poveda_pag_txt}), con El Niño se debilitan el chorro del Chocó y el chorro ecuatorial "
+           "de 700 hPa, hay menos ondas tropicales del este sobre el Atlántico, la ZCIT se corre al suroeste y cambia el "
+           "balance de humedad en los niveles bajos. Además, por la circulación de Walker el aire desciende sobre Colombia "
+           f"e inhibe la convección ({CITA_CORDOBA}). Llueve menos y, con el atraso del almacenamiento, baja el caudal.", C6),
+     marca(f"{alt_binom_k} de los {alt_binom_n} meses con relación robusta caen en las temporadas que señala la fuente; el "
+           f"año más seco, {fis_anio_seco}, tuvo {anom_anios[fis_anio_seco]['nino']} meses de El Niño; Q sigue al ONI de 1 mes "
+           f"antes ({ind_txt['ONI']['r']:+.2f}) más que al TNA («La cuenca frente a los campos climáticos»).", C6),
+     f"{CITA_POVEDA} ({_poveda_pag_txt}); {CITA_CORDOBA}",
      f"Son {pe_n_anios} años: pocos para atribuir la variabilidad entre años solo al ENSO. En la banda de 3 a 7 años, la "
      "coherencia con el ONI es significativa con PI en 1998–2022, pero con PL y Q solo en el registro largo."),
     ("La temperatura sube",
@@ -1774,7 +1866,7 @@ SINT_FILAS = [
      "qué año se quite.",
      "El calentamiento global.",
      "Coincide entre los tres métodos y las tres representaciones («Tendencias de largo plazo»).",
-     "Ninguna todavía.",
+     "Ninguna: los datos muestran que sube, no por qué.",
      "Es un reanálisis, no un termómetro en la cuenca, y frente a MSWX la diferencia salta en un año: parte de la tendencia "
      "podría venir del producto. Los datos muestran que sube, no por qué: una tendencia sola no atribuye la causa."),
     ("La lluvia y el caudal no tienen tendencia",
@@ -1792,13 +1884,13 @@ sint_est_pi_mayor = sum(v["sesgo"] > 0 for k, v in cmp_stats.items() if k != NOM
 assert sesgo_pi_pl < 0 and p2_pipl["debajo_pct"] > 50                            # «PI queda por debajo de PL»
 assert 0 < sint_est_pi_mayor < len(cmp_stats) - 1                                # «pero no de todos los pluviómetros»
 assert rho("PI", "Q") < rho("PL", "Q")                                           # «Q se lleva mejor con PL»
-assert _k("PI", MOD_ELEGIDO).kge < _k("PL", MOD_ELEGIDO).kge and mod_pi_kge_bajo_m0["vc"]
+assert _k("PI", MOD_SOLO_LLUVIA).kge < _k("PL", MOD_SOLO_LLUVIA).kge and mod_pi_kge_bajo_m0["vc"]
 assert etp_anual.camels > etp_pl_anual                                           # «la ETP de CAMELS-COL supera a la lluvia»
 assert rob_mapas["caen"] > rob_mapas["con_fdr"] / 2
 # Versión alterna (2026-10-11): tres filas más, con los resultados de las secciones nuevas y del modelo lluvia–caudal
 SINT_FILAS += [
     ("La lluvia del mes y del anterior estiman el caudal mensual",
-     f"KGE fuera del ajuste de {_k('PL', MOD_ELEGIDO).kge:.2f} con PL y {_k('PI', MOD_ELEGIDO).kge:.2f} con PI, frente a "
+     f"KGE fuera del ajuste de {_k('PL', MOD_SOLO_LLUVIA).kge:.2f} con PL y {_k('PI', MOD_SOLO_LLUVIA).kge:.2f} con PI, frente a "
      f"{_k('PL', MOD_REFERENCIA).kge:.2f} de la climatología.",
      "El caudal es la lluvia reciente amortiguada por el almacenamiento.",
      "Sumar la lluvia del mes anterior baja el error en la validación cruzada («¿Sirve la lluvia para estimar el "
@@ -1855,8 +1947,7 @@ def _morf_valor(v):
     return n(v) if v.is_integer() else n(v, 2)
 
 
-NOMBRE_TC = {"Kirpich": "Kirpich", "Chow": "Chow", "Johnstone": "Johnstone",
-             "Engi_Corps": "Cuerpo de Ingenieros (<code>Engi_Corps</code>)"}
+NOMBRE_TC = {"Kirpich": "Kirpich", "Chow": "Chow", "Johnstone": "Johnstone"}
 assert set(NOMBRE_TC) == set(morf_tc.index)
 _ts = "pendiente del cauce (Taylor-Schwarz)"
 alt_ts_razon = float(morf.loc[_ts, "valor"] / morf.loc[_ts, "publicado_camels"])
@@ -1906,7 +1997,7 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
 
   <h3>Tiempo de concentración</h3>
   <p>El tiempo de concentración es lo que tarda en llegar a la salida el agua que cae en el punto más lejano. Con la
-  pendiente del cauce medida sobre el DEM, las cuatro fórmulas que usa CAMELS-COL ({CITA_KIRPICH} y otras tres) dan
+  pendiente del cauce medida sobre el DEM, tres de las fórmulas que usa CAMELS-COL ({CITA_KIRPICH}, Chow y Johnstone) dan
   entre {morf_tc_medido.min():.1f} y {morf_tc_medido.max():.1f} horas. CAMELS-COL publica entre
   {morf_tc_publicado.min():.0f} y {morf_tc_publicado.max():.0f} horas. La diferencia sale de la pendiente: la de
   Taylor-Schwarz que publica CAMELS-COL es {_morf_valor(morf.loc[_ts, "publicado_camels"])} m/m, unas
@@ -1923,7 +2014,7 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
     </tbody>
   </table>
   </div>
-  <div class="placa"><img src="{img('tiempos_concentracion.png')}" alt="Tiempos de concentración de cuatro fórmulas, con la pendiente medida y con la publicada por CAMELS-COL"></div>
+  <div class="placa"><img src="{img('tiempos_concentracion.png')}" alt="Tiempos de concentración de tres fórmulas, con la pendiente medida y con la publicada por CAMELS-COL"></div>
   <p><b>Lo que importa para el resto del informe:</b> aun el tiempo más largo, {morf_tc_medido.max():.1f} horas, es mucho
   menor que el atraso del río frente a la lluvia en el ciclo anual, unos {desfase["Q_PL"]:.0f} días (ver «Desfase
   estacional»). Ese atraso no es el tiempo de viaje del agua por los cauces: es agua que la cuenca guarda y suelta
@@ -1931,15 +2022,19 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
 
 # ---------------------------------------------------------------- veredicto sobre la hipótesis H
 alt_veredicto_h = f"""<div class="aviso">
-  <p><b>Veredicto de esta versión: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
+  <p><b>Veredicto: H se sostiene solo en parte.</b> Lo que la apoya: la lluvia explica el caudal sin el
   ciclo anual, la del mes anterior agrega información, y el caudal no tiene tendencia sin un cambio de la lluvia. Lo que
-  la contradice, por su propio criterio: los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por mes
-  del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). Una lectura
-  posible, que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al
-  río entre temporadas y que el modelo no representa.</p>
-  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un
-  almacenamiento rápido, de un mes, y otro más lento. Para probarla haría falta un modelo con dos
-  almacenamientos y comprobar que sus residuos ya no conservan el calendario.</p>
+  la contradice, por su propio criterio: la ETP sí agrega información sobre el caudal una vez descontada la lluvia
+  (parcial {mod_etp.loc["PL", "parcial_q_etp"]:+.2f} con PL; M5 baja el error de {mod_etp.loc["PL", "rmse_m4"]:.1f} a
+  {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes), y los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por
+  mes del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). La ETP explica
+  parte de ese calendario: M5 le quita un {mod_etp_calendario["PL"] * 100:.0f} % al residuo del peor mes con PL{", pero no todo" if mod_etp_kw_queda["PL"] else ""}.
+  {"Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa." if mod_etp_kw_queda["PL"] else ""}
+  {marca_ini(C2)}El flujo base confirma que el almacenamiento es grande ({bfi * 100:.0f} % del caudal), pero no distingue si es uno o son dos.{MARCA_FIN}</p>
+  <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, menos una
+  evapotranspiración que cambia a lo largo del año, amortiguada por un almacenamiento rápido, de un mes{", y otro más lento" if mod_etp_kw_queda["PL"] else ""}.
+  Para probarla haría falta un modelo de balance con la evapotranspiración y {"dos almacenamientos" if mod_etp_kw_queda["PL"] else "el almacenamiento"}, y
+  comprobar que sus residuos ya no conservan el calendario.</p>
   </div>"""
 
 # ---------------------------------------------------------------- conclusiones
@@ -1951,16 +2046,16 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     con PI).</li>
     <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
-    despacio.</li>
+    despacio. {marca_ini(C2)}El {bfi * 100:.0f} % del caudal es flujo base.{MARCA_FIN}</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
-    PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}); con PI, no. Pero al modelo le falta el almacenamiento lento.</li>
+    PL (KGE de {_k("PL", MOD_SOLO_LLUVIA).kge:.2f}); con PI, no. El modelo elegido, M5, agrega la ETP del mes: baja el error
+    de {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}){", y con PI ya supera a la climatología" if mod_pi_m5_sobre_m0["vc"] else ""}{"; aun así, le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
     <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
-    después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI). Con {pe_n_anios} años no se le puede atribuir toda la
+    después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI){enso_conclusion_txt}. Con {pe_n_anios} años no se le puede atribuir toda la
     variabilidad entre años.</li>
     <li><b>Tendencias.</b> La temperatura sube {fis_t_decada:+.2f} °C por década; la lluvia y el caudal no tienen una
     tendencia significativa, lo que no prueba que no la haya.</li>
-    <li><b>La hipótesis H</b> se sostiene en parte: hay que agregarle un almacenamiento lento (ver «Una hipótesis para las
-    relaciones y las tendencias»).</li>
+    <li><b>La hipótesis H</b> se sostiene en parte: la evapotranspiración sí agrega información sobre el caudal{", y probablemente falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""} (ver «La hipótesis H frente a los resultados»).</li>
   </ol>
 
   <h3>Limitaciones y trabajo futuro</h3>
@@ -1972,12 +2067,18 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Las subcuencas tienen caudal medido y no se usan</b> para el caudal; servirían para ver de dónde viene el agua
     de San Gil.</li>
     <li><b>Un modelo con dos almacenamientos</b> (rápido y lento) para probar la hipótesis H′.</li>
+    <li>{marca_ini(C5)}<b>Si la cuenca es más seca que la otra ladera</b> no se comprobó: haría falta comparar la lluvia del
+    Fonce con la de cuencas de la vertiente que mira a los Llanos, a alturas parecidas (ver «Contexto geográfico»).{MARCA_FIN}</li>
+    <li>{marca_ini(C5)}<b>El transporte de humedad sobre la cuenca no se ve a 850 hPa</b>, que queda bajo tierra en la
+    cordillera. El flujo de vapor integrado en toda la columna (IVT), que es lo que usan {CITA_HOYOS} con ERA-Interim, no
+    tiene ese problema: con el de ERA5 se podría ver el transporte sobre la propia cuenca.{MARCA_FIN}</li>
     <li><b>Todo el trabajo es de resolución mensual.</b> Las crecientes y los estiajes, que duran horas o días (el
     tiempo de concentración es de {morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas), quedan aplanados en el
-    promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno, no separa el
-    flujo base del caudal (eso necesita datos diarios) y no puede ver la respuesta del río a una tormenta. Que Q vaya
+    promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno y no puede ver
+    la respuesta del río a una tormenta. {marca_ini(C2)}La excepción es el flujo base, que se separa con el caudal diario (ver «Cómo
+    la cuenca transforma la lluvia»).{MARCA_FIN} Que Q vaya
     detrás de la lluvia se mide en días, pero a partir de meses.</li>
-    <li><b>ERA5-Land solo está descargado para 1998–2022</b>: la ETP y la temperatura no tienen registro largo.</li>
+    <li><b>La ETP solo se calculó para 1998–2022</b>: no tiene registro largo, aunque la temperatura de ERA5-Land sí llega a 1981.</li>
   </ul>"""
 assert _k("PL", MOD_ELEGIDO).kge > _k("PL", MOD_REFERENCIA).kge                # «mejor que la climatología con PL»
 
@@ -1986,7 +2087,7 @@ pagina = f"""<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reporte cuenca del Fonce (versión alterna)</title>
+<title>Reporte cuenca del Fonce</title>
 <meta name="author" content="{html.escape(", ".join(AUTORES))}">
 <script>{PLOTLY_JS}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1995,7 +2096,7 @@ pagina = f"""<!doctype html>
 <style>
 :root {{
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --critica-borde: #A86B00; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -2003,12 +2104,12 @@ pagina = f"""<!doctype html>
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --critica-borde: #E3B341; --cambio: #16301B; --cambio-borde: #7BC67F;
   }}
 }}
 :root[data-theme="dark"] {{
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --critica-borde: #E3B341; --cambio: #16301B; --cambio-borde: #7BC67F;
 }}
 * {{ box-sizing: border-box; }}
 body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }}
@@ -2016,7 +2117,8 @@ body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--
 header {{ border-bottom: 1px solid var(--linea); padding-bottom: 28px; margin-bottom: 40px; }}
 .antetitulo {{ font: 600 12px/1 var(--f-dato); letter-spacing: .12em; text-transform: uppercase; color: var(--acento); margin: 0 0 14px; }}
 h1 {{ font: 800 clamp(32px, 5vw, 50px)/1.05 var(--f-titulo); font-stretch: 82%; letter-spacing: -.01em; margin: 0 0 16px; text-wrap: balance; }}
-h2 {{ font: 700 26px/1.2 var(--f-titulo); font-stretch: 88%; margin: 0 0 12px; text-wrap: balance; }}
+h2 {{ font: 800 34px/1.15 var(--f-titulo); font-stretch: 88%; margin: 0 0 16px; text-wrap: balance;
+      color: var(--acento); border-left: 6px solid var(--acento); padding-left: 14px; }}
 h3 {{ font: 600 13px/1.3 var(--f-dato); letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); margin: 0 0 10px; }}
 p {{ margin: 0 0 14px; max-width: 66ch; }}
 .intro {{ font-size: 19px; color: var(--tenue); max-width: 60ch; margin: 0; }}
@@ -2034,6 +2136,8 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .num, th.num {{ text-align: right; }}
 .cod {{ color: var(--tenue); }}
 .nota {{ font-size: 14px; color: var(--tenue); }}
+a.remision {{ color: inherit; text-decoration: underline dotted var(--acento); text-underline-offset: 3px; }}
+a.remision:hover {{ color: var(--acento); }}
 .plegable > summary {{ list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }}
 .plegable > summary::-webkit-details-marker {{ display: none; }}
 .plegable > summary h2 {{ display: inline; margin: 0 0 12px; }}
@@ -2055,6 +2159,14 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .revision > p:last-child {{ margin-bottom: 0; }}
 .revision::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }}
+.critica {{ background: var(--anotado); border-left: 4px solid var(--critica-borde); padding: 10px 14px;
+  margin: 14px 0; border-radius: 0 4px 4px 0; }}
+.critica > p {{ margin: 0 0 8px; }}
+.critica > p:last-child {{ margin-bottom: 0; }}
+.critica::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--critica-borde); margin-bottom: 6px; }}
+mark.critica-txt {{ background: var(--anotado); color: inherit; padding: 0 2px; border-radius: 2px;
+  box-shadow: inset 0 -2px 0 var(--critica-borde); }}
 .cambio {{ background: var(--cambio); border-left: 4px solid var(--cambio-borde); padding: 10px 14px;
   margin: 14px 0; border-radius: 0 4px 4px 0; }}
 .cambio > p {{ margin: 0 0 8px; }}
@@ -2111,7 +2223,7 @@ a {{ color: var(--acento); }}
 
 <div class="envoltura">
 <header>
-  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca · versión alterna</p>
+  <p class="antetitulo">Hidrología · Tarea 1 · Análisis de cuenca</p>
   <h1>Cuenca del río Fonce hasta San Gil</h1>
   <div{revision("autores")}>
     <p class="intro"><b>Autores:</b> {html.escape(", ".join(AUTORES))}</p>
@@ -2129,6 +2241,34 @@ a {{ color: var(--acento); }}
 <div{revision("colores unificados en todas las figuras")}>
   <p class="nota">{nota_colores}</p>
 </div>
+
+<section>
+  <h2>Qué se quiere saber</h2>
+  <p>Este informe busca responder una pregunta: <b>¿qué controla el caudal del Fonce en San Gil, y cómo cambia de un mes
+  a otro, de un año a otro y en los {max(ANIOS_ESTUDIO) - int(LARGO_DESDE[:4]) + 1} años desde {LARGO_DESDE[:4]}?</b>
+  Para responderla se usan el caudal medido en San Gil (<b>Q</b>); dos fuentes de lluvia, que se llevan en paralelo: el
+  satélite IMERG (<b>PI</b>) y los pluviómetros del IDEAM dentro de la cuenca (<b>PL</b>); y la temperatura de
+  ERA5-Land. Las comparaciones entre variables usan {min(ANIOS_ESTUDIO)}–{max(ANIOS_ESTUDIO)}, el período en que existen
+  todas. Las tendencias usan el registro largo de cada variable.</p>
+  <p>La pregunta se responde en tres partes, en el orden del informe:</p>
+  <ol>
+    <li><b>¿Cuánta agua le cae a la cuenca, y qué tan bien la miden PI y PL?</b> Se responde de «Contexto geográfico» a
+    «Comparando PI con PL», con el control de calidad de los datos antes de usarlos.</li>
+    <li><b>¿Cómo se vuelve caudal esa lluvia?</b> Se responde de «Cómo se relacionan las variables entre sí» a «El ciclo
+    anual», y en «¿Sirve la lluvia para estimar el caudal?».</li>
+    <li><b>¿Qué mueve el caudal entre años y a largo plazo?</b> Se responde de «Anomalías y anomalías estandarizadas» a
+    «Interpretación física de los patrones».</li>
+  </ol>
+  <p>La respuesta que el informe pone a prueba es la hipótesis <b>H</b>: el caudal de San Gil lo controla la lluvia sobre
+  la cuenca, amortiguada por un almacenamiento del orden de un mes. La evapotranspiración, casi constante en el año, no
+  explica ni su ciclo ni sus diferencias entre años. Entre años, se espera además que el ENSO tenga algún efecto sobre
+  la cuenca, a través de la lluvia.</p>
+  <p>Si H es cierta, se debería ver cinco cosas: que la lluvia sigue explicando el caudal sin el ciclo anual, y que la del
+  mes anterior agrega información; que la ETP no agrega información sobre el caudal una vez descontada la lluvia; que un
+  cambio de largo plazo de la lluvia aparece en el caudal; que el calentamiento no mueve el caudal; y que la lluvia y el
+  caudal cambian con las fases del ENSO. Se refutaría si el caudal cambiara entre años sin un cambio de lluvia que lo acompañe, o si lo que
+  la lluvia no explica conservara el ciclo anual. El veredicto está en «Síntesis física y conclusiones».</p>
+</section>
 
 <section>
   <h2>Contexto geográfico</h2>
@@ -2156,9 +2296,10 @@ a {{ color: var(--acento); }}
   <p><b>A sotavento de los alisios.</b> En las laderas que reciben los vientos alisios de frente, a barlovento, la
   lluvia tiende a ser mucho mayor que en sus vecinas del lado opuesto, a sotavento: del orden del doble
   ({CITA_MESA_P90}). Los alisios llegan del oriente, y la mayor parte de la cuenca está en el flanco occidental de la
-  cordillera, a sotavento. De ahí sale una hipótesis que este trabajo no comprueba: la vertiente oriental de la
-  cordillera, la que mira a los Llanos, debería recibir bastante más lluvia que el Fonce. La vecina inmediata al
-  oriente, la vertiente del Chicamocha, no sirve para compararla, porque también es interandina.</p>
+  cordillera, a sotavento. {marca_ini(C5)}Eso no la hace seca: con P/ETP = {pe_indice["pl"]["ie"]:.2f} con PL es húmeda
+  (ver «¿Húmeda o árida? La lluvia contra la ETP»). Lo que sugiere es una comparación: la vertiente oriental de la
+  cordillera, la que mira a los Llanos, posiblemente recibe más lluvia que el Fonce. Este trabajo no lo comprueba (ver
+  «Limitaciones y trabajo futuro»).{MARCA_FIN} La vecina inmediata al oriente, la vertiente del Chicamocha, no sirve para compararla, porque también es interandina.</p>
 
   <h3>La cuenca y sus subcuencas</h3>
   <p>El Fonce nace en el páramo al sureste (hasta {n(elev_max)} m) y corre hacia el norte por un valle ancho hasta San Gil.
@@ -2290,11 +2431,11 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
-  <h2>Coberturas, suelos y geología</h2>
+  <details class="plegable" open>
+  <summary><h2>Coberturas, suelos y geología</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
   <p>Lo que cubre la cuenca, sus suelos y la roca debajo pueden ayudar a entender cuánta agua se infiltra y cuánta se
   guarda. Aquí solo se usan para dos resultados del informe: el almacenamiento que atrasa el caudal (ver «Cómo la cuenca
-  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «Una
-  hipótesis para las relaciones y las tendencias»).</p>
+  transforma la lluvia») y la pregunta de si cambios de cobertura podrían explicar algo de las tendencias (ver «La hipótesis H frente a los resultados»).</p>
 
   <h3>Geología</h3>
   <p>La geología sale del Mapa Geológico de Colombia 2023 del Servicio Geológico Colombiano (SGC), recortado con el
@@ -2415,186 +2556,14 @@ a {{ color: var(--acento); }}
   coberturas son de un solo año y salen de una clasificación automática de imágenes. Los suelos y la capacidad de
   uso se calcularon sobre el polígono de CAMELS-COL ({n(sg_area_camels)} km²), no sobre el del proyecto
   ({n(sg['area'], 2)} km²).</p>
-</section>
-
-<section>
-  <h2>En esta cuenca llueve menos arriba</h2>
-  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
-  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
-  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
-  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
-  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con algo independiente.</p>
-
-  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
-  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa e
-  independiente de dónde están los pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
-    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
-  </div>
-
-  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
-  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
-  círculo hueco es la estación fuera de la divisoria.</p>
-
-  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
-  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
-  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido; ver «Comparando PI con PL»), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
-  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
-  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
-  que la altitud sola no explica.</p>
-
-  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
-  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
-  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
-
-  <div class="cifras" style="margin: 18px 0 6px">
-    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
-    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
-    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
-    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
-  </div>
-
-  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
-  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
-  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
-  estaciones apartadas.</p>
-
-  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
-  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
-  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
-  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
-  (r² = {aj_limpio['r2']:.2f}).</p>
-
-  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
-  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
-  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
-
-  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
-  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
-  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
-  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
-  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
-
-  <figure>
-    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
-    <figcaption>
-      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
-      oriental, la parte más alta y escarpada de la cuenca.</p>
-      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
-      que la contiene, porque están anidadas unas dentro de otras.</p>
-    </figcaption>
-  </figure>
-
-  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
-
-  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
-  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
-  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
-  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
-
-  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
-  {sub_seca.estaciones_en_subcuenca} estaciones del
-  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
-  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
-  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
-  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
-  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
-
-  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
-  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
-  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
-  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
-  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión.</p>
-
-  <h3>La lluvia contra la altura</h3>
-  <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas
-  ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>. Por qué la lluvia
-  disminuye con la altura en esta cuenca se explica en «Explicaciones físicas» (el óptimo pluviográfico).</p>
-
-  <div class="tabla-caja">
-  <table>
-    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
-    <tbody>
-{filas_grad}
-    </tbody>
-  </table>
-  </div>
-
-  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
-  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
-  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
-</section>
-
-<section>
-  <h2>Comparando PI con PL</h2>
-  <p>Las dos fuentes de lluvia: <b>PI</b>, la de IMERG, que el satélite estima sobre celdas de unos
-  {n(mapa_km2_pixel)} km², y <b>PL</b>, el promedio de los <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la
-  divisoria (datos <b>preliminares</b>), con los que tengan dato cada mes, sin rellenar. En las gráficas, los
-  pluviómetros sueltos van tenues y su promedio a plena opacidad.</p>
-  <p class="aviso"><b>De PL se excluyen 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses): sus totales saltan a
-  {n(enc_raros[2016])}, {n(enc_raros[2017])} y {n(enc_raros[2018])} mm, contra unos {n(enc_normal)} en el resto de su
-  serie, y nada más acompaña el salto (en 2017, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio con esos años y
-  {exc_2017['depurado']:+.1f} % sin ellos, mientras PI sale {exc_2017['pi']:+.1f} %). Es un problema de registro.</p>
-  <p class="nota">La precipitación CHIRPS que trae CAMELS-COL se retiró: no aporta un punto de vista
-  independiente de las otras dos y arrastra los huecos del caudal.</p>
-  <div class="tabla-caja">
-  <table>
-    <thead><tr><th>Fuente comparada con IMERG</th><th class="num">Meses comparables</th><th class="num">IMERG (mm/mes)</th>
-    <th class="num">La otra fuente (mm/mes)</th><th class="num">Diferencia de IMERG</th><th class="num">Correlación mensual</th></tr></thead>
-    <tbody>
-{filas_cmp}
-    </tbody>
-  </table>
-  </div>
-  <div class="dos-graficos">
-    <div>
-      <h3>Serie mensual, {mes_ini} a {mes_fin}</h3>
-      <div id="g-series" class="grafico"></div>
-    </div>
-    <div>
-      <h3>Ciclo anual medio</h3>
-      <div id="g-ciclo" class="grafico"></div>
-    </div>
-  </div>
-  <p class="nota">Las dos figuras comparten la leyenda de arriba. Pasa el cursor por encima para ver los
-  valores de un mes; arrastra sobre el gráfico para acercarte y haz doble clic para volver.</p>
-  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud:</b> coinciden en la forma del ciclo
-  anual y mes a mes (correlación {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un
-  {abs(cmp_stats[NOM_RED]["sesgo"]):.1f} % por debajo de PL</b> ({n(cmp_stats[NOM_RED]["imerg"])} contra
-  {n(cmp_stats[NOM_RED]["pluv"])} mm/mes). Los pluviómetros sueltos van de
-  {n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
-  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
-  ladera: por eso se usa su promedio.</p>
-
-  <h3>Mes a mes, uno contra otro</h3>
-  <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
-  concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
-  en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses PI queda por debajo de PL.</p>
-  <div class="cifras" style="margin-bottom:14px">
-    <div class="cifra"><b>{p2_pipl["sesgo"]:+.1f} mm/mes</b><span>sesgo medio (PI − PL)</span></div>
-    <div class="cifra"><b>{p2_pipl["mae"]:.1f} mm/mes</b><span>error absoluto medio (MAE)</span></div>
-    <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
-  </div>
-  <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
-  <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
-  pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
-  en promedio, se aleja de PL hacia los dos lados.</p>
-  <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
-  la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
-  PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
+  </details>
 </section>
 
 <section>
   <h2>Qué meses tienen dato y cuáles no</h2>
   <p>Cada franja es un mes de una fuente, y en las series diarias su color es el <b>porcentaje de días del mes
   con registro</b>: así se distingue un mes completo de uno al que le faltan unos días.</p>
-  <p class="nota"><b>PI</b>: lluvia de IMERG sobre la cuenca. <b>PL</b>: la de los pluviómetros del IDEAM dentro de
-  la divisoria (su promedio o cada uno). <b>Q</b>: caudal en San Gil. <b>ETP</b>: evapotranspiración potencial de
-  Hargreaves con ERA5-Land.</p>
+  <p class="nota"><b>ETP</b>: evapotranspiración potencial de Hargreaves con ERA5-Land.</p>
   <p>La regla acepta un mes al que le falten <b>{MAX_DIAS_FALTANTES} días o menos</b>; como no es lo mismo que
   falten sueltos o seguidos, el detalle de cada mes (al pasar el cursor) dice también <b>cuántos son
   consecutivos</b>.</p>
@@ -2783,10 +2752,183 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
+  <h2>En esta cuenca llueve menos arriba</h2>
+  <p>Contra la intuición, las estaciones más altas de la red miden <b>menos</b> lluvia que varias del valle:
+  <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
+  {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
+  {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
+  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con {marca_ini(C3)}una segunda fuente{MARCA_FIN}.</p>
+
+  <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
+  celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa, que no
+  depende de dónde están los pluviómetros, {marca_ini(C3)}pero <b>no es del todo independiente</b> de ellos: IMERG se ajusta con
+  redes de pluviómetros.{MARCA_FIN} <b>Las dos fuentes coinciden en el signo.</b></p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>r² = {aj_imerg['r2']:.2f}</b><span>IMERG, {aj_imerg['n']} celdas</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · pluviómetros</span></div>
+    <div class="cifra"><b>r² = {aj_plu['r2']:.2f}</b><span>pluviómetros, {aj_plu['n']} estaciones</span></div>
+  </div>
+
+  <div id="g-gradiente" class="grafico" style="min-height:460px"></div>
+  <p class="nota">Azul: celdas de IMERG, más grandes cuanto más pesan en el ajuste. Naranja: pluviómetros; el
+  círculo hueco es la estación fuera de la divisoria.</p>
+
+  <h3>Las mismas estaciones, apartando las dos que no encajan</h3>
+  <p>Dos estaciones tiran de la recta naranja: <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b> mide muy por
+  encima de lo esperable (aun sin su tramo 2016-2018, ya excluido; ver «Comparando PI con PL»), y <b>{html.escape(grad_mas_seca.nombre_corto)}</b>,
+  con {n(grad_mas_seca.p_anual_mm)} mm/año a {n(grad_mas_seca.altitud)} m, mide <b>menos que
+  {html.escape(grad_mas_alta.nombre_corto)}</b>, {n(grad_mas_alta.altitud - grad_mas_seca.altitud)} m más arriba, algo
+  que la altitud sola no explica.</p>
+
+  <p>Este segundo gráfico repite el ajuste con las {aj_limpio['n']} estaciones restantes. <b>No es una
+  depuración</b>: las dos apartadas siguen dibujadas, huecas, y sus datos siguen en el análisis. Es una
+  comprobación de cuánto pesaban ellas dos en el desacuerdo entre las fuentes.</p>
+
+  <div class="cifras" style="margin: 18px 0 6px">
+    <div class="cifra"><b>{aj_limpio['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · {aj_limpio['n']} estaciones</span></div>
+    <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por 1 000 m · IMERG</span></div>
+    <div class="cifra"><b>{n(grad_brecha)} mm/año</b><span>diferencia entre las dos</span></div>
+    <div class="cifra"><b>{aj_plu['por_1000m']:+,.0f} mm/año</b><span>con las 7, para comparar</span></div>
+  </div>
+
+  <div id="g-gradiente-limpio" class="grafico" style="min-height:420px"></div>
+  <p class="nota">Línea naranja: las {aj_limpio['n']} estaciones restantes. Línea azul: la tendencia de IMERG,
+  dibujada sobre el mismo tramo de altitud para poder compararlas de frente. Los círculos huecos son las dos
+  estaciones apartadas.</p>
+
+  <p><b>Sin ellas, las dos rectas se acercan</b>: {aj_limpio['por_1000m']:+,.0f} mm/año por cada 1 000 m con los
+  pluviómetros y {aj_imerg['por_1000m']:+,.0f} con el satélite, {n(grad_brecha)} mm/año de diferencia contra
+  {n(grad_brecha_7)} con las {aj_plu['n']} estaciones: <b>esas dos explican el {grad_parte_de_las_dos:.0f} % de la
+  discrepancia</b>. Las dos pendientes dicen menos lluvia arriba, aunque la de los pluviómetros es débil
+  (r² = {aj_limpio['r2']:.2f}).</p>
+
+  <p class="aviso">Esto no autoriza a borrarlas. Lo de {html.escape(grad_mas_lluviosa.nombre_corto)} apunta a un
+  problema de la serie; lo de {html.escape(grad_mas_seca.nombre_corto)} puede ser un efecto real de ladera, el
+  tipo de detalle que IMERG borra al promediar sobre celdas de 122 km². Excluirlas escondería información.</p>
+
+  <h3>Dónde están, y en qué subcuenca cae cada una</h3>
+  <p>No están en la misma parte de la cuenca. Caen en las <b>dos subcuencas grandes de cabecera</b>, que son
+  vecinas y casi gemelas: <b>{html.escape(sub_humeda.nombre_subcuenca)}</b> tiene
+  {n(sub_humeda.area_subcuenca_km2)} km² y <b>{html.escape(sub_seca.nombre_subcuenca)}</b>
+  {n(sub_seca.area_subcuenca_km2)} km². Comparten la divisoria que cruza el mapa en diagonal.</p>
+
+  <figure>
+    <div class="placa"><img src="{img('estaciones_subcuencas.png')}" alt="Mapa del relieve de la cuenca del Fonce con las subcuencas de Nemizaque y Puente Llano resaltadas y las siete estaciones ubicadas, junto a un diagrama de lluvia contra altitud coloreado por subcuenca"></div>
+    <figcaption>
+      <p>El Pienta ocupa el flanco suroccidental, más bajo y de valle ancho. El Taquiza ocupa la vertiente
+      oriental, la parte más alta y escarpada de la cuenca.</p>
+      <p class="nota">Relieve: DEM ALOS PALSAR. Cada estación se asigna a la subcuenca <b>más pequeña</b>
+      que la contiene, porque están anidadas unas dentro de otras.</p>
+    </figcaption>
+  </figure>
+
+  <p>El mapa deja ver dos cosas que los gráficos anteriores no cuentan:</p>
+
+  <p><b>{html.escape(sub_humeda.etiqueta)} está sola.</b> Es la única estación de los
+  {n(sub_humeda.area_subcuenca_km2)} km² del {html.escape(sub_humeda.nombre_subcuenca.split(' (')[1].rstrip(')'))}.
+  Su valor no tiene ninguna vecina que lo confirme ni que lo desmienta, y queda muy por encima de los
+  {n(sub_humeda.p_imerg_subcuenca)} mm/año que IMERG estima para esa misma subcuenca.</p>
+
+  <p><b>{html.escape(sub_seca.etiqueta)} está rodeada, y aun así hunde.</b> Las
+  {sub_seca.estaciones_en_subcuenca} estaciones del
+  {html.escape(sub_seca.nombre_subcuenca.split(' (')[1].rstrip(')'))} dibujan una V:
+  {" y ".join(f"{html.escape(v.etiqueta)} a {n(v.altitud)} m mide {n(v.p_anual)} mm/año" for v in vecinas_seca.itertuples())},
+  mientras que {html.escape(sub_seca.etiqueta)}, entre las dos a {n(sub_seca.altitud)} m, cae a
+  {n(sub_seca.p_anual)} mm/año. Un mínimo entre dos estaciones más húmedas <b>de su
+  propia subcuenca</b>, una más abajo y otra más arriba, no lo produce un gradiente con la altura.</p>
+
+  <p class="aviso">Lo que más pesa: <b>IMERG ve las dos subcuencas casi idénticas</b>
+  ({n(sub_humeda.p_imerg_subcuenca)} contra {n(sub_seca.p_imerg_subcuenca)} mm/año, {n(sub_brecha_imerg)} de
+  diferencia), y los pluviómetros dicen {n(sub_humeda.p_anual)} contra {n(sub_seca.p_anual)}, un
+  <b>{sub_brecha_plu * 100:.0f} %</b> de diferencia entre dos subcuencas contiguas, de tamaño y elevación
+  parecidos. Eso deja a {html.escape(sub_humeda.etiqueta)} como el principal candidato a revisión. La revisión ya
+  excluyó su tramo 2016–2018 (ver «Registro de problemas de los datos»); el resto de su serie se conserva, por la razón
+  de arriba: excluirla escondería información.</p>
+
+  <h3>La lluvia contra la altura</h3>
+  <p>De las celdas más bajas de IMERG (unos {n(grad_alt_baja)} m, {n(grad_p_baja)} mm/año) a las más altas
+  ({n(grad_alt_alta)} m, {n(grad_p_alta)} mm/año) se pierden unos <b>{n(grad_caida)} mm/año</b>. Por qué la lluvia
+  disminuye con la altura en esta cuenca se explica en «Explicaciones físicas» (el óptimo pluviográfico).</p>
+
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Estación</th><th class="num">Altitud (m)</th><th class="num">Lluvia (mm/año)</th><th>Divisoria</th></tr></thead>
+    <tbody>
+{filas_grad}
+    </tbody>
+  </table>
+  </div>
+
+  <p class="nota">Las pendientes difieren: {aj_imerg['por_1000m']:+,.0f} mm/año por cada 1 000 m con IMERG,
+  {aj_limpio['por_1000m']:+,.0f} con los pluviómetros sin las dos apartadas y {aj_plu['por_1000m']:+,.0f} con las
+  {aj_plu['n']}. Si hiciera falta corregir la lluvia por altura, habría que declarar cuál se usa y por qué.</p>
+</section>
+
+<section>
+  <h2>Comparando PI con PL</h2>
+  <p>Las dos fuentes de lluvia: <b>PI</b>, la de IMERG, que el satélite estima sobre celdas de unos
+  {n(mapa_km2_pixel)} km², y <b>PL</b>, el promedio de los <b>{len(DENTRO)} pluviómetros</b> del IDEAM dentro de la
+  divisoria (datos <b>preliminares</b>), con los que tengan dato cada mes, sin rellenar. En las gráficas, los
+  pluviómetros sueltos van tenues y su promedio a plena opacidad.</p>
+  <p class="aviso"><b>De PL se excluyen 2016, 2017 y 2018 de Encino</b> ({exc_meses} meses): sus totales saltan a
+  {n(enc_raros[2016])}, {n(enc_raros[2017])} y {n(enc_raros[2018])} mm, contra unos {n(enc_normal)} en el resto de su
+  serie, y nada más acompaña el salto (en 2017, PL sale {exc_2017['crudo']:+.1f} % sobre su promedio con esos años y
+  {exc_2017['depurado']:+.1f} % sin ellos, mientras PI sale {exc_2017['pi']:+.1f} %). Es un problema de registro.</p>
+  <p class="nota">La precipitación CHIRPS que trae CAMELS-COL se retiró: no aporta un punto de vista
+  independiente de las otras dos y arrastra los huecos del caudal.</p>
+  <div class="tabla-caja">
+  <table>
+    <thead><tr><th>Fuente comparada con IMERG</th><th class="num">Meses comparables</th><th class="num">IMERG (mm/mes)</th>
+    <th class="num">La otra fuente (mm/mes)</th><th class="num">Diferencia de IMERG</th><th class="num">Correlación mensual</th></tr></thead>
+    <tbody>
+{filas_cmp}
+    </tbody>
+  </table>
+  </div>
+  <div class="dos-graficos">
+    <div>
+      <h3>Serie mensual, {mes_ini} a {mes_fin}</h3>
+      <div id="g-series" class="grafico"></div>
+    </div>
+    <div>
+      <h3>Ciclo anual medio</h3>
+      <div id="g-ciclo" class="grafico"></div>
+    </div>
+  </div>
+  <p class="nota">Las dos figuras comparten la leyenda de arriba. Pasa el cursor por encima para ver los
+  valores de un mes; arrastra sobre el gráfico para acercarte y haz doble clic para volver.</p>
+  <p><b>Las dos fuentes cuentan la misma historia con distinta magnitud:</b> coinciden en la forma del ciclo
+  anual y mes a mes (correlación {cmp_stats[NOM_RED]["r"]:.2f}), pero <b>PI queda un
+  {abs(cmp_stats[NOM_RED]["sesgo"]):.1f} % por debajo de PL</b> ({n(cmp_stats[NOM_RED]["imerg"])} contra
+  {n(cmp_stats[NOM_RED]["pluv"])} mm/mes). Los pluviómetros sueltos van de
+  {n(min(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} a
+  {n(max(v["pluv"] for k, v in cmp_stats.items() if k != NOM_RED))} mm/mes, porque la lluvia cambia de ladera a
+  ladera: por eso se usa su promedio.</p>
+
+  <h3>Mes a mes, uno contra otro</h3>
+  <p>Que las dos fuentes suban y bajen juntas no quiere decir que midan lo mismo: <b>correlación no es
+  concordancia</b>. Puestas una contra otra, con la línea en que serían iguales, la diferencia se ve en cada mes:
+  en el {p2_pipl["debajo_pct"]:.0f} % de los {p2_pipl["n"]} meses PI queda por debajo de PL.</p>
+  <div class="cifras" style="margin-bottom:14px">
+    <div class="cifra"><b>{p2_pipl["sesgo"]:+.1f} mm/mes</b><span>sesgo medio (PI − PL)</span></div>
+    <div class="cifra"><b>{p2_pipl["mae"]:.1f} mm/mes</b><span>error absoluto medio (MAE)</span></div>
+    <div class="cifra"><b>{p2_pipl["rmse"]:.1f} mm/mes</b><span>raíz del error cuadrático medio (RMSE)</span></div>
+  </div>
+  <div id="g-pi-pl" class="grafico" style="min-height:0; height:460px; max-width:560px"></div>
+  <p class="nota">Cada punto es un mes. El sesgo conserva el signo del error, el MAE es su tamaño típico y el RMSE
+  pesa más las diferencias grandes. Que el MAE sea mucho mayor que el sesgo dice que PI, además de quedarse corto
+  en promedio, se aleja de PL hacia los dos lados.</p>
+  <p class="aviso"><b>Se usan las dos en paralelo; cuando hay que escoger, manda PL</b>, porque mide la lluvia en
+  la cuenca. Su límite: {len(DENTRO)} puntos sin validar para {n(AREA_SG_KM2)} km² de montaña, ninguno en el páramo.
+  PI sirve de contraste y cubre toda la cuenca los {len(comp)} meses, sin huecos.</p>
+</section>
+
+<section>
   <details class="plegable" open>
   <summary><h2>Las cuatro variables, en números</h2><span class="plegable-pista">clic para retraer o desplegar</span></summary>
-  <p>Las variables mensuales del proyecto en San Gil: <b>PI</b> (IMERG, ponderada por área), <b>PL</b> (los
-  {len(DENTRO)} pluviómetros dentro de la divisoria), <b>Q</b> (caudal) y la temperatura de ERA5-Land: <b>T media</b>,
+  <p>Las variables mensuales del proyecto en San Gil: PI, PL, Q y la temperatura de ERA5-Land: <b>T media</b>,
   <b>T máx</b> y <b>T mín</b>, promedios mensuales de los valores diarios. La temperatura es una sola variable, pero
   va en tres columnas. La ETP no está en la tabla: se calcula con la temperatura (Hargreaves) y tiene su propia
   sección, «La evapotranspiración potencial (ETP)». Q sale de la curva de calibración del IDEAM,
@@ -2885,7 +3027,7 @@ a {{ color: var(--acento); }}
     <li><b>Caudal atípico sin lluvia atípica:</b> {lista_meses(q_sin_lluvia)}. Ni ese mes ni el anterior la
     lluvia fue atípica, pero sí estuvo sobre lo normal (z de PL hasta
     {", ".join(f"{v:+.1f}" for v in q_sin_lluvia_zpl.values())}): el río acumula varios meses húmedos
-    seguidos, la memoria de la cuenca que se vio en «Cómo se relacionan las variables entre sí».</li>
+    seguidos, la memoria de la cuenca, que se mide más adelante en «Cómo se relacionan las variables entre sí».</li>
     <li><b>Noches cálidas en meses secos:</b> los {len(t_min_alta)} meses con T mín atípicamente alta son
     {lista_meses(t_min_alta)}, y en ellos PL estuvo en promedio en
     {_media_z(t_min_alta, "PL"):+.1f} y Q en {_media_z(t_min_alta, "Q"):+.1f}: menos lluvia y menos caudal
@@ -3075,9 +3217,6 @@ a {{ color: var(--acento); }}
 
 <section>
   <h2>Lo que le cae a la cuenca y lo que sale por el río</h2>
-  <p class="nota">De aquí en adelante, y en todo el informe, tres siglas: <b>PI</b> es la precipitación de
-  IMERG (satélite) promediada sobre la cuenca, <b>PL</b> la precipitación de los pluviómetros del IDEAM
-  (el promedio de las {len(DENTRO)} estaciones de la red) y <b>Q</b> el caudal.</p>
   <p>Dividido por el área de la cuenca ({n(AREA_SG_KM2)} km²), el caudal queda como lámina de agua, en mm, y se
   compara con la lluvia en el mismo eje.</p>
   <div class="cifras" style="margin: 18px 0 6px">
@@ -3118,7 +3257,8 @@ a {{ color: var(--acento); }}
   <div id="g-pq-anual" class="grafico" style="min-height:0; height:340px"></div>
   <p>En el año, el almacenamiento casi se cancela. Sobre los {pq_n_anios} años con los 12 meses de caudal,
   PL − Q promedia {n(pq_res["pl"]["anual"])} mm/año y PI − Q {n(pq_res["pi"]["anual"])}, contra una ETP de
-  {n(pq_etp_anual)} mm/año. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
+  {n(pq_etp_anual)} mm/año. En «La evapotranspiración potencial (ETP)», PL − Q da {n(etp_pl_menos_q)} mm/año porque allí
+  entran todos los meses en que PL, Q y las tres ETP tienen dato, no solo los años completos. {"Ningún año pasa de la ETP, como corresponde si la evapotranspiración real no supera a la potencial." if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else f"P − Q supera a la ETP en {pq_res['pl']['anios_sobre_etp']} años con PL ({', '.join(pq_anios_sobre['pl']) or 'ninguno'}) y en {pq_res['pi']['anios_sobre_etp']} con PI{' (' + ', '.join(pq_anios_sobre['pi']) + ')' if pq_anios_sobre['pi'] else ''}. Como P − Q = ET + ΔS + otras salidas, el agua que sobra pudo:"}</p>
   {"" if not pq_anios_sobre["pl"] and not pq_anios_sobre["pi"] else pq_explicaciones}
 
   <div{revision("índice P/ETP")}>
@@ -3140,7 +3280,7 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">P y ETP: totales anuales medios de {PERIODOS[0].year}–{PERIODOS[-1].year} ({pe_n_anios} años). Año más
   seco y más húmedo: el índice de cada año por separado. Clases de UNEP: {pe_clases_txt}. UNEP las definió con la ETP de
-  Thornthwaite; aquí se usa la de Hargreaves, así que la clase es aproximada.</p>
+  Thornthwaite {marca(f"({CITA_THORNTHWAITE})", C6)}; aquí se usa la de Hargreaves, así que la clase es aproximada.</p>
   <p>{pe_resultado_txt}{pe_anios_txt} {pe_margen_txt}</p>
   <div id="g-pe-mes" class="grafico" style="min-height:0; height:340px"></div>
   <div class="tabla-caja">
@@ -3496,32 +3636,36 @@ a {{ color: var(--acento); }}
   Shapiro-Wilk ({CITA_SHAPIRO}) rechaza la normalidad en {(", ".join(anz_no_normales[:-1]) + " y " + anz_no_normales[-1]) if len(anz_no_normales) > 1 else (anz_no_normales[0] if anz_no_normales else "ninguna")}.
   Por lo mismo, z <b>no es el SPI</b>: el índice estandarizado de precipitación ajusta primero una distribución a la
   lluvia y la transforma después en una normal, cosa que aquí no se hace.</p>
-  <p class="nota">Las anomalías de «Revisión de outliers» y «Años que se salen de lo normal» son otras: se miden respecto a la
-  mediana y en rangos intercuartiles, para buscar extremos sin que los propios extremos muevan la referencia. Se usan
-  tal como estaban.</p>
+  <p class="nota">«Revisión de outliers» y «Años que se salen de lo normal» usan otra medida, que el informe llama
+  <b>desvío</b> para no confundirla con la anomalía: la distancia a la mediana del mes, en rangos intercuartiles. Sirve
+  para buscar extremos sin que los propios extremos muevan la referencia.</p>
 </section>
 
 <section>
   <h2>Años que se salen de lo normal</h2>
-  <p>La <b>anomalía</b> de un mes es cuánto se aleja del valor normal de su mes del calendario, en rangos
-  intercuartiles (la misma medida de «Revisión de outliers»): un abril más seco o más lluvioso que un abril
-  normal. Quita el ciclo anual y deja la variación de un año a otro.</p>
+  <p>Esta sección usa el <b>desvío</b> de cada mes: cuánto se aleja de la mediana de su mes del calendario, en rangos
+  intercuartiles (la misma medida de «Revisión de outliers»), como un abril más seco o más lluvioso que un abril
+  normal. Es distinto de la anomalía de la sección anterior, que resta la media. Quita el ciclo anual y deja la
+  variación de un año a otro.</p>
   <h3>Las nubes del caudal, sin el calendario</h3>
   <p>Con los valores tal cual, parte de la relación entre lluvia y caudal viene de que comparten el calendario.
-  Con anomalías, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
+  Con desvíos, la de PL con Q pasa de ρ = {anom_rho["PL–Q"]["tal cual"]:.2f} a <b>{anom_rho["PL–Q"]["anomalías"]:.2f}</b>, la de
   PI con Q de {anom_rho["PI–Q"]["tal cual"]:.2f} a {anom_rho["PI–Q"]["anomalías"]:.2f} y la de PI con PL de
   {anom_rho["PI–PL"]["tal cual"]:.2f} a {anom_rho["PI–PL"]["anomalías"]:.2f}. <b>Un mes más lluvioso de lo normal trae más
-  caudal de lo normal</b>, y con PL la relación se pierde menos que con PI.</p>
+  caudal de lo normal</b>, y con PL la relación se pierde menos que con PI. Son un poco distintas de las de «Cómo se
+  relacionan las variables entre sí» (PL con Q, de {rho('PL', 'Q'):.2f} a {rho('PL', 'Q', anomalias=True):.2f}) porque allí
+  solo entran los meses en que las siete variables tienen dato y se usa la anomalía, la resta de la media del mes; aquí
+  entra cada mes en que el par tiene dato, y se usa el desvío.</p>
   <div id="g-anom-dispersion" class="grafico" style="min-height:0; height:440px; max-width:620px"></div>
   <p class="nota">Cada punto es un mes; en color, los años contrastantes.</p>
   <h3>Los años contrastantes</h3>
-  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según el promedio de las anomalías de PL y
+  <p>Los {ANOM_N_EXTREMOS} años más húmedos y los {ANOM_N_EXTREMOS} más secos según el promedio de los desvíos de PL y
   PI, para quedarse con años en que las dos fuentes de lluvia coinciden{(": con PL sola habría entrado " + ", ".join(f"{a} (PI {anom_anual.PI[a]:+.2f})" for a in anom_solo_pl)) if anom_solo_pl else ""}.
-  La anomalía de Q solo se calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL
+  El desvío anual de Q solo se calcula en los {anom_n_q} años con los 12 meses; en ellos sigue a la de PL
   (ρ = {anom_rho_anual_pl_q:.2f}).</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th>Año</th><th class="num">Anomalía PL</th><th class="num">PI</th><th class="num">Q</th>
+    <thead><tr><th>Año</th><th class="num">Desvío PL</th><th class="num">PI</th><th class="num">Q</th>
     <th class="num">PL del año (mm)</th><th class="num">Meses sobre lo normal</th><th>Picos</th><th class="num">A₂/A₁</th>
     <th>ENSO (meses)</th></tr></thead>
     <tbody>
@@ -3638,7 +3782,7 @@ a {{ color: var(--acento); }}
   <p><b>Diagnóstico de los residuos.</b> En las {len([1 for (v, per) in met_global if per == "completo"])} variables, los residuos del
   ajuste están autocorrelacionados (prueba de Ljung-Box con {MET_LB_REZAGOS} rezagos, p &lt; {TEND_ALFA}): un mes húmedo suele
   seguir a otro. {"No hay cambios de dispersión con el tiempo en el registro completo" if not met_hetero else "La dispersión cambia con el tiempo en " + ", ".join(met_hetero)}
-  (Breusch-Pagan), y varios residuos no son normales (Shapiro-Wilk). Con dependencia, el error estándar usual
+  (Breusch-Pagan). Con dependencia, el error estándar usual
   subestima la incertidumbre, así que la inferencia se apoya en el de <b>Newey-West</b> ({CITA_NEWEY}), robusto a
   autocorrelación y heterocedasticidad: su intervalo es, en la mediana, {met_hac_mas_ancho:.1f} veces el usual. En
   Mann-Kendall, la p de la serie original sale de <b>permutar años completos</b> ({MET_REMUESTREOS} veces: los doce meses de
@@ -3648,7 +3792,7 @@ a {{ color: var(--acento); }}
   <table class="sin-destacar">
     <thead><tr><th>Variable</th><th>Período</th><th class="num">Meses</th><th class="num">X: OLS</th>
     <th class="num">X: OLS con meses</th><th class="num">a: OLS</th><th class="num">z: OLS</th>
-    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th><th class="num">Shapiro-Wilk p</th></tr></thead>
+    <th class="num">r₁ / Ljung-Box p</th><th class="num">Breusch-Pagan p</th></tr></thead>
     <tbody>
 {met_ols_filas}
     </tbody>
@@ -3705,7 +3849,7 @@ a {{ color: var(--acento); }}
   difieren a lo sumo un {tend_dif_x_a:.1f} %). Lo que sí cambia es la incertidumbre: sin controlar el mes, el ciclo anual queda en
   el residuo y ensancha el intervalo. a y z no son evidencias aparte: son la misma información en otra escala.</p>
 
-  <h3>Sensibilidad de la curva LOESS</h3>
+  <details class="plegable-mini"><summary><b>Sensibilidad de la curva LOESS</b> <small>(clic para desplegar)</small></summary>
   <p><b>La subida de la temperatura no depende de cómo se suavice:</b> con las tres ventanas la curva sube entre
   {min(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} y
   {max(met_sens[v][f"frac {fr}"]["cambio"] for v in ("T mín", "T media", "T máx") for fr in MET_FRACS):+.2f} °C en el registro, y los meses
@@ -3724,6 +3868,7 @@ a {{ color: var(--acento); }}
   </div>
   <p class="nota">Sobre a, registro completo. Ventanas: cambio de la curva de principio a fin (y tramos de subida o bajada).
   Extremos: diferencia máxima sin las iteraciones robustas. Bordes: ancho de la banda en el primer y último 10 % frente al centro.</p>
+  </details>
 
   <h3>Sensibilidad a la fecha inicial y final</h3>
   <p>Una pendiente puede depender de dónde empieza o termina el registro, sobre todo si cerca de un borde hay años
@@ -3904,7 +4049,7 @@ a {{ color: var(--acento); }}
     su pico en 6 meses, no en 12: es el ritmo del doble paso de la Zona de Convergencia Intertropical (ZCIT) sobre el centro
     de Colombia, que trae dos temporadas de lluvias al año ({CITA_MESA}; {CITA_POVEDA}). La banda semianual tiene el
     {fou[(_fc, "PL", "original")]["bandas"]["semianual"]:.0f} % de la varianza de PL, el {fou[(_fc, "PI", "original")]["bandas"]["semianual"]:.0f} % de la de PI
-    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. Estos porcentajes no se comparan con los de «El régimen»:
+    y el {fou[(_fc, "Q", "original")]["bandas"]["semianual"]:.0f} % de la de Q. No son los mismos porcentajes de «El régimen»:
     allí son de la forma del año típico (las 12 medias); aquí, de la varianza de todos los meses.</li>
     <li{_cambio('Nuevo · la temperatura')}><b>En la temperatura, el ciclo anual pesa poco</b>: su pico más alto está en {fou[(_fc, "T", "original")]["pico"]:.0f} meses,
     pero la banda anual tiene solo el {fou[(_fc, "T", "original")]["bandas"]["anual"]:.0f} % de su varianza y la interanual, el
@@ -3917,7 +4062,7 @@ a {{ color: var(--acento); }}
     <li{_cambio('Nuevo · las dos fuentes de lluvia')}><b>PI y PL coinciden en el pico de 6 meses, pero no en la banda de 12</b>:
     la semianual tiene el {fou_fuentes["PL"]["semianual"]:.1f} % de la varianza de PL y el {fou_fuentes["PI"]["semianual"]:.1f} % de la de
     PI, pero la anual tiene el {fou_fuentes["PI"]["anual"]:.1f} % en PI y apenas el {fou_fuentes["PL"]["anual"]:.1f} % en PL. El satélite
-    ve un ciclo de 12 meses que los pluviómetros casi no tienen; coincide con «El régimen», donde el armónico de 12 meses explica el
+    ve un ciclo de 12 meses que los pluviómetros casi no tienen. «El régimen» apunta a lo mismo, con otra medida: el armónico de 12 meses explica el
     {regimen["PI"]["var1"]:.0f} % de la forma del año típico de PI y el {regimen["PL"]["var1"]:.0f} % de la de PL. En las anomalías, en
     cambio, las dos fuentes se reparten la varianza casi igual: ninguna banda difiere más de {fou_fuentes_anom_dif:.1f} puntos
     porcentuales (alta frecuencia: {fou_fuentes_anom["PL"]["alta"]:.1f} % en PL y {fou_fuentes_anom["PI"]["alta"]:.1f} % en PI). {fou_fuentes_oni_txt}
@@ -4081,7 +4226,7 @@ a {{ color: var(--acento); }}
 <section>
   <h2>¿Sirve la lluvia para estimar el caudal?</h2>
   <p>Tres pruebas, de menos a más exigente: reconstruir con la lluvia el ciclo del año típico; ver qué relación hay
-  entre la lluvia y el caudal de cada mes; y estimar el caudal en años que el ajuste no vio, con cinco modelos de
+  entre la lluvia y el caudal de cada mes; y estimar el caudal en años que el ajuste no vio, con seis modelos de
   complejidad creciente, para escoger uno. Todo con PL y con PI en paralelo. En las dos últimas, Q va como
   <b>lámina sobre la cuenca, en mm/mes</b> (el volumen del mes repartido sobre los {n(AREA_SG_KM2)} km²), para
   compararlo con la lluvia en las mismas unidades.</p>
@@ -4105,55 +4250,26 @@ a {{ color: var(--acento); }}
   {ajuste_lq.loc[('PI', 'mes_y_anterior'), 'r2'] * 100:.0f} %).</p>
 
   <h3>Qué relación sugieren los datos</h3>
-  <p>Antes de proponer un modelo se ajusta una recta de Q contra la lluvia del mismo mes, en los {mod_n_diag} meses con Q
-  de 1998–2022, y se mira qué deja sin explicar: los <b>residuos</b> (Q observado menos Q de la recta). Se repite con
-  logaritmos (ln Q contra ln P), la alternativa usual cuando el error crece con el nivel. Ningún mes tiene lluvia ni caudal
-  en cero (mínimos: PL {mod_minimos["PL"]:.1f}, PI {mod_minimos["PI"]:.1f} y Q {mod_minimos["Q"]:.1f} mm/mes), así que
-  el logaritmo se puede usar sin ajustes.</p>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Prueba</th><th class="num">PL, recta</th><th class="num">PL, logaritmos</th>
-    <th class="num">PI, recta</th><th class="num">PI, logaritmos</th></tr></thead>
-    <tbody>
-{mod_diag_filas}
-    </tbody>
-  </table>
+  <div{critica(C6)}>
+  <p>Antes de proponer modelos se ajustó una recta de Q contra la lluvia del mismo mes, en los {mod_n_diag} meses con Q,
+  y se miró qué deja sin explicar. Salieron tres cosas. La relación <b>se curva hacia arriba</b> (término cuadrático,
+  <i>p</i> {_p_txt(_dl.cuadratico_p_hac)}). <b>El error crece con la lluvia</b>: con PL, la varianza del residuo es
+  {_dl.varianza_tercio_lluvioso_sobre_seco:.1f} veces mayor en el tercio de meses más lluviosos que en el más seco, y en
+  logaritmos esa razón baja a {_dg.varianza_tercio_lluvioso_sobre_seco:.2f}. Y <b>queda un mes de memoria</b>: el residuo
+  se explica en parte con la lluvia del mes anterior ({_dl.corr_residuo_lluvia_mes_anterior:.2f} con PL y
+  {_di.corr_residuo_lluvia_mes_anterior:.2f} con PI), y con PL diciembre queda {_dl.residuo_medio_max:.0f} mm/mes por encima
+  de la recta y marzo {abs(_dl.residuo_medio_min):.0f} por debajo. Por eso los modelos agregan la lluvia del mes anterior y
+  prueban los logaritmos. Ningún mes tiene lluvia ni caudal en cero, así que el logaritmo se usa sin ajustes.</p>
   </div>
-  <p class="nota">Residuos en mm/mes en la recta y en unidades de ln Q en los logaritmos (+0.30 es un caudal un 35 % mayor
-  que el estimado). <i>p</i> del término cuadrático con error de Newey-West (<a class="cita" href="#ref-newey1987">Newey y West, 1987</a>; {mod_diag.rezagos_newey_west.iloc[0]:.0f} rezagos), tomando los meses con
-  Q en orden aunque haya vacíos entre ellos. Kruskal-Wallis (<a class="cita" href="#ref-kruskal1952">Kruskal y Wallis, 1952</a>) y Shapiro-Wilk
-  (<a class="cita" href="#ref-shapiro1965">Shapiro y Wilk, 1965</a>). Pruebas al {MOD_ALFA * 100:.0f} %.</p>
-  <ul>
-    <li><b>Es casi una recta, pero se curva hacia arriba</b>: el término cuadrático es significativo. Con mucha lluvia,
-    Q sube más rápido de lo que dice la recta.</li>
-    <li><b>El error crece con la lluvia</b>: la varianza del residuo es {_dl.varianza_tercio_lluvioso_sobre_seco:.1f}
-    veces mayor en el tercio de meses más lluviosos que en el más seco con PL ({_di.varianza_tercio_lluvioso_sobre_seco:.1f}
-    con PI). En logaritmos la razón baja a {_dg.varianza_tercio_lluvioso_sobre_seco:.2f}: el logaritmo corrige la
-    dispersión, incluso de más, y deja residuos casi simétricos.</li>
-    <li><b>Queda el calendario.</b> Con PL, en diciembre el río lleva en promedio {_dl.residuo_medio_max:.0f} mm/mes más de
-    lo que explica la lluvia del mes, y en marzo {abs(_dl.residuo_medio_min):.0f} menos. Diciembre viene de noviembre, el
-    mes más lluvioso de la segunda temporada: el suelo y los acuíferos quedan llenos y siguen drenando. Marzo viene de la
-    temporada seca: parte de su lluvia se gasta en volver a llenar el suelo antes de llegar al río.</li>
-    <li><b>Es la memoria de la cuenca</b>: el residuo de un mes se parece al del siguiente
-    ({_dl.autocorr_residuo_1_mes:.2f} con PL) y se explica en buena parte con la lluvia del mes anterior
-    ({_dl.corr_residuo_lluvia_mes_anterior:.2f} con PL, {_di.corr_residuo_lluvia_mes_anterior:.2f} con PI).</li>
-  </ul>
-  <p>Los datos sugieren una relación positiva, con un error que crece en proporción al caudal y con un mes de memoria:
-  una regresión con la lluvia del mes anterior, y una transformación logarítmica.</p>
 
-  <h3>Cinco modelos, de menos a más complejo</h3>
-  <p>La climatología (M0) es la referencia: superarla quiere decir que la lluvia dice algo que el calendario solo no dice.
-  La recta (M1) es la referencia que se le pone a todo modelo; M2 le agrega la lluvia del mes anterior, M3 la
-  transformación logarítmica y M4 las dos. No se usa el caudal del mes anterior como variable: exigiría conocer el caudal,
-  que es lo que se quiere estimar. Todos usan los mismos {mod_n} meses (enero de 1998 no tiene mes anterior). En M3 y M4,
-  volver del logaritmo da la mediana del caudal y no su media; se corrige con el factor de Duan, la media de
-  e<sup>residuo</sup> en el ajuste (<a class="cita" href="#ref-duan1983">Duan, 1983</a>).</p>
-  <p>Se comparan con el error al estimar meses que el ajuste no vio, en mm/mes: (1) <b>validación cruzada</b> con 5 bloques
-  de 5 años seguidos ({_bloques_txt}): cada bloque se estima con un modelo ajustado con los otros 20 años, así que cada mes
-  se estima una vez sin haberlo visto; y (2) una sola <b>partición</b>, ajuste con {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} y
-  evaluación con {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}. Los bloques son continuos para que meses vecinos, que se
-  parecen, no queden uno en el ajuste y otro en la evaluación. El BIC, que castiga los parámetros de más, solo compara
-  modelos de la misma escala: el de los logaritmos mide el error en ln Q.</p>
+  <h3>Seis modelos, de menos a más complejo</h3>
+  <p><b>M0</b> es la climatología, el Q medio de cada mes del calendario: superarla quiere decir que la lluvia aporta
+  algo. <b>M1</b> es una recta con la lluvia del mes; <b>M2</b> le agrega la del mes anterior, <b>M3</b> usa logaritmos y
+  <b>M4</b>, las dos cosas. <b>M5</b> es M4 más la ETP del mes. Todos usan los mismos {mod_n} meses. En los modelos con
+  logaritmos, al volver a Q se corrige con el factor de Duan (<a class="cita" href="#ref-duan1983">Duan, 1983</a>).
+  Se comparan por el error en meses que el ajuste no vio, de dos formas: una <b>validación cruzada</b> con 5 bloques de 5
+  años ({_bloques_txt}), en la que cada bloque se estima con los otros 20 años, y una <b>partición</b>, con ajuste en
+  {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]} y evaluación en {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]}.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Modelo</th><th>Ecuación</th><th class="num">Parámetros</th><th class="num">R² de Q (mm/mes)</th>
@@ -4164,32 +4280,28 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p class="nota">P es PL o PI, en mm/mes; P<sub>t−1</sub>, la del mes anterior. RMSE en mm/mes. NSE
-  (<a class="cita" href="#ref-nash1970">Nash y Sutcliffe, 1970</a>):
-  1 es perfecto y 0 es tan bueno como la media de los meses evaluados. R² con todos los meses, sobre Q en mm/mes, así que
-  se puede comparar entre escalas. ΔBIC: diferencia con el mejor de la misma escala (0 es el mejor).</p>
+  <p class="nota">P es PL o PI y P<sub>t−1</sub> la del mes anterior, en mm/mes; RMSE en mm/mes. NSE
+  (<a class="cita" href="#ref-nash1970">Nash y Sutcliffe, 1970</a>): 1 es perfecto y 0 es tan bueno como la media. ΔBIC:
+  diferencia con el mejor de la misma escala (0 es el mejor); el de M5 es frente a M4. En negrita, el modelo elegido.</p>
   <div id="g-evaluacion" class="grafico" style="min-height:0; height:380px"></div>
-  <p class="nota">Q de {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]} estimado con M4 ajustado en
-  {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}, con PL y con PI, y la climatología de esos años de ajuste. Los cortes de la
-  línea verde son meses sin Q.</p>
+  <p class="nota">Q de {EV_VALIDACION[0][:4]}–{EV_VALIDACION[1][:4]} estimado con M5 ajustado en
+  {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}, con PL y con PI, y la climatología de esos años. Los cortes de la línea verde
+  son meses sin Q.</p>
   <ul>
-    <li><b>La lluvia del mes anterior es lo que más mejora</b>, en los cinco bloques: con PL, el error baja de
-    {mod_rmse("PL", "M1"):.1f} (M1) a {mod_rmse("PL", "M2"):.1f} mm/mes (M2); con PI, de {mod_rmse("PI", "M1"):.1f} a
-    {mod_rmse("PI", "M2"):.1f}.</li>
-    <li><b>El logaritmo no baja el error</b> (M3 frente a M1, M4 frente a M2): no agrega información, cambia la forma en
-    que se mide el error. Lo que gana es que sus supuestos se cumplen mejor y que no puede dar caudales negativos.</li>
-    <li><b>Con PI todo es más pobre</b>: el mejor modelo con PI (NSE {max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA):.2f})
-    no alcanza a la recta con PL ({mod_vc.loc[("PL", "M1"), "nse"]:.2f}), y el rezago le ayuda menos. {_no_superan_txt}</li>
+    <li><b>La lluvia del mes anterior es lo que más mejora</b>: con PL, el error baja de {mod_rmse("PL", "M1"):.1f} (M1) a
+    {mod_rmse("PL", "M2"):.1f} mm/mes (M2). El logaritmo no baja el error, pero cumple mejor los supuestos y no puede dar
+    caudales negativos.</li>
+    <li><b>La ETP mejora todavía más</b>: M5 baja el error de M4 de {mod_etp.loc["PL", "rmse_m4"]:.1f} a
+    {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL y de {mod_etp.loc["PI", "rmse_m4"]:.1f} a
+    {mod_etp.loc["PI", "rmse_m5"]:.1f} con PI.</li>
+    <li><b>Con PI todo es más pobre</b>: el mejor modelo solo con lluvia y PI (NSE {max(mod_vc.loc[("PI", m), "nse"] for m in MOD_CON_LLUVIA):.2f})
+    no alcanza a la recta con PL ({mod_vc.loc[("PL", "M1"), "nse"]:.2f}). {_no_superan_txt}</li>
   </ul>
 
-  <div{revision("nuevo")}>
   <h3>Validación fuera del ajuste: NSE, KGE y sesgo</h3>
-  <p>Los parámetros de M4 que se reportan más abajo se ajustan con los {mod_n} meses, pero ninguna cifra de esta tabla
-  usa un mes que el ajuste haya visto: en cada bloque de la validación cruzada y en la partición se vuelven a estimar los
-  coeficientes y el factor de Duan solo con los años de ajuste. Además del NSE se calcula el <b>KGE</b>
-  (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>), que separa el error en tres partes: <b>r</b>, la
-  correlación entre Q estimado y observado (¿sube y baja cuando debe?); <b>α</b>, la razón de sus desviaciones estándar
-  (¿reproduce la variabilidad?), y <b>β</b>, la razón de sus medias (¿reproduce el volumen?).</p>
+  <p>El <b>KGE</b> (<a class="cita" href="#ref-gupta2009">Gupta et al., 2009</a>) parte el error en tres preguntas:
+  ¿el modelo sube y baja cuando el río sube y baja (r, la correlación)?, ¿varía tanto como el río (α, la razón de sus
+  desviaciones estándar)? y ¿lleva el mismo volumen (β, la razón de sus medias)? Vale 1 si las tres son perfectas.</p>
   <p class="formula">KGE = 1 − √((r − 1)² + (α − 1)² + (β − 1)²)</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
@@ -4200,31 +4312,33 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p class="nota">NSE y KGE: 1 es perfecto. Sesgo: la media de (estimado − observado). M0 no usa lluvia, así que sus
-  filas son las mismas con PL y con PI. La validación cruzada evalúa los
-  {mod_n} meses, cada uno estimado con el modelo ajustado sin su bloque de 5 años; {_ESQUEMAS_KGE[1][1]}, los meses con Q
-  de esos años, con el modelo ajustado en {EV_AJUSTE[0][:4]}–{EV_AJUSTE[1][:4]}.</p>
+  <p class="nota">Ninguna cifra usa un mes que el ajuste haya visto. Sesgo: la media de (estimado − observado). M0 no usa
+  lluvia, así que sus filas son las mismas con PL y con PI.</p>
   <ul>
-    <li><b>Con PL, M4 supera a la climatología en las dos medidas y en los dos esquemas</b>: KGE
-    {_k("PL", MOD_ELEGIDO).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada, y
-    {_k("PL", MOD_ELEGIDO, "partición").kge:.2f} contra {_k("PL", MOD_REFERENCIA, "partición").kge:.2f} en
-    {_ESQUEMAS_KGE[1][1]}.</li>
-    <li><b>El volumen se conserva fuera del ajuste</b>: con las dos fuentes y en los dos esquemas, β de M4 queda entre
-    {min(_betas_m4):.3f} y {max(_betas_m4):.3f} y el sesgo entre {min(_sesgos_m4):+.1f} y {max(_sesgos_m4):+.1f} mm/mes.</li>
+    <li><b>Con PL, M5 y M4 superan a la climatología</b> en los dos esquemas (KGE {_k("PL", MOD_ELEGIDO).kge:.2f} y
+    {_k("PL", MOD_SOLO_LLUVIA).kge:.2f} contra {_k("PL", MOD_REFERENCIA).kge:.2f} en la validación cruzada), y conservan el
+    volumen (β de M4 entre {min(_betas_m4):.3f} y {max(_betas_m4):.3f}).</li>
     <li>{_pi_kge_txt}</li>
   </ul>
-  </div>
 
-  <h3>El modelo elegido: M4</h3>
-  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup>,
-  &nbsp; con C = D · e<sup>a</sup></p>
-  <p>Es M4 escrito como se usa: se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub>
-  y se vuelve del logaritmo multiplicando por D, el factor de Duan.</p>
+  <h3>¿Agrega algo la evapotranspiración? M5</h3>
+  <p>H dice que la ETP no explica el caudal. M5 lo pone a prueba, y <b>la ETP sí agrega información</b>: quitando lo que
+  explica la lluvia, las anomalías de Q y de la ETP se correlacionan en {mod_etp.loc["PL", "parcial_q_etp"]:+.2f} con PL
+  (p {fmt_p_eq(mod_etp.loc["PL", "parcial_q_etp_p"])}) y {mod_etp.loc["PI", "parcial_q_etp"]:+.2f} con PI. Con la misma
+  lluvia, un mes con un {MOD_CAMBIO_EJEMPLO * 100:.0f} % más de ETP lleva un {abs(mod_etp_10["PL"]) * 100:.0f} % menos de
+  caudal con PL. M5 le quita al residuo del peor mes del calendario un {mod_etp_calendario["PL"] * 100:.0f} %{", pero no todo el calendario (Kruskal-Wallis, p " + fmt_p_eq(mod_etp.loc["PL", "kruskal_residuo_por_mes_p_m5"]) + " con PL)" if mod_etp_kw_queda["PL"] else ""}.
+  Una advertencia: la ETP de Hargreaves se calcula con la temperatura y su amplitud diaria, que es mayor con el cielo
+  despejado, así que en parte mide la nubosidad. M5 muestra que algo que varía con la ETP explica parte del caudal; no
+  prueba el mecanismo.</p>
+
+  <h3>El modelo elegido: M5</h3>
+  <p class="formula">Q̂ = C · P<sub>t</sub><sup>b<sub>0</sub></sup> · P<sub>t−1</sub><sup>b<sub>1</sub></sup> ·
+  ETP<sub>t</sub><sup>c</sup>, &nbsp; con C = D · e<sup>a</sup></p>
   <dl class="lista-datos">
-    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre {n(AREA_SG_KM2)} km²; en m³/s, Q̂ · {n(AREA_SG_KM2)} · 10³ / (segundos del mes)</dd>
-    <dt>P<sub>t</sub></dt><dd>lluvia del mes, mm/mes (PL o PI)</dd>
-    <dt>P<sub>t−1</sub></dt><dd>lluvia del mes anterior, mm/mes, de la misma fuente</dd>
-    <dt>Ajuste</dt><dd>{mod_n} meses de 1998–2022; parámetros con intervalo de 95 % de Newey-West</dd>
+    <dt>Q̂</dt><dd>caudal estimado en San Gil, mm/mes de lámina sobre {n(AREA_SG_KM2)} km²</dd>
+    <dt>P<sub>t</sub>, P<sub>t−1</sub></dt><dd>lluvia del mes y del mes anterior, mm/mes (PL o PI)</dd>
+    <dt>ETP<sub>t</sub></dt><dd>evapotranspiración potencial del mes, mm/mes (ver «La evapotranspiración potencial (ETP)»)</dd>
+    <dt>D</dt><dd>factor de Duan; se ajusta ln Q = a + b<sub>0</sub>·ln P<sub>t</sub> + b<sub>1</sub>·ln P<sub>t−1</sub> + c·ln ETP<sub>t</sub> con {mod_n} meses</dd>
   </dl>
   <div class="tabla-caja">
   <table class="sin-destacar">
@@ -4234,12 +4348,11 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p><b>Cómo se leen b<sub>0</sub> y b<sub>1</sub>.</b> Cada uno dice cuánto cambia el caudal, en %, cuando cambia en 1 %
-  la lluvia que acompaña; C no interviene en el cambio relativo. Con PL, si la lluvia del mes sube un
-  {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q sube un {mod_elasticidad["PL"]["mes"] * 100:.1f} % (1.1<sup>b<sub>0</sub></sup>); si
-  sube la del mes anterior, un {mod_elasticidad["PL"]["anterior"] * 100:.1f} %; si suben las dos, un
-  {mod_elasticidad["PL"]["ambos"] * 100:.1f} % (1.1<sup>b<sub>0</sub> + b<sub>1</sub></sup>). Con PL,
-  {_proporcional_txt("PL")}; con PI, {_proporcional_txt("PI")}.</p>
+  <p class="nota">Entre paréntesis, el intervalo de 95 % de Newey-West.</p>
+  <p><b>Cómo se lee.</b> Cada exponente dice cuánto cambia Q, en %, por cada 1 % que cambie su variable. Con PL, si la
+  lluvia del mes y la del anterior suben un {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q sube un
+  {mod_elasticidad["PL"]["ambos"] * 100:.1f} %: {_proporcional_txt("PL")}. Si la ETP sube un
+  {MOD_CAMBIO_EJEMPLO * 100:.0f} %, Q baja un {abs(mod_elasticidad["PL"]["etp"]) * 100:.1f} %.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
     <thead><tr><th>Supuesto</th><th>¿Se cumple?</th></tr></thead>
@@ -4248,61 +4361,294 @@ a {{ color: var(--acento); }}
     </tbody>
   </table>
   </div>
-  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia que vio el ajuste: entre
-  {_fi.loc["PL", "lluvia_mes_min"]:.1f} y {_fi.loc["PL", "lluvia_mes_max"]:.1f} mm/mes con PL, y entre
-  {_fi.loc["PI", "lluvia_mes_min"]:.1f} y {_fi.loc["PI", "lluvia_mes_max"]:.1f} con PI (en el mes y en el anterior); el
-  caudal observado fue de {_fi.loc["PL", "caudal_min"]:.1f} a {_fi.loc["PL", "caudal_max"]:.1f} mm/mes. Fuera de ese rango
-  no se extrapola, y no sirve para crecientes ni eventos dentro del mes.</p>
-  <p><b>Ceros.</b> En 1998–2022 no hay meses en cero, así que el logaritmo se aplica sin sumar constantes. Con lluvia
-  cero en dos meses seguidos la fórmula daría Q̂ = 0, lo que es falso: el río lleva agua sin lluvia. Esos meses quedan
-  fuera del rango de aplicación.</p>
-  <p><b>Por qué M4 y no M2.</b> Fuera del ajuste yerran casi lo mismo ({mod_rmse("PL", MOD_ELEGIDO):.1f} contra
-  {mod_rmse("PL", MOD_COMPETIDOR):.1f} mm/mes con PL), menos de lo que cambia el error de M4 de un bloque a otro
-  ({_fi.loc["PL", "rmse_bloques_min"]:.1f} a {_fi.loc["PL", "rmse_bloques_max"]:.1f}). Tienen los mismos tres
-  parámetros. El desempate lo dan los supuestos, que M4 cumple mejor (el error de M2 crece con la lluvia y sus residuos no
-  son normales), y el rango: M2 da caudales negativos si la lluvia de dos meses seguidos baja de
-  {_fi.loc["PL", "lluvia_q_cero_competidor"]:.1f} mm/mes con PL o de {_fi.loc["PI", "lluvia_q_cero_competidor"]:.1f} con PI,
-  y este último valor ya está dentro de lo observado (el mínimo de PI es {_fi.loc["PI", "lluvia_mes_min"]:.1f}). M4 no
-  puede dar caudales negativos.</p>
+  <p><b>Rango de aplicación.</b> San Gil, paso mensual, con la lluvia entre {_fi.loc["PL", "lluvia_mes_min"]:.1f} y
+  {_fi.loc["PL", "lluvia_mes_max"]:.1f} mm/mes con PL (entre {_fi.loc["PI", "lluvia_mes_min"]:.1f} y
+  {_fi.loc["PI", "lluvia_mes_max"]:.1f} con PI) y la ETP entre {_fi.loc["PL", "etp_min"]:.1f} y
+  {_fi.loc["PL", "etp_max"]:.1f} mm/mes. No sirve para crecientes ni para meses sin lluvia.</p>
+  <p><b>Por qué M5 y no M2 o M4.</b> M5 es el que menos yerra fuera del ajuste
+  ({mod_rmse("PL", MOD_ELEGIDO):.1f} mm/mes con PL, mejor que M4 en {_fi.loc["PL", "bloques_mejor_que_solo_lluvia"]:.0f} de
+  los {mod_bloques.shape[1]} bloques), y como M4 no puede dar caudales negativos. M2 yerra casi lo mismo que M4, pero su
+  error crece con la lluvia y da caudales negativos si la lluvia de dos meses seguidos baja de
+  {_fi.loc["PI", "lluvia_q_cero_m2"]:.1f} mm/mes con PI, un valor que ya se observó. Lo que cuesta M5 es que necesita la
+  ETP de cada mes.</p>
 
   <h3>¿Conserva masa el modelo?</h3>
-  <p>No por construcción. Una regresión no impone el balance de agua: nada en M4 obliga a que el caudal estimado quede
-  por debajo de la lluvia, ni a que lo que no sale por el río alcance para la evapotranspiración. Lo que hace es
-  reproducir, en promedio, la relación de los meses con que se ajustó. Se contrasta con el balance observado, con la
-  ETP de Hargreaves con ERA5-Land (ver «La evapotranspiración potencial (ETP)»), en los {mod_balance.loc["PL", "n_meses"]:.0f}
-  meses del ajuste.</p>
+  <p>No por construcción: una regresión no impone el balance de agua. Se contrasta con el balance observado en los
+  {mod_balance.loc["PL", "n_meses"]:.0f} meses del ajuste.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
-    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M4</th>
-    <th class="num">PI: observado</th><th class="num">PI: M4</th></tr></thead>
+    <thead><tr><th></th><th class="num">PL: observado</th><th class="num">PL: M5</th>
+    <th class="num">PI: observado</th><th class="num">PI: M5</th></tr></thead>
     <tbody>
 {mod_balance_filas}
     </tbody>
   </table>
   </div>
-  <p class="nota">P y Q en mm/mes. «Q mayor que P»: meses en que el caudal supera a la lluvia del mes; «con el mes
-  anterior»: a la lluvia de los dos meses juntos. Años: los {mod_balance.loc["PL", "n_anios_completos"]:.0f} con los
-  12 meses de Q, desde 1999. P − Q es lo que la cuenca evapora o guarda; a largo plazo lo guardado se compensa, y
-  P − Q no debería superar a la ETP, porque la evapotranspiración real no supera a la potencial.</p>
   <ul>
-    <li><b>En el total, M4 reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL y
-    {mod_balance.loc["PI", "diferencia_volumen_pct"]:+.1f} % con PI) y el coeficiente de escorrentía. No es una prueba de
-    que conserve masa: se ajustó con estos mismos meses, y el factor de Duan corrige justamente la media.</li>
-    <li><b>Mes a mes, no representa el almacenamiento.</b> En {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f}
-    meses el río llevó más agua que la lluvia del mes según PL ({mod_balance.loc["PI", "meses_q_mayor_p_observado"]:.0f}
-    según PI): la cuenca soltaba agua guardada de antes. M4 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}
-    con PL y {mod_balance.loc["PI", "meses_q_mayor_p_estimado"]:.0f} con PI. La lluvia del mes anterior le da un mes de
-    memoria, pero no un depósito que se llene y se vacíe.</li>
+    <li><b>En el total reproduce el volumen</b> ({mod_balance.loc["PL", "diferencia_volumen_pct"]:+.1f} % con PL), pero
+    eso no prueba nada: el factor de Duan corrige justamente la media.</li>
+    <li><b>Mes a mes no representa el almacenamiento</b>: en {mod_balance.loc["PL", "meses_q_mayor_p_observado"]:.0f} meses
+    el río llevó más agua que la lluvia del mes con PL, y M5 estima {mod_balance.loc["PL", "meses_q_mayor_p_estimado"]:.0f}.</li>
     <li><b>Hereda el balance de la fuente de lluvia.</b> {_balance_etp_txt}</li>
   </ul>
+  <p class="nota">Corregir PI con una recta contra PL casi no gana nada ({ev_correccion["ols"]["rmse"]:.1f} contra
+  {ev_correccion["sin"]["rmse"]:.1f} mm/mes de error), así que las dos fuentes se llevan en paralelo. Un modelo mensual
+  no representa el agua guardada más allá de un mes ni el tránsito por el cauce, y superar la climatología no prueba
+  causalidad.</p>
 
-  <p><b>¿Y corregir PI con una recta contra PL?</b> Ajustada con los mismos años, la corrección deja un error de
-  {ev_correccion["ols"]["rmse"]:.1f} mm/mes en la evaluación, contra {ev_correccion["sin"]["rmse"]:.1f} de PI sin
-  corregir: casi no gana nada. Es otro argumento para no corregir PI y llevar las dos fuentes en paralelo.</p>
-  <p class="nota">Un modelo estadístico mensual simplifica mucho: no representa el agua guardada en el suelo más allá de un
-  mes, ni el tránsito por el cauce, y superar la climatología no prueba causalidad. Como se vio arriba, tampoco
-  sustituye un balance hídrico. Además, IMERG incorpora datos de pluviómetros, así que PI y PL no son del todo
-  independientes.</p>
+</section>
+
+
+<section>
+  <h2>Explicaciones físicas</h2>
+  <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
+  literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
+  cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
+  <p{revision("lo que agrega la sección")}>Después de los mecanismos, la sección resume cómo la cuenca transforma la
+  lluvia que recibe, clasifica los meses del año y revisa la hipótesis H de «Qué se quiere saber» frente a las relaciones
+  entre variables y las tendencias.</p>
+
+  <div{revision("la ZCIT según Poveda (2004)")}>
+  <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
+  <p>La lluvia y el caudal de la cuenca tienen dos picos al año (ver «El régimen» en «El ciclo anual» y el pico de 6 meses
+  en «Frecuencias: análisis de Fourier»). La explicación está en la <b>Zona de Convergencia Intertropical (ZCIT)</b>, la
+  franja de lluvias que migra de norte a sur a lo largo del año. Según {CITA_POVEDA}, esa oscilación «constituye el
+  mecanismo físico de mayor importancia para explicar el ciclo anual (o semi-anual) de la hidro-climatología de Colombia»:
+  sobre el centro del país «se presentan dos temporadas lluviosas (abril-mayo y octubre-noviembre), y dos temporadas secas
+  (diciembre-febrero y junio-agosto), como resultado del doble paso de la ZCIT sobre el territorio». En las estaciones de
+  los Andes tropicales el ciclo es bimodal, «con valores máximos en los períodos abril-mayo y octubre-noviembre». Según
+  {CITA_MESA}, el paso de la segunda mitad del año ocurre en <b>septiembre, octubre y noviembre</b>.</p>
+  <p>La cuenca lo reproduce. El primer pico cae en {pico_pl[0]} (PL), {pico_pi[0]} (PI) y {pico_q[0]} (Q), y el segundo en
+  {pico_pl[1]}, {pico_pi[1]} y {pico_q[1]}: dentro de las dos temporadas lluviosas que da Poveda. El régimen es
+  {" y ".join(reg_clases)} en las tres series (Kruskal-Wallis: <i>p</i> ≤ {reg_kw_max:.0e}; A₂/A₁ = {regimen["PL"]["a2a1"]:.2f}
+  con PL), y los dos picos aparecen en {est_anual["PL"]["los_dos"]} de {est_anual["PL"]["anios"]} años con PL
+  ({est_anual["PL"]["simple"]} con el método simple de «¿Se repite cada año? ¿Es estable?»).</p>
+  </div>
+
+  <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
+  <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
+  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}). {marca_ini(C3)}La razón es que el aire más frío de
+  arriba contiene menos vapor, así que queda menos agua que condensar y que pueda caer ({CITA_AMS_OPTIMO}). La altura
+  del óptimo cambia de un lugar a otro: suele estar entre 1 y 2 km, más baja en los trópicos que en las latitudes
+  templadas ({CITA_AMS_OPTIMO}); Mesa et al. dan como cifra general que no suele pasar de {n(ALTURA_OPTIMO_MESA_M)} m.
+  En el Fonce, los pluviómetros
+  lo ubican más arriba, en <b>{n(ALTURA_OPTIMO_M)} m</b>: allí está {html.escape(grad_optimo.nombre_corto)}, la
+  estación más lluviosa ({n(grad_optimo.p_anual_mm)} mm/año), y todas las que están más arriba miden menos.{MARCA_FIN}</p>
+  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
+  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). {marca_ini(C3)}La mayor parte{MARCA_FIN} de la
+  cuenca queda en la rama descendente: por eso llueve menos arriba, como se ve en «En esta cuenca llueve menos arriba»,
+  donde IMERG pierde unos {n(grad_caida)} mm/año de sus celdas más bajas a las más altas.</p>
+
+  <h3>Un episodio aparte: los frentes fríos de enero y febrero de 2005</h3>
+  <p>En el primer bimestre de 2005, la Defensoría del Pueblo documentó una emergencia invernal en Santander, Norte de
+  Santander, Tolima y Huila: inundaciones, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón. Según
+  el IDEAM, citado en el documento, las lluvias eran atípicas para la época y se debían a <b>cuatro frentes fríos del
+  hemisferio norte</b>, cuando entre enero y febrero lo normal son uno o dos ({CITA_DEFENSORIA}).</p>
+  <p><b>Qué es un frente frío.</b> El mismo documento lo explica (nota 2): las masas de aire casi no se mezclan, y el
+  frente es la línea en que la superficie que separa dos de ellas toca el suelo. En un frente frío, el aire frío avanza
+  sobre el cálido. Como es más denso, entra por debajo como una cuña, lo levanta y lo obliga a subir por la superficie
+  frontal; en ese ascenso se forman «abundantes nubes de desarrollo vertical», que son las que dan los aguaceros. La
+  Defensoría toma esa definición de una página web de divulgación, no de una publicación técnica.</p>
+  <p><b>Qué se vio en la cuenca.</b> Enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal en
+  PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
+  y {ene05["z_q_feb"]:+.1f} (ver «Revisión de outliers»). El documento no nombra la cuenca del Fonce, así que no se
+  puede confirmar que sean las mismas lluvias. Es un episodio de un bimestre, no un rasgo del clima de la cuenca.</p>
+
+  <div{revision("subsección nueva: cómo la cuenca transforma la lluvia")}>
+  <h3>Cómo la cuenca transforma la lluvia</h3>
+  <p><b>Las dos temporadas secas no son iguales.</b> La de {clas_fila["seco"]["nombre"]} es la más profunda: con PL,
+  {regimen["PL"]["min"]} tiene una mediana de {n(regimen["PL"]["medianas"][_mes_minimo_pl - 1])} mm, contra
+  {n(_sr["mediana_pl"][0])} mm en {fis_sr_mes_min}, y es el mes de menor P/ETP: {pe_mes.loc[1, "pl"]:.2f} con PL y
+  {pe_mes.loc[1, "pi"]:.2f} con PI (ver «¿Húmeda o árida? La lluvia contra la ETP»). La de {_sr["nombre"]} es un descenso
+  entre los dos picos, con excedente todos los meses (P/ETP {_rango_txt(*_sr["pe"]["pl"])} con PL y
+  {_rango_txt(*_sr["pe"]["pi"])} con PI).</p>
+  <div{critica(C5)}>
+  <p><b>De dónde viene la humedad.</b> El Fonce drena al Magdalena, en la región interandina. {CITA_HOYOS} rastrean con
+  tres modelos de transporte el origen de la humedad que llueve sobre el norte de Colombia, una región que incluye la
+  interandina, y encuentran que la fuente cambia con la temporada: de diciembre a febrero viene sobre todo del Atlántico
+  tropical norte y del Caribe; de marzo a mayo, del Orinoco, del reciclaje sobre el continente y del Atlántico tropical;
+  de junio a agosto, de la Amazonía y del Atlántico tropical sur; y de septiembre a noviembre, otra vez del reciclaje y
+  del Orinoco. El Pacífico, por el chorro del Chocó, llega sobre todo a la costa occidental en octubre y noviembre. Según
+  el mismo trabajo, de diciembre a febrero la cordillera Oriental hace de barrera y reduce la humedad que entra a la
+  región interandina, y de junio a agosto esa región pierde más humedad de la que recibe. Las dos épocas coinciden con
+  las dos temporadas secas de la cuenca, {clas_fila["seco"]["nombre"]} y {_sr["nombre"]} (ver «Las dos temporadas secas no
+  son iguales»). Dos advertencias: el estudio describe una región mucho mayor que la cuenca, y sus autores advierten que
+  la resolución de los tres modelos limita cómo representan el relieve empinado. Con los datos del proyecto no se puede
+  contrastar a escala de la cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver
+  «850 hPa queda bajo los Andes» en «Campos climáticos globales»).</p>
+  </div>
+  <p><b>Convección y relieve.</b> Según {CITA_POVEDA}, en la región Andina «el valle del Río Magdalena y el Norte de
+  Antioquia presentan la mayor cantidad» de sistemas convectivos de mesoescala, y la cuenca está en el flanco de la
+  cordillera que mira a ese valle (ver «Contexto geográfico»). Dos rasgos de los datos son coherentes con una lluvia de
+  origen convectivo:</p>
+  <ul>
+    <li>un mes más lluvioso de lo normal es más fresco de día: en los {len(t_max_baja)} meses con T máx atípicamente baja,
+    PL estuvo en promedio {fis_pl_tmax["baja"]:+.1f} rangos intercuartiles sobre lo normal, y en los {len(t_max_alta)} con
+    T máx atípicamente alta, {fis_pl_tmax["alta"]:+.1f} (ver «Revisión de outliers»);</li>
+    <li>la lluvia disminuye con la altura ({aj_imerg["por_1000m"]:+.0f} mm/año por cada 1 000 m con IMERG), la rama alta del
+    óptimo pluviográfico de arriba.</li>
+  </ul>
+  <p>Es poca evidencia: el primer rasgo se apoya en {len(t_max_baja)} y {len(t_max_alta)} meses, y ninguno de los dos
+  distingue la convección de otros mecanismos que también dan lluvia con nubes o menos lluvia arriba.</p>
+  <p><b>Lo que no se usa.</b> Los monzones no entran en la explicación: el ciclo se entiende con la ZCIT. Los frentes fríos
+  no controlan el ciclo; aparecen como episodios aislados, como el de 2005. La nieve y los glaciares no aparecen en ningún
+  dato del proyecto.</p>
+  <p><b>La energía casi no cambia en el año.</b> La temperatura media de la cuenca varía {mapa_t_amplitud_anual:.1f} °C
+  entre el mes más cálido y el más frío, y {t_max_mitad - t_min_mitad:.1f} °C de un extremo al otro de la cuenca (ver
+  «Mapas de la cuenca»): la manda la altura, no el calendario. La ETP de Hargreaves va de
+  {n(fis_ciclo_rango["etp"]["min"])} a {n(fis_ciclo_rango["etp"]["max"])} mm/mes según el mes, un
+  {fis_ciclo_rango["etp"]["pct"]:.0f} % de su media; la lluvia, con la misma medida, un {fis_ciclo_rango["pl"]["pct"]:.0f} %
+  con PL y un {fis_ciclo_rango["pi"]["pct"]:.0f} % con PI. Por eso el ciclo de P/ETP, y con él el del caudal, lo pone la
+  lluvia y no la demanda de evaporación.</p>
+  <p><b>Hay agua de sobra la mayor parte del año.</b> P/ETP anual es {pe_indice["pl"]["ie"]:.2f} con PL y
+  {pe_indice["pi"]["ie"]:.2f} con PI: la cuenca es húmeda con las dos fuentes (UNEP, desde {UNEP_HUMEDO:.2f}) y en los
+  {pe_n_anios} años. Con PL ningún mes tiene déficit en promedio (enero queda en {pe_mes.loc[1, "pl"]:.2f}); con PI, enero
+  baja a {pe_mes.loc[1, "pi"]:.2f}. Sale por el río {fis_coef_txt} de la lluvia.</p>
+  <p><b>El almacenamiento atrasa y suaviza al río.</b> El caudal llega unos {desfase["Q_PL"]:.0f} días después que la lluvia
+  con PL (IC 95 %: {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}) y unos {desfase["Q_PI"]:.0f} con PI (ver
+  «Desfase estacional»). Es mucho más que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas): no es
+  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras {marca_ini(C2)}cuatro{MARCA_FIN} señales:</p>
+  <ul>
+    <li>{marca_ini(C2)}el <b>flujo base</b>, la parte lenta que sostiene al río entre tormentas, es el {bfi * 100:.0f} % del caudal
+    (índice de flujo base, BFI, de {bfi:.2f} en 1998–2022, separado del caudal diario con el filtro de Lyne-Hollick en la
+    versión de {CITA_LADSON}, la misma que usa CAMELS-COL; esta publica {bfi_camels:.2f}, y la diferencia viene
+    probablemente de la implementación o del manejo de los días faltantes, porque no se pudo reproducir exactamente){MARCA_FIN};</li>
+    <li>los picos de Q caen en {" y ".join(regimen["Q"]["picos"])}, un mes después de los de PL ({" y ".join(regimen["PL"]["picos"])});</li>
+    <li>sin el ciclo anual, la lluvia del mes anterior sigue explicando Q (correlación parcial de
+    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} con PL y {memoria.loc["PI", "parcial_mes_anterior"]:.2f} con PI; ver
+    «Mes a mes: correlación cruzada entre la lluvia y el caudal»);</li>
+    <li>con PL, en {fis_meses_guarda} P − Q supera a la ETP (la cuenca guarda agua), y {fis_sobre1_txt} (ver «Lo que le cae a
+    la cuenca y lo que sale por el río»).</li>
+  </ul>
+  <p><b>Lo que no se sabe.</b> No hay datos de humedad del suelo, del acuífero, de captaciones de agua ni de la operación
+  de obras hidráulicas en la cuenca. {marca_ini(C2)}El flujo base dice cuánta agua llega al río desde el almacenamiento, pero no dónde
+  está guardada (suelo o acuífero) ni cuánta hay.{MARCA_FIN}</p>
+  <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
+  y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
+  «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
+  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
+  <div{critica(C4 + " · el mecanismo")}>
+  <p><b>Por qué El Niño trae menos lluvia.</b> {CITA_POVEDA} ({_poveda_pag_txt}) resume en cinco los mecanismos por
+  los que El Niño trae déficits de agua en Colombia:</p>
+  <ol>
+    <li>se debilita el chorro del Chocó;</li>
+    <li>se debilita la corriente de chorro ecuatorial de 700 hPa;</li>
+    <li>sobre el Atlántico tropical norte hay menos ondas tropicales del este, y más débiles;</li>
+    <li>la ZCIT se desplaza hacia el suroeste de su posición normal, porque se establece una celda de Hadley anómala
+    sobre el trópico americano;</li>
+    <li>cambia el balance de humedad de la atmósfera, sobre todo en los niveles más bajos.</li>
+  </ol>
+  <p>Es una síntesis para todo el país, no para esta cuenca. El chorro del Chocó lleva humedad del Pacífico al
+  occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que ese chorro podría
+  contribuir, pero no se puede suponer que sea su fuente principal de humedad. {CITA_CORDOBA} estudian El Niño Modoki,
+  una variante en que el calentamiento se concentra en el Pacífico central. Según ellos, cuando se calienta el
+  Pacífico ecuatorial el aire asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia. Ese
+  descenso inhibe la convección.</p>
+  </div>
+  <p>El mismo trabajo encuentra que la
+  disminución es mayor de diciembre a febrero y de junio a agosto: de los {alt_binom_n} meses del calendario en que la relación
+  con el índice Niño 3.4 resultó robusta con alguna de las tres variables (PL, Q o PI), {alt_binom_k} caen en esas dos
+  temporadas; fuera de
+  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).
+  {alt_binom_txt}</p>
+  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
+  <ul>
+    <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
+    en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
+    {fis_coh_oni[("extendida 1981–2022", "PL*")]["coh"]:.2f} y Q {fis_coh_oni[("extendida 1981–2022", "Q")]["coh"]:.2f}; ver
+    «¿Cuadra con el ENSO? Coherencia y fase con el ONI»);</li>
+    <li>Q va 1 a 2 meses detrás del ONI: la correlación de su anomalía es casi la misma con el ONI de 1 mes antes
+    (r = {alt_oni_r[1]:+.2f}) y de 2 meses antes (r = {alt_oni_r[2]:+.2f}), así que con estos datos no se distingue
+    entre los dos{enso_lista_oni_txt};</li>
+    <li>el año más seco con las dos fuentes es {fis_anio_seco} ({anom_anios[fis_anio_seco]["nino"]} meses de El Niño), y el
+    más húmedo con las dos juntas, {fis_anio_humedo} ({anom_anios[fis_anio_humedo]["nina"]} meses de La Niña; ver «Los años
+    contrastantes»).</li>
+  </ul>
+  <p>Con {pe_n_anios} años no se puede atribuir la variabilidad entre años solo al ENSO.</p>
+  </div>
+
+  <div{revision("subsección nueva: clasificación hidroclimática mensual")}>
+  <h3>Síntesis: clasificación hidroclimática mensual</h3>
+  <p>Los meses se clasifican con tres criterios, calculados con las series del proyecto en
+  {PERIODOS[0].year}–{PERIODOS[-1].year}, con PL, que manda, y con PI en paralelo:</p>
+  <ul>
+    <li>si la mediana de la lluvia del mes supera al mes típico (las temporadas de «El régimen»);</li>
+    <li>P/ETP del mes y en cuántos años hubo déficit, P &lt; ETP (de «¿Húmeda o árida? La lluvia contra la ETP»);</li>
+    <li>cómo responde el caudal, con su atraso.</li>
+  </ul>
+  <p><b>Húmedo</b>: mes de temporada húmeda con P/ETP ≥ {CLAS_PE_HUMEDO:.1f} y
+  {"sin déficit en ningún año" if CLAS_MAX_ANIOS_DEFICIT == 0 else f"con déficit en no más de {CLAS_MAX_ANIOS_DEFICIT} años"}. <b>Seco</b>: la temporada seca que contiene el mes de menos lluvia. <b>Seco relativo</b>:
+  la otra temporada seca.</p>
+  <div class="tabla-caja">
+  <table class="sin-destacar">
+    <thead><tr><th>Clase</th><th>Meses (PL)</th><th>Lluvia (mediana de PL, mm/mes)</th><th class="num">P/ETP (PL / PI)</th>
+    <th class="num">Años con P &lt; ETP en el peor mes (PL / PI)</th><th>Caudal (régimen de Q)</th></tr></thead>
+    <tbody>
+{clas_filas}
+    </tbody>
+  </table>
+  </div>
+  <p class="nota">P/ETP: el rango de los meses de la clase. Años con déficit: el mayor número de años con P &lt; ETP entre los
+  meses de la clase, de {pe_n_anios}; en enero son {pe_mes_deficit_anios.loc[1, "pl"]} con PL y
+  {pe_mes_deficit_anios.loc[1, "pi"]} con PI. Caudal: las temporadas de Q que se cruzan con los meses de la clase. Con 1 año
+  de déficit admitido en vez de {CLAS_MAX_ANIOS_DEFICIT}, la clasificación con PL es la misma.</p>
+  <p><b>En una frase:</b> clima húmedo (P/ETP de {pe_indice["pl"]["ie"]:.2f} con PL y {pe_indice["pi"]["ie"]:.2f} con PI),
+  con régimen bimodal por el doble paso de la ZCIT, sin estación con déficit de agua sostenido salvo
+  {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_deficit_frecuente["pl"]])}, y un río que responde con
+  {min(desfase["Q_PL"], desfase["Q_PI"]):.0f} a {max(desfase["Q_PL"], desfase["Q_PI"]):.0f} días de atraso por el
+  almacenamiento.</p>
+  <p><b>Alternativas e incertidumbres.</b></p>
+  <ul>
+    <li><i>La fuente cambia los bordes.</i> Con PI, {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_solo_pi_humedas])} caen
+    en temporada húmeda (con PI, las temporadas húmedas son {nombre_meses(clas_pi_humedas)}), y enero tiene déficit, que con PL no tiene.
+    {clas_pi_sin_clase_txt} La clase de esos meses depende de la fuente.</li>
+    <li><i>Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m</i>, donde está el
+    {mapa_pct_sin_pluvio:.0f} % de la cuenca. Si arriba llueve menos, PL podría sobrestimar la lluvia de la cuenca.</li>
+    <li><i>La ETP es potencial y de Hargreaves.</i> UNEP definió las clases con Thornthwaite {marca(f"({CITA_THORNTHWAITE})", C6)}, así que el umbral es
+    aproximado. Pero el año más seco queda en {fis_anio_mas_seco["min"]:.2f} ({fis_anio_mas_seco["anio_min"]}), más del doble
+    del umbral de {UNEP_HUMEDO:.2f}: la clase «húmedo» no cambiaría.</li>
+    <li><i>Los límites son convenciones.</i> El mes típico es el promedio de las medianas, y P/ETP ≥ {CLAS_PE_HUMEDO:.1f} es una
+    elección; con otros umbrales, junio o septiembre podrían cambiar de clase.</li>
+    <li><i>No es el atributo de CAMELS-COL:</i> la clasificación sale de estas series y de este período.</li>
+  </ul>
+  </div>
+
+  <div{revision("subsección nueva: la hipótesis")}>
+  <h3>La hipótesis H frente a los resultados</h3>
+  <p><b>H</b>, planteada en «Qué se quiere saber»: la lluvia controla el caudal, amortiguada por un almacenamiento de un
+  mes, y el ENSO influye en la cuenca a través de la lluvia.</p>
+  <p>Si H es cierta, debería cumplirse:</p>
+  <ol>
+    <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
+    anterior agrega información. Con las cifras de «Cómo se relacionan las variables entre sí»: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
+    ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
+    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En meses que el ajuste
+    no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
+    en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_SOLO_LLUVIA):.1f} mm/mes con PL y
+    de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_SOLO_LLUVIA):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
+    la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
+    <li><b>En el balance de cada mes</b>, la ETP no debería agregar información sobre el caudal una vez descontada la
+    lluvia. Hoy sí agrega: la correlación parcial de las anomalías de Q y de la ETP es {mod_etp.loc["PL", "parcial_q_etp"]:+.2f}
+    con PL, y agregarla al modelo (M5) baja el error fuera del ajuste de {mod_etp.loc["PL", "rmse_m4"]:.1f} a
+    {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes (ver «¿Agrega algo la evapotranspiración? M5»). <b>Esto contradice a H</b>,
+    aunque la ETP de Hargreaves mide en parte la nubosidad.</li>
+    <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
+    lluvia de marzo sube ({fis_marzo["pend"]:+.0f} mm/mes por década con PL*, la única subserie de la lluvia que resiste la
+    corrección FDR), pero el caudal de marzo no muestra tendencia significativa ({fis_marzo["q_mes"]["ols"]:+.1f} m³/s por
+    década, p = {_p_txt(fis_marzo["q_mes"]["p"])}; ver «Mes a mes: las doce subseries»). {fis_q_abril_txt} O la señal es
+    pequeña frente a la variabilidad del caudal, o el almacenamiento y el resto del año la diluyen.</li>
+    <li><b>En las tendencias</b>, el calentamiento ({fis_t_decada:+.2f} °C por década) no debería mover el caudal, porque
+    sube la ETP solo un {inc_etp["rel_pct"]:.2f} % por década (ver «Significativo no es lo mismo que importante»). Hoy, Q no
+    tiene tendencia, lo que es coherente con H, pero no la prueba.</li>
+    <li><b>Entre años</b>, el caudal debería bajar con El Niño, porque llueve menos. Hoy: la anomalía de Q se correlaciona
+    en {ind_txt["ONI"]["r"]:+.2f} con el ONI de {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes (ver «Q frente
+    al ONI y al TNA»), y la relación con el índice Niño 3.4 fue lo único de los campos climáticos que resistió (ver «¿Es firme la relación con El Niño?»).{enso_h_txt} Es coherente con H{enso_h_coherente_txt}.</li>
+  </ol>
+  <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
+  acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con
+  la lluvia conservaran estacionalidad.</p>
+  {alt_veredicto_h}
+  </div>
 </section>
 
 
@@ -4349,27 +4695,10 @@ a {{ color: var(--acento); }}
   tampoco {cam_caja_cuenca["vecinas_sin_850"]} de sus 8 vecinas: en promedio el {cam_caja_cuenca["bajo_tierra"] * 100:.0f} % de su área
   está bajo ese nivel. En la misma latitud, las cajas más cercanas con los {cam_n_meses} meses están en
   {360 - cam_caja_cuenca["lon_este"]:.0f}° O, al oriente, y en {360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, al occidente: el viento
-  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera.</p>
+  y la humedad que llegan a la cuenca en niveles bajos se leen a los lados de la cordillera. {marca_ini(C5)}De dónde viene
+  la humedad que llueve en la cuenca se discute con {CITA_HOYOS} en «De dónde viene la humedad», en «Explicaciones
+  físicas».{MARCA_FIN}</p>
 
-  <h3>Los campos</h3>
-  <p>La SST media va de {cam_rango["sst"][0]:.1f} a {cam_rango["sst"][1]:.1f} °C y la humedad específica media a
-  850 hPa, de {cam_rango["q850"][0]:.1f} a {cam_rango["q850"][1]:.1f} g/kg. La cuenca va marcada en fucsia.</p>
-  <div class="placa"><img src="{img('campos_sst_media.png')}" alt="Mapa del mundo con la temperatura superficial del mar media de 1998 a 2022"></div>
-  <div class="placa"><img src="{img('campos_humedad_transporte.png')}" alt="Mapa del mundo con la humedad específica media a 850 hPa en colores y flechas del transporte medio de humedad"></div>
-
-  <h3>El transporte de humedad, mes a mes</h3>
-  <p>Cerca de la cuenca el transporte cambia mucho a lo largo del año, y distinto a cada lado de la cordillera. <b>Al
-  oriente</b> ({360 - cam_caja_cuenca["lon_este"]:.0f}° O, sobre los llanos) es máximo en
-  {MESES_LARGOS_ES[cam_transporte["este"]["mes_max"] - 1]}, con {cam_transporte["este"]["mag"].max():.0f} (g/kg)·(m/s) hacia
-  {cam_transporte["este"]["rumbo_max"]}, y casi desaparece en {MESES_LARGOS_ES[cam_transporte["este"]["mes_min"] - 1]}
-  ({cam_transporte["este"]["mag"].min():.0f}). <b>Al occidente</b> ({360 - cam_caja_cuenca["lon_oeste"]:.0f}° O, del lado del
-  Pacífico) el transporte entra hacia el continente, hacia el este, de
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][0] - 1]} a
-  {MESES_LARGOS_ES[cam_transporte["oeste"]["meses_hacia_este"][-1] - 1]}, y el resto del año va hacia el oeste.</p>
-  <div class="placa"><img src="{img('campos_transporte_mensual.png')}" alt="Doce mapas del norte de Sudamérica, el Caribe y el Pacífico oriental, uno por mes, con la humedad específica a 850 hPa en colores y flechas del transporte de humedad; la cordillera de los Andes en gris"></div>
-  <p class="nota">Cada panel es la media de los {cam_anios[1] - cam_anios[0] + 1} años de ese mes. Una caja queda en gris si
-  850 hPa estuvo bajo el terreno en alguno de esos meses. Los mapas describen el promedio; cómo se relacionan con la
-  lluvia y el caudal de la cuenca, año a año, es otra pregunta.</p>
   <p class="nota"><b>Control de ERSST:</b> la temperatura media de la región Niño 3.4 calculada con este archivo sigue a la
   que publica la NOAA para el ONI en {cam_oni["n"]} trimestres (correlación {cam_oni["r"]:.3f}; diferencia media
   {cam_oni["dif_media"]:+.2f} °C y máxima {cam_oni["dif_max"]:.2f} °C), así que el producto se bajó y se leyó bien.</p>
@@ -4377,263 +4706,17 @@ a {{ color: var(--acento); }}
 </section>
 
 <section>
-  <h2>Explicaciones físicas</h2>
-  <p>Las secciones anteriores describen lo que muestran los datos. Esta reúne los mecanismos de la atmósfera que la
-  literatura propone para explicarlo. Son marco conceptual, no resultados del proyecto: cada uno se contrasta con las
-  cifras de la cuenca, pero ninguna de esas cifras prueba el mecanismo.</p>
-  <p{revision("lo que agrega la sección")}>Después de los mecanismos, la sección resume cómo la cuenca transforma la
-  lluvia que recibe, clasifica los meses del año y propone una hipótesis para contrastar con las relaciones entre variables
-  y con las tendencias.</p>
-
-  <div{revision("la ZCIT según Poveda (2004)")}>
-  <h3>La migración de la ZCIT: por qué hay dos temporadas de lluvia</h3>
-  <p>La lluvia y el caudal de la cuenca tienen dos picos al año (ver «El régimen» en «El ciclo anual» y el pico de 6 meses
-  en «Frecuencias: análisis de Fourier»). La explicación está en la <b>Zona de Convergencia Intertropical (ZCIT)</b>, la
-  franja de lluvias que migra de norte a sur a lo largo del año. Según {CITA_POVEDA}, esa oscilación «constituye el
-  mecanismo físico de mayor importancia para explicar el ciclo anual (o semi-anual) de la hidro-climatología de Colombia»:
-  sobre el centro del país «se presentan dos temporadas lluviosas (abril-mayo y octubre-noviembre), y dos temporadas secas
-  (diciembre-febrero y junio-agosto), como resultado del doble paso de la ZCIT sobre el territorio». En las estaciones de
-  los Andes tropicales el ciclo es bimodal, «con valores máximos en los períodos abril-mayo y octubre-noviembre». Según
-  {CITA_MESA}, el paso de la segunda mitad del año ocurre en <b>septiembre, octubre y noviembre</b>.</p>
-  <p>La cuenca lo reproduce. El primer pico cae en {pico_pl[0]} (PL), {pico_pi[0]} (PI) y {pico_q[0]} (Q), y el segundo en
-  {pico_pl[1]}, {pico_pi[1]} y {pico_q[1]}: dentro de las dos temporadas lluviosas que da Poveda. El régimen es
-  {" y ".join(reg_clases)} en las tres series (Kruskal-Wallis: <i>p</i> ≤ {reg_kw_max:.0e}; A₂/A₁ = {regimen["PL"]["a2a1"]:.2f}
-  con PL), y los dos picos aparecen en {est_anual["PL"]["los_dos"]} de {est_anual["PL"]["anios"]} años con PL
-  ({est_anual["PL"]["simple"]} con el método simple de «¿Se repite cada año? ¿Es estable?»).</p>
-  </div>
-
-  <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
-  <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
-  <b>óptimo pluviográfico</b>, que normalmente no pasa de {n(ALTURA_OPTIMO_M)} m, y por encima <b>disminuye</b>
-  ({CITA_MESA_P90}): las lluvias tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el
-  vapor que condensar.</p>
-  <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
-  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). Salvo la parte más baja, cerca de San Gil, la
-  cuenca queda en la rama descendente: por eso llueve menos arriba, como se ve en «En esta cuenca llueve menos arriba»,
-  donde IMERG pierde unos {n(grad_caida)} mm/año de sus celdas más bajas a las más altas.</p>
-
-  <h3>Un episodio aparte: los frentes fríos de enero y febrero de 2005</h3>
-  <p>En el primer bimestre de 2005, la Defensoría del Pueblo documentó una emergencia invernal en Santander, Norte de
-  Santander, Tolima y Huila: inundaciones, la avalancha del río de Oro y calamidad pública en Bucaramanga y Girón. Según
-  el IDEAM, citado en el documento, las lluvias eran atípicas para la época y se debían a <b>cuatro frentes fríos del
-  hemisferio norte</b>, cuando entre enero y febrero lo normal son uno o dos ({CITA_DEFENSORIA}).</p>
-  <p><b>Qué es un frente frío.</b> El mismo documento lo explica (nota 2): las masas de aire casi no se mezclan, y el
-  frente es la línea en que la superficie que separa dos de ellas toca el suelo. En un frente frío, el aire frío avanza
-  sobre el cálido. Como es más denso, entra por debajo como una cuña, lo levanta y lo obliga a subir por la superficie
-  frontal; en ese ascenso se forman «abundantes nubes de desarrollo vertical», que son las que dan los aguaceros. La
-  Defensoría toma esa definición de una página web de divulgación, no de una publicación técnica.</p>
-  <p><b>Qué se vio en la cuenca.</b> Enero de 2005 estuvo {ene05["z_pl"]:+.1f} rangos intercuartiles sobre lo normal en
-  PL, {ene05["z_pi"]:+.1f} en PI y {ene05["z_q"]:+.1f} en Q; febrero, {ene05["z_pl_feb"]:+.1f}, {ene05["z_pi_feb"]:+.1f}
-  y {ene05["z_q_feb"]:+.1f} (ver «Revisión de outliers»). El documento no nombra la cuenca del Fonce, así que no se
-  puede confirmar que sean las mismas lluvias. Es un episodio de un bimestre, no un rasgo del clima de la cuenca.</p>
-
-  <div{revision("subsección nueva: cómo la cuenca transforma la lluvia")}>
-  <h3>Cómo la cuenca transforma la lluvia</h3>
-  <p><b>Las dos temporadas secas no son iguales.</b> La de {clas_fila["seco"]["nombre"]} es la más profunda: con PL,
-  {regimen["PL"]["min"]} tiene una mediana de {n(regimen["PL"]["medianas"][_mes_minimo_pl - 1])} mm, contra
-  {n(_sr["mediana_pl"][0])} mm en {fis_sr_mes_min}, y es el mes de menor P/ETP: {pe_mes.loc[1, "pl"]:.2f} con PL y
-  {pe_mes.loc[1, "pi"]:.2f} con PI (ver «¿Húmeda o árida? La lluvia contra la ETP»). La de {_sr["nombre"]} es un descenso
-  entre los dos picos, con excedente todos los meses (P/ETP {_rango_txt(*_sr["pe"]["pl"])} con PL y
-  {_rango_txt(*_sr["pe"]["pi"])} con PI).</p>
-  <p><b>La humedad de la Amazonía.</b> Según {CITA_POVEDA}, «los vientos alisios del sureste transportan gran cantidad de
-  humedad hacia los Andes» desde la cuenca Amazónica, y la relaciona con la lluvia del «pie de monte Andino», la
-  vertiente que da a la Amazonía. La cuenca está en el flanco opuesto, el que mira al valle del Magdalena, así que no se
-  puede suponer que esa humedad sea su fuente principal. Con los datos del proyecto tampoco se puede contrastar a escala de la
-  cuenca: la humedad y el viento a 850 hPa quedan bajo tierra en la caja de la cuenca (ver «850 hPa queda bajo los Andes»
-  en «Campos climáticos globales»). Queda como contexto, no como resultado.</p>
-  <p><b>Convección y relieve.</b> Según {CITA_POVEDA}, en la región Andina «el valle del Río Magdalena y el Norte de
-  Antioquia presentan la mayor cantidad» de sistemas convectivos de mesoescala, y la cuenca está en el flanco de la
-  cordillera que mira a ese valle (ver «Contexto geográfico»). Dos rasgos de los datos son coherentes con una lluvia de
-  origen convectivo:</p>
-  <ul>
-    <li>un mes más lluvioso de lo normal es más fresco de día: en los {len(t_max_baja)} meses con T máx atípicamente baja,
-    PL estuvo en promedio {fis_pl_tmax["baja"]:+.1f} rangos intercuartiles sobre lo normal, y en los {len(t_max_alta)} con
-    T máx atípicamente alta, {fis_pl_tmax["alta"]:+.1f} (ver «Revisión de outliers»);</li>
-    <li>la lluvia disminuye con la altura ({aj_imerg["por_1000m"]:+.0f} mm/año por cada 1 000 m con IMERG), la rama alta del
-    óptimo pluviográfico de arriba.</li>
-  </ul>
-  <p>Es poca evidencia: el primer rasgo se apoya en {len(t_max_baja)} y {len(t_max_alta)} meses, y ninguno de los dos
-  distingue la convección de otros mecanismos que también dan lluvia con nubes o menos lluvia arriba.</p>
-  <p><b>Lo que no se usa.</b> Los monzones no entran en la explicación: el ciclo se entiende con la ZCIT. Los frentes fríos
-  no controlan el ciclo; aparecen como episodios aislados, como el de 2005. La nieve y los glaciares no aparecen en ningún
-  dato del proyecto.</p>
-  <p><b>La energía casi no cambia en el año.</b> La temperatura media de la cuenca varía {mapa_t_amplitud_anual:.1f} °C
-  entre el mes más cálido y el más frío, y {t_max_mitad - t_min_mitad:.1f} °C de un extremo al otro de la cuenca (ver
-  «Mapas de la cuenca»): la manda la altura, no el calendario. La ETP de Hargreaves va de
-  {n(fis_ciclo_rango["etp"]["min"])} a {n(fis_ciclo_rango["etp"]["max"])} mm/mes según el mes, un
-  {fis_ciclo_rango["etp"]["pct"]:.0f} % de su media; la lluvia, con la misma medida, un {fis_ciclo_rango["pl"]["pct"]:.0f} %
-  con PL y un {fis_ciclo_rango["pi"]["pct"]:.0f} % con PI. Por eso el ciclo de P/ETP, y con él el del caudal, lo pone la
-  lluvia y no la demanda de evaporación.</p>
-  <p><b>Hay agua de sobra la mayor parte del año.</b> P/ETP anual es {pe_indice["pl"]["ie"]:.2f} con PL y
-  {pe_indice["pi"]["ie"]:.2f} con PI: la cuenca es húmeda con las dos fuentes (UNEP, desde {UNEP_HUMEDO:.2f}) y en los
-  {pe_n_anios} años. Con PL ningún mes tiene déficit en promedio (enero queda en {pe_mes.loc[1, "pl"]:.2f}); con PI, enero
-  baja a {pe_mes.loc[1, "pi"]:.2f}. Sale por el río {fis_coef_txt} de la lluvia.</p>
-  <p><b>El almacenamiento atrasa y suaviza al río.</b> El caudal llega unos {desfase["Q_PL"]:.0f} días después que la lluvia
-  con PL (IC 95 %: {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}) y unos {desfase["Q_PI"]:.0f} con PI (ver
-  «Desfase estacional»). Es mucho más que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas): no es
-  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras tres señales:</p>
-  <ul>
-    <li>los picos de Q caen en {" y ".join(regimen["Q"]["picos"])}, un mes después de los de PL ({" y ".join(regimen["PL"]["picos"])});</li>
-    <li>sin el ciclo anual, la lluvia del mes anterior sigue explicando Q (correlación parcial de
-    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} con PL y {memoria.loc["PI", "parcial_mes_anterior"]:.2f} con PI; ver
-    «Mes a mes: correlación cruzada entre la lluvia y el caudal»);</li>
-    <li>con PL, en {fis_meses_guarda} P − Q supera a la ETP (la cuenca guarda agua), y {fis_sobre1_txt} (ver «Lo que le cae a
-    la cuenca y lo que sale por el río»).</li>
-  </ul>
-  <p><b>Lo que no se sabe.</b> No hay datos de humedad del suelo, del acuífero, de captaciones de agua ni de la operación
-  de obras hidráulicas en la cuenca. El almacenamiento se infiere del desfase; no se mide.</p>
-  <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
-  y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
-  «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
-  Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
-  <p><b>Por qué El Niño trae menos lluvia.</b> Una advertencia sobre la fuente: {CITA_CORDOBA} estudian El Niño Modoki, una
-  variante de El Niño en que el calentamiento se concentra en el Pacífico central; aquí se usa como aproximación para El Niño
-  en general, el que mide el ONI. Según ese trabajo, cuando se calienta el Pacífico ecuatorial el aire
-  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
-  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
-  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
-  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
-  disminución es mayor de diciembre a febrero y de junio a agosto: de los {alt_binom_n} meses del calendario en que la relación
-  con el índice Niño 3.4 resultó robusta con alguna de las tres variables (PL, Q o PI), {alt_binom_k} caen en esas dos
-  temporadas; fuera de
-  ellas queda {n34_rob_fuera} (ver «¿Es firme la relación con El Niño?» en «La cuenca frente a los campos climáticos»).
-  {alt_binom_txt}</p>
-  <p>Los datos del proyecto apoyan la relación con el ENSO sin probarla:</p>
-  <ul>
-    <li>en la banda de 3 a 7 años, la lluvia y el caudal varían en oposición al ONI; la coherencia es significativa con PI
-    en 1998–2022 ({fis_coh_oni[("común 1998–2022", "PI")]["coh"]:.2f}), y con PL y Q solo en el registro largo (PL*
-    {fis_coh_oni[("extendida 1981–2022", "PL*")]["coh"]:.2f} y Q {fis_coh_oni[("extendida 1981–2022", "Q")]["coh"]:.2f}; ver
-    «¿Cuadra con el ENSO? Coherencia y fase con el ONI»);</li>
-    <li>Q va 1 a 2 meses detrás del ONI: la correlación de su anomalía es casi la misma con el ONI de 1 mes antes
-    (r = {alt_oni_r[1]:+.2f}) y de 2 meses antes (r = {alt_oni_r[2]:+.2f}), así que con estos datos no se distingue
-    entre los dos;</li>
-    <li>el año más seco con las dos fuentes es {fis_anio_seco} ({anom_anios[fis_anio_seco]["nino"]} meses de El Niño), y el
-    más húmedo con las dos juntas, {fis_anio_humedo} ({anom_anios[fis_anio_humedo]["nina"]} meses de La Niña; ver «Los años
-    contrastantes»).</li>
-  </ul>
-  <p>Con {pe_n_anios} años no se puede atribuir la variabilidad entre años solo al ENSO.</p>
-  </div>
-
-  <div{revision("subsección nueva: clasificación hidroclimática mensual")}>
-  <h3>Síntesis: clasificación hidroclimática mensual</h3>
-  <p>Los meses se clasifican con tres criterios, calculados con las series del proyecto en
-  {PERIODOS[0].year}–{PERIODOS[-1].year}, con PL, que manda, y con PI en paralelo:</p>
-  <ul>
-    <li>si la mediana de la lluvia del mes supera al mes típico (las temporadas de «El régimen»);</li>
-    <li>P/ETP del mes y en cuántos años hubo déficit, P &lt; ETP (de «¿Húmeda o árida? La lluvia contra la ETP»);</li>
-    <li>cómo responde el caudal, con su atraso.</li>
-  </ul>
-  <p><b>Húmedo</b>: mes de temporada húmeda con P/ETP ≥ {CLAS_PE_HUMEDO:.1f} y
-  {"sin déficit en ningún año" if CLAS_MAX_ANIOS_DEFICIT == 0 else f"con déficit en no más de {CLAS_MAX_ANIOS_DEFICIT} años"}. <b>Seco</b>: la temporada seca que contiene el mes de menos lluvia. <b>Seco relativo</b>:
-  la otra temporada seca.</p>
-  <div class="tabla-caja">
-  <table class="sin-destacar">
-    <thead><tr><th>Clase</th><th>Meses (PL)</th><th>Lluvia (mediana de PL, mm/mes)</th><th class="num">P/ETP (PL / PI)</th>
-    <th class="num">Años con P &lt; ETP en el peor mes (PL / PI)</th><th>Caudal (régimen de Q)</th></tr></thead>
-    <tbody>
-{clas_filas}
-    </tbody>
-  </table>
-  </div>
-  <p class="nota">P/ETP: el rango de los meses de la clase. Años con déficit: el mayor número de años con P &lt; ETP entre los
-  meses de la clase, de {pe_n_anios}; en enero son {pe_mes_deficit_anios.loc[1, "pl"]} con PL y
-  {pe_mes_deficit_anios.loc[1, "pi"]} con PI. Caudal: las temporadas de Q que se cruzan con los meses de la clase. Con 1 año
-  de déficit admitido en vez de {CLAS_MAX_ANIOS_DEFICIT}, la clasificación con PL es la misma.</p>
-  <p><b>En una frase:</b> clima húmedo (P/ETP de {pe_indice["pl"]["ie"]:.2f} con PL y {pe_indice["pi"]["ie"]:.2f} con PI),
-  con régimen bimodal por el doble paso de la ZCIT, sin estación con déficit de agua sostenido salvo
-  {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_deficit_frecuente["pl"]])}, y un río que responde con
-  {min(desfase["Q_PL"], desfase["Q_PI"]):.0f} a {max(desfase["Q_PL"], desfase["Q_PI"]):.0f} días de atraso por el
-  almacenamiento.</p>
-  <p><b>Alternativas e incertidumbres.</b></p>
-  <ul>
-    <li><i>La fuente cambia los bordes.</i> Con PI, {_y_lista([MESES_LARGOS_ES[m - 1] for m in clas_solo_pi_humedas])} caen
-    en temporada húmeda (con PI, las temporadas húmedas son {nombre_meses(clas_pi_humedas)}), y enero tiene déficit, que con PL no tiene.
-    {clas_pi_sin_clase_txt} La clase de esos meses depende de la fuente.</li>
-    <li><i>Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m</i>, donde está el
-    {mapa_pct_sin_pluvio:.0f} % de la cuenca. Si arriba llueve menos, PL podría sobrestimar la lluvia de la cuenca.</li>
-    <li><i>La ETP es potencial y de Hargreaves.</i> UNEP definió las clases con Thornthwaite, así que el umbral es
-    aproximado. Pero el año más seco queda en {fis_anio_mas_seco["min"]:.2f} ({fis_anio_mas_seco["anio_min"]}), más del doble
-    del umbral de {UNEP_HUMEDO:.2f}: la clase «húmedo» no cambiaría.</li>
-    <li><i>Los límites son convenciones.</i> El mes típico es el promedio de las medianas, y P/ETP ≥ {CLAS_PE_HUMEDO:.1f} es una
-    elección; con otros umbrales, junio o septiembre podrían cambiar de clase.</li>
-    <li><i>No es el atributo de CAMELS-COL:</i> la clasificación sale de estas series y de este período.</li>
-  </ul>
-  </div>
-
-  <div{revision("subsección nueva: la hipótesis")}>
-  <h3>Una hipótesis para las relaciones y las tendencias</h3>
-  <p><b>H:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, amortiguada por un almacenamiento del orden de
-  un mes. La evapotranspiración, casi constante en el año, no explica ni su ciclo ni sus diferencias entre años.</p>
-  <p>Si H es cierta, debería cumplirse:</p>
-  <ol>
-    <li><b>En las relaciones entre variables</b>, la lluvia sigue explicando el caudal sin el ciclo anual, y la del mes
-    anterior agrega información. Hoy: ρ(PL, Q) en anomalías = {rho("PL", "Q", anomalias=True):.2f}
-    ({rho("PI", "Q", anomalias=True):.2f} con PI), y la correlación parcial de la lluvia del mes anterior es
-    {memoria.loc["PL", "parcial_mes_anterior"]:.2f} ({memoria.loc["PI", "parcial_mes_anterior"]:.2f}). En meses que el ajuste
-    no vio, la lluvia supera a la climatología, y sumar la del mes anterior mejora la estimación, más con PL que con PI:
-    en la validación cruzada, el error baja de {mod_rmse("PL", "M1"):.1f} a {mod_rmse("PL", MOD_ELEGIDO):.1f} mm/mes con PL y
-    de {mod_rmse("PI", "M1"):.1f} a {mod_rmse("PI", MOD_ELEGIDO):.1f} con PI, contra {mod_rmse("PL", MOD_REFERENCIA):.1f} de
-    la climatología (ver «¿Sirve la lluvia para estimar el caudal?»).</li>
-    <li><b>En las tendencias</b>, un cambio de la lluvia debería verse en el caudal de ese mes o del siguiente. Hoy: la
-    lluvia de marzo sube ({fis_marzo["pend"]:+.0f} mm/mes por década con PL*, la única subserie de la lluvia que resiste la
-    corrección FDR), pero el caudal de marzo no muestra tendencia significativa ({fis_marzo["q_mes"]["ols"]:+.1f} m³/s por
-    década, p = {_p_txt(fis_marzo["q_mes"]["p"])}; ver «Mes a mes: las doce subseries»). {fis_q_abril_txt} O la señal es
-    pequeña frente a la variabilidad del caudal, o el almacenamiento y el resto del año la diluyen.</li>
-    <li><b>En las tendencias</b>, el calentamiento ({fis_t_decada:+.2f} °C por década) no debería mover el caudal, porque
-    sube la ETP solo un {inc_etp["rel_pct"]:.2f} % por década (ver «Significativo no es lo mismo que importante»). Hoy, Q no
-    tiene tendencia, lo que es coherente con H, pero no la prueba.</li>
-  </ol>
-  <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
-  acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con
-  la lluvia conservaran estacionalidad.</p>
-  {alt_veredicto_h}
-  </div>
-</section>
-
-
-<section>
   <h2>La cuenca frente a los campos climáticos</h2>
-  <div class="revision" data-etiqueta="Revisión · correlaciones con los campos">
-  <p>En cada caja de 2° y para cada mes del calendario se correlacionan, <b>a través de los años</b>, la anomalía de la
-  cuenca en ese mes con la anomalía del campo en esa caja: por ejemplo, los {cam_anios[1] - cam_anios[0] + 1} eneros de PL con los
-  {cam_anios[1] - cam_anios[0] + 1} eneros de la SST de la caja. No es una correlación entre cajas ni con un solo enero. Con un
-  <b>rezago ℓ</b>, el campo se toma ℓ meses antes que la cuenca (ℓ &gt; 0: el campo va primero); con ℓ = 1, enero se empareja
-  con diciembre del año anterior, y el código lo comprueba. Las anomalías son, para la cuenca y para cada caja, el valor
-  menos la media de su mes en {cam_anios[0]}–{cam_anios[1]}. Pearson es la referencia; Spearman, que usa rangos, se calcula en
-  todas las cajas para ver dónde los extremos cambian la lectura. El viento entra como su rapidez,
-  √(u² + v²), con las flechas de la dirección del viento medio de cada mes.</p>
-  <p class="nota">Todos los mapas usan la misma escala, de −1 a 1 y centrada en cero, y el dominio de 60° S a 60° N. En gris
-  queda la tierra en la SST, 850 hPa bajo el terreno y toda caja con menos de <b>{CORR_N_MINIMO} pares</b> (el 80 % de los
-  años). Cada panel dice cuántos pares tienen sus cajas: con PL y PI son {corr_n_rango[("PL", "sst", 0)][1]} en la SST; con Q,
-  entre {corr_n_rango[("Q", "sst", 0)][0]} y {corr_n_rango[("Q", "sst", 0)][1]}, porque al caudal le faltan meses; en 850 hPa, algunas
-  cajas pierden años cuando el nivel quedó bajo el terreno. Para un mes fijo y la misma muestra, centrar o estandarizar
-  no cambia Pearson (el código lo comprueba con las anomalías estandarizadas): los mapas con anomalías o con anomalías
-  estandarizadas no serían evidencias distintas.</p>
-
-  <h3>Un resumen: la región Niño 3.4</h3>
-  <p>La correlación media de las cajas de la región Niño 3.4 (5° S–5° N, 170° O–120° O), mes por mes:</p>
-  <div class="tabla-caja"><table>
-    <thead><tr><th></th>{"".join(f"<th>{m}</th>" for m in MESES_ES)}<th>todos</th></tr></thead>
-    <tbody>
-    {"".join(f"<tr><td>{v}{' (ℓ = 1)' if l else ''}</td>" + "".join(f"<td>{x:+.2f}</td>" for x in corr_nino34[(v, l)]) + "</tr>" for l in (0, 1) for v in ("PL", "Q", "PI"))}
-    </tbody>
-  </table></div>
-  <p>Es negativa en {sum(x < 0 for x in corr_nino34[("PL", 0)][:12])} de los 12 meses con PL: los años con el Pacífico central más
-  caliente que lo normal traen menos lluvia a la cuenca. Con PL es más fuerte en
-  {MESES_LARGOS_ES[int(np.argmin(corr_nino34[("PL", 0)][:12]))]} ({min(corr_nino34[("PL", 0)][:12]):+.2f}) y casi nula en
-  {MESES_LARGOS_ES[int(np.argmax(corr_nino34[("PL", 0)][:12]))]} ({max(corr_nino34[("PL", 0)][:12]):+.2f}); con Q, más fuerte en
-  {MESES_LARGOS_ES[int(np.argmin(corr_nino34[("Q", 0)][:12]))]} ({min(corr_nino34[("Q", 0)][:12]):+.2f}). Con el campo un mes
-  antes (ℓ = 1), la correlación cambia poco en general (mediana de los cambios: {corr_cambio_rezago["mediana"]:.2f});
-  el mayor cambio es en {corr_cambio_rezago["var"]} de {MESES_LARGOS_ES[corr_cambio_rezago["mes"] - 1]}
-  ({corr_nino34[(corr_cambio_rezago["var"], 0)][corr_cambio_rezago["mes"] - 1]:+.2f} sin rezago y
-  {corr_nino34[(corr_cambio_rezago["var"], 1)][corr_cambio_rezago["mes"] - 1]:+.2f} con él). Spearman difiere de Pearson en más de 0.2 en el
-  {corr_spearman_q["dif_02_pct"]:.1f} % de las cajas de Q contra la SST, y cambia de signo con una correlación mayor que 0.3 en el
-  {corr_spearman_q["signo_pct"]:.2f} %: los extremos del caudal no cambian el patrón.</p>
+  <p>Esta sección busca qué relación hay, año a año, entre la cuenca y los campos de «Campos climáticos globales».
+  Se usan anomalías: para la cuenca y para cada campo, el valor menos la media de su mes en
+  {cam_anios[0]}–{cam_anios[1]}. Cada mes del calendario se correlaciona <b>a través de los años</b>: por ejemplo, los
+  {cam_anios[1] - cam_anios[0] + 1} eneros de PL con los {cam_anios[1] - cam_anios[0] + 1} eneros del campo. Con un
+  <b>rezago ℓ</b>, el campo se toma ℓ meses antes que la cuenca; con ℓ = 1, enero se empareja con diciembre del año
+  anterior, y el código lo comprueba.</p>
 
   <h3>¿Es firme la relación con El Niño?</h3>
-  <p>El promedio de la tabla anterior junta muchas cajas y no es una correlación con un número fijo de pares, así que
-  no admite una prueba. Para probar la relación se usa una sola serie: el <b>índice Niño 3.4</b>, la anomalía de la SST
-  promediada en la misma región (ponderando por el coseno de la latitud). En cada mes del calendario se correlaciona con
+  <p>Para probar la relación con el Pacífico central se usa una sola serie: el <b>índice Niño 3.4</b>, la anomalía de
+  la SST promediada en la región Niño 3.4 (5° S–5° N, 170° O–120° O), ponderando por el coseno de la latitud. En cada mes del calendario se correlaciona con
   la anomalía de la cuenca a través de los años, y se le aplican tres filtros:</p>
   <ol>
     <li><b>Prueba t</b> de la correlación, con los pares de ese mes (entre {n34_n[0]} y {n34_n[1]}). Para que p &lt;
@@ -4654,9 +4737,7 @@ a {{ color: var(--acento); }}
   {CORR_Q_FDR:.2f}); con ✓, los que además son robustos. Debajo, el menor y el mayor r al quitar un año.</p>
   <p>Sin rezago, la relación es robusta en {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en
   {n34_robustos["PI"]} con PI. Pasan la corrección, pero dependen de algún año, en {n34_solo_fdr["PL"]} con PL, en
-  {n34_solo_fdr["Q"]} con Q y en {n34_solo_fdr["PI"]} con PI. Todas las correlaciones que pasan son negativas, y el
-  índice cuenta la misma historia que el promedio de las cajas (las dos tablas se correlacionan en
-  {corr_n34_acuerdo:.3f}). Con el índice un mes antes (ℓ = 1), Q pasa la corrección en {n34_fdr_l[1]} meses, frente a
+  {n34_solo_fdr["Q"]} con Q y en {n34_solo_fdr["PI"]} con PI. Todas las correlaciones que pasan son negativas. Con el índice un mes antes (ℓ = 1), Q pasa la corrección en {n34_fdr_l[1]} meses, frente a
   {n34_fdr_l[0]} sin rezago.</p>
   <p><b>Lo que se puede afirmar:</b> cuando el Pacífico central está más caliente que lo normal, llueve menos en la
   cuenca y baja el caudal. La relación se concentra a mitad de año (junio a septiembre) y, para Q, también de diciembre
@@ -4688,7 +4769,7 @@ a {{ color: var(--acento); }}
   pasa la corrección; punto vacío: no pasa.</p>
   <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
   índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q, casi igual que con 2 meses (r = {alt_oni_r[2]:+.2f}):
-  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos. Con el Pacífico central más caliente (El Niño)
+  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos.{enso_oni_media_txt}{ind_oni_fourier_txt} Con el Pacífico central más caliente (El Niño)
   el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
   corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
   fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
@@ -4699,40 +4780,55 @@ a {{ color: var(--acento); }}
   índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja
   que los índices y el caudal cambian despacio. Son correlaciones: los índices no mueven el río, acompañan los cambios
   de la lluvia.</p>
+  <div{critica(C4 + " · el TNA sin el ONI de todo el año")}>
+  <p class="nota">El resultado del TNA sin el ONI depende de qué meses del ONI se quiten. El TNA responde al ONI a lo
+  largo de un año: se correlaciona en {ind_tna_oni[ind_tna_oni_k]:+.2f} con el ONI de {ind_tna_oni_k} meses antes y sigue
+  por encima de {IND_TNA_ONI_UMBRAL:+.1f} hasta {max(IND_REZAGOS_CONTROL_SENS)} meses. Si se quita el ONI de
+  {min(IND_REZAGOS_CONTROL_SENS)} a {max(IND_REZAGOS_CONTROL_SENS)} meses antes, y no solo el de 1 mes, el TNA sin el ONI
+  sube a r = {ind_sens_max["r"]:+.2f} con el TNA {int(ind_sens_max["rezago"])} meses antes (q = {ind_sens_max["q"]:.3f}) y pasa
+  la corrección con el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes. Sube porque las dos señales se tapan: El Niño
+  trae menos caudal y, meses después, calienta el Atlántico tropical norte, que va con más caudal. En cambio, el pico
+  del TNA de {int(ind_max["TNA"]["rezago"])} meses antes no pasa ({ind_sens_pico_tna["r"]:+.2f}, q =
+  {ind_sens_pico_tna["q"]:.2f}): casi todo es el mismo ENSO.</p>
+  </div>
+  <div{critica(C4 + " · ¿solo a través de la lluvia?")}>
+  <p><b>¿Actúa El Niño solo a través de la lluvia?</b> La anomalía de Q se correlaciona más con el ONI
+  ({enso_r("Q"):+.2f}) que la lluvia del mismo mes ({enso_r("PL"):+.2f} con PL y {enso_r("PI"):+.2f} con PI). Si El Niño
+  actuara solo a través de la lluvia, se esperaría lo contrario. Hay dos pruebas que lo explican.</p>
+  <p>La primera es que la lluvia de un mes es ruidosa y el caudal responde a la de varios meses. Promediada en los
+  últimos 3 meses, la lluvia se correlaciona con el ONI en {enso_r("PL", 3):+.2f} con PL y {enso_r("PI", 3):+.2f} con PI.
+  En 6 meses llega a {enso_r("PL", 6):+.2f} y {enso_r("PI", 6):+.2f}, tanto como Q o más.</p>
+  <p>La segunda es la correlación parcial de Q con el ONI, en la escala de M4 y M5 (ln). Quitando lo que explica la
+  lluvia del mes y la del anterior (los regresores de M4), queda en {_ep("PL", ENSO_CONTROL_M4).r_parcial:+.2f} con PL y
+  {_ep("PI", ENSO_CONTROL_M4).r_parcial:+.2f} con PI. Si se quita también la ETP (M5), baja a
+  {_ep("PL", ENSO_CONTROL_M5).r_parcial:+.2f} con PL (p {fmt_p_eq(_ep("PL", ENSO_CONTROL_M5).p)}) y a
+  {_ep("PI", ENSO_CONTROL_M5).r_parcial:+.2f} con PI (p {fmt_p_eq(_ep("PI", ENSO_CONTROL_M5).p)}). Si además se quita la
+  lluvia de 2 y 3 meses antes, baja a {_ep("PL", ENSO_CONTROL_TODO).r_parcial:+.2f} y
+  {_ep("PI", ENSO_CONTROL_TODO).r_parcial:+.2f}, y ninguna es significativa.</p>
+  <p>Así, la relación del caudal con El Niño se explica con la lluvia de los últimos meses y con la ETP. No parece un
+  error de los pluviómetros, porque con PI sale lo mismo. Lo que estos datos no permiten separar es cuánto pone cada
+  una. La ETP sube con El Niño ({enso_r("ETP"):+.2f} con el ONI), y la de Hargreaves mide en parte la nubosidad, que
+  también cambia con El Niño.</p>
+  <p class="nota">Lo calcula <code>scripts/17c_enso_a_traves_de_lluvia.py</code>: las tres parciales usan los mismos
+  {int(_ep("PL", ENSO_CONTROL_M4).n)} meses, y su significancia sale del n efectivo de {CITA_BRETHERTON}, como arriba.</p>
+  </div>
   <p><b>Conclusión.</b> La parte del caudal controlada por fenómenos climáticos globales interanuales está asociada
   principalmente con el ENSO y el Pacífico tropical (|r| hasta {abs(ind_txt["ONI"]["r"]):.2f} con el ONI). El Atlántico
   tropical norte también se correlaciona con el caudal (hasta {ind_txt["TNA"]["r"]:.2f}), pero buena parte de esa
   relación viene del mismo ENSO: al quitar su efecto, lo que queda (r hasta {ind_txt[IND_PARCIAL]["r"]:.2f}) no pasa la
-  corrección, así que no se puede afirmar que el Atlántico aporte por sí solo.</p>
+  corrección {enso_tna_conclusion_txt}</p>
   </div>
 
   <h3>¿Y los mapas?</h3>
-  <p>Los puntos negros de los mapas marcan las cajas que pasan la misma corrección dentro de cada panel (Benjamini y
-  Hochberg sobre sus {n(rob_cajas[0])} a {n(rob_cajas[1])} cajas, q &lt; {CORR_Q_FDR:.2f}). Solo {rob_mapas["con_fdr"]} de
-  los {rob_mapas["total"]} paneles mensuales tienen alguna, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar
-  un solo año (los que más pesan, con el número de paneles: {rob_mapas["anios"]}). <b>Los mapas no dan resultados
+  <p>Antes de usar el índice, la cuenca (PL, Q y PI) se correlacionó con la SST, la rapidez del viento y la humedad a
+  850 hPa en cada caja de 2°, mes por mes, con Pearson y Spearman, sin rezago y, en la SST, con ℓ = 1. Dentro de cada
+  mapa se aplicó la misma corrección por pruebas múltiples (Benjamini y Hochberg sobre sus {n(rob_cajas[0])} a
+  {n(rob_cajas[1])} cajas, q &lt; {CORR_Q_FDR:.2f}). Solo {rob_mapas["con_fdr"]} de los {rob_mapas["total"]} mapas
+  mensuales tienen alguna caja que la pase, y en {rob_mapas["caen"]} de ellos todas desaparecen al quitar un solo año
+  (los que más pesan, con el número de mapas: {rob_mapas["anios"]}). <b>Los mapas no dan resultados
   concluyentes</b> más allá de la relación con El Niño: con 25 años, la forma detallada de las manchas no se distingue
-  del azar, y en la mayoría de los paneles las zonas que pasan dependen de un solo año.</p>
-  <h3>Los mapas</h3>
-  <div class="placa"><img src="{img('corr_PL_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la SST"></div>
-  <div class="placa"><img src="{img('corr_Q_sst_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la SST"></div>
-  <div class="placa"><img src="{img('corr_PL_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
-  <div class="placa"><img src="{img('corr_Q_viento850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la rapidez del viento a 850 hPa, con flechas de la dirección del viento"></div>
-  <div class="placa"><img src="{img('corr_PL_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre PL y la humedad específica a 850 hPa"></div>
-  <div class="placa"><img src="{img('corr_Q_q850_l0.png')}" alt="Doce mapas del mundo, uno por mes, con la correlación entre Q y la humedad específica a 850 hPa"></div>
-  <details class="plegable-mini"><summary><b>Contraste con PI (IMERG)</b></summary>
-  <div class="placa"><img src="{img('corr_PI_sst_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST"></div>
-  <div class="placa"><img src="{img('corr_PI_q850_l0.png')}" alt="Doce mapas del mundo con la correlación entre PI y la humedad específica a 850 hPa"></div>
-  </details>
-  <details class="plegable-mini"><summary><b>Con la SST un mes antes (ℓ = 1)</b></summary>
-  <div class="placa"><img src="{img('corr_PL_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre PL y la SST del mes anterior"></div>
-  <div class="placa"><img src="{img('corr_Q_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre Q y la SST del mes anterior"></div>
-  <div class="placa"><img src="{img('corr_PI_sst_l1.png')}" alt="Doce mapas del mundo con la correlación entre PI y la SST del mes anterior"></div>
-  </details>
-  <details class="plegable-mini"><summary><b>Spearman: Q contra la SST</b></summary>
-  <div class="placa"><img src="{img('corr_Q_sst_l0_spearman.png')}" alt="Doce mapas del mundo con la correlación de Spearman entre Q y la SST"></div>
-  </details>
-  </div>
+  del azar. Por eso no se muestran aquí; los dibuja <code>scripts/21_mapas_correlacion.py</code> en
+  <code>reporte/figuras/</code>.</p>
 </section>
 
 <section>
@@ -4741,14 +4837,13 @@ a {{ color: var(--acento); }}
   <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
   pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
   {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
-  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
-  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {alt_binom_n} meses del calendario con
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: {enso_interp_mecanismo_txt} De los {alt_binom_n} meses del calendario con
   relación robusta, {alt_binom_k} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto). {alt_binom_txt}</p>
   <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
   correlaciona en {alt_oni_r[1]:+.2f} con el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, y el
   Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
-  el efecto del ONI. El mecanismo, la circulación de Walker, es el de «Por qué El Niño trae menos lluvia», arriba.</p>
+  el efecto del ONI{enso_tna_interp_txt}. {marca("Los mecanismos son los de", C4)} «Por qué El Niño trae menos lluvia», arriba.</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
   coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
   marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en
@@ -4764,7 +4859,7 @@ a {{ color: var(--acento); }}
   <h2>Síntesis física y conclusiones</h2>
   <p>Esta sección junta los resultados principales del informe y, para cada uno, separa lo que muestran los datos del
   mecanismo que se propone para explicarlo. La evidencia propia son cifras del proyecto, de las secciones que se citan
-  entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene todavía una fuente ni
+  entre comillas; la fuente es la bibliografía que respalda el mecanismo. Donde el informe no tiene una fuente ni
   un mecanismo, la tabla lo dice.</p>
   <div class="tabla-caja">
   <table class="sin-destacar">
@@ -4782,16 +4877,19 @@ a {{ color: var(--acento); }}
   «Comparando PI con PL»). No es una diferencia uniforme: PI supera a {sint_est_pi_mayor} de los
   {len(cmp_stats) - 1} pluviómetros por separado. Que PI sea más baja no dice cuál de las dos acierta: ningún pluviómetro
   mide por encima de {n(mapa_plu_alta.altitud)} m, y arriba llueve menos. Aparte del nivel, el caudal se lleva mejor con PL que
-  con PI (ρ = {rho("PL", "Q"):.2f} contra {rho("PI", "Q"):.2f}; ver «Qué dicen»). Con PL, el modelo del caudal tiene un KGE de
-  {_k("PL", MOD_ELEGIDO).kge:.2f} fuera del ajuste; con PI, {_k("PI", MOD_ELEGIDO).kge:.2f}, por debajo de la climatología
+  con PI (ρ = {rho("PL", "Q"):.2f} contra {rho("PI", "Q"):.2f}; ver «Qué dicen»). Con PL, el mejor modelo solo con lluvia (M4) tiene un KGE de
+  {_k("PL", MOD_SOLO_LLUVIA).kge:.2f} fuera del ajuste; con PI, {_k("PI", MOD_SOLO_LLUVIA).kge:.2f}, por debajo de la climatología
   ({_k("PI", MOD_REFERENCIA).kge:.2f}; ver «Validación fuera del ajuste»). Para estimar el caudal, el nivel de la
   lluvia importa poco, porque el modelo lo absorbe al ajustarse: importa que suba y baje cuando sube y baja el río, y eso lo hace mejor PL. Por
   eso, cuando hay que escoger, manda PL.</p>
-  <p><b>Dos atributos de CAMELS-COL tienen errores, y por eso se recalcularon.</b> La geología trae las etiquetas corridas: su
+  <p><b>{marca("Tres", C6)} atributos de CAMELS-COL tienen errores, y por eso se recalcularon.</b> La geología trae las etiquetas corridas: su
   columna de rocas plutónicas trae el {geo_sedimentaria:.1f} % que, según el mapa del SGC, es roca sedimentaria, y la
   volcanoclástica repite la volcánica en las {geo_n_cuencas} cuencas del archivo (ver «Coberturas, suelos y geología»). La ETP
   sale {etp_cociente.median():.2f} veces la de su propia fórmula, {n(etp_anual.camels)} mm/año, más que la lluvia
-  ({n(alt_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). En los dos casos, el informe usa los cálculos
+  ({n(alt_pl_anual)} mm/año con PL; ver «La evapotranspiración potencial (ETP)»). {marca_ini(C6)}La pendiente del cauce
+  (Taylor-Schwarz) sale unas {alt_ts_razon:.0f} veces menor que la medida en el mismo cauce, y con ella sus tiempos de
+  concentración salen de {morf_tc_publicado.min():.0f} a {morf_tc_publicado.max():.0f} horas (ver «Tiempo de concentración»).{MARCA_FIN}
+  En los tres casos, el informe usa los cálculos
   del proyecto. Del resto de CAMELS-COL, el caudal pasó el control de calidad del proyecto.</p>
   <p><b>De los campos climáticos globales solo sirvió El Niño.</b> En los mapas de correlación, solo
   {rob_mapas["con_fdr"]} de los {rob_mapas["total"]} paneles mensuales tienen alguna caja que pase la corrección por pruebas
@@ -4808,8 +4906,11 @@ a {{ color: var(--acento); }}
     Guidelines for computing crop water requirements</i> (FAO Irrigation and Drainage Paper 56). FAO, Roma.
     Edición en español: <i>Evapotranspiración del cultivo</i> (Estudio FAO Riego y Drenaje 56), 2006.</li>
     <li id="ref-alos">ALOS PALSAR, modelo digital de elevación de 12.5 m (Agencia Japonesa de Exploración Aeroespacial,
-    JAXA). El proyecto usa un recorte de un mosaico nacional del equipo; <b>falta registrar de dónde se descargó</b>
-    (portal, producto exacto, fecha y licencia; ver <code>DATOS_FUENTES.md</code>).</li>
+    JAXA). El proyecto usa un recorte de un mosaico de Colombia que el equipo ya tenía; el producto se puede descargar
+    del Alaska Satellite Facility (ASF). Ver <code>DATOS_FUENTES.md</code>.</li>
+    <li id="ref-ams-optimo">American Meteorological Society. Zone of maximum precipitation. En <i>Glossary of
+    Meteorology</i> (con base en Miller, A. A., 1961, <i>Climatology</i>, Methuen, p. 39). Consultado el 12 de octubre
+    de 2026. <a href="https://glossary.ametsoc.org/wiki/zone-of-maximum-precipitation/">https://glossary.ametsoc.org/wiki/zone-of-maximum-precipitation/</a></li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>
@@ -4875,6 +4976,9 @@ a {{ color: var(--acento); }}
     <li id="ref-igac">Instituto Geográfico Agustín Codazzi (IGAC). Mapas de suelos del territorio colombiano, escala
     1:100 000, y clases de capacidad de uso de las tierras (2014). Tomados de los atributos de CAMELS-COL
     (<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>), no descargados directamente.</li>
+    <li id="ref-hoyos2018">Hoyos, I., Dominguez, F., Cañón-Barriga, J., Martínez, J. A., Nieto, R., Gimeno, L., y
+    Dirmeyer, P. A. (2018). Moisture origin and transport processes in Colombia, northern South America. <i>Climate
+    Dynamics</i>, 50(3–4), 971–990. <a href="https://doi.org/10.1007/s00382-017-3653-6">https://doi.org/10.1007/s00382-017-3653-6</a></li>
     <li id="ref-jimenez2025">Jimenez, D. A., Meneses, J. E., Solha, P. H. B., Avila-Diaz, A., Quesada, B., Brentan,
     B. M., y Rodrigues, A. F. (2025). CAMELS-COL: A Large-Sample Hydrometeorological Dataset for Colombia.
     <i>Earth System Science Data Discussions</i> (preprint).
@@ -4884,6 +4988,9 @@ a {{ color: var(--acento); }}
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
+    <li id="ref-ladson2013">Ladson, A. R., Brown, R., Neal, B., y Nathan, R. (2013). A standard approach to baseflow
+    separation using the Lyne and Hollick filter. <i>Australasian Journal of Water Resources</i>, 17(1), 25–34.
+    <a href="https://doi.org/10.7158/W12-028.2013.17.1">https://doi.org/10.7158/W12-028.2013.17.1</a></li>
     <li id="ref-lomb1976">Lomb, N. R. (1976). Least-squares frequency analysis of unequally spaced data. <i>Astrophysics and
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.
@@ -4928,6 +5035,8 @@ a {{ color: var(--acento); }}
     <li id="ref-strahler1952">Strahler, A. N. (1952). Hypsometric (area-altitude) analysis of erosional topography.
     <i>Geological Society of America Bulletin</i>, 63(11), 1117–1142.
     <a href="https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2">https://doi.org/10.1130/0016-7606(1952)63[1117:HAAOET]2.0.CO;2</a></li>
+    <li id="ref-thornthwaite1948">Thornthwaite, C. W. (1948). An approach toward a rational classification of climate.
+    <i>Geographical Review</i>, 38(1), 55–94. <a href="https://doi.org/10.2307/210739">https://doi.org/10.2307/210739</a></li>
     <li id="ref-welch1967">Welch, P. (1967). The use of fast Fourier transform for the estimation of power spectra: a method
     based on time averaging over short, modified periodograms. <i>IEEE Transactions on Audio and Electroacoustics</i>, 15(2),
     70–73. <a href="https://doi.org/10.1109/TAU.1967.1161901">https://doi.org/10.1109/TAU.1967.1161901</a></li>
@@ -5570,8 +5679,8 @@ a {{ color: var(--acento); }}
     const d1 = base();
     d1.hovermode = "closest";
     d1.margin = {{ t: 64, r: 10, b: 48, l: 58 }};
-    d1.xaxis.title = {{ text: "anomalía de PL (rangos intercuartiles)", font: {{ size: 11, color: GRIS }} }};
-    d1.yaxis.title.text = "anomalía de Q (rangos intercuartiles)";
+    d1.xaxis.title = {{ text: "desvío de PL (rangos intercuartiles)", font: {{ size: 11, color: GRIS }} }};
+    d1.yaxis.title.text = "desvío de Q (rangos intercuartiles)";
     d1.yaxis.rangemode = "normal";
     d1.xaxis.zeroline = true; d1.yaxis.zeroline = true;
     d1.xaxis.zerolinecolor = GRIS; d1.yaxis.zerolinecolor = GRIS;
@@ -5919,10 +6028,10 @@ a {{ color: var(--acento); }}
          line: {{ color: COLOR_VAR.Q, width: 2 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>Q observado</extra>" }},
       {{ type: "scatter", mode: "lines", name: "climatología (M0)", x: EV.meses, y: EV.clima,
          line: {{ color: GRIS, width: 1.4, dash: "dot" }}, hovertemplate: "%{{y:.0f}} mm/mes<extra>climatología (M0)</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "M4 con PL", x: EV.meses, y: EV.pl,
-         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PL</extra>" }},
-      {{ type: "scatter", mode: "lines", name: "M4 con PI", x: EV.meses, y: EV.pi,
-         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M4 con PI</extra>" }}
+      {{ type: "scatter", mode: "lines", name: "M5 con PL", x: EV.meses, y: EV.pl,
+         line: {{ color: COLOR_VAR.PL, width: 1.6 }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M5 con PL</extra>" }},
+      {{ type: "scatter", mode: "lines", name: "M5 con PI", x: EV.meses, y: EV.pi,
+         line: {{ color: COLOR_VAR.PI, width: 1.2, dash: "dash" }}, connectgaps: false, hovertemplate: "%{{y:.0f}} mm/mes<extra>M5 con PI</extra>" }}
     ], d2, CONF);
   }}
   const BAL = {bal_json};
@@ -6124,6 +6233,11 @@ a {{ color: var(--acento); }}
 </div>
 {INDICE_HTML}
 """
+# Algunos textos del informe vienen escritos en archivos de out/ (el registro de problemas, las tablas de anomalías)
+# con los nombres viejos de las estaciones; aquí se cambian por los de CORRECCION_NOMBRES. Los nombres viejos tienen
+# espacios, así que no pueden aparecer dentro de las imágenes incrustadas en base64.
+for _viejo, _nuevo in CORRECCION_NOMBRES.items():
+    pagina = pagina.replace(_viejo, _nuevo)
 SALIDA.write_text(pagina, encoding="utf-8")
 print(f"{SALIDA} ({SALIDA.stat().st_size / 1e6:.1f} MB)")
 print(p_imerg.round(0).to_dict())

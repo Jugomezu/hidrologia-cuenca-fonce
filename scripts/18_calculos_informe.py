@@ -3933,6 +3933,72 @@ ind_tna_oni_k = max(ind_tna_oni, key=ind_tna_oni.get)
 # el texto dice que el TNA responde al ONI de meses antes con correlación positiva
 assert ind_tna_oni_k > 0 and ind_tna_oni[ind_tna_oni_k] > 0
 
+# El ONI es la media móvil de 3 meses centrada en el mes que lleva su nombre (17_oni_enso.py asigna DJF a enero):
+# el ONI de 1 mes antes que Q ya incluye la temperatura del mar del mismo mes de Q. No cambia ningún cálculo; el
+# texto lo dice para explicar por qué un atraso de un mes no se puede resolver con este índice.
+ONI_MESES_PROMEDIADOS = 3
+
+# Sensibilidad de la parcial del TNA (decisión del usuario, 2026-10-12, crítica 4): la parcial principal quita solo el
+# ONI de IND_REZAGO_CONTROL mes antes; aquí se repite quitando el ONI de 0 a 12 meses antes, todo el año en que el TNA
+# responde al ONI. No se guarda ni se dibuja: el texto solo da sus cifras en una nota.
+IND_REZAGOS_CONTROL_SENS = range(0, 13)    # sensibilidad: el ONI de 0 a 12 meses antes
+_controles_sens = pd.concat({j: _ind["ONI"].shift(j).reindex(PERIODOS) for j in IND_REZAGOS_CONTROL_SENS}, axis=1)
+
+
+def _residuo_varios(y, Z):
+    """Lo que queda de y después de quitarle, por mínimos cuadrados, lo que explican las columnas de Z (con constante)."""
+    X = np.column_stack([np.ones(len(y)), Z])
+    return y - X @ np.linalg.lstsq(X, y, rcond=None)[0]
+
+
+ind_sens = []
+for _k in IND_REZAGOS:
+    _x = _ind["TNA"].shift(_k).reindex(PERIODOS)
+    _ok = ind_q_anom.notna() & _x.notna() & _controles_sens.notna().all(axis=1)
+    _Z = _controles_sens[_ok].to_numpy()
+    _ey = pd.Series(_residuo_varios(ind_q_anom[_ok].to_numpy(), _Z), index=_x[_ok].index)
+    _ex = pd.Series(_residuo_varios(_x[_ok].to_numpy(), _Z), index=_x[_ok].index)
+    ind_sens.append(_fila_corr(IND_PARCIAL, _k, _ey, _ex, controles=len(IND_REZAGOS_CONTROL_SENS)))
+ind_sens = pd.DataFrame(ind_sens).sort_values("rezago", ignore_index=True)
+ind_sens["q"] = _benjamini_hochberg(ind_sens.p.to_numpy())
+ind_sens_max = ind_sens.loc[ind_sens.r.abs().idxmax()].to_dict()
+ind_sens_sig = [int(k) for k in ind_sens[ind_sens.q < IND_Q_FDR].rezago]
+ind_sens_pico_tna = ind_sens[ind_sens.rezago == int(ind_max["TNA"]["rezago"])].iloc[0].to_dict()
+# la nota dice: con la sensibilidad el TNA sin el ONI pasa la corrección en algunos rezagos seguidos, el más fuerte es
+# positivo y está entre 3 y 6 meses antes, y el pico del TNA simple no pasa
+assert ind_sens_sig and ind_sens_sig == list(range(min(ind_sens_sig), max(ind_sens_sig) + 1))
+assert ind_sens_max["r"] > 0 and 3 <= int(ind_sens_max["rezago"]) <= 6
+assert int(ind_max["TNA"]["rezago"]) not in ind_sens_sig
+assert ind_sens_max["r"] > ind_max[IND_PARCIAL]["r"]          # la nota dice que «sube»
+# la nota dice que el TNA sigue por encima de +0.2 con el ONI desde su pico hasta 12 meses antes
+IND_TNA_ONI_UMBRAL = 0.2
+assert all(ind_tna_oni[k] > IND_TNA_ONI_UMBRAL for k in range(ind_tna_oni_k, 13))
+
+# ¿Actúa El Niño solo a través de la lluvia? (crítica 4, decisión del usuario 2026-10-12). Lo calcula
+# 17c_enso_a_traves_de_lluvia.py: la correlación con el ONI de 1 mes antes de la lluvia promediada en 1, 3 y 6 meses, y
+# la parcial de Q con el ONI quitando los regresores de M4, de M5 y de M5 más la lluvia de 2 y 3 meses antes.
+enso_acum = pd.read_csv("out/enso_lluvia_acumulada.csv").set_index(["variable", "meses_promediados"])
+enso_parcial = pd.read_csv("out/enso_parcial_q_oni.csv").set_index(["fuente", "controles"])
+ENSO_CONTROL_M4, ENSO_CONTROL_M5 = "M4", "M5"
+ENSO_CONTROL_TODO = "M5 y lluvia de 2 y 3 meses antes"
+enso_r = lambda v, m=1: float(enso_acum.loc[(v, m), "r_con_oni"])
+# el texto dice: Q se correlaciona más con el ONI que la lluvia del mismo mes; promediada en 3 meses, la lluvia supera
+# a la de un mes, y en 6 meses llega a Q o más
+assert all(abs(enso_r("Q")) > abs(enso_r(f)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 3)) > abs(enso_r(f, 1)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 6)) >= abs(enso_r(f, 3)) for f in ("PL", "PI"))
+assert all(abs(enso_r(f, 6)) > abs(enso_r("Q")) - 0.01 for f in ("PL", "PI"))   # «tanto como Q o más»
+# el texto dice: la ETP sube con El Niño
+assert enso_r("ETP") > 0
+# el texto dice: la parcial baja a medida que se agregan controles; con M5 sigue significativa con PL y no con PI;
+# con M5 y la lluvia de 2 y 3 meses antes, ninguna es significativa
+for _f in ("PL", "PI"):
+    _r = [abs(enso_parcial.loc[(_f, c), "r_parcial"]) for c in (ENSO_CONTROL_M4, ENSO_CONTROL_M5, ENSO_CONTROL_TODO)]
+    assert _r[0] > _r[1] > _r[2]
+    assert enso_parcial.loc[(_f, ENSO_CONTROL_M4), "p"] < 0.05
+    assert enso_parcial.loc[(_f, ENSO_CONTROL_TODO), "p"] >= 0.05
+assert enso_parcial.loc[("PL", ENSO_CONTROL_M5), "p"] < 0.05 <= enso_parcial.loc[("PI", ENSO_CONTROL_M5), "p"]
+
 
 # ======================================================================================================
 # Versión alterna del informe (2026-10-11): lo fundamental que faltaba según la revisión adversarial.

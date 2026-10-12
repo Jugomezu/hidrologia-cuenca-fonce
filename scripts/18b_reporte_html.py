@@ -180,6 +180,62 @@ def revision(etiqueta):
     return f' class="revision" data-etiqueta="Revisión · {html.escape(etiqueta)}"' if RESALTAR_REVISION else ""
 
 
+# Lo que cambió por la evaluación adversarial (críticas 2 a 5) va resaltado en amarillo para que el usuario lo revise
+# (pedido del usuario, 2026-10-12). Con False el informe sale sin resaltar.
+RESALTAR_CRITICAS = True
+
+
+def critica(etiqueta):
+    """Atributos de un bloque resaltado en amarillo por una crítica (o nada, si el resaltado está apagado)."""
+    return f' class="critica" data-etiqueta="{html.escape(etiqueta)}"' if RESALTAR_CRITICAS else ""
+
+
+def marca(texto, etiqueta):
+    """Un trozo de texto resaltado en amarillo por una crítica, dentro de un párrafo, una lista o una tabla."""
+    return f'<mark class="critica-txt" title="{html.escape(etiqueta)}">{texto}</mark>' if RESALTAR_CRITICAS else texto
+
+
+# ---------------------------------------------------------------- crítica 4: el ENSO a través de la lluvia
+C2, C3 = "Crítica 2 · Flujo base", "Crítica 3 · Llueve menos arriba"
+MARCA_FIN = "</mark>" if RESALTAR_CRITICAS else ""
+
+
+def marca_ini(etiqueta):
+    """Abre un resaltado en amarillo dentro de un texto largo; se cierra con MARCA_FIN."""
+    return f'<mark class="critica-txt" title="{html.escape(etiqueta)}">' if RESALTAR_CRITICAS else ""
+
+
+C4 = "Crítica 4 · El ENSO"
+_ep = lambda f, c: enso_parcial.loc[(f, c)]
+POVEDA_PAG_ENSO = None          # página del pasaje de Poveda (2004) sobre los mecanismos; la da el usuario
+_poveda_pag_txt = f"p. {POVEDA_PAG_ENSO}" if POVEDA_PAG_ENSO else "página por confirmar"
+_sig_sens = (min(ind_sens_sig), max(ind_sens_sig))
+enso_oni_media_txt = marca(
+    f" Además, el ONI es la media de {ONI_MESES_PROMEDIADOS} meses centrada en el mes que lleva su nombre: el de enero "
+    "promedia diciembre, enero y febrero. Así, el ONI de 1 mes antes ya incluye la temperatura del mar del mismo mes de "
+    "Q, y un atraso de un mes no se puede resolver con este índice.", C4)
+enso_lista_oni_txt = marca(f"; además, el ONI promedia {ONI_MESES_PROMEDIADOS} meses, así que tampoco resuelve un mes", C4)
+enso_tna_conclusion_txt = marca(
+    f"cuando se quita el ONI de 1 mes antes. Sí pasa, con el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes, si se "
+    "quita el ONI de todo el año anterior (ver la nota de arriba). Así que el aporte propio del Atlántico es posible, "
+    "pero depende de cómo se quite el ENSO, y no se puede afirmar con estos datos.", C4)
+enso_tna_interp_txt = marca(
+    f" de 1 mes antes (con el de todo el año anterior, el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes sí pasa; "
+    "ver «Q frente al ONI y al TNA»)", C4)
+enso_h_txt = marca(
+    f" La relación es más fuerte en Q que en la lluvia de un mes, pero se explica por la lluvia de los meses anteriores "
+    f"y por la ETP: si se quitan, la correlación parcial baja a {_ep('PL', ENSO_CONTROL_TODO).r_parcial:+.2f} con PL "
+    f"({_ep('PI', ENSO_CONTROL_TODO).r_parcial:+.2f} con PI) y deja de ser significativa (ver «¿Actúa El Niño solo a "
+    "través de la lluvia?»).", C4)
+enso_h_coherente_txt = marca(", aunque parte de la señal pasa por la ETP, como en la segunda prueba", C4)
+enso_conclusion_txt = marca(
+    "; la relación pasa por la lluvia de los meses anteriores y por la ETP: sin ellas, no queda una relación "
+    "significativa", C4)
+enso_interp_mecanismo_txt = marca(
+    "con El Niño se debilitan el chorro del Chocó y el chorro ecuatorial de 700 hPa, la ZCIT se desplaza al suroeste y "
+    "el aire desciende sobre Colombia, lo que inhibe la convección.", C4)
+
+
 _muestra = lambda v: (f'<span style="display:inline-block; width:0.9em; height:0.9em; border-radius:2px; '
                       f'vertical-align:-0.1em; background:{COLOR_VAR[v]}"></span>')
 nota_colores = (
@@ -1741,10 +1797,10 @@ SINT_FILAS = [
     ("Llueve menos arriba",
      f"{aj_imerg['por_1000m']:+.0f} mm/año por cada 1 000 m con IMERG ({aj_imerg['n']} celdas) y "
      f"{aj_plu['por_1000m']:+.0f} con los pluviómetros ({aj_plu['n']} estaciones).",
-     f"Óptimo pluviográfico: por encima de {n(ALTURA_OPTIMO_M)} m (la altura del pluviómetro más lluvioso), el aire que sube ya se quedó sin vapor que condensar.",
+     f"Óptimo pluviográfico: por encima de {marca_ini(C3)}{n(ALTURA_OPTIMO_M)} m (la altura del pluviómetro más lluvioso){MARCA_FIN}, el aire que sube ya se quedó sin vapor que condensar.",
      f"El {frac_sobre_optimo * 100:.0f} % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca "
      "llueve menos arriba»).",
-     f"{CITA_MESA_P90}; {CITA_AMS_OPTIMO}",
+     f"{CITA_MESA_P90}; {marca(CITA_AMS_OPTIMO, C3)}",
      f"Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la "
      "cuenca: arriba, la pendiente depende solo del satélite."),
     ("Cuenca húmeda",
@@ -1763,10 +1819,10 @@ SINT_FILAS = [
      "Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.",
      f"El atraso es mucho mayor que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas); la lluvia del "
      f"mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el {fou_alta_lluvia:.0f} % de la varianza de "
-     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»); el "
-     f"flujo base es el {bfi * 100:.0f} % del caudal (BFI de {bfi:.2f}).",
-     f"{CITA_LADSON} para el método; CAMELS-COL publica un BFI de {bfi_camels:.2f} ({CITA_JIMENEZ}).",
-     "El flujo base dice cuánta agua sale del almacenamiento, no dónde está. No hay datos de humedad del suelo, del acuífero ni de captaciones "
+     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»); "
+     f"{marca_ini(C2)}el flujo base es el {bfi * 100:.0f} % del caudal (BFI de {bfi:.2f}){MARCA_FIN}.",
+     marca(f"{CITA_LADSON} para el método; CAMELS-COL publica un BFI de {bfi_camels:.2f} ({CITA_JIMENEZ}).", C2),
+     marca("El flujo base dice cuánta agua sale del almacenamiento, no dónde está.", C2) + " No hay datos de humedad del suelo, del acuífero ni de captaciones "
      "de agua, que también podrían cambiar la respuesta del río. Parte del calendario que queda en los residuos lo explica "
      "la ETP («¿Agrega algo la evapotranspiración? M5»)."),
     ("Los años con El Niño son más secos",
@@ -1953,7 +2009,7 @@ alt_veredicto_h = f"""<div class="aviso">
   mes del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). La ETP explica
   parte de ese calendario: M5 le quita un {mod_etp_calendario["PL"] * 100:.0f} % al residuo del peor mes con PL{", pero no todo" if mod_etp_kw_queda["PL"] else ""}.
   {"Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa." if mod_etp_kw_queda["PL"] else ""}
-  El flujo base confirma que el almacenamiento es grande ({bfi * 100:.0f} % del caudal), pero no distingue si es uno o son dos.</p>
+  {marca_ini(C2)}El flujo base confirma que el almacenamiento es grande ({bfi * 100:.0f} % del caudal), pero no distingue si es uno o son dos.{MARCA_FIN}</p>
   <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, menos una
   evapotranspiración que cambia a lo largo del año, amortiguada por un almacenamiento rápido, de un mes{", y otro más lento" if mod_etp_kw_queda["PL"] else ""}.
   Para probarla haría falta un modelo de balance con la evapotranspiración y {"dos almacenamientos" if mod_etp_kw_queda["PL"] else "el almacenamiento"}, y
@@ -1969,12 +2025,12 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     con PI).</li>
     <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
-    despacio. El {bfi * 100:.0f} % del caudal es flujo base.</li>
+    despacio. {marca_ini(C2)}El {bfi * 100:.0f} % del caudal es flujo base.{MARCA_FIN}</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
     PL (KGE de {_k("PL", MOD_SOLO_LLUVIA).kge:.2f}); con PI, no. El modelo elegido, M5, agrega la ETP del mes: baja el error
     de {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}){", y con PI ya supera a la climatología" if mod_pi_m5_sobre_m0["vc"] else ""}{"; aun así, le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
     <li><b>El Niño.</b> Es la única señal entre años que resistió todas las pruebas: con El Niño llueve menos y, 1 a 2 meses
-    después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI). Con {pe_n_anios} años no se le puede atribuir toda la
+    después, baja el caudal (r = {alt_oni_r[1]:+.2f} con el ONI){enso_conclusion_txt}. Con {pe_n_anios} años no se le puede atribuir toda la
     variabilidad entre años.</li>
     <li><b>Tendencias.</b> La temperatura sube {fis_t_decada:+.2f} °C por década; la lluvia y el caudal no tienen una
     tendencia significativa, lo que no prueba que no la haya.</li>
@@ -1993,8 +2049,8 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Todo el trabajo es de resolución mensual.</b> Las crecientes y los estiajes, que duran horas o días (el
     tiempo de concentración es de {morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas), quedan aplanados en el
     promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno y no puede ver
-    la respuesta del río a una tormenta. La excepción es el flujo base, que se separa con el caudal diario (ver «Cómo
-    la cuenca transforma la lluvia»). Que Q vaya
+    la respuesta del río a una tormenta. {marca_ini(C2)}La excepción es el flujo base, que se separa con el caudal diario (ver «Cómo
+    la cuenca transforma la lluvia»).{MARCA_FIN} Que Q vaya
     detrás de la lluvia se mide en días, pero a partir de meses.</li>
     <li><b>La ETP solo se calculó para 1998–2022</b>: no tiene registro largo, aunque la temperatura de ERA5-Land sí llega a 1981.</li>
   </ul>"""
@@ -2014,7 +2070,7 @@ pagina = f"""<!doctype html>
 <style>
 :root {{
   --fondo: #F5F7F6; --superficie: #FFFFFF; --tinta: #17211E; --tenue: #56645F; --linea: #D5DDDA;
-  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
+  --acento: #1B6A80; --acento-suave: #E2EFF2; --placa: #FFFFFF; --atip-alto: #F7D9C4; --atip-bajo: #CFE3F2; --nino: #B8321F; --nina: #1C63A8; --revision: #E6EAE8; --revision-borde: #4E5955; --anotado: #FFF4C2; --critica-borde: #A86B00; --cambio: #E2F3E0; --cambio-borde: #2E7D32;
   --f-titulo: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --f-texto: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-dato: "IBM Plex Mono", ui-monospace, Consolas, monospace;
@@ -2022,12 +2078,12 @@ pagina = f"""<!doctype html>
 @media (prefers-color-scheme: dark) {{
   :root:not([data-theme="light"]) {{
     --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
+    --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --critica-borde: #E3B341; --cambio: #16301B; --cambio-borde: #7BC67F;
   }}
 }}
 :root[data-theme="dark"] {{
   --fondo: #111715; --superficie: #18201E; --tinta: #E3EAE7; --tenue: #9AA9A4; --linea: #2B3633;
-  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --cambio: #16301B; --cambio-borde: #7BC67F;
+  --acento: #72B9CE; --acento-suave: #1C2D32; --placa: #F4F6F5; --atip-alto: #5A3420; --atip-bajo: #1F3A52; --nino: #F2836B; --nina: #6FB4EE; --revision: #262E2C; --revision-borde: #B4BFBB; --anotado: #37300F; --critica-borde: #E3B341; --cambio: #16301B; --cambio-borde: #7BC67F;
 }}
 * {{ box-sizing: border-box; }}
 body {{ background: var(--fondo); color: var(--tinta); font: 400 17px/1.6 var(--f-texto); margin: 0; }}
@@ -2074,6 +2130,14 @@ tbody tr:first-child td {{ background: var(--acento-suave); font-weight: 500; }}
 .revision > p:last-child {{ margin-bottom: 0; }}
 .revision::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
   letter-spacing: .06em; text-transform: uppercase; color: var(--revision-borde); margin-bottom: 6px; }}
+.critica {{ background: var(--anotado); border-left: 4px solid var(--critica-borde); padding: 10px 14px;
+  margin: 14px 0; border-radius: 0 4px 4px 0; }}
+.critica > p {{ margin: 0 0 8px; }}
+.critica > p:last-child {{ margin-bottom: 0; }}
+.critica::before {{ content: attr(data-etiqueta); display: block; font: 600 11px/1.4 var(--f-dato);
+  letter-spacing: .06em; text-transform: uppercase; color: var(--critica-borde); margin-bottom: 6px; }}
+mark.critica-txt {{ background: var(--anotado); color: inherit; padding: 0 2px; border-radius: 2px;
+  box-shadow: inset 0 -2px 0 var(--critica-borde); }}
 .cambio {{ background: var(--cambio); border-left: 4px solid var(--cambio-borde); padding: 10px 14px;
   margin: 14px 0; border-radius: 0 4px 4px 0; }}
 .cambio > p {{ margin: 0 0 8px; }}
@@ -2661,12 +2725,12 @@ a {{ color: var(--acento); }}
   <b>{html.escape(grad_mas_alta.nombre_corto)}</b>, a {n(grad_mas_alta.altitud)} m, registra
   {n(grad_mas_alta.p_anual_mm)} mm/año, y <b>{html.escape(grad_mas_lluviosa.nombre_corto)}</b>,
   {n(grad_mas_alta.altitud - grad_mas_lluviosa.altitud)} m más abajo, {n(grad_mas_lluviosa.p_anual_mm)} mm/año. Con
-  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con una segunda fuente.</p>
+  {aj_plu['n']} estaciones podría ser casualidad, así que se contrasta con {marca_ini(C3)}una segunda fuente{MARCA_FIN}.</p>
 
   <p>Ese algo es <b>IMERG cruzado contra el DEM</b>: la altitud media de cada una de las {aj_imerg['n']}
   celdas que tocan la cuenca, pesada por la fracción de su área dentro de ella. Es una muestra más densa, que no
-  depende de dónde están los pluviómetros, pero <b>no es del todo independiente</b> de ellos: IMERG se ajusta con
-  redes de pluviómetros. <b>Las dos fuentes coinciden en el signo.</b></p>
+  depende de dónde están los pluviómetros, {marca_ini(C3)}pero <b>no es del todo independiente</b> de ellos: IMERG se ajusta con
+  redes de pluviómetros.{MARCA_FIN} <b>Las dos fuentes coinciden en el signo.</b></p>
 
   <div class="cifras" style="margin: 18px 0 6px">
     <div class="cifra"><b>{aj_imerg['por_1000m']:+,.0f} mm/año</b><span>por cada 1 000 m · IMERG</span></div>
@@ -4413,15 +4477,15 @@ a {{ color: var(--acento); }}
 
   <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
   <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
-  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}). La razón es que el aire más frío de
+  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}). {marca_ini(C3)}La razón es que el aire más frío de
   arriba contiene menos vapor, así que queda menos agua que condensar y que pueda caer ({CITA_AMS_OPTIMO}). La altura
   del óptimo cambia de un lugar a otro: suele estar entre 1 y 2 km, más baja en los trópicos que en las latitudes
   templadas ({CITA_AMS_OPTIMO}); Mesa et al. dan como cifra general que no suele pasar de {n(ALTURA_OPTIMO_MESA_M)} m.
   En el Fonce, los pluviómetros
   lo ubican más arriba, en <b>{n(ALTURA_OPTIMO_M)} m</b>: allí está {html.escape(grad_optimo.nombre_corto)}, la
-  estación más lluviosa ({n(grad_optimo.p_anual_mm)} mm/año), y todas las que están más arriba miden menos.</p>
+  estación más lluviosa ({n(grad_optimo.p_anual_mm)} mm/año), y todas las que están más arriba miden menos.{MARCA_FIN}</p>
   <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
-  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). La mayor parte de la
+  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). {marca_ini(C3)}La mayor parte{MARCA_FIN} de la
   cuenca queda en la rama descendente: por eso llueve menos arriba, como se ve en «En esta cuenca llueve menos arriba»,
   donde IMERG pierde unos {n(grad_caida)} mm/año de sus celdas más bajas a las más altas.</p>
 
@@ -4484,12 +4548,12 @@ a {{ color: var(--acento); }}
   <p><b>El almacenamiento atrasa y suaviza al río.</b> El caudal llega unos {desfase["Q_PL"]:.0f} días después que la lluvia
   con PL (IC 95 %: {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}) y unos {desfase["Q_PI"]:.0f} con PI (ver
   «Desfase estacional»). Es mucho más que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas): no es
-  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras cuatro señales:</p>
+  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras {marca_ini(C2)}cuatro{MARCA_FIN} señales:</p>
   <ul>
-    <li>el <b>flujo base</b>, la parte lenta que sostiene al río entre tormentas, es el {bfi * 100:.0f} % del caudal
+    <li>{marca_ini(C2)}el <b>flujo base</b>, la parte lenta que sostiene al río entre tormentas, es el {bfi * 100:.0f} % del caudal
     (índice de flujo base, BFI, de {bfi:.2f} en 1998–2022, separado del caudal diario con el filtro de Lyne-Hollick en la
     versión de {CITA_LADSON}, la misma que usa CAMELS-COL; esta publica {bfi_camels:.2f}, y la diferencia viene
-    probablemente de la implementación o del manejo de los días faltantes, porque no se pudo reproducir exactamente);</li>
+    probablemente de la implementación o del manejo de los días faltantes, porque no se pudo reproducir exactamente){MARCA_FIN};</li>
     <li>los picos de Q caen en {" y ".join(regimen["Q"]["picos"])}, un mes después de los de PL ({" y ".join(regimen["PL"]["picos"])});</li>
     <li>sin el ciclo anual, la lluvia del mes anterior sigue explicando Q (correlación parcial de
     {memoria.loc["PL", "parcial_mes_anterior"]:.2f} con PL y {memoria.loc["PI", "parcial_mes_anterior"]:.2f} con PI; ver
@@ -4498,19 +4562,31 @@ a {{ color: var(--acento); }}
     la cuenca y lo que sale por el río»).</li>
   </ul>
   <p><b>Lo que no se sabe.</b> No hay datos de humedad del suelo, del acuífero, de captaciones de agua ni de la operación
-  de obras hidráulicas en la cuenca. El flujo base dice cuánta agua llega al río desde el almacenamiento, pero no dónde
-  está guardada (suelo o acuífero) ni cuánta hay.</p>
+  de obras hidráulicas en la cuenca. {marca_ini(C2)}El flujo base dice cuánta agua llega al río desde el almacenamiento, pero no dónde
+  está guardada (suelo o acuífero) ni cuánta hay.{MARCA_FIN}</p>
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
   Colombia», y «durante La Niña ocurren anomalías contrarias».</p>
-  <p><b>Por qué El Niño trae menos lluvia.</b> Una advertencia sobre la fuente: {CITA_CORDOBA} estudian El Niño Modoki, una
-  variante de El Niño en que el calentamiento se concentra en el Pacífico central; aquí se usa como aproximación para El Niño
-  en general, el que mide el ONI. Según ese trabajo, cuando se calienta el Pacífico ecuatorial el aire
-  asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia; ese descenso inhibe la convección, y
-  llueve menos. El Niño también puede debilitar el chorro del Chocó, que en condiciones normales lleva humedad del Pacífico
-  al occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que el chorro del Chocó
-  podría contribuir, pero no se puede suponer que sea su fuente principal de humedad. El mismo trabajo encuentra que la
+  <div{critica(C4 + " · el mecanismo")}>
+  <p><b>Por qué El Niño trae menos lluvia.</b> {CITA_POVEDA} ({_poveda_pag_txt}) resume en cinco los mecanismos por
+  los que El Niño trae déficits de agua en Colombia:</p>
+  <ol>
+    <li>se debilita el chorro del Chocó;</li>
+    <li>se debilita la corriente de chorro ecuatorial de 700 hPa;</li>
+    <li>sobre el Atlántico tropical norte hay menos ondas tropicales del este, y más débiles;</li>
+    <li>la ZCIT se desplaza hacia el suroeste de su posición normal, porque se establece una celda de Hadley anómala
+    sobre el trópico americano;</li>
+    <li>cambia el balance de humedad de la atmósfera, sobre todo en los niveles más bajos.</li>
+  </ol>
+  <p>Es una síntesis para todo el país, no para esta cuenca. El chorro del Chocó lleva humedad del Pacífico al
+  occidente del país. La cuenca está en la cordillera Oriental, del lado del Magdalena, así que ese chorro podría
+  contribuir, pero no se puede suponer que sea su fuente principal de humedad. {CITA_CORDOBA} estudian El Niño Modoki,
+  una variante en que el calentamiento se concentra en el Pacífico central. Según ellos, cuando se calienta el
+  Pacífico ecuatorial el aire asciende sobre ese océano y, por la circulación de Walker, desciende sobre Colombia. Ese
+  descenso inhibe la convección.</p>
+  </div>
+  <p>El mismo trabajo encuentra que la
   disminución es mayor de diciembre a febrero y de junio a agosto: de los {alt_binom_n} meses del calendario en que la relación
   con el índice Niño 3.4 resultó robusta con alguna de las tres variables (PL, Q o PI), {alt_binom_k} caen en esas dos
   temporadas; fuera de
@@ -4524,7 +4600,7 @@ a {{ color: var(--acento); }}
     «¿Cuadra con el ENSO? Coherencia y fase con el ONI»);</li>
     <li>Q va 1 a 2 meses detrás del ONI: la correlación de su anomalía es casi la misma con el ONI de 1 mes antes
     (r = {alt_oni_r[1]:+.2f}) y de 2 meses antes (r = {alt_oni_r[2]:+.2f}), así que con estos datos no se distingue
-    entre los dos;</li>
+    entre los dos{enso_lista_oni_txt};</li>
     <li>el año más seco con las dos fuentes es {fis_anio_seco} ({anom_anios[fis_anio_seco]["nino"]} meses de El Niño), y el
     más húmedo con las dos juntas, {fis_anio_humedo} ({anom_anios[fis_anio_humedo]["nina"]} meses de La Niña; ver «Los años
     contrastantes»).</li>
@@ -4607,7 +4683,7 @@ a {{ color: var(--acento); }}
     tiene tendencia, lo que es coherente con H, pero no la prueba.</li>
     <li><b>Entre años</b>, el caudal debería bajar con El Niño, porque llueve menos. Hoy: la anomalía de Q se correlaciona
     en {ind_txt["ONI"]["r"]:+.2f} con el ONI de {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes (ver «Q frente
-    al ONI y al TNA»), y la relación con el índice Niño 3.4 fue lo único de los campos climáticos que resistió (ver «¿Es firme la relación con El Niño?»). Es coherente con H.</li>
+    al ONI y al TNA»), y la relación con el índice Niño 3.4 fue lo único de los campos climáticos que resistió (ver «¿Es firme la relación con El Niño?»).{enso_h_txt} Es coherente con H{enso_h_coherente_txt}.</li>
   </ol>
   <p><b>Qué refutaría H:</b> que el caudal tuviera tendencias o diferencias entre años sin un cambio de lluvia que las
   acompañe (por ejemplo, por captaciones de agua o cambios de cobertura), o que los residuos de las estimaciones de Q con
@@ -4751,7 +4827,7 @@ a {{ color: var(--acento); }}
   pasa la corrección; punto vacío: no pasa.</p>
   <p><b>El ONI pesa más que el TNA.</b> Con el ONI, la correlación más fuerte es r = {ind_txt["ONI"]["r"]:+.2f}, con el
   índice {ind_txt["ONI"]["k"]} {_palabra_mes(ind_txt["ONI"]["k"])} antes que Q, casi igual que con 2 meses (r = {alt_oni_r[2]:+.2f}):
-  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos.{ind_oni_fourier_txt} Con el Pacífico central más caliente (El Niño)
+  el atraso es de 1 a 2 meses, y con estos datos no se distingue entre los dos.{enso_oni_media_txt}{ind_oni_fourier_txt} Con el Pacífico central más caliente (El Niño)
   el río lleva menos agua. Equivale a un {ind_txt["ONI"]["r2"]:.0f} % de la varianza de la anomalía de Q, y pasa la
   corrección {ind_txt["ONI"]["rango"]}. Con el TNA del mismo mes casi no hay relación (r = {ind_tna_0:+.2f}); la más
   fuerte es r = {ind_txt["TNA"]["r"]:+.2f}, con el TNA {ind_txt["TNA"]["k"]} meses antes ({ind_txt["TNA"]["r2"]:.0f} % de
@@ -4762,11 +4838,43 @@ a {{ color: var(--acento); }}
   índice Niño 3.4 y con el atraso del río respecto a la lluvia; que la relación siga varios meses a cada lado refleja
   que los índices y el caudal cambian despacio. Son correlaciones: los índices no mueven el río, acompañan los cambios
   de la lluvia.</p>
+  <div{critica(C4 + " · el TNA sin el ONI de todo el año")}>
+  <p class="nota">El resultado del TNA sin el ONI depende de qué meses del ONI se quiten. El TNA responde al ONI a lo
+  largo de un año: se correlaciona en {ind_tna_oni[ind_tna_oni_k]:+.2f} con el ONI de {ind_tna_oni_k} meses antes y sigue
+  por encima de {IND_TNA_ONI_UMBRAL:+.1f} hasta {max(IND_REZAGOS_CONTROL_SENS)} meses. Si se quita el ONI de
+  {min(IND_REZAGOS_CONTROL_SENS)} a {max(IND_REZAGOS_CONTROL_SENS)} meses antes, y no solo el de 1 mes, el TNA sin el ONI
+  sube a r = {ind_sens_max["r"]:+.2f} con el TNA {int(ind_sens_max["rezago"])} meses antes (q = {ind_sens_max["q"]:.3f}) y pasa
+  la corrección con el TNA de {_sig_sens[0]} a {_sig_sens[1]} meses antes. Sube porque las dos señales se tapan: El Niño
+  trae menos caudal y, meses después, calienta el Atlántico tropical norte, que va con más caudal. En cambio, el pico
+  del TNA de {int(ind_max["TNA"]["rezago"])} meses antes no pasa ({ind_sens_pico_tna["r"]:+.2f}, q =
+  {ind_sens_pico_tna["q"]:.2f}): casi todo es el mismo ENSO.</p>
+  </div>
+  <div{critica(C4 + " · ¿solo a través de la lluvia?")}>
+  <p><b>¿Actúa El Niño solo a través de la lluvia?</b> La anomalía de Q se correlaciona más con el ONI
+  ({enso_r("Q"):+.2f}) que la lluvia del mismo mes ({enso_r("PL"):+.2f} con PL y {enso_r("PI"):+.2f} con PI). Si El Niño
+  actuara solo a través de la lluvia, se esperaría lo contrario. Hay dos pruebas que lo explican.</p>
+  <p>La primera es que la lluvia de un mes es ruidosa y el caudal responde a la de varios meses. Promediada en los
+  últimos 3 meses, la lluvia se correlaciona con el ONI en {enso_r("PL", 3):+.2f} con PL y {enso_r("PI", 3):+.2f} con PI.
+  En 6 meses llega a {enso_r("PL", 6):+.2f} y {enso_r("PI", 6):+.2f}, tanto como Q o más.</p>
+  <p>La segunda es la correlación parcial de Q con el ONI, en la escala de M4 y M5 (ln). Quitando lo que explica la
+  lluvia del mes y la del anterior (los regresores de M4), queda en {_ep("PL", ENSO_CONTROL_M4).r_parcial:+.2f} con PL y
+  {_ep("PI", ENSO_CONTROL_M4).r_parcial:+.2f} con PI. Si se quita también la ETP (M5), baja a
+  {_ep("PL", ENSO_CONTROL_M5).r_parcial:+.2f} con PL (p {fmt_p_eq(_ep("PL", ENSO_CONTROL_M5).p)}) y a
+  {_ep("PI", ENSO_CONTROL_M5).r_parcial:+.2f} con PI (p {fmt_p_eq(_ep("PI", ENSO_CONTROL_M5).p)}). Si además se quita la
+  lluvia de 2 y 3 meses antes, baja a {_ep("PL", ENSO_CONTROL_TODO).r_parcial:+.2f} y
+  {_ep("PI", ENSO_CONTROL_TODO).r_parcial:+.2f}, y ninguna es significativa.</p>
+  <p>Así, la relación del caudal con El Niño se explica con la lluvia de los últimos meses y con la ETP. No parece un
+  error de los pluviómetros, porque con PI sale lo mismo. Lo que estos datos no permiten separar es cuánto pone cada
+  una. La ETP sube con El Niño ({enso_r("ETP"):+.2f} con el ONI), y la de Hargreaves mide en parte la nubosidad, que
+  también cambia con El Niño.</p>
+  <p class="nota">Lo calcula <code>scripts/17c_enso_a_traves_de_lluvia.py</code>: las tres parciales usan los mismos
+  {int(_ep("PL", ENSO_CONTROL_M4).n)} meses, y su significancia sale del n efectivo de {CITA_BRETHERTON}, como arriba.</p>
+  </div>
   <p><b>Conclusión.</b> La parte del caudal controlada por fenómenos climáticos globales interanuales está asociada
   principalmente con el ENSO y el Pacífico tropical (|r| hasta {abs(ind_txt["ONI"]["r"]):.2f} con el ONI). El Atlántico
   tropical norte también se correlaciona con el caudal (hasta {ind_txt["TNA"]["r"]:.2f}), pero buena parte de esa
   relación viene del mismo ENSO: al quitar su efecto, lo que queda (r hasta {ind_txt[IND_PARCIAL]["r"]:.2f}) no pasa la
-  corrección, así que no se puede afirmar que el Atlántico aporte por sí solo.</p>
+  corrección {enso_tna_conclusion_txt}</p>
   </div>
 
   <h3>¿Y los mapas?</h3>
@@ -4787,14 +4895,13 @@ a {{ color: var(--acento); }}
   <p>De los patrones de «La cuenca frente a los campos climáticos» solo se interpreta lo que resistió la corrección por
   pruebas múltiples y la prueba de quitar un año a la vez: la relación con el índice Niño 3.4. Es negativa y robusta en
   {n34_robustos["PL"]} con PL, en {n34_robustos["Q"]} con Q y en {n34_robustos["PI"]} con PI. El mecanismo que la explica
-  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: con El Niño el aire desciende sobre Colombia, lo
-  que inhibe la convección, y puede debilitarse el chorro del Chocó. De los {alt_binom_n} meses del calendario con
+  está en «Por qué El Niño trae menos lluvia», en «Explicaciones físicas»: {enso_interp_mecanismo_txt} De los {alt_binom_n} meses del calendario con
   relación robusta, {alt_binom_k} caen en las dos temporadas en que {CITA_CORDOBA} hallan la mayor disminución de la lluvia
   (diciembre a febrero y junio a agosto). {alt_binom_txt}</p>
   <p><b>Pacífico más que Atlántico.</b> «Q frente al ONI y al TNA» llega a lo mismo por otro camino: la anomalía de Q se
   correlaciona en {alt_oni_r[1]:+.2f} con el ONI de 1 mes antes y en {alt_oni_r[2]:+.2f} con el de 2 meses antes, y el
   Atlántico tropical norte, que se calienta después de El Niño, pierde su relación significativa con el caudal al quitar
-  el efecto del ONI. El mecanismo, la circulación de Walker, es el de «Por qué El Niño trae menos lluvia», arriba.</p>
+  el efecto del ONI{enso_tna_interp_txt}. {marca("Los mecanismos son los de", C4)} «Por qué El Niño trae menos lluvia», arriba.</p>
   <p><b>El caudal responde después.</b> Marzo es robusto con Q, aunque queda fuera de diciembre a febrero. Una lectura
   coherente con el almacenamiento: si diciembre a febrero son más secos, el suelo y el acuífero se recargan menos, y en
   marzo el río tiene menos agua de la cual alimentarse. Lo apoya que, con el índice un mes antes, Q pase la corrección en

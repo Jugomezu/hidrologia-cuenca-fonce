@@ -225,6 +225,7 @@ CITA_SCARGLE = '<a class="cita" href="#ref-scargle1982">Scargle, 1982</a>'
 CITA_WELCH = '<a class="cita" href="#ref-welch1967">Welch, 1967</a>'
 CITA_MESA = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997</a>'
 CITA_MESA_P90 = '<a class="cita" href="#ref-mesa1997">Mesa et al., 1997, p. 90</a>'
+CITA_AMS_OPTIMO = '<a class="cita" href="#ref-ams-optimo">AMS, «Zone of maximum precipitation»</a>'
 CITA_UNEP = '<a class="cita" href="#ref-middleton1997">Middleton y Thomas, 1997</a>'
 # citas de la versión alterna (2026-10-11): los métodos de las secciones nuevas y las fuentes que faltaban
 CITA_KIRPICH = '<a class="cita" href="#ref-kirpich1940">Kirpich, 1940</a>'
@@ -1743,7 +1744,7 @@ SINT_FILAS = [
      f"Óptimo pluviográfico: por encima de {n(ALTURA_OPTIMO_M)} m (la altura del pluviómetro más lluvioso), el aire que sube ya se quedó sin vapor que condensar.",
      f"El {frac_sobre_optimo * 100:.0f} % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca "
      "llueve menos arriba»).",
-     CITA_MESA_P90,
+     f"{CITA_MESA_P90}; {CITA_AMS_OPTIMO}",
      f"Ningún pluviómetro mide por encima de {n(mapa_plu_alta.altitud)} m, donde está el {mapa_pct_sin_pluvio:.0f} % de la "
      "cuenca: arriba, la pendiente depende solo del satélite."),
     ("Cuenca húmeda",
@@ -4412,9 +4413,11 @@ a {{ color: var(--acento); }}
 
   <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
   <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
-  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}): las lluvias tropicales son sobre todo
-  convectivas, y al subir y enfriarse el aire se le agota el vapor que condensar. Mesa et al. dan como cifra general que
-  el óptimo no suele pasar de {n(ALTURA_OPTIMO_MESA_M)} m, pero varía de un lugar a otro. En el Fonce, los pluviómetros
+  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}). La razón es que el aire más frío de
+  arriba contiene menos vapor, así que queda menos agua que condensar y que pueda caer ({CITA_AMS_OPTIMO}). La altura
+  del óptimo cambia de un lugar a otro: suele estar entre 1 y 2 km, más baja en los trópicos que en las latitudes
+  templadas ({CITA_AMS_OPTIMO}); Mesa et al. dan como cifra general que no suele pasar de {n(ALTURA_OPTIMO_MESA_M)} m.
+  En el Fonce, los pluviómetros
   lo ubican más arriba, en <b>{n(ALTURA_OPTIMO_M)} m</b>: allí está {html.escape(grad_optimo.nombre_corto)}, la
   estación más lluviosa ({n(grad_optimo.p_anual_mm)} mm/año), y todas las que están más arriba miden menos.</p>
   <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
@@ -4853,6 +4856,9 @@ a {{ color: var(--acento); }}
     <li id="ref-alos">ALOS PALSAR, modelo digital de elevación de 12.5 m (Agencia Japonesa de Exploración Aeroespacial,
     JAXA). El proyecto usa un recorte de un mosaico de Colombia que el equipo ya tenía; el producto se puede descargar
     del Alaska Satellite Facility (ASF). Ver <code>DATOS_FUENTES.md</code>.</li>
+    <li id="ref-ams-optimo">American Meteorological Society. Zone of maximum precipitation. En <i>Glossary of
+    Meteorology</i> (con base en Miller, A. A., 1961, <i>Climatology</i>, Methuen, p. 39). Consultado el 12 de octubre
+    de 2026. <a href="https://glossary.ametsoc.org/wiki/Zone_of_maximum_precipitation">https://glossary.ametsoc.org/wiki/Zone_of_maximum_precipitation</a></li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>

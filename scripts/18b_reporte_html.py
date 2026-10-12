@@ -1739,7 +1739,7 @@ SINT_FILAS = [
     ("Llueve menos arriba",
      f"{aj_imerg['por_1000m']:+.0f} mm/año por cada 1 000 m con IMERG ({aj_imerg['n']} celdas) y "
      f"{aj_plu['por_1000m']:+.0f} con los pluviómetros ({aj_plu['n']} estaciones).",
-     f"Óptimo pluviográfico: por encima de unos {n(ALTURA_OPTIMO_M)} m, el aire que sube ya se quedó sin vapor que condensar.",
+     f"Óptimo pluviográfico: por encima de {n(ALTURA_OPTIMO_M)} m (la altura del pluviómetro más lluvioso), el aire que sube ya se quedó sin vapor que condensar.",
      f"El {frac_sobre_optimo * 100:.0f} % de la cuenca está por encima de esa altura (curva hipsométrica; «En esta cuenca "
      "llueve menos arriba»).",
      CITA_MESA_P90,
@@ -4408,11 +4408,13 @@ a {{ color: var(--acento); }}
 
   <h3>El óptimo pluviográfico: por qué llueve menos arriba</h3>
   <p>La lluvia no crece indefinidamente con la altura. Aumenta hasta una franja en la que es máxima, el
-  <b>óptimo pluviográfico</b>, que normalmente no pasa de {n(ALTURA_OPTIMO_M)} m, y por encima <b>disminuye</b>
-  ({CITA_MESA_P90}): las lluvias tropicales son sobre todo convectivas, y al subir y enfriarse el aire se le agota el
-  vapor que condensar.</p>
+  <b>óptimo pluviográfico</b>, y por encima <b>disminuye</b> ({CITA_MESA_P90}): las lluvias tropicales son sobre todo
+  convectivas, y al subir y enfriarse el aire se le agota el vapor que condensar. Mesa et al. dan como cifra general que
+  el óptimo no suele pasar de {n(ALTURA_OPTIMO_MESA_M)} m, pero varía de un lugar a otro. En el Fonce, los pluviómetros
+  lo ubican más arriba, en <b>{n(ALTURA_OPTIMO_M)} m</b>: allí está {html.escape(grad_optimo.nombre_corto)}, la
+  estación más lluviosa ({n(grad_optimo.p_anual_mm)} mm/año), y todas las que están más arriba miden menos.</p>
   <p>El Fonce va de {n(elev_min)} a {n(elev_max)} m, y el <b>{frac_sobre_optimo * 100:.0f} % de su área</b> está por
-  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). Salvo la parte más baja, cerca de San Gil, la
+  encima de {n(ALTURA_OPTIMO_M)} m (curva hipsométrica del proyecto). La mayor parte de la
   cuenca queda en la rama descendente: por eso llueve menos arriba, como se ve en «En esta cuenca llueve menos arriba»,
   donde IMERG pierde unos {n(grad_caida)} mm/año de sus celdas más bajas a las más altas.</p>
 

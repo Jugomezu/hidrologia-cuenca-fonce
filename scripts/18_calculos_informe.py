@@ -197,12 +197,9 @@ _centroide_sg = _poligono_sg.to_crs(3116).centroid.to_crs(4326).iloc[0]
 centroide_lat, centroide_lon = float(_centroide_sg.y), float(_centroide_sg.x)
 
 # óptimo pluviográfico: según Mesa et al. (1997, p. 90), la lluvia máxima ocurre normalmente a no más de 1 500 m.
-# Qué parte de la cuenca queda por encima, leída de la curva hipsométrica del proyecto (13_morfometria.py)
-ALTURA_OPTIMO_M = 1500
+# Es una cifra general y aproximada; el óptimo de esta cuenca se toma de sus pluviómetros (más abajo, con el gradiente)
+ALTURA_OPTIMO_MESA_M = 1500
 _hipso = pd.read_csv("out/curva_hipsometrica_fonce.csv")
-frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fraccion_area_encima))
-# el texto dice que la cuenca empieza por debajo de esa altura y que la mayor parte queda por encima
-assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
 
 # ---------------------------------------------------------------- coberturas, suelos y geología (CAMELS-COL)
 # Porcentajes del área de San Gil que publica CAMELS-COL (Jiménez et al., 2025, secciones 3.2.3 a 3.2.5).
@@ -1449,6 +1446,18 @@ grad_plu["nombre_corto"] = grad_plu.nombre.map(nombre_estacion)
 grad_plu = grad_plu.sort_values("altitud")
 grad_dentro = grad_plu[grad_plu.dentro_cuenca]
 grad_fuera = grad_plu[~grad_plu.dentro_cuenca]
+
+# El óptimo pluviográfico de la cuenca: la altitud del pluviómetro (dentro de la divisoria) que más llueve. Qué
+# parte de la cuenca queda por encima se lee de la curva hipsométrica del proyecto (13_morfometria.py)
+grad_optimo = grad_dentro.loc[grad_dentro.p_anual_mm.idxmax()]
+ALTURA_OPTIMO_M = float(grad_optimo.altitud)
+frac_sobre_optimo = float(np.interp(ALTURA_OPTIMO_M, _hipso.altura_m, _hipso.fraccion_area_encima))
+# el texto dice: queda por encima de la cifra general de Mesa, la cuenca empieza por debajo y la mayor parte queda
+# por encima; todas las estaciones más altas miden menos, y la lluvia sube hasta él desde la más baja
+assert ALTURA_OPTIMO_M > ALTURA_OPTIMO_MESA_M
+assert elev_min < ALTURA_OPTIMO_M and frac_sobre_optimo > 0.5
+assert (grad_dentro[grad_dentro.altitud > ALTURA_OPTIMO_M].p_anual_mm < grad_optimo.p_anual_mm).all()
+assert grad_dentro.sort_values("altitud").p_anual_mm.iloc[0] < grad_optimo.p_anual_mm
 
 FRAC_MINIMA_GRAD = 0.30                    # solo para el dibujo: separa las celdas que apenas rozan
 grad_nucleo = grad_celdas[grad_celdas.frac_dentro > FRAC_MINIMA_GRAD]

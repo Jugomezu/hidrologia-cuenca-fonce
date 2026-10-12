@@ -1929,8 +1929,7 @@ def _morf_valor(v):
     return n(v) if v.is_integer() else n(v, 2)
 
 
-NOMBRE_TC = {"Kirpich": "Kirpich", "Chow": "Chow", "Johnstone": "Johnstone",
-             "Engi_Corps": "Cuerpo de Ingenieros (<code>Engi_Corps</code>)"}
+NOMBRE_TC = {"Kirpich": "Kirpich", "Chow": "Chow", "Johnstone": "Johnstone"}
 assert set(NOMBRE_TC) == set(morf_tc.index)
 _ts = "pendiente del cauce (Taylor-Schwarz)"
 alt_ts_razon = float(morf.loc[_ts, "valor"] / morf.loc[_ts, "publicado_camels"])
@@ -1980,7 +1979,7 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
 
   <h3>Tiempo de concentración</h3>
   <p>El tiempo de concentración es lo que tarda en llegar a la salida el agua que cae en el punto más lejano. Con la
-  pendiente del cauce medida sobre el DEM, las cuatro fórmulas que usa CAMELS-COL ({CITA_KIRPICH} y otras tres) dan
+  pendiente del cauce medida sobre el DEM, tres de las fórmulas que usa CAMELS-COL ({CITA_KIRPICH}, Chow y Johnstone) dan
   entre {morf_tc_medido.min():.1f} y {morf_tc_medido.max():.1f} horas. CAMELS-COL publica entre
   {morf_tc_publicado.min():.0f} y {morf_tc_publicado.max():.0f} horas. La diferencia sale de la pendiente: la de
   Taylor-Schwarz que publica CAMELS-COL es {_morf_valor(morf.loc[_ts, "publicado_camels"])} m/m, unas
@@ -1997,7 +1996,7 @@ alt_morfometria = f"""<p>La forma y el relieve de una cuenca condicionan qué ta
     </tbody>
   </table>
   </div>
-  <div class="placa"><img src="{img('tiempos_concentracion.png')}" alt="Tiempos de concentración de cuatro fórmulas, con la pendiente medida y con la publicada por CAMELS-COL"></div>
+  <div class="placa"><img src="{img('tiempos_concentracion.png')}" alt="Tiempos de concentración de tres fórmulas, con la pendiente medida y con la publicada por CAMELS-COL"></div>
   <p><b>Lo que importa para el resto del informe:</b> aun el tiempo más largo, {morf_tc_medido.max():.1f} horas, es mucho
   menor que el atraso del río frente a la lluvia en el ciclo anual, unos {desfase["Q_PL"]:.0f} días (ver «Desfase
   estacional»). Ese atraso no es el tiempo de viaje del agua por los cauces: es agua que la cuenca guarda y suelta

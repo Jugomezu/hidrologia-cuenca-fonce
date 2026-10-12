@@ -333,6 +333,13 @@ exc_meses = int(exclusiones[exclusiones.codigo == 24020040].meses_excluidos.sum(
 mes_ini, mes_fin = str(comp.index.min()), str(comp.index.max())
 
 
+# ---------------------------------------------------------------- flujo base (caudal diario)
+# Flujo base (scripts/16c_flujo_base.py): Lyne-Hollick con la receta de Ladson et al. (2013)
+_bfi = pd.read_csv("out/flujo_base_bfi.csv").set_index("periodo")
+bfi = float(_bfi.loc["1998-2022", "bfi_ladson"])          # el período del informe (regla 6)
+bfi_camels = float(_bfi.loc["1998-2022", "bfi_camels_col"])
+assert 0.5 < bfi < bfi_camels                               # «más de la mitad» y «menos que el publicado»
+
 # ---------------------------------------------------------------- lluvia y caudal en las mismas unidades
 # El caudal viene en m3/s; dividido por el área de la cuenca queda como lámina (mm), comparable
 # directamente con la lluvia. Área de San Gil: la del polígono (areas_cuencas.csv).

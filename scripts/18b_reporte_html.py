@@ -198,6 +198,7 @@ UNIDAD_RESUMEN = {"PI": "mm/mes", "PL": "mm/mes", "Q": "m³/s", "T media": "°C"
 CITA_POVEDA = '<a class="cita" href="#ref-poveda2004">Poveda, 2004</a>'
 CITA_CORDOBA = '<a class="cita" href="#ref-cordoba2015">Córdoba-Machado et al., 2015</a>'
 CITA_JIMENEZ = '<a class="cita" href="#ref-jimenez2025">Jimenez et al., 2025</a>'
+CITA_LADSON = '<a class="cita" href="#ref-ladson2013">Ladson et al., 2013</a>'
 CITA_HARGREAVES = '<a class="cita" href="#ref-hargreaves1985">Hargreaves y Samani, 1985</a>'
 CITA_PETTITT = '<a class="cita" href="#ref-pettitt1979">Pettitt, 1979</a>'
 CITA_IMERG_DOC = '<a class="cita" href="#ref-huffman2023">Huffman et al., 2023</a>'
@@ -1761,9 +1762,10 @@ SINT_FILAS = [
      "Almacenamiento: el agua entra al suelo y al acuífero y sale al río después.",
      f"El atraso es mucho mayor que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas); la lluvia del "
      f"mes anterior sigue explicando Q sin el ciclo anual; la alta frecuencia es el {fou_alta_lluvia:.0f} % de la varianza de "
-     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»).",
-     "Ninguna: se infiere del atraso del río.",
-     "El almacenamiento se infiere del atraso; no se mide. No hay datos de humedad del suelo, del acuífero ni de captaciones "
+     f"la lluvia y el {fou_alta_q:.0f} % de la del caudal («Desfase estacional»; «Frecuencias: análisis de Fourier»); el "
+     f"flujo base es el {bfi * 100:.0f} % del caudal (BFI de {bfi:.2f}).",
+     f"{CITA_LADSON} para el método; CAMELS-COL publica un BFI de {bfi_camels:.2f} ({CITA_JIMENEZ}).",
+     "El flujo base dice cuánta agua sale del almacenamiento, no dónde está. No hay datos de humedad del suelo, del acuífero ni de captaciones "
      "de agua, que también podrían cambiar la respuesta del río. Parte del calendario que queda en los residuos lo explica "
      "la ETP («¿Agrega algo la evapotranspiración? M5»)."),
     ("Los años con El Niño son más secos",
@@ -1949,7 +1951,8 @@ alt_veredicto_h = f"""<div class="aviso">
   {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes), y los residuos del modelo elegido conservan el calendario (Kruskal-Wallis por
   mes del calendario, p {fmt_p_eq(alt_kw_residuo["PL"])} con PL y {fmt_p_eq(alt_kw_residuo["PI"])} con PI). La ETP explica
   parte de ese calendario: M5 le quita un {mod_etp_calendario["PL"] * 100:.0f} % al residuo del peor mes con PL{", pero no todo" if mod_etp_kw_queda["PL"] else ""}.
-  {"Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa." if mod_etp_kw_queda["PL"] else ""}</p>
+  {"Lo que queda admite una lectura que estos datos no prueban: además del almacenamiento «del orden de un mes» hay uno más lento, que sostiene al río entre temporadas y que el modelo no representa." if mod_etp_kw_queda["PL"] else ""}
+  El flujo base confirma que el almacenamiento es grande ({bfi * 100:.0f} % del caudal), pero no distingue si es uno o son dos.</p>
   <p><b>Propuesta para el equipo, H′:</b> el caudal de San Gil lo controla la lluvia sobre la cuenca, menos una
   evapotranspiración que cambia a lo largo del año, amortiguada por un almacenamiento rápido, de un mes{", y otro más lento" if mod_etp_kw_queda["PL"] else ""}.
   Para probarla haría falta un modelo de balance con la evapotranspiración y {"dos almacenamientos" if mod_etp_kw_queda["PL"] else "el almacenamiento"}, y
@@ -1965,7 +1968,7 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     con PI).</li>
     <li><b>Almacenamiento.</b> El río va {desfase["Q_PL"]:.0f} días detrás de la lluvia, mucho más que el tiempo de
     concentración ({morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas): la cuenca guarda agua y la suelta
-    despacio.</li>
+    despacio. El {bfi * 100:.0f} % del caudal es flujo base.</li>
     <li><b>Estimar el caudal.</b> La lluvia del mes y del anterior estiman el caudal mensual mejor que la climatología con
     PL (KGE de {_k("PL", MOD_SOLO_LLUVIA).kge:.2f}); con PI, no. El modelo elegido, M5, agrega la ETP del mes: baja el error
     de {mod_etp.loc["PL", "rmse_m4"]:.1f} a {mod_etp.loc["PL", "rmse_m5"]:.1f} mm/mes con PL (KGE de {_k("PL", MOD_ELEGIDO).kge:.2f}){", y con PI ya supera a la climatología" if mod_pi_m5_sobre_m0["vc"] else ""}{"; aun así, le falta un almacenamiento lento" if mod_etp_kw_queda["PL"] else ""}.</li>
@@ -1988,8 +1991,9 @@ alt_conclusiones = f"""<h3>Conclusiones</h3>
     <li><b>Un modelo con dos almacenamientos</b> (rápido y lento) para probar la hipótesis H′.</li>
     <li><b>Todo el trabajo es de resolución mensual.</b> Las crecientes y los estiajes, que duran horas o días (el
     tiempo de concentración es de {morf_tc_medido.min():.0f} a {morf_tc_medido.max():.0f} horas), quedan aplanados en el
-    promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno, no separa el
-    flujo base del caudal (eso necesita datos diarios) y no puede ver la respuesta del río a una tormenta. Que Q vaya
+    promedio del mes. Por eso el informe no estima caudales máximos ni mínimos ni sus períodos de retorno y no puede ver
+    la respuesta del río a una tormenta. La excepción es el flujo base, que se separa con el caudal diario (ver «Cómo
+    la cuenca transforma la lluvia»). Que Q vaya
     detrás de la lluvia se mide en días, pero a partir de meses.</li>
     <li><b>La ETP solo se calculó para 1998–2022</b>: no tiene registro largo, aunque la temperatura de ERA5-Land sí llega a 1981.</li>
   </ul>"""
@@ -4477,8 +4481,12 @@ a {{ color: var(--acento); }}
   <p><b>El almacenamiento atrasa y suaviza al río.</b> El caudal llega unos {desfase["Q_PL"]:.0f} días después que la lluvia
   con PL (IC 95 %: {desfase_ic["Q_PL"][0]:.0f} a {desfase_ic["Q_PL"][1]:.0f}) y unos {desfase["Q_PI"]:.0f} con PI (ver
   «Desfase estacional»). Es mucho más que el tiempo de concentración ({desfase_tc[0]:.0f} a {desfase_tc[1]:.0f} horas): no es
-  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras tres señales:</p>
+  el viaje del agua por el cauce, sino agua que entra al suelo y al acuífero y sale después. Lo apoyan otras cuatro señales:</p>
   <ul>
+    <li>el <b>flujo base</b>, la parte lenta que sostiene al río entre tormentas, es el {bfi * 100:.0f} % del caudal
+    (índice de flujo base, BFI, de {bfi:.2f} en 1998–2022, separado del caudal diario con el filtro de Lyne-Hollick en la
+    versión de {CITA_LADSON}, la misma que usa CAMELS-COL; esta publica {bfi_camels:.2f}, y la diferencia viene
+    probablemente de la implementación o del manejo de los días faltantes, porque no se pudo reproducir exactamente);</li>
     <li>los picos de Q caen en {" y ".join(regimen["Q"]["picos"])}, un mes después de los de PL ({" y ".join(regimen["PL"]["picos"])});</li>
     <li>sin el ciclo anual, la lluvia del mes anterior sigue explicando Q (correlación parcial de
     {memoria.loc["PL", "parcial_mes_anterior"]:.2f} con PL y {memoria.loc["PI", "parcial_mes_anterior"]:.2f} con PI; ver
@@ -4487,7 +4495,8 @@ a {{ color: var(--acento); }}
     la cuenca y lo que sale por el río»).</li>
   </ul>
   <p><b>Lo que no se sabe.</b> No hay datos de humedad del suelo, del acuífero, de captaciones de agua ni de la operación
-  de obras hidráulicas en la cuenca. El almacenamiento se infiere del desfase; no se mide.</p>
+  de obras hidráulicas en la cuenca. El flujo base dice cuánta agua llega al río desde el almacenamiento, pero no dónde
+  está guardada (suelo o acuífero) ni cuánta hay.</p>
   <p><b>Qué controla el ciclo y qué cambia de un año a otro.</b> El ciclo estacional lo controlan la ZCIT (cuándo llueve)
   y el almacenamiento (cuándo responde el río). Las diferencias entre años las modula el ENSO: según {CITA_POVEDA},
   «durante El Niño se presenta una disminución en la precipitación y en los caudales medios mensuales de los ríos de
@@ -4918,6 +4927,9 @@ a {{ color: var(--acento); }}
     <li id="ref-kruskal1952">Kruskal, W. H., y Wallis, W. A. (1952). Use of ranks in one-criterion variance
     analysis. <i>Journal of the American Statistical Association</i>, 47(260), 583–621.
     <a href="https://doi.org/10.2307/2280779">https://doi.org/10.2307/2280779</a></li>
+    <li id="ref-ladson2013">Ladson, A. R., Brown, R., Neal, B., y Nathan, R. (2013). A standard approach to baseflow
+    separation using the Lyne and Hollick filter. <i>Australasian Journal of Water Resources</i>, 17(1), 25–34.
+    <a href="https://doi.org/10.7158/W12-028.2013.17.1">https://doi.org/10.7158/W12-028.2013.17.1</a></li>
     <li id="ref-lomb1976">Lomb, N. R. (1976). Least-squares frequency analysis of unequally spaced data. <i>Astrophysics and
     Space Science</i>, 39(2), 447–462. <a href="https://doi.org/10.1007/BF00648343">https://doi.org/10.1007/BF00648343</a></li>
     <li id="ref-mann1945">Mann, H. B. (1945). Nonparametric tests against trend. <i>Econometrica</i>, 13(3), 245 y siguientes.

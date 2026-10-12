@@ -207,7 +207,7 @@ def marca_ini(etiqueta):
 
 C4 = "Crítica 4 · El ENSO"
 _ep = lambda f, c: enso_parcial.loc[(f, c)]
-POVEDA_PAG_ENSO = None          # página del pasaje de Poveda (2004) sobre los mecanismos; la da el usuario
+POVEDA_PAG_ENSO = 205           # página del pasaje de Poveda (2004) sobre los mecanismos (la confirmó el usuario)
 _poveda_pag_txt = f"p. {POVEDA_PAG_ENSO}" if POVEDA_PAG_ENSO else "página por confirmar"
 _sig_sens = (min(ind_sens_sig), max(ind_sens_sig))
 enso_oni_media_txt = marca(

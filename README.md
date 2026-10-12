@@ -50,8 +50,8 @@ todo lo nuevo va a los scripts y al informe. Lo que tiene, por punto del taller:
 | 4.4 | Trazabilidad: registro de anomalías, comprobaciones, decisiones y efecto | hecho |
 | 4.5 | Coherencia hidrológica (residuo P − Q, meses con Q > P) | hecho |
 
-El **índice de flujo base** de CAMELS-COL se quitó del informe, y se decidió no calcular uno propio
-(2026-10-04).
+El **índice de flujo base** de CAMELS-COL se quitó del informe el 2026-10-04. El 2026-10-11 se decidió calcular uno
+propio con el caudal diario (`scripts/16c_flujo_base.py`, Lyne-Hollick con la receta de Ladson et al., 2013).
 
 Después de congelar el notebook, **todo el análisis nuevo está solo en los scripts y el informe** (el notebook no hace
 falta para reproducirlo): años contrastantes y anomalías respecto al ciclo anual; **anomalías y anomalías

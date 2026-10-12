@@ -4858,7 +4858,7 @@ a {{ color: var(--acento); }}
     del Alaska Satellite Facility (ASF). Ver <code>DATOS_FUENTES.md</code>.</li>
     <li id="ref-ams-optimo">American Meteorological Society. Zone of maximum precipitation. En <i>Glossary of
     Meteorology</i> (con base en Miller, A. A., 1961, <i>Climatology</i>, Methuen, p. 39). Consultado el 12 de octubre
-    de 2026. <a href="https://glossary.ametsoc.org/wiki/Zone_of_maximum_precipitation">https://glossary.ametsoc.org/wiki/Zone_of_maximum_precipitation</a></li>
+    de 2026. <a href="https://glossary.ametsoc.org/wiki/zone-of-maximum-precipitation/">https://glossary.ametsoc.org/wiki/zone-of-maximum-precipitation/</a></li>
     <li id="ref-beck2022">Beck, H. E., et al. (2022). MSWX: Global 3-hourly 0.1° bias-corrected meteorological
     data. <i>Bulletin of the American Meteorological Society</i>.
     <a href="https://doi.org/10.1175/BAMS-D-21-0145.1">https://doi.org/10.1175/BAMS-D-21-0145.1</a></li>

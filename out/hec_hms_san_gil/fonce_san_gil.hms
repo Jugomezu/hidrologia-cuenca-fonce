@@ -1,0 +1,27 @@
+Project: fonce_san_gil
+     Description: Fonce en San Gil (IDEAM 24027010), modelo continuo diario
+     Version: 4.13
+     Filepath Separator: /
+     DSS File Name: fonce_san_gil.dss
+     Time Zone ID: America/Bogota
+End:
+
+Precipitation: CHIRPS CAMELS
+     Filename: chirps_camels.met
+     Description: 
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+End:
+
+Basin: San Gil
+     Filename: san_gil.basin
+     Description: 
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+End:
+
+Control: Tramo continuo
+     FileName: tramo_continuo.control
+     Description: 
+End:
+

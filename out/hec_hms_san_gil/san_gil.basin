@@ -1,0 +1,145 @@
+Basin: San Gil
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Version: 4.13
+     Filepath Separator: /
+     Unit System: Metric
+     Missing Flow To Zero: No
+     Enable Flow Ratio: No
+     Compute Local Flow At Junctions: No
+     Unregulated Output Required: No
+
+     Enable Sediment Routing: No
+End:
+
+Subbasin: Cuenca San Gil
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Canvas X: 0.0
+     Canvas Y: 100.0
+     Area: 2098.85
+     Downstream: Salida San Gil
+
+     Discretization: None
+     File: san_gil.sqlite
+
+     Canopy: Simple
+     Allow Simultaneous Precip Et: Yes
+     Plant Uptake Method: Default Tension-Factor
+     Initial Canopy Storage Percent: 0
+     Canopy Storage Capacity: 3.0
+     Crop Coefficient: 1.0
+     End Canopy:
+
+     Surface: Simple
+     Initial Surface Storage Percent: 0
+     Surface Storage Capacity: 5.0
+     Surface Albedo: 0.20
+     End Surface:
+
+     LossRate: Soil Moisture Account
+     Percent Impervious Area: 0.0
+     Initial Soil Storage Percent: 50.0
+     Initial Gw1 Storage Percent: 50.0
+     Initial Gw2 Storage Percent: 50.0
+     Soil Maximum Infiltration: 10.0
+     Soil Storage Capacity: 200.0
+     Soil Tension Capacity: 120.0
+     Soil Maximum Percolation: 2.0
+     Groundwater 1 Storage Capacity: 60.0
+     Groundwater 1 Routing Coefficient: 240.0
+     Groundwater 1 Maximum Percolation: 1.0
+     Groundwater 2 Storage Capacity: 200.0
+     Groundwater 2 Routing Coefficient: 1200.0
+     Groundwater 2 Maximum Percolation: 0.0
+
+     Transform: Clark
+     Clark Method: Specified
+     Time of Concentration: 24.00
+     Storage Coefficient: 24.00
+     Time Area Method: Default
+
+     Baseflow: Linear Reservoir
+     Groundwater Layer: 1
+     GW-1 Number Reservoirs: 1
+     GW-1 Routing Coefficient: 240.0
+     GW-1 Initial Baseflow: 0.0
+     Groundwater Layer: 2
+     GW-2 Number Reservoirs: 1
+     GW-2 Routing Coefficient: 1200.0
+     GW-2 Initial Baseflow: 0.0
+End:
+
+Junction: Salida San Gil
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Canvas X: 0.0
+     Canvas Y: 0.0
+     Computation Point: Yes
+     Observed Hydrograph Gage: Q San Gil
+End:
+
+Basin Layer Properties:
+     Element Layer:
+          Name: Icons
+          Layer shown: Yes
+     End Layer:
+End:
+
+Basin Spatial Properties:
+End:
+
+Basin Schematic Properties:
+     Last View N: NaN
+     Last View S: NaN
+     Last View W: NaN
+     Last View E: NaN
+     Maximum View N: NaN
+     Maximum View S: NaN
+     Maximum View W: NaN
+     Maximum View E: NaN
+     Extent Method: Elements
+     Buffer: 0
+     Draw Icons: Yes
+     Draw Icon Labels: Name
+     Draw Map Objects: No
+     Draw Gridlines: No
+     Draw Flow Direction: No
+     Draw HillShade Layer: Yes
+     Draw Elevation Layer: Yes
+     Elevation Layer Color Palette: Gray Scale
+     Ignore Elevation Color Ramp Scale: No
+     Use Interpolated Color Ramp for Elevation Layer: Yes
+     Color Ramp Opacity Level for Elevation Layer: 33.0
+     Fix Element Locations: No
+     Fix Hydrologic Order: No
+End:
+
+Computation Point: Salida San Gil
+     Parameter Set: 1
+     End Parameter Set:
+     Parameter Set: 2
+     End Parameter Set:
+     Parameter Set: 3
+     End Parameter Set:
+     Parameter Set: 4
+     End Parameter Set:
+     Parameter Set: 5
+     End Parameter Set:
+
+     Graph Definition: 
+     End Graph Definition: 
+
+     Graph Definition: 
+     End Graph Definition: 
+
+     Graph Definition: 
+     End Graph Definition: 
+
+     Graph Definition: 
+     End Graph Definition: 
+
+     Graph Definition: 
+     End Graph Definition: 
+
+End Computation Point: 

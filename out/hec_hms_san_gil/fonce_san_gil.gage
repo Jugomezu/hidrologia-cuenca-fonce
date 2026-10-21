@@ -1,0 +1,33 @@
+Gage Manager: fonce_san_gil
+     Gage Manager: fonce_san_gil
+     Version: 4.13
+     Filepath Separator: /
+End: 
+
+Gage: P San Gil
+     Gage: P San Gil
+     Gage Type: Precipitation
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Reference Height Units: Meters
+     Reference Height: 9.9999
+     Data Source Type: External DSS
+     Filename: fonce_san_gil.dss
+     Pathname: /FONCE/SAN GIL/PRECIP-INC//1DAY/CAMELS-CHIRPS/
+     Variant: Variant-1
+     End Variant: Variant-1
+End: 
+
+Gage: Q San Gil
+     Gage: Q San Gil
+     Gage Type: Flow
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Reference Height Units: Meters
+     Reference Height: 9.9999
+     Data Source Type: External DSS
+     Filename: fonce_san_gil.dss
+     Pathname: /FONCE/SAN GIL/FLOW//1DAY/CAMELS-OBS/
+     Variant: Variant-1
+     End Variant: Variant-1
+End: 

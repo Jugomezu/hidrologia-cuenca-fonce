@@ -1,0 +1,61 @@
+Meteorology: CHIRPS CAMELS
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Version: 4.13
+     Unit System: Metric
+     Set Missing Data to Default: No
+     Precipitation Method: Specified Average
+     Air Temperature Method: None
+     Atmospheric Pressure Method: None
+     Dew Point Method: None
+     Wind Speed Method: None
+     Shortwave Radiation Method: None
+     Longwave Radiation Method: None
+     Snowmelt Method: None
+     Evapotranspiration Method: Monthly Evaporation
+     Use Basin Model: San Gil
+End:
+
+Precip Method Parameters: Specified Average
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Allow Depth Override: Yes
+End:
+
+Evapotranspiration Method Parameters: Monthly Evaporation
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+End:
+
+Subbasin: Cuenca San Gil
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Gage: P San Gil
+
+     Begin Et: Monthly Evaporation
+     Pan Evaporation: 101.68
+     Pan Evaporation: 98.46
+     Pan Evaporation: 112.37
+     Pan Evaporation: 106.54
+     Pan Evaporation: 106.04
+     Pan Evaporation: 103.26
+     Pan Evaporation: 109.96
+     Pan Evaporation: 115.31
+     Pan Evaporation: 111.77
+     Pan Evaporation: 105.30
+     Pan Evaporation: 92.76
+     Pan Evaporation: 96.13
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     Evapotranspiration Coefficient: 1.0
+     End Et:
+End:

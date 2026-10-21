@@ -1,0 +1,8 @@
+NOTE 15301:  Began computing simulation run "Sin calibrar" at time 21Oct2026, 04:15:13.
+NOTE 10181:  Opened control specifications "Tramo continuo" at time 21Oct2026, 04:15:13.
+NOTE 20364:  Found no parameter problems in meteorologic model "CHIRPS CAMELS".
+NOTE 40049:  Found no parameter problems in basin model "San Gil".
+WARNING 40017:  Observed Discharge gage "Q San Gil" at element "Salida San Gil" has some missing data.
+NOTE 42413:  Unit hydrograph volume for subbasin "Cuenca San Gil" is 1.0000 mm.
+NOTE 15302:  Finished computing simulation run "Sin calibrar" at time 21Oct2026, 04:15:14.
+NOTE 15312:  The total runtime for this simulation is 00:01.

@@ -1,0 +1,18 @@
+Run: Sin calibrar
+     Default Description: Yes
+     Log File: Sin_calibrar.log
+     DSS File: Sin_calibrar.dss
+     Is Save Spatial Results: No
+     Last Modified Date: 21 October 2026
+     Last Modified Time: 04:15:13
+     Last Execution Date: 21 October 2026
+     Last Execution Time: 04:15:13
+     Basin: San Gil
+     Precip: CHIRPS CAMELS
+     Control: Tramo continuo
+     Save State Type: None
+     Time-Series Output: Save All
+     Time Series Results Manager Start:
+     Time Series Results Manager End:
+End:
+

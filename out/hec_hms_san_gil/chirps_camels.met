@@ -1,6 +1,6 @@
 Meteorology: CHIRPS CAMELS
      Last Modified Date: 21 October 2026
-     Last Modified Time: 04:15:13
+     Last Modified Time: 04:26:14
      Version: 4.13
      Unit System: Metric
      Set Missing Data to Default: No
@@ -18,18 +18,18 @@ End:
 
 Precip Method Parameters: Specified Average
      Last Modified Date: 21 October 2026
-     Last Modified Time: 04:15:13
+     Last Modified Time: 04:26:14
      Allow Depth Override: Yes
 End:
 
 Evapotranspiration Method Parameters: Monthly Evaporation
      Last Modified Date: 21 October 2026
-     Last Modified Time: 04:15:13
+     Last Modified Time: 04:26:14
 End:
 
 Subbasin: Cuenca San Gil
      Last Modified Date: 21 October 2026
-     Last Modified Time: 04:15:13
+     Last Modified Time: 04:26:14
      Gage: P San Gil
 
      Begin Et: Monthly Evaporation

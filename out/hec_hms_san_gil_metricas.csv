@@ -1,3 +1,9 @@
-escala,desde,hasta,n,nse,kge,r,sesgo_pct
-diaria,2018-01-09,2022-06-02,1606,-0.06,0.202,0.422,-29.171
-mensual,2018-01-09,2022-06-02,52,-0.115,0.381,0.561,-29.219
+corrida,periodo,escala,desde,hasta,n,nse,kge,r,sesgo_pct
+sin calibrar,calibración,diaria,2018-01-09,2019-12-31,722,0.173,0.317,0.51,-19.073
+sin calibrar,calibración,mensual,2018-01-09,2019-12-31,23,0.275,0.492,0.649,-19.008
+calibrado,calibración,diaria,2018-01-09,2019-12-31,722,0.569,0.781,0.785,-4.377
+calibrado,calibración,mensual,2018-01-09,2019-12-31,23,0.877,0.9,0.948,-3.962
+sin calibrar,validación,diaria,2020-01-01,2022-06-02,884,-0.323,0.053,0.341,-37.612
+sin calibrar,validación,mensual,2020-01-01,2022-06-02,29,-0.619,0.231,0.489,-37.6
+calibrado,validación,diaria,2020-01-01,2022-06-02,884,0.187,0.517,0.599,-20.142
+calibrado,validación,mensual,2020-01-01,2022-06-02,29,0.437,0.691,0.824,-20.024

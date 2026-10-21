@@ -1,0 +1,16 @@
+parametro,unidad,valor_inicial,minimo,maximo,valor_calibrado,calibrado
+dosel_almacenamiento_mm,mm,3.0,,,3.0,False
+superficie_almacenamiento_mm,mm,5.0,,,5.0,False
+suelo_infiltracion_max_mm_h,mm/h,10.0,1.0,50.0,19.1334,True
+suelo_almacenamiento_mm,mm,200.0,50.0,600.0,52.7758,True
+suelo_fraccion_tension,fracción,0.6,0.1,0.95,0.1001,True
+suelo_percolacion_max_mm_h,mm/h,2.0,0.05,10.0,9.3865,True
+subterranea1_almacenamiento_mm,mm,60.0,,,60.0,False
+subterranea1_coef_h,h,240.0,24.0,720.0,72.769,True
+subterranea1_percolacion_max_mm_h,mm/h,1.0,0.0,5.0,1.9918,True
+subterranea2_almacenamiento_mm,mm,200.0,,,200.0,False
+subterranea2_coef_h,h,1200.0,240.0,6000.0,3542.5811,True
+subterranea2_percolacion_max_mm_h,mm/h,0.0,,,0.0,False
+suelo_inicial_pct,%,50.0,,,50.0,False
+subterranea1_inicial_pct,%,50.0,,,50.0,False
+subterranea2_inicial_pct,%,50.0,,,50.0,False

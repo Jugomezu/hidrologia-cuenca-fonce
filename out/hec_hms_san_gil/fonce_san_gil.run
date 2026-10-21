@@ -1,12 +1,12 @@
-Run: Sin calibrar
+Run: San Gil diario
      Default Description: Yes
-     Log File: Sin_calibrar.log
-     DSS File: Sin_calibrar.dss
+     Log File: San_Gil_diario.log
+     DSS File: San_Gil_diario.dss
      Is Save Spatial Results: No
      Last Modified Date: 21 October 2026
-     Last Modified Time: 04:15:13
+     Last Modified Time: 04:26:14
      Last Execution Date: 21 October 2026
-     Last Execution Time: 04:15:13
+     Last Execution Time: 04:41:36
      Basin: San Gil
      Precip: CHIRPS CAMELS
      Control: Tramo continuo

@@ -27,3 +27,22 @@ armar el ZIP de la entrega.
 4. Descartadas: las opciones de áreas iguales, porque ubicaban peor los puntos en altura o usaban celdas con
    parte fuera de la cuenca; y la D, porque no tenía punto en el valle bajo.
 5. Limitación: las celdas suavizan el relieve, así que ninguna representa los picos sobre unos 3 500 m.
+
+## 2026-11-12 · Punto 1 · Variables y período de ERA5-Land
+
+**Decisión.** Se descargaron de `reanalysis-era5-land-timeseries`, en los 6 puntos y para 1998–2022 (horario), las
+variables que pide la ETo de FAO-56 (ec. 6): `2m_temperature`, `2m_dewpoint_temperature`, `surface_pressure`,
+`10m_u_component_of_wind`, `10m_v_component_of_wind` y `surface_solar_radiation_downwards`.
+
+**Razonamiento.**
+1. Cada término de la ec. 6 sale de una de ellas: T, Δ y es de `t2m`; ea de `d2m`; γ de `sp`; u2 del viento a
+   10 m (ec. 47); Rn de `ssrd`. G ≈ 0 a escala diaria.
+2. `sp` en vez de la presión por altura (ec. 7): así γ corresponde a la misma topografía del modelo que las
+   demás variables.
+
+## 2026-11-12 · Punto 1 · Días en hora local
+
+**Decisión.** Los días se arman en hora local (UTC−5): la hora local es `valid_time` − 5 h.
+
+**Razonamiento.** T máxima y T mínima deben corresponder al día de Colombia. La suma diaria de `ssrd` no cambia,
+porque toda la luz del día cae dentro del mismo día UTC.

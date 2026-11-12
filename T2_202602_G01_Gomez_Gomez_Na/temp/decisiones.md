@@ -83,3 +83,10 @@ de las diarias; ETo de la cuenca = promedio de los 6 puntos ponderado por el ár
 
 **Razonamiento.** Es la forma estándar de FAO-56 a escala diaria. La suma mensual se hace después del cálculo
 diario porque la ecuación no es lineal.
+
+## 2026-11-12 · Punto 1 · Rnl en días muy nublados
+
+**Decisión.** Se deja la ec. 39 de FAO-56 tal cual, sin el límite inferior Rs/Rso ≥ 0.3 de ASCE-EWRI (2005).
+
+**Razonamiento.** Afecta 121 de 54 786 días-punto (0.2 %), donde Rnl sale levemente negativa; el efecto en la
+ETo es despreciable y se mantiene el método de FAO-56 sin modificaciones.

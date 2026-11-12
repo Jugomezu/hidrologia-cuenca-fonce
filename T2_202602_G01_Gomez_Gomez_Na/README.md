@@ -1,12 +1,12 @@
 # Tarea 2 — Evapotranspiración y diseño (Hidrología, 202602)
 
-Esta carpeta sigue la estructura obligatoria de la entrega. Al armar el ZIP, su contenido va dentro de
-`T2_202602_G02_Apellido1_Apellido2_Apellido3/`.
+Esta carpeta sigue la estructura obligatoria de la entrega y ya lleva el nombre que exige: el ZIP de la
+entrega es esta carpeta comprimida entera, `T2_202602_G01_Gomez_Gomez_Na.zip`.
 
 ```
 README.md
-T2_202602_G02_informe.pdf        (pendiente)
-T2_202602_G02_presentacion.pdf   (pendiente)
+T2_202602_G01_informe.pdf        (pendiente)
+T2_202602_G01_presentacion.pdf   (pendiente)
 codigo/     punto1/  punto2/
 datos/      punto1/  punto2/
 productos/  punto1/  punto2/

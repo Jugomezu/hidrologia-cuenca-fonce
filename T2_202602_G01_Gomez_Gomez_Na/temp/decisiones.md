@@ -90,3 +90,13 @@ diario porque la ecuación no es lineal.
 
 **Razonamiento.** Afecta 121 de 54 786 días-punto (0.2 %), donde Rnl sale levemente negativa; el efecto en la
 ETo es despreciable y se mantiene el método de FAO-56 sin modificaciones.
+
+## 2026-11-12 · Punto 1 · Radiación horaria de ERA5-Land (nota para la metodología)
+
+**Decisión.** En la metodología se dirá: «Se usó el producto de series de tiempo de ERA5-Land, en el que `ssrd` se
+entrega como energía por hora (J/m²); la radiación diaria es la suma de las 24 horas del día local».
+
+**Razonamiento.** En el ERA5-Land por malla (`reanalysis-era5-land`), `ssrd` viene acumulada desde las 00 UTC y
+hay que desacumularla; en el producto de series de tiempo no. Se verificó en los datos: el ciclo diario sube y
+baja, y la suma diaria (18.6 MJ/m² en promedio) queda bajo la radiación de cielo despejado. Así nadie confunde
+nuestra suma con una suma de acumulados.

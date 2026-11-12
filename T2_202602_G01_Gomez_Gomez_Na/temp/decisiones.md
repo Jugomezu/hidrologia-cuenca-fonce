@@ -46,3 +46,10 @@ variables que pide la ETo de FAO-56 (ec. 6): `2m_temperature`, `2m_dewpoint_temp
 
 **Razonamiento.** T máxima y T mínima deben corresponder al día de Colombia. La suma diaria de `ssrd` no cambia,
 porque toda la luz del día cae dentro del mismo día UTC.
+
+## 2026-11-12 · Punto 1 · Diciembre de 2022 incompleto en hora local
+
+**Decisión.** Se deja así, sin descargar más horas.
+
+**Razonamiento.** La descarga termina el 2022-12-31 a las 23:00 UTC, que son las 18:00 hora local, así que a
+diciembre de 2022 le faltan sus últimas 5 horas (noche). El efecto es despreciable y se menciona como limitación.

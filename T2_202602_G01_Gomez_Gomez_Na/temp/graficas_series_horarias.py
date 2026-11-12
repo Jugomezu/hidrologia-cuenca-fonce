@@ -10,7 +10,7 @@ Conversiones solo de unidades, para leer mejor: K → °C, Pa → kPa, ssrd J/m�
 
 Las 219 144 horas × 6 puntos × 6 variables se guardan dentro del HTML como Float32 en base64, y el eje de tiempo
 se reconstruye en el navegador a partir de la primera hora (las series son horarias y sin huecos; se verifica).
-Por eso el archivo pesa unos 40 MB: es para abrirlo en el computador, no para el repositorio ni para la entrega.
+Por eso el archivo pesa unos 40 MB. Va en temp/, que se borra antes de armar el ZIP de la entrega.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python temp/graficas_series_horarias.py

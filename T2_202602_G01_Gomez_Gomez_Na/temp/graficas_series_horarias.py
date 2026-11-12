@@ -1,4 +1,11 @@
-"""Documento de trabajo (temporal): series horarias de ERA5-Land en los 6 puntos, en un HTML con zoom.
+"""Documento de trabajo (temporal): series mensuales de ETo y series horarias de ERA5-Land, en un HTML con zoom.
+
+Arriba, dos gráficas mensuales de la cuenca:
+  - ETo de Penman–Monteith FAO-56 (productos/punto1/eto_mensual_cuenca.csv, de codigo/punto1/04_eto_fao56.py)
+    contra la ETP de Hargreaves de la Tarea 1 (../Analisis_De_Cuenca/out/etp_hargreaves_fonce.csv, columna
+    etp_era5land, diaria, sumada aquí por mes).
+  - La ETo separada en su término radiativo y su término aerodinámico (suman la ETo).
+Debajo, las series horarias de las 6 variables descargadas.
 
 Lee datos/punto1/era5land_puntos/punto_N.csv (salida de codigo/punto1/01_descarga_era5land_puntos.py) y escribe
 temp/series_horarias_era5land.html: una gráfica Plotly por variable, con los 6 puntos, a la que se le puede hacer
@@ -26,6 +33,9 @@ import pandas as pd
 RAIZ_ENTREGA = Path(__file__).resolve().parents[1]
 CARPETA_DATOS = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_puntos"
 SALIDA = RAIZ_ENTREGA / "temp" / "series_horarias_era5land.html"
+ETO_CUENCA = RAIZ_ENTREGA / "productos" / "punto1" / "eto_mensual_cuenca.csv"
+# La ETP de Hargreaves de la Tarea 1 (fuera de la carpeta de la entrega): solo para comparar en este documento.
+HARGREAVES_TAREA1 = RAIZ_ENTREGA.parent / "Analisis_De_Cuenca" / "out" / "etp_hargreaves_fonce.csv"
 
 DESFASE_HORA_LOCAL = pd.Timedelta(hours=-5)  # Colombia, UTC−5, sin horario de verano
 PUNTOS = [1, 2, 3, 4, 5, 6]
@@ -55,7 +65,26 @@ def leer_punto(n):
     return datos
 
 
+def series_mensuales_eto():
+    """ETo mensual de la cuenca con sus términos, y la ETP de Hargreaves mensual (mm/mes), mes a mes."""
+    eto = pd.read_csv(ETO_CUENCA)
+    hargreaves = pd.read_csv(HARGREAVES_TAREA1, parse_dates=["fecha"])
+    hargreaves = hargreaves.set_index("fecha")["etp_era5land"].resample("MS").agg(["sum", "count"])
+    hargreaves.index = hargreaves.index.strftime("%Y-%m")
+    assert (hargreaves["count"] == hargreaves.index.map(lambda m: pd.Period(m).days_in_month)).all()
+    juntas = eto.set_index("mes").join(hargreaves["sum"].rename("hargreaves_mm_mes"), how="left")
+    assert juntas["hargreaves_mm_mes"].notna().all(), "faltan meses de Hargreaves"
+    return {
+        "meses": list(juntas.index),
+        "eto": juntas["eto_mm_mes"].round(2).tolist(),
+        "radiativa": juntas["eto_radiativa_mm_mes"].round(2).tolist(),
+        "aerodinamica": juntas["eto_aerodinamica_mm_mes"].round(2).tolist(),
+        "hargreaves": juntas["hargreaves_mm_mes"].round(2).tolist(),
+    }
+
+
 def main():
+    mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
 
     # Todas las series deben empezar a la misma hora y tener el mismo largo, para compartir el eje de tiempo.
@@ -68,6 +97,7 @@ def main():
     carga = {
         "inicio_local": inicio_local.strftime("%Y-%m-%dT%H:%M:%S"),
         "horas": largo,
+        "mensual": mensual,
         "puntos": PUNTOS,
         "variables": [
             {
@@ -100,6 +130,10 @@ PLANTILLA = """<!doctype html>
 </style>
 </head>
 <body>
+<h1>ETo mensual de la cuenca (1998–2022)</h1>
+<p>Promedio de los 6 puntos ponderado por el área de Voronoi. Hargreaves: ETP de la Tarea 1 con la temperatura de
+ERA5-Land promediada sobre la cuenca.</p>
+<div id="mensual"></div>
 <h1>Series horarias de ERA5-Land en los 6 puntos de la cuenca (1998–2022)</h1>
 <p>Hora local (UTC−5). Para hacer zoom: arrastra un recuadro o usa la rueda del ratón; doble clic vuelve a la vista
 completa. Clic en un punto de la leyenda lo oculta o lo muestra. Los botones de arriba a la izquierda fijan
@@ -107,6 +141,24 @@ una ventana de tiempo. Documento de trabajo temporal.</p>
 <div id="contenedor"></div>
 <script>
 const CARGA = __CARGA__;
+// Gráficas mensuales de la cuenca.
+(() => {
+  const M = CARGA.mensual, x = M.meses.map(m => m + '-01');
+  const opciones = {scrollZoom: true, displaylogo: false, responsive: true};
+  const base = t => ({title: {text: t, x: 0, font: {size: 15}}, xaxis: {type: 'date'},
+    yaxis: {title: {text: 'mm/mes'}, rangemode: 'tozero'}, margin: {l: 60, r: 20, t: 60, b: 40},
+    legend: {orientation: 'h', y: -0.15}, hovermode: 'x unified'});
+  const caja = () => { const d = document.createElement('div'); d.className = 'grafica';
+    document.getElementById('mensual').appendChild(d); return d; };
+  Plotly.newPlot(caja(), [
+    {type: 'scatter', mode: 'lines', name: 'ETo Penman–Monteith (FAO-56)', x, y: M.eto, line: {color: '#1f77b4'}},
+    {type: 'scatter', mode: 'lines', name: 'ETP Hargreaves (Tarea 1)', x, y: M.hargreaves, line: {color: '#ff7f0e'}}],
+    base('ETo de Penman–Monteith contra ETP de Hargreaves, mensual'), opciones);
+  Plotly.newPlot(caja(), [
+    {type: 'scatter', mode: 'lines', stackgroup: 'eto', name: 'Término radiativo', x, y: M.radiativa, line: {color: '#1f77b4'}},
+    {type: 'scatter', mode: 'lines', stackgroup: 'eto', name: 'Término aerodinámico', x, y: M.aerodinamica, line: {color: '#2ca02c'}}],
+    base('ETo separada en sus términos, mensual (apilados: suman la ETo)'), opciones);
+})();
 const decodificar = b64 => { const s = atob(b64), b = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return new Float32Array(b.buffer); };
 // Eje de tiempo: la primera hora local más una hora por posición (la serie no tiene huecos).

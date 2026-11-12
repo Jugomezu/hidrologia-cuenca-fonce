@@ -2,9 +2,10 @@
 
 Lee productos/punto1/era5land_diario_puntos.csv (salida de 03_series_diarias_rn.py) y escribe:
     productos/punto1/eto_diaria_puntos.csv     ETo diaria por punto (mm/día)
-    productos/punto1/eto_mensual_puntos.csv    ETo mensual por punto (mm/mes) = suma de las diarias
-    productos/punto1/eto_mensual_cuenca.csv    ETo mensual de la cuenca (mm/mes) = promedio de los 6 puntos
-                                               ponderado por el área de su región de Voronoi
+    productos/punto1/eto_mensual_puntos.csv    ETo mensual por punto (mm/mes) = suma de las diarias, con sus dos
+                                               términos: radiativo y aerodinámico (suman la ETo)
+    productos/punto1/eto_mensual_cuenca.csv    lo mismo para la cuenca = promedio de los 6 puntos ponderado por el
+                                               área de su región de Voronoi
 
 Ecuación 6 de FAO-56 (Allen et al., 1998), diaria:
 
@@ -86,23 +87,23 @@ def main():
     eto.assign(fecha=eto["fecha"].dt.strftime("%Y-%m-%d")).round(4).to_csv(SALIDA_DIARIA, index=False)
     print(f"Listo: {SALIDA_DIARIA} ({len(eto)} filas)")
 
-    # Mensual por punto: suma de las ETo diarias del mes (mm/mes).
-    mensual = (eto.set_index("fecha").groupby("punto")["eto_mm"].resample("MS").sum()
-               .rename("eto_mm_mes").reset_index())
+    # Mensual por punto: suma de las diarias del mes (mm/mes), la ETo y sus dos términos.
+    columnas = {"eto_mm": "eto_mm_mes", "eto_radiativa_mm": "eto_radiativa_mm_mes",
+                "eto_aerodinamica_mm": "eto_aerodinamica_mm_mes"}
+    mensual = (eto.set_index("fecha").groupby("punto")[list(columnas)].resample("MS").sum()
+               .rename(columns=columnas).reset_index())
     mensual["dias"] = mensual["fecha"].dt.days_in_month
     assert (mensual.groupby("punto").size() == 300).all()
-    mensual.assign(mes=mensual["fecha"].dt.strftime("%Y-%m"))[["mes", "punto", "dias", "eto_mm_mes"]] \
+    mensual.assign(mes=mensual["fecha"].dt.strftime("%Y-%m"))[["mes", "punto", "dias", *columnas.values()]] \
         .round(3).to_csv(SALIDA_MENSUAL, index=False)
     print(f"Listo: {SALIDA_MENSUAL} ({len(mensual)} filas)")
 
-    # Cuenca: promedio ponderado por el área de Voronoi de cada punto.
+    # Cuenca: promedio ponderado por el área de Voronoi de cada punto (los pesos se normalizan a 1).
     assert abs(sum(PESOS.values()) - 1) < 0.002
-    mensual["peso"] = mensual["punto"].map(PESOS)
-    cuenca = (mensual.assign(ponderada=mensual["eto_mm_mes"] * mensual["peso"])
-              .groupby("fecha")[["ponderada", "peso"]].sum())
-    cuenca["eto_mm_mes"] = cuenca["ponderada"] / cuenca["peso"]
-    cuenca = cuenca.reset_index()
-    cuenca.assign(mes=cuenca["fecha"].dt.strftime("%Y-%m"))[["mes", "eto_mm_mes"]] \
+    peso = mensual["punto"].map(PESOS)
+    cuenca = (mensual[list(columnas.values())].mul(peso, axis=0).groupby(mensual["fecha"]).sum()
+              .div(peso.groupby(mensual["fecha"]).sum(), axis=0).reset_index())
+    cuenca.assign(mes=cuenca["fecha"].dt.strftime("%Y-%m"))[["mes", *columnas.values()]] \
         .round(3).to_csv(SALIDA_CUENCA, index=False)
     print(f"Listo: {SALIDA_CUENCA} ({len(cuenca)} filas)")
 

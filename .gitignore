@@ -1,0 +1,14 @@
+# Reglas generales del repositorio. Las de cada tarea están en el .gitignore de su carpeta.
+
+# Python y Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# sistema
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# credenciales: nunca se versionan
+.cdsapirc

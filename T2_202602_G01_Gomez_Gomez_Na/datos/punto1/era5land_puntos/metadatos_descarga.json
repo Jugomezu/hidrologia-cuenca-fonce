@@ -1,0 +1,93 @@
+{
+  "fuente": "Copernicus Climate Data Store",
+  "producto": "reanalysis-era5-land-timeseries",
+  "variables": [
+    "2m_temperature",
+    "2m_dewpoint_temperature",
+    "surface_pressure",
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+    "surface_solar_radiation_downwards"
+  ],
+  "periodo": [
+    "1998-01-01",
+    "2022-12-31"
+  ],
+  "resolucion_temporal": "horaria",
+  "seleccion_del_punto": "celda de la malla de ERA5-Land más cercana a lon, lat (la hace el CDS)",
+  "fecha_de_descarga": "2026-11-12",
+  "archivos": [
+    {
+      "punto": 1,
+      "lon": -73.1,
+      "lat": 6.0,
+      "peso": 0.124,
+      "archivo": "punto_1.csv",
+      "sha256": "a5d20f8408e812d76e95de28d76857ad794ce64a20962a008214815338f3b6d8",
+      "celda_entregada": {
+        "lat": 6.000000000000831,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 2,
+      "lon": -73.1,
+      "lat": 6.2,
+      "peso": 0.173,
+      "archivo": "punto_2.csv",
+      "sha256": "644a7a4e850d25a4c821e7290b635bcc278f624dcf7697c87ff7de9022111302",
+      "celda_entregada": {
+        "lat": 6.200000000000831,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 3,
+      "lon": -73.1,
+      "lat": 6.3,
+      "peso": 0.12,
+      "archivo": "punto_3.csv",
+      "sha256": "c1e68af772cdfd5df8f7537b736b9a42c2a998af2c77b985febbd2e3bb7d9896",
+      "celda_entregada": {
+        "lat": 6.30000000000083,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 4,
+      "lon": -73.1,
+      "lat": 6.4,
+      "peso": 0.146,
+      "archivo": "punto_4.csv",
+      "sha256": "19e7ea82fe020079bf3fa6413af07bceee737c67f283d2862d1ea01cf12896df",
+      "celda_entregada": {
+        "lat": 6.40000000000083,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 5,
+      "lon": -73.0,
+      "lat": 6.1,
+      "peso": 0.186,
+      "archivo": "punto_5.csv",
+      "sha256": "9462bd1489ec2462675cd2abeaf42db925c185190b4b0278d224088a95725d8b",
+      "celda_entregada": {
+        "lat": 6.100000000000831,
+        "lon": -73.00000000000324
+      }
+    },
+    {
+      "punto": 6,
+      "lon": -73.0,
+      "lat": 6.4,
+      "peso": 0.252,
+      "archivo": "punto_6.csv",
+      "sha256": "45e8816e920628b0e8f0338e34c496a44e29160d09ea1af795f472fb5b5b77f0",
+      "celda_entregada": {
+        "lat": 6.40000000000083,
+        "lon": -73.00000000000324
+      }
+    }
+  ]
+}

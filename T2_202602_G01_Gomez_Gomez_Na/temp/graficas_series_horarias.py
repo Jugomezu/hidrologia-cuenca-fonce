@@ -91,7 +91,7 @@ PLANTILLA = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Series horarias ERA5-Land</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
 <style>
   body { font-family: system-ui, sans-serif; margin: 16px; color: #222; background: #fff; }
   h1 { font-size: 20px; margin: 0 0 4px; }

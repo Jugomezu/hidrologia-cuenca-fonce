@@ -74,3 +74,12 @@ presión media `sp` con la ec. 7.
 
 **Razonamiento.** Rn depende de Tmax, Tmin y ea del mismo día, así que se calcula diaria y luego se suma al mes.
 z del modelo para que Rso corresponda a la misma superficie que Rs y T; Rso cambia solo 2.7 % por cada 1 000 m.
+
+## 2026-11-12 · Punto 1 · ETo con FAO-56 (ec. 6)
+
+**Decisión.** ETo diaria por punto con la ec. 6 de FAO-56: T = (Tmax + Tmin)/2 (ec. 9), es = media de e°(Tmax) y
+e°(Tmin) (ec. 12), γ con la presión `sp` (ec. 8), u2 = 0.748 × rapidez a 10 m (ec. 47), G = 0. ETo mensual = suma
+de las diarias; ETo de la cuenca = promedio de los 6 puntos ponderado por el área de Voronoi.
+
+**Razonamiento.** Es la forma estándar de FAO-56 a escala diaria. La suma mensual se hace después del cálculo
+diario porque la ecuación no es lineal.

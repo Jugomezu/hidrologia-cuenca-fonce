@@ -72,8 +72,8 @@ El **informe** [`reporte/reporte-fonce.html`](reporte/reporte-fonce.html) lo gen
 figuras y Plotly van dentro (sin conexión, solo cambian las tipografías por otras de reemplazo). Cómo
 editarlo: sección 9.
 
-**Publicado en GitHub Pages:** <https://jugomezu.github.io/hidrologia-cuenca-fonce/reporte-fonce.html>. Lo publica
-`.github/workflows/pages.yml` cada vez que el informe cambia en `main`: sube solo `reporte/reporte-fonce.html`, sin
+**Publicado en GitHub Pages:** <https://jugomezu.github.io/Tareas_Hidrologia/reporte-fonce.html>. Lo publica
+`.github/workflows/pages.yml` cada vez que el informe cambia en `main`: sube solo `Analisis_De_Cuenca/reporte/reporte-fonce.html`, sin
 tocarlo, y una página de entrada que redirige a él. Las páginas viejas de `reporte/` no se publican.
 
 ## 3. Los datos ya están descargados: no hace falta correr las descargas

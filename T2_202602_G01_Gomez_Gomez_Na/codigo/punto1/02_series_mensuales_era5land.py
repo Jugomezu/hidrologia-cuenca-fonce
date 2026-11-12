@@ -1,7 +1,9 @@
 """Series mensuales de ERA5-Land en los 6 puntos de la cuenca del Fonce (San Gil), 1998–2022.
 
 Lee las series horarias de datos/punto1/era5land_puntos/punto_N.csv (salida de 01_descarga_era5land_puntos.py)
-y escribe productos/punto1/era5land_mensual_puntos.csv, con una fila por punto y mes.
+y escribe dos productos:
+    productos/punto1/era5land_viento_horario_puntos.csv   rapidez horaria del viento a 10 m (m/s), un punto por columna
+    productos/punto1/era5land_mensual_puntos.csv          una fila por punto y mes (columnas abajo)
 
 Decisiones (temp/decisiones.md):
 - Los días y los meses se arman en hora local de Colombia: hora local = valid_time (UTC) − 5 h. Las 5 primeras
@@ -39,6 +41,7 @@ import pandas as pd
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 CARPETA_DATOS = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_puntos"
 SALIDA = RAIZ_ENTREGA / "productos" / "punto1" / "era5land_mensual_puntos.csv"
+SALIDA_VIENTO = RAIZ_ENTREGA / "productos" / "punto1" / "era5land_viento_horario_puntos.csv"
 
 PUNTOS = [1, 2, 3, 4, 5, 6]
 DESFASE_HORA_LOCAL = pd.Timedelta(hours=-5)  # Colombia, UTC−5, sin horario de verano
@@ -84,9 +87,20 @@ def mensual_de_un_punto(horaria):
 
 
 def main():
+    horarias = {n: leer_horaria_local(n) for n in PUNTOS}
+
+    # Paso 1: rapidez horaria del viento, √(u10² + v10²), en hora local.
+    viento = pd.DataFrame({f"punto_{n}": horarias[n]["viento10_ms"] for n in PUNTOS})
+    assert not viento.isna().any().any()
+    SALIDA_VIENTO.parent.mkdir(parents=True, exist_ok=True)
+    viento.index = viento.index.strftime("%Y-%m-%d %H:00")
+    viento.round(3).to_csv(SALIDA_VIENTO, index_label="hora_local")
+    print(f"Listo: {SALIDA_VIENTO} ({len(viento)} horas)")
+
+    # Paso 2: series mensuales.
     tablas = []
     for n in PUNTOS:
-        mensual = mensual_de_un_punto(leer_horaria_local(n))
+        mensual = mensual_de_un_punto(horarias[n])
         mensual.insert(0, "punto", n)
         tablas.append(mensual)
     salida = pd.concat(tablas)
@@ -103,7 +117,6 @@ def main():
     assert (incompletos["horas"] == 31 * 24 - 5).all()
     assert (salida["tmin_media_C"] < salida["t2m_media_C"]).all() and (salida["t2m_media_C"] < salida["tmax_media_C"]).all()
 
-    SALIDA.parent.mkdir(parents=True, exist_ok=True)
     salida.round(3).to_csv(SALIDA, index=False)
     print(f"Listo: {SALIDA} ({len(salida)} filas)")
 

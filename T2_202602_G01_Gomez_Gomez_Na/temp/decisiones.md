@@ -55,3 +55,13 @@ porque toda la luz del día cae dentro del mismo día UTC.
 diciembre de 2022 le faltan sus últimas 5 horas (noche). El efecto es despreciable y se menciona como limitación.
 En el otro extremo, la primera hora descargada (1998-01-01 00:00 UTC) es el 1997-12-31 a las 19:00 hora local;
 esas 5 horas (19:00–23:00 del 1997-12-31) se descartan para que la serie empiece el 1998-01-01 00:00 hora local.
+
+## 2026-11-12 · Punto 1 · Agregación mensual de ERA5-Land
+
+**Decisión.** Por punto y mes (hora local): la radiación solar (`ssrd`) se suma (MJ/m²·mes); temperatura, punto
+de rocío, presión y rapidez del viento se promedian; Tmax y Tmin mensuales son el promedio de las máximas y
+mínimas diarias. La rapidez del viento se calcula cada hora, √(u10² + v10²), antes de promediar.
+
+**Razonamiento.** Solo la radiación es una cantidad que se acumula (energía); las demás son estados del aire y su
+suma no tiene sentido físico. La suma mensual de radiación ya refleja el número de días de cada mes. Se suma Rs,
+no Rn: Rn no se descargó y se calcula después con FAO-56, a escala diaria.

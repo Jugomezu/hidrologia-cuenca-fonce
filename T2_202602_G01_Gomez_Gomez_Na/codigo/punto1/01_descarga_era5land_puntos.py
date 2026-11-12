@@ -22,9 +22,10 @@ Requisito: una cuenta del CDS con su clave en ~/.cdsapirc (nunca dentro del repo
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/01_descarga_era5land_puntos.py
 
-Salida: datos/punto1/era5land_puntos/punto_N.csv (una por punto, tal como la entrega el CDS) y
+Salida: datos/punto1/era5land_puntos/punto_N.csv (una por punto; el CDS entrega un ZIP con un CSV por grupo
+de variables y aquí se unen por hora, sin cambiar ningún valor) y
 datos/punto1/era5land_puntos/metadatos_descarga.json (petición, fecha de descarga y SHA-256 de cada archivo).
-Si un archivo ya existe, no se vuelve a descargar.
+Si el CSV de un punto ya existe, no se vuelve a descargar; si ya está el ZIP crudo (punto_N.descarga), se reutiliza.
 """
 
 import datetime
@@ -35,6 +36,7 @@ import zipfile
 from pathlib import Path
 
 import cdsapi
+import pandas as pd
 
 # --- Rutas (relativas a la carpeta de la entrega) ---------------------------------------------------
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
@@ -51,6 +53,8 @@ VARIABLES = [
     "10m_v_component_of_wind",
     "surface_solar_radiation_downwards",
 ]
+# Nombres cortos con que el CDS escribe esas variables en el CSV.
+COLUMNAS_ESPERADAS = ["t2m", "d2m", "sp", "u10", "v10", "ssrd"]
 FECHA_INICIO = "1998-01-01"
 FECHA_FIN = "2022-12-31"
 
@@ -89,20 +93,32 @@ def descargar_punto(cliente, punto):
         "data_format": "csv",
     }
     temporal = CARPETA_SALIDA / f"punto_{punto['punto']}.descarga"
-    print(f"Punto {punto['punto']} ({punto['lon']}, {punto['lat']}): pidiendo al CDS...")
-    cliente.retrieve(PRODUCTO, peticion).download(str(temporal))
+    if temporal.exists() and zipfile.is_zipfile(temporal):
+        print(f"Punto {punto['punto']}: se reutiliza la descarga cruda {temporal.name}.")
+    else:
+        print(f"Punto {punto['punto']} ({punto['lon']}, {punto['lat']}): pidiendo al CDS...")
+        cliente.retrieve(PRODUCTO, peticion).download(str(temporal))
 
-    # El CDS puede entregar el CSV suelto o dentro de un ZIP; en el segundo caso se extrae el único CSV.
+    # El CDS entrega un ZIP con un CSV por grupo de variables (viento, temperatura, radiación, presión).
+    # Todos traen las columnas valid_time, latitude y longitude; se unen por valid_time.
     if zipfile.is_zipfile(temporal):
         with zipfile.ZipFile(temporal) as zf:
-            csvs = [n for n in zf.namelist() if n.lower().endswith(".csv")]
-            if len(csvs) != 1:
-                raise RuntimeError(f"Se esperaba un CSV en el ZIP del punto {punto['punto']}, hay {csvs}")
-            with zf.open(csvs[0]) as origen, open(destino, "wb") as salida:
-                shutil.copyfileobj(origen, salida)
-        temporal.unlink()
+            partes = [pd.read_csv(zf.open(n)) for n in sorted(zf.namelist()) if n.lower().endswith(".csv")]
     else:
-        temporal.rename(destino)
+        partes = [pd.read_csv(temporal)]
+    serie = partes[0]
+    for parte in partes[1:]:
+        # Cada parte debe ser de la misma celda; latitude y longitude se conservan una sola vez.
+        assert (parte[["latitude", "longitude"]].drop_duplicates().values
+                == serie[["latitude", "longitude"]].drop_duplicates().values).all()
+        serie = serie.merge(parte.drop(columns=["latitude", "longitude"]), on="valid_time", how="outer")
+    faltan = [v for v in COLUMNAS_ESPERADAS if v not in serie.columns]
+    if faltan:
+        raise RuntimeError(f"Al punto {punto['punto']} le faltan las columnas {faltan}")
+    serie = serie.sort_values("valid_time")
+    serie.to_csv(destino, index=False)
+    temporal.unlink()
+    print(f"Punto {punto['punto']}: {len(serie)} horas, columnas {list(serie.columns)}")
     return destino
 
 
@@ -113,7 +129,9 @@ def main():
     archivos = []
     for punto in PUNTOS:
         ruta = descargar_punto(cliente, punto)
-        archivos.append({**punto, "archivo": ruta.name, "sha256": sha256_de(ruta)})
+        celda = pd.read_csv(ruta, usecols=["latitude", "longitude"], nrows=1).iloc[0]
+        archivos.append({**punto, "archivo": ruta.name, "sha256": sha256_de(ruta),
+                         "celda_entregada": {"lat": float(celda.latitude), "lon": float(celda.longitude)}})
 
     metadatos = {
         "fuente": "Copernicus Climate Data Store",

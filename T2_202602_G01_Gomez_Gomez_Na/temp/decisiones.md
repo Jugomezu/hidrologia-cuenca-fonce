@@ -65,3 +65,12 @@ mínimas diarias. La rapidez del viento se calcula cada hora, √(u10² + v10²)
 **Razonamiento.** Solo la radiación es una cantidad que se acumula (energía); las demás son estados del aire y su
 suma no tiene sentido físico. La suma mensual de radiación ya refleja el número de días de cada mes. Se suma Rs,
 no Rn: Rn no se descargó y se calcula después con FAO-56, a escala diaria.
+
+## 2026-11-12 · Punto 1 · Radiación neta Rn (FAO-56)
+
+**Decisión.** Rn diaria por punto con FAO-56 (ec. 21–40), α = 0.23, G = 0; Rn mensual = suma de las diarias.
+ea = promedio diario de e°(Td) horario. En Rso (ec. 37), z = altura de la superficie del modelo, despejada de la
+presión media `sp` con la ec. 7.
+
+**Razonamiento.** Rn depende de Tmax, Tmin y ea del mismo día, así que se calcula diaria y luego se suma al mes.
+z del modelo para que Rso corresponda a la misma superficie que Rs y T; Rso cambia solo 2.7 % por cada 1 000 m.

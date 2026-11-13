@@ -100,3 +100,9 @@ entrega como energía por hora (J/m²); la radiación diaria es la suma de las 2
 hay que desacumularla; en el producto de series de tiempo no. Se verificó en los datos: el ciclo diario sube y
 baja, y la suma diaria (18.6 MJ/m² en promedio) queda bajo la radiación de cielo despejado. Así nadie confunde
 nuestra suma con una suma de acumulados.
+
+## 2026-11-13 · Punto 1 · Presión real de vapor e_a
+
+**Decisión.** e_a diaria = promedio de las 24 e°(Td) horarias del día, no e°(Td media) como en la ec. 14 de FAO-56.
+
+**Razonamiento.** Con datos horarios, promediar e_a es más fiel al ciclo diario; e° no es lineal en Td.

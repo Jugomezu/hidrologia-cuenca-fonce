@@ -15,6 +15,13 @@ Hora local de Colombia = valid_time (UTC) − 5 h (decisión del 2026-11-12, tem
 Conversiones solo de unidades, para leer mejor: K → °C, Pa → kPa, ssrd J/m² en la hora → W/m² promedio de la hora
 (÷ 3600). u10 y v10 se muestran tal cual (m/s).
 
+Al final, la fase 3 (pruebas de la referencia): Rs de Angstrom con el brillo solar de 3 estaciones del IDEAM frente
+a la ssrd de ERA5-Land, y ETo FAO-56 de estación frente a la de ERA5-Land, con sus dos variantes de viento. Lee las
+salidas de codigo/punto1/12_rs_brillo_solar_vs_era5land.py y 13_eto_estaciones_vs_era5land.py; no calcula nada nuevo.
+
+Escribe también temp/documento_trabajo_ligero.html: lo mismo sin las series horarias (pesa menos de 1 MB), para
+abrirlo con un enlace.
+
 Las 219 144 horas × 6 puntos × 6 variables se guardan dentro del HTML como Float32 en base64, y el eje de tiempo
 se reconstruye en el navegador a partir de la primera hora (las series son horarias y sin huecos; se verifica).
 Por eso el archivo pesa unos 40 MB. Va en temp/, que se borra antes de armar el ZIP de la entrega.
@@ -33,6 +40,9 @@ import pandas as pd
 RAIZ_ENTREGA = Path(__file__).resolve().parents[1]
 CARPETA_DATOS = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_puntos"
 SALIDA = RAIZ_ENTREGA / "temp" / "series_horarias_era5land.html"
+SALIDA_LIGERA = RAIZ_ENTREGA / "temp" / "documento_trabajo_ligero.html"
+CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
+NOMBRES_ESTACION = {"24025040": "Mogotes (1 673 m)", "24025030": "La Sierra (2 850 m)", "24025050": "Charalá (1 350 m)"}
 ETO_CUENCA = RAIZ_ENTREGA / "productos" / "punto1" / "eto_mensual_cuenca.csv"
 # La ETP de Hargreaves de la Tarea 1 (fuera de la carpeta de la entrega): solo para comparar en este documento.
 HARGREAVES_TAREA1 = RAIZ_ENTREGA.parent / "Analisis_De_Cuenca" / "out" / "etp_hargreaves_fonce.csv"
@@ -83,6 +93,51 @@ def series_mensuales_eto():
     }
 
 
+def datos_fase3():
+    """Salidas de los scripts 12 y 13: ciclo anual, sesgo por mes, series diarias y resumen, por estación."""
+    rs_mes = pd.read_csv(CARPETA_PRODUCTOS / "rs_estaciones_vs_era5land_por_mes.csv", dtype={"estacion": str})
+    rs_res = pd.read_csv(CARPETA_PRODUCTOS / "rs_estaciones_vs_era5land_resumen.csv", dtype={"estacion": str})
+    rs_dia = pd.read_csv(CARPETA_PRODUCTOS / "rs_estaciones_diaria.csv", dtype={"estacion": str})
+    eto_mes = pd.read_csv(CARPETA_PRODUCTOS / "eto_estaciones_vs_era5land_por_mes.csv", dtype={"estacion": str})
+    eto_res = pd.read_csv(CARPETA_PRODUCTOS / "eto_estaciones_vs_era5land_resumen.csv", dtype={"estacion": str})
+    eto_dia = pd.read_csv(CARPETA_PRODUCTOS / "eto_estaciones_diaria.csv", dtype={"estacion": str})
+    estaciones = []
+    for codigo, nombre in NOMBRES_ESTACION.items():
+        r = rs_mes[rs_mes["estacion"] == codigo].sort_values("mes")
+        rr = rs_res[rs_res["estacion"] == codigo].iloc[0]
+        e = {v: eto_mes[(eto_mes["estacion"] == codigo) & (eto_mes["variante_viento"] == v)].sort_values("mes")
+             for v in ["mogotes_aut", "2ms"]}
+        er = eto_res[eto_res["estacion"] == codigo].set_index("variante_viento")
+        # Días sin dato como vacíos (null en el JSON), para que la línea se corte en los huecos y no los una.
+        todos = pd.date_range("1998-01-01", "2022-12-31", freq="D").strftime("%Y-%m-%d")
+        rd = rs_dia[rs_dia["estacion"] == codigo].set_index("fecha").reindex(todos).rename_axis("fecha").reset_index()
+        ed = eto_dia[eto_dia["estacion"] == codigo].set_index("fecha").reindex(todos).rename_axis("fecha").reset_index()
+        rd = rd.astype(object).where(rd.notna(), None)
+        ed = ed.astype(object).where(ed.notna(), None)
+        estaciones.append({
+            "codigo": codigo, "nombre": nombre, "punto": int(rr["punto_era5"]),
+            "distancia_km": float(rr["distancia_km"]), "dz_celda_m": float(rr["estacion_menos_celda_dem_m"]),
+            "rs": {"estacion": r["rs_estacion_media"].round(2).tolist(), "era5": r["rs_era5_media"].round(2).tolist(),
+                   "sesgo": r["sesgo_MJm2"].round(2).tolist(),
+                   "sesgo_total": round(float(rr["sesgo_MJm2"]), 2), "sesgo_pct": round(float(rr["sesgo_pct"]), 1),
+                   "rmse": round(float(rr["rmse_MJm2"]), 2), "dias": int(rr["dias"])},
+            "eto": {"a": e["mogotes_aut"]["eto_estacion_media_mm_dia"].round(3).tolist(),
+                    "b": e["2ms"]["eto_estacion_media_mm_dia"].round(3).tolist(),
+                    "era5": e["mogotes_aut"]["eto_era5_media_mm_dia"].round(3).tolist(),
+                    "sesgo_a": e["mogotes_aut"]["sesgo_mm_dia"].round(3).tolist(),
+                    "sesgo_b": e["2ms"]["sesgo_mm_dia"].round(3).tolist(),
+                    "resumen": {v: {"sesgo": round(float(er.loc[v, "sesgo_mm_dia"]), 2),
+                                    "pct": round(float(er.loc[v, "sesgo_pct"]), 1),
+                                    "rmse": round(float(er.loc[v, "rmse_mm_dia"]), 2), "dias": int(er.loc[v, "dias"])}
+                                for v in ["mogotes_aut", "2ms"]}},
+            "diaria_rs": {"fecha": rd["fecha"].tolist(), "estacion": [None if v is None else round(float(v), 2) for v in rd["rs_estacion_MJm2"]],
+                          "era5": [None if v is None else round(float(v), 2) for v in rd["rs_era5_MJm2"]]},
+            "diaria_eto": {"fecha": ed["fecha"].tolist(), "a": [None if v is None else round(float(v), 2) for v in ed["eto_mogotes_aut_mm"]],
+                           "b": [None if v is None else round(float(v), 2) for v in ed["eto_2ms_mm"]], "era5": [None if v is None else round(float(v), 2) for v in ed["eto_era5_mm"]]},
+        })
+    return estaciones
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -98,6 +153,7 @@ def main():
         "inicio_local": inicio_local.strftime("%Y-%m-%dT%H:%M:%S"),
         "horas": largo,
         "mensual": mensual,
+        "fase3": datos_fase3(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -121,6 +177,13 @@ def main():
     html = PLANTILLA.replace("__CARGA__", json.dumps(carga, ensure_ascii=False))
     SALIDA.write_text(html, encoding="utf-8")
     print(f"Listo: {SALIDA} ({SALIDA.stat().st_size / 1e6:.1f} MB), {largo} horas por punto")
+
+    # Versión ligera: sin las series horarias.
+    carga["variables"] = []
+    carga["horas"] = 0
+    carga["cifras"] = carga["cifras"][:3]
+    SALIDA_LIGERA.write_text(PLANTILLA.replace("__CARGA__", json.dumps(carga, ensure_ascii=False)), encoding="utf-8")
+    print(f"Listo: {SALIDA_LIGERA} ({SALIDA_LIGERA.stat().st_size / 1e6:.1f} MB)")
 
 
 PLANTILLA = """<!doctype html>
@@ -179,6 +242,11 @@ section { margin-bottom: 64px; }
   border-radius: 6px; padding: 8px 12px; cursor: pointer; }
 .controles button:hover { color: var(--tinta); }
 .controles button[aria-pressed="true"] { color: var(--acento); border-color: var(--acento); background: var(--acento-suave); font-weight: 600; }
+.tabla { overflow-x: auto; margin: 8px 0 4px; }
+.tabla table { border-collapse: collapse; font: 400 13px/1.4 var(--f-dato); font-variant-numeric: tabular-nums; }
+.tabla th, .tabla td { padding: 6px 12px; border-bottom: 1px solid var(--linea); text-align: right; white-space: nowrap; }
+.tabla th:first-child, .tabla td:first-child { text-align: left; }
+.tabla th { color: var(--tenue); font-weight: 500; }
 footer { border-top: 1px solid var(--linea); padding-top: 24px; font-size: 14px; color: var(--tenue); }
 code { font: 400 .86em var(--f-dato); }
 @media (max-width: 1000px) { .rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -204,14 +272,44 @@ code { font: 400 .86em var(--f-dato); }
   </div>
 </section>
 
-<section>
+<section id="s-horarias">
   <h2>Series horarias de las 6 variables</h2>
   <p>El zoom en el tiempo se sincroniza en las 6 gráficas. Clic en un punto de la leyenda lo oculta o lo muestra en todas.</p>
   <div class="controles" id="ventanas"></div>
   <div class="rejilla" id="rejilla"></div>
 </section>
 
+<section>
+  <h2>Fase 3 · Radiación de estaciones frente a ERA5-Land</h2>
+  <p>Rs de estación con Angstrom (FAO-56 ec. 35, a<sub>s</sub> = 0.25, b<sub>s</sub> = 0.50) a partir del brillo solar
+  diario del IDEAM. Cada estación se compara con el punto de ERA5-Land más cercano, en los mismos días. Sesgo =
+  ERA5-Land − estación.</p>
+  <div class="tabla" id="t-rs"></div>
+  <div class="rejilla" id="r-rs"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de Rs por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-rs-sesgo"></div></div>
+</section>
+
+<section>
+  <h2>Fase 3 · ETo de estación frente a ERA5-Land</h2>
+  <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Dos variantes de viento:
+  (a) media mensual de Mogotes-AUT, con el anemómetro supuesto a 10 m; (b) u2 = 2 m/s. Solo días con todas las
+  entradas.</p>
+  <div class="tabla" id="t-eto"></div>
+  <div class="rejilla" id="r-eto"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ETo por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
+</section>
+
+<section>
+  <h2>Fase 3 · Series diarias por estación</h2>
+  <p>Rs y ETo de cada día con dato. Elige la estación; el zoom en el tiempo se sincroniza entre las dos gráficas.</p>
+  <div class="controles" id="c-estacion"></div>
+  <div class="tarjeta"><h3>Rs diaria</h3><div class="grafico" id="g-rs-diaria"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo diaria</h3><div class="grafico" id="g-eto-diaria"></div></div>
+</section>
+
 <footer>
+  <p>Fase 3: salidas de <code>codigo/punto1/12_rs_brillo_solar_vs_era5land.py</code> y
+  <code>13_eto_estaciones_vs_era5land.py</code> en <code>productos/punto1/</code>.</p>
   <p>Generado por <code>temp/graficas_series_horarias.py</code> a partir de <code>datos/punto1/era5land_puntos/</code>,
   <code>productos/punto1/eto_mensual_cuenca.csv</code> y la ETP de Hargreaves de la Tarea 1. Conversiones solo de
   unidades: K → °C, Pa → kPa, ssrd J/m² en la hora → W/m² (÷ 3600).</p>
@@ -260,7 +358,76 @@ for (const [valor, texto] of CARGA.cifras) {
     l2, OPCIONES);
 })();
 
+// ---------- Fase 3 ----------
+(() => {
+  const F = CARGA.fase3, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const COLOR_EST = ['#0072B2', '#D55E00', '#009E73'];
+  const C = {estacion: '#1B6A80', era5: '#C8553D', b: '#5A9E6F'};
+  const fmt = (v, d = 2) => (v > 0 ? '+' : '') + v.toFixed(d);
+  const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
+  const tabla = (id, cab, filas) => { document.getElementById(id).innerHTML =
+    `<table><thead><tr>${cab.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    filas.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') + '</tbody></table>'; };
+  const tarjeta = (cont, titulo) => { const t = document.createElement('div'); t.className = 'tarjeta';
+    t.innerHTML = `<h3>${titulo}</h3>`; const g = document.createElement('div'); g.className = 'grafico';
+    t.appendChild(g); document.getElementById(cont).appendChild(t); return g; };
+
+  tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
+    F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
+                fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
+  tabla('t-eto', ['Estación', 'Días', 'Sesgo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
+    F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'];
+      return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2)]; }));
+
+  F.forEach(e => {
+    Plotly.newPlot(tarjeta('r-rs', e.nombre), [
+      {type: 'scatter', mode: 'lines+markers', name: 'Estación (Angstrom)', x: xm, y: e.rs.estacion, line: {color: C.estacion}},
+      {type: 'scatter', mode: 'lines+markers', name: `ERA5-Land (punto ${e.punto})`, x: xm, y: e.rs.era5, line: {color: C.era5, dash: 'dash'}}],
+      ejeMes(base('MJ/m²·día')), OPCIONES);
+    Plotly.newPlot(tarjeta('r-eto', e.nombre), [
+      {type: 'scatter', mode: 'lines+markers', name: 'Estación (a)', x: xm, y: e.eto.a, line: {color: C.estacion}},
+      {type: 'scatter', mode: 'lines+markers', name: 'Estación (b)', x: xm, y: e.eto.b, line: {color: C.b, dash: 'dot'}},
+      {type: 'scatter', mode: 'lines+markers', name: `ERA5-Land (punto ${e.punto})`, x: xm, y: e.eto.era5, line: {color: C.era5, dash: 'dash'}}],
+      ejeMes(base('mm/día')), OPCIONES);
+  });
+  Plotly.newPlot('g-rs-sesgo', F.map((e, k) => ({type: 'scatter', mode: 'lines+markers', name: e.nombre, x: xm, y: e.rs.sesgo,
+    line: {color: COLOR_EST[k]}})), ejeMes(base('MJ/m²·día')), OPCIONES);
+  Plotly.newPlot('g-eto-sesgo', F.flatMap((e, k) => [
+    {type: 'scatter', mode: 'lines+markers', name: e.nombre + ' (a)', x: xm, y: e.eto.sesgo_a, line: {color: COLOR_EST[k]}},
+    {type: 'scatter', mode: 'lines+markers', name: e.nombre + ' (b)', x: xm, y: e.eto.sesgo_b, line: {color: COLOR_EST[k], dash: 'dot'}}]),
+    ejeMes(base('mm/día')), OPCIONES);
+
+  // Series diarias con selector de estación y zoom sincronizado
+  const dibujar = k => {
+    const e = F[k];
+    const l1 = base('MJ/m²·día'); l1.hovermode = 'closest';
+    Plotly.react('g-rs-diaria', [
+      {type: 'scattergl', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1}},
+      {type: 'scattergl', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1}}],
+      l1, OPCIONES);
+    const l2 = base('mm/día'); l2.hovermode = 'closest';
+    Plotly.react('g-eto-diaria', [
+      {type: 'scattergl', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1}},
+      {type: 'scattergl', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1}, visible: 'legendonly'},
+      {type: 'scattergl', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
+      l2, OPCIONES);
+  };
+  F.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e.nombre; b.setAttribute('aria-pressed', String(k === 0));
+    b.onclick = () => { document.querySelectorAll('#c-estacion button').forEach(o => o.setAttribute('aria-pressed', String(o === b))); dibujar(k); };
+    document.getElementById('c-estacion').appendChild(b); });
+  dibujar(0);
+  let enSincronia = false;
+  const pares = [['g-rs-diaria', 'g-eto-diaria'], ['g-eto-diaria', 'g-rs-diaria']];
+  pares.forEach(([a, b]) => document.getElementById(a).on('plotly_relayout', ev => {
+    if (enSincronia) return; const cambio = {};
+    if (ev['xaxis.range[0]'] !== undefined) cambio['xaxis.range'] = [ev['xaxis.range[0]'], ev['xaxis.range[1]']];
+    else if (ev['xaxis.autorange']) cambio['xaxis.autorange'] = true; else return;
+    enSincronia = true; Plotly.relayout(b, cambio).then(() => { enSincronia = false; });
+  }));
+})();
+
 // Series horarias en rejilla, con el zoom en el tiempo sincronizado.
+if (!CARGA.variables.length) document.getElementById('s-horarias').hidden = true;
 const decodificar = b64 => { const s = atob(b64), b = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return new Float32Array(b.buffer); };
 const t0 = new Date(CARGA.inicio_local + 'Z').getTime();

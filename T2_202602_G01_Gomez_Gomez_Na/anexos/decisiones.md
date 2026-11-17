@@ -205,4 +205,8 @@ El script 04d lo revisa en nuestros datos (`anexos/punto1/era5land_sep_dic_2022_
   veces la media de 1998–2021, fuera del rango histórico los 4 meses.
 - La Rs del producto de series de tiempo (6 puntos, base de la ETo) **no**: cociente 0.94–1.04, dentro del rango.
 
-**Decisión.** Pendiente de Juan: cómo tratar sep–dic 2022 del archivo mensual.
+**Decisión (Juan, 2026-11-17).** Toda comparación que use `era5land_mensual_balance` (Rn y evaporación de ERA5-Land
+mensual) se hace sobre 1998-01 a 2022-08 (296 meses). El archivo descargado no se toca. La ETo sigue en 1998–2022.
+
+**Razonamiento.** Los 4 meses están claramente mal y ECMWF no los corrigió. Recortar es lo más simple de declarar y
+no depende de una descarga nueva.

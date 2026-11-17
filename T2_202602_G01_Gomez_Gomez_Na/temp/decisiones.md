@@ -184,3 +184,17 @@ Mogotes 24025040 (punto 6, 8.5 km, estación 412 m bajo la celda del DEM): +1.89
 La Sierra 24025030 (punto 1, 7.8 km, 409 m bajo): +4.81 (+34.7 %), RMSE 5.65.
 Charalá 24025050 (punto 3, 6.3 km, 230 m bajo): +2.33 (+13.8 %), RMSE 3.89.
 ERA5-Land queda por encima en los 12 meses en las tres. Por mes: `productos/punto1/rs_estaciones_vs_era5land_por_mes.csv`.
+
+## 2026-11-17 · Punto 1 · ETo de estación frente a ERA5-Land (prueba de estaciones)
+
+**Decisión.** ETo FAO-56 de estación (script 13) en Mogotes, La Sierra y Charalá: Tmax y Tmin medidas, ea con la ec. 17
+(HR máx. y mín.), Rs de Angstrom (script 12), P con la ec. 7 y la altura de la estación, G = 0. No hay viento en La Sierra
+ni en Charalá: dos variantes, sin elegir todavía. (a) u2 = media mensual de Mogotes-AUT (24025090, mismas coordenadas
+que 24025040), con anemómetro supuesto a 10 m (DHIME no da la altura) y ec. 47; u2 ≈ 0.70–0.83 m/s. (b) u2 = 2 m/s, valor de
+FAO-56 sin datos de viento. Solo días con todas las entradas; no se rellena. Se comparan los mismos días contra el punto
+más cercano. Andalucía (24035350) no entra: fuera de la cuenca y sin brillo solar. Tanque de Mogotes-AUT no se usa.
+
+**Resultado.** Sesgo ERA5-Land − estación, mm/día (variante a / variante b):
+Mogotes (4 591 días): −0.13 (−4.0 %) / −0.58 (−15.1 %). La Sierra (4 109): +0.56 (+23.1 %) / +0.53 (+21.8 %).
+Charalá (4 462): −0.15 (−4.3 %) / −0.58 (−14.8 %). Medias de entradas en los mismos días: ERA5-Land más frío (Tmax
+1.5–5.8 °C, Tmin 2.2–4.5 °C), más seco (ea 0.16–0.34 kPa) y con más Rs (1.8–5.1 MJ/m²·día) que las estaciones.

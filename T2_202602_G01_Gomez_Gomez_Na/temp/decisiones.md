@@ -170,3 +170,17 @@ Panamá (PA-SPs y PA-SPn, a unos 800 km) y la Amazonia.
 
 **Decisión.** No se usa torre de flujo. La ET real se contrasta solo entre productos (TerraClimate, ERA5-Land, SSEBop y
 MOD16) y con el balance hídrico. Esto queda como limitación.
+
+## 2026-11-17 · Punto 1 · Rs de estaciones (brillo solar) frente a ERA5-Land
+
+**Decisión.** Rs de estación con Angstrom, FAO-56 ec. 35, Rs = (0.25 + 0.50 n/N) Ra, con N de la ec. 34 y Ra de la ec. 21
+en la latitud de la estación. a_s = 0.25 y b_s = 0.50 son los que FAO-56 recomienda sin calibración local (cap. 3,
+verificado en la versión HTML de FAO; la página del PDF falta verificarla). Cada estación se compara con el más cercano de
+los 6 puntos ya descargados, no con la celda que la contiene (no está descargada). Solo días con brillo solar; no se
+rellena. Se descarta el día con n > N (no hubo ninguno). Script 12.
+
+**Resultado.** Sesgo ERA5-Land − estación (todo el periodo) y RMSE diario, en MJ/m²·día:
+Mogotes 24025040 (punto 6, 8.5 km, estación 412 m bajo la celda del DEM): +1.89 (+11.1 %), RMSE 3.44.
+La Sierra 24025030 (punto 1, 7.8 km, 409 m bajo): +4.81 (+34.7 %), RMSE 5.65.
+Charalá 24025050 (punto 3, 6.3 km, 230 m bajo): +2.33 (+13.8 %), RMSE 3.89.
+ERA5-Land queda por encima en los 12 meses en las tres. Por mes: `productos/punto1/rs_estaciones_vs_era5land_por_mes.csv`.

@@ -1,0 +1,4 @@
+estacion,nombre,lon_estacion,lat_estacion,z_estacion_m,punto_era5,lon_punto,lat_punto,distancia_km,z_celda_dem_m,z_modelo_m,estacion_menos_celda_dem_m,estacion_menos_modelo_m,dias_con_brillo,dias_descartados_n_mayor_N,dias,rs_estacion_media,rs_era5_media,sesgo_MJm2,sesgo_pct,rmse_MJm2,correlacion_diaria
+24025030,LA SIERRA - AUT [24025030],-73.162,5.967,2850.0,1,-73.1,6.0,7.8,3259.0,3007.0,-409.0,-157.0,8355.0,0.0,8355.0,13.875,18.684,4.809,34.657,5.65,0.613
+24025040,ESCUELA AGRICOLA MOGOTES [24025040],-72.969,6.47,1673.0,6,-73.0,6.4,8.5,2085.0,2157.0,-412.0,-484.0,8367.0,0.0,8367.0,17.026,18.919,1.894,11.122,3.441,0.623
+24025050,CHARALÁ [24025050],-73.151,6.274,1350.0,3,-73.1,6.3,6.3,1580.0,1654.0,-230.0,-304.0,8123.0,0.0,8123.0,16.89,19.217,2.328,13.781,3.886,0.578

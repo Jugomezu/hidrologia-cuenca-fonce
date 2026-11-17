@@ -291,9 +291,10 @@ code { font: 400 .86em var(--f-dato); }
 
 <section>
   <h2>Fase 3 · ETo de estación frente a ERA5-Land</h2>
-  <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Dos variantes de viento:
-  (a) media mensual de Mogotes-AUT, con el anemómetro supuesto a 10 m; (b) u2 = 2 m/s. Solo días con todas las
-  entradas.</p>
+  <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
+  variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
+  Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), u2 = 2 m/s, queda como sensibilidad. Solo días con todas
+  las entradas.</p>
   <div class="tabla" id="t-eto"></div>
   <div class="rejilla" id="r-eto"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ETo por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>

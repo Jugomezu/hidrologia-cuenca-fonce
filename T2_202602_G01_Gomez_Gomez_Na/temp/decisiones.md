@@ -198,3 +198,12 @@ más cercano. Andalucía (24035350) no entra: fuera de la cuenca y sin brillo so
 Mogotes (4 591 días): −0.13 (−4.0 %) / −0.58 (−15.1 %). La Sierra (4 109): +0.56 (+23.1 %) / +0.53 (+21.8 %).
 Charalá (4 462): −0.15 (−4.3 %) / −0.58 (−14.8 %). Medias de entradas en los mismos días: ERA5-Land más frío (Tmax
 1.5–5.8 °C, Tmin 2.2–4.5 °C), más seco (ea 0.16–0.34 kPa) y con más Rs (1.8–5.1 MJ/m²·día) que las estaciones.
+
+## 2026-11-17 · Punto 1 · Viento de la ETo de estación
+
+**Decisión (Juan).** Variante final: (a), u2 = media mensual del viento de Mogotes-AUT (24025090), medido a 10 m y
+llevado a 2 m con la ec. 47 de FAO-56. La variante (b), u2 = 2 m/s, queda solo como sensibilidad.
+
+**Razonamiento.** Es viento medido en la cuenca. La altura de 10 m ya no es un supuesto: el Manual del Observador
+Meteorológico del IDEAM (GDI-M003, versión 03) dice que los sensores de viento en Colombia están a 10 m. Con (a), sesgo
+ERA5-Land − estación: Mogotes −0.13 mm/día (−4.0 %), La Sierra +0.56 (+23.1 %), Charalá −0.15 (−4.3 %).

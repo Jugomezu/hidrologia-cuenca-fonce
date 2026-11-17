@@ -29,10 +29,13 @@ Cálculo, FAO-56 (Allen et al., 1998), igual que 03 y 04 salvo de dónde sale ca
     P            ec. 7 con la altura de la estación; γ con la ec. 8
     G            0 (ec. 42)
     u2           no hay viento medido en La Sierra ni en Charalá, y en Mogotes solo Mogotes-AUT (24025090, mismas
-                 coordenadas que 24025040) desde 2005, con media de 0.99 m/s. Se calculan dos variantes y no se elige:
-                   «mogotes_aut»: el promedio de Mogotes-AUT por mes calendario, el mismo en las tres estaciones. DHIME no
-                     dice la altura del anemómetro; se supone 10 m y se lleva a 2 m con la ec. 47.
-                   «2ms»: u2 = 2 m/s, el valor que FAO-56 propone cuando no hay datos de viento (cap. 3).
+                 coordenadas que 24025040) desde 2005, con media de 0.99 m/s. Dos variantes:
+                   «mogotes_aut» (VARIANTE FINAL, decisión del 2026-11-17 en el registro de decisiones): el promedio de
+                     Mogotes-AUT por mes calendario, el mismo en las tres estaciones, medido a 10 m y llevado a 2 m con
+                     la ec. 47. La altura de 10 m sale del Manual del Observador Meteorológico del IDEAM (GDI-M003,
+                     versión 03), según el cual los sensores de viento en Colombia están a 10 m.
+                   «2ms»: u2 = 2 m/s, el valor que FAO-56 propone cuando no hay datos de viento (cap. 3). Se conserva
+                     solo como sensibilidad al viento.
 
 Control de calidad (se descartan los días, no se rellena; se cuenta cuántos):
     Tmin ≥ Tmax; HRmin > HRmax; HR fuera de 0–100 %.
@@ -80,7 +83,7 @@ PARAMETROS = {
 }
 PARAMETRO_VIENTO = "Velocidad 10 minutal del viento media diaria"
 
-ALTURA_ANEMOMETRO_SUPUESTA_M = 10.0   # DHIME no la reporta: supuesto declarado
+ALTURA_ANEMOMETRO_M = 10.0            # IDEAM, Manual del Observador Meteorológico (GDI-M003, v. 03)
 U2_SIN_DATOS = 2.0                    # m/s, FAO-56 cap. 3, cuando no hay datos de viento
 ALBEDO_REFERENCIA = 0.23
 STEFAN_BOLTZMANN = 4.903e-9           # MJ/K⁴·m²·día
@@ -121,12 +124,12 @@ def leer_dhime():
 
 
 def u2_mensual_mogotes_aut(dhime):
-    """u2 media por mes calendario de Mogotes-AUT, llevada de la altura supuesta a 2 m con la ec. 47."""
+    """u2 media por mes calendario de Mogotes-AUT, llevada de 10 m a 2 m con la ec. 47."""
     viento = dhime[(dhime["CodigoEstacion"] == ESTACION_VIENTO) & (dhime["Parametro"] == PARAMETRO_VIENTO)]
     viento = viento.set_index("fecha")["Valor"].loc[INICIO:FIN]
     por_mes = viento.groupby(viento.index.month).mean()
     assert len(por_mes) == 12
-    return viento_a_2m(por_mes, ALTURA_ANEMOMETRO_SUPUESTA_M), len(viento)
+    return viento_a_2m(por_mes, ALTURA_ANEMOMETRO_M), len(viento)
 
 
 def eto_fao56(tmax, tmin, ea, rn, presion, u2):
@@ -248,9 +251,9 @@ def main():
         datos = por_mes.loc[codigo]
         punto = int(diaria.loc[diaria["estacion"] == codigo, "punto_era5"].iloc[0])
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_estacion_media_mm_dia"], "o-", color="#1f6f8b",
-                 label="Estación, viento Mogotes-AUT")
+                 label="Estación, viento Mogotes-AUT a 10 m (final)")
         eje.plot(range(1, 13), datos.loc["2ms", "eto_estacion_media_mm_dia"], "^:", color="#5a9e6f",
-                 label="Estación, u2 = 2 m/s")
+                 label="Estación, u2 = 2 m/s (sensibilidad)")
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_era5_media_mm_dia"], "s--", color="#c8553d",
                  label=f"ERA5-Land (punto {punto})")
         nombre = catalogo.loc[codigo, "nombre"].split(" [")[0].title()

@@ -33,7 +33,7 @@ Cálculo, FAO-56 (Allen et al., 1998), igual que 03 y 04 salvo de dónde sale ca
                    «mogotes_aut» (VARIANTE FINAL, decisión del 2026-11-17 en el registro de decisiones): el promedio de
                      Mogotes-AUT por mes calendario, el mismo en las tres estaciones, medido a 10 m y llevado a 2 m con
                      la ec. 47. La altura de 10 m sale del Manual del Observador Meteorológico del IDEAM (GDI-M003,
-                     versión 03), según el cual los sensores de viento en Colombia están a 10 m.
+                     versión 03, p. 37), según el cual los sensores de viento en Colombia están a 10 m.
                    «2ms»: u2 = 2 m/s, el valor que FAO-56 propone cuando no hay datos de viento (cap. 3). Se conserva
                      solo como sensibilidad al viento.
 
@@ -83,7 +83,7 @@ PARAMETROS = {
 }
 PARAMETRO_VIENTO = "Velocidad 10 minutal del viento media diaria"
 
-ALTURA_ANEMOMETRO_M = 10.0            # IDEAM, Manual del Observador Meteorológico (GDI-M003, v. 03)
+ALTURA_ANEMOMETRO_M = 10.0            # IDEAM, Manual del Observador Meteorológico (GDI-M003, v. 03, p. 37)
 U2_SIN_DATOS = 2.0                    # m/s, FAO-56 cap. 3, cuando no hay datos de viento
 ALBEDO_REFERENCIA = 0.23
 STEFAN_BOLTZMANN = 4.903e-9           # MJ/K⁴·m²·día

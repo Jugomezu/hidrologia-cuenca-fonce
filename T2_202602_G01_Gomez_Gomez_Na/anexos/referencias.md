@@ -7,4 +7,4 @@ Lista de trabajo: cada fuente citada en scripts, decisiones o informe. Formato A
   37–40, 42–44 y 47. Pendiente: número de página de las ec. 34 y 35 en el PDF.
 - Instituto de Hidrología, Meteorología y Estudios Ambientales [IDEAM]. (2024). *Manual del observador meteorológico*
   (Código GDI-M003, versión 03, fecha del documento 07/07/2025). Subdirección de Meteorología. Usado: altura de 10 m de
-  los sensores de viento (viento de Mogotes-AUT, script 13). Pendiente: sección o página de la cita.
+  los sensores de viento, p. 37 (viento de Mogotes-AUT, script 13).

@@ -205,5 +205,5 @@ Charalá (4 462): −0.15 (−4.3 %) / −0.58 (−14.8 %). Medias de entradas e
 llevado a 2 m con la ec. 47 de FAO-56. La variante (b), u2 = 2 m/s, queda solo como sensibilidad.
 
 **Razonamiento.** Es viento medido en la cuenca. La altura de 10 m ya no es un supuesto: el Manual del Observador
-Meteorológico del IDEAM (GDI-M003, versión 03) dice que los sensores de viento en Colombia están a 10 m. Con (a), sesgo
+Meteorológico del IDEAM (GDI-M003, versión 03, p. 37) dice que los sensores de viento en Colombia están a 10 m. Con (a), sesgo
 ERA5-Land − estación: Mogotes −0.13 mm/día (−4.0 %), La Sierra +0.56 (+23.1 %), Charalá −0.15 (−4.3 %).

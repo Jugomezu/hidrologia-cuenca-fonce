@@ -1,0 +1,11 @@
+{
+  "archivo": "era5land_gee/t2m_2013.csv",
+  "fuente": "ERA5-Land, temperatura del aire a 2 m, agregados diarios, vía Google Earth Engine; doi:10.24381/cds.e2161bac; licencia Copernicus",
+  "version": "ERA5-Land, agregado diario (ECMWF/ERA5_LAND/DAILY_AGGR)",
+  "unidades": "t_media, t_min, t_max en °C, promedio de la cuenca por día",
+  "fecha_descarga": "2026-09-24",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md",
+  "tamano_bytes": 24766,
+  "sha256": "28cb0ecdc3616b611bef3f4aa9921fd512abb3eb818e14a8d6b7459d4c7efcac",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

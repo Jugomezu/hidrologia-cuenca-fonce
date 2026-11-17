@@ -1,0 +1,11 @@
+{
+  "archivo": "imerg/mensual/201907.txt",
+  "fuente": "NASA GPM IMERG Final, mensual 0.1° V07 (GPM_3IMERGM), doi:10.5067/GPM/IMERG/3B-MONTH/07; dominio público",
+  "version": "V07B",
+  "unidades": "mensual/AAAAMM.txt: mm/h (tal como lo entrega la NASA); imerg_mensual_col.npz: mm/mes",
+  "fecha_descarga": "2026-09-18",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md; recorte a Colombia (lon -79.55 a -66.35, lat -4.65 a 13.75)",
+  "tamano_bytes": 170041,
+  "sha256": "f681026af475e04b82eee1eb7f699b18c9be7d09e5dd258e26c428df966cf3a7",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

@@ -1,0 +1,11 @@
+{
+  "archivo": "era5land_puntos/punto_4.csv",
+  "fuente": "ERA5-Land (Muñoz-Sabater et al., 2021), Copernicus Climate Data Store, producto reanalysis-era5-land-timeseries; licencia Copernicus",
+  "version": "servida por el CDS el día de la descarga",
+  "unidades": "t2m y d2m en K, sp en Pa, u10 y v10 en m/s, ssrd en J/m² por hora (no acumulada); valid_time en UTC",
+  "fecha_descarga": "2026-11-12",
+  "procesamiento": "ninguno: CSV tal como lo entrega el CDS, las 4 partes de cada punto unidas por codigo/punto1/01_descarga_era5land_puntos.py; ver metadatos_descarga.json",
+  "tamano_bytes": 25063259,
+  "sha256": "19e7ea82fe020079bf3fa6413af07bceee737c67f283d2862d1ea01cf12896df",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

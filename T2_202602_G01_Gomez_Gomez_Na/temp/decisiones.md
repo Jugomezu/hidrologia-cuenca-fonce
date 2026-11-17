@@ -120,7 +120,8 @@ Tarea 1 (dato en ≥ 70 % de los meses): 96.3, 96.3 y 93.0 %. Medias de 5.42, 3.
 
 ## 2026-11-17 · Punto 1 · Periodo de la ETo
 
-**Decisión.** La ETo se queda en 1998–2022; no se extiende a 1981.
+**Decisión.** La ETo se queda en 1998–2022; no se extiende a 1981. Las tendencias de ETo y Thornthwaite del
+apartado 1.4 también usan 1998–2022 (25 años).
 
 **Razonamiento.** Es el periodo ya descargado y procesado, y el mismo de IMERG. Las tendencias de la Tarea 1 empiezan
 en 1981, así que cualquier comparación de tendencias con ellas debe decir que los periodos no coinciden.

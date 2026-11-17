@@ -106,3 +106,14 @@ nuestra suma con una suma de acumulados.
 **Decisión.** e_a diaria = promedio de las 24 e°(Td) horarias del día, no e°(Td media) como en la ec. 14 de FAO-56.
 
 **Razonamiento.** Con datos horarios, promediar e_a es más fiel al ciclo diario; e° no es lineal en Td.
+
+## 2026-11-17 · Punto 1 · Brillo solar de estaciones del IDEAM
+
+**Decisión.** Se descargó de DHIME el brillo solar total diario de 1998–2022 de tres estaciones dentro de la cuenca:
+Escuela Agrícola Mogotes (24025040, 1673 m), La Sierra (24025030, 2850 m) y Charalá (24025050, 1350 m). Archivo:
+`datos/punto1/ideam_brillo_solar/brillo_solar_diario_1998_2022_3est.zip` (SHA-256 `1b8c3665…f724d`).
+
+**Razonamiento.** No hay radiación medida en la cuenca; el brillo solar es lo más cercano para revisar Rs de ERA5-Land.
+Son las únicas estaciones de la cuenca con serie larga en DHIME y cubren tres alturas. Las tres pasan el criterio de la
+Tarea 1 (dato en ≥ 70 % de los meses): 96.3, 96.3 y 93.0 %. Medias de 5.42, 3.32 y 5.33 h/día, cercanas a las normales
+1991–2020 del IDEAM. Todo el registro es «Preliminar». Se descartó Mogotes-AUT (24025090): solo tiene 2020–2022.

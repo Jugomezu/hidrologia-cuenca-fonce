@@ -160,3 +160,13 @@ Las regiones de Voronoi se copiaron a `datos/punto1/era5land_puntos/regiones_vor
 **Resultado.** `anexos/punto1/dia_verificado_a_mano.xlsx` (script 04c): 2010-02-15, punto 6, desde las 24 horas crudas
 hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Falta que
 el grupo lo revise él mismo.
+
+## 2026-11-17 · Punto 1 · Torre de flujo (covarianza de remolinos)
+
+**Resultado.** No hay torre de flujo en la cuenca ni cerca. Se revisaron los listados de sitios de AmeriFlux (858 sitios)
+y de FLUXNET (267 sitios) el 2026-11-17. Las únicas torres en Colombia son CO-GV1 y CO-GV2, en Guatavita (Cundinamarca),
+en un humedal a 3000 m. Están a unos 159 km de la cuenca y miden desde 2023, así que no cubren 1998–2022. Después vienen
+Panamá (PA-SPs y PA-SPn, a unos 800 km) y la Amazonia.
+
+**Decisión.** No se usa torre de flujo. La ET real se contrasta solo entre productos (TerraClimate, ERA5-Land, SSEBop y
+MOD16) y con el balance hídrico. Esto queda como limitación.

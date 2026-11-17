@@ -4,7 +4,7 @@ Fuente: Copernicus Climate Data Store (CDS), producto «reanalysis-era5-land-tim
 (ERA5-Land hourly time-series data from 1950 to present). El servicio devuelve la serie de la celda de
 la malla más cercana al punto pedido; por eso los puntos son centros de celda (0.1°).
 
-Los puntos y sus pesos se escogieron el 2026-11-12 (ver temp/decisiones.md): celdas con al menos el 90 %
+Los puntos y sus pesos se escogieron el 2026-11-12 (ver anexos/decisiones.md): celdas con al menos el 90 %
 de su área dentro de la cuenca, una por franja de altura de igual área, con la menor diferencia de altura
 entre la celda y su región de Voronoi.
 
@@ -58,7 +58,7 @@ COLUMNAS_ESPERADAS = ["t2m", "d2m", "sp", "u10", "v10", "ssrd"]
 FECHA_INICIO = "1998-01-01"
 FECHA_FIN = "2022-12-31"
 
-# Puntos escogidos (temp/decisiones.md). El peso es la fracción del área de la cuenca que ocupa la región
+# Puntos escogidos (anexos/decisiones.md). El peso es la fracción del área de la cuenca que ocupa la región
 # de Voronoi de cada punto; se usa después, al promediar la cuenca, no en la descarga.
 PUNTOS = [
     {"punto": 1, "lon": -73.1, "lat": 6.0, "peso": 0.124},

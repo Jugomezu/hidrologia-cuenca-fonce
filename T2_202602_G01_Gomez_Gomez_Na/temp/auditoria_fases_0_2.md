@@ -18,7 +18,7 @@ Recorrido de las 16 casillas de `temp/PLAN_PUNTO1_evapotranspiracion.md`. ✓ cu
 | 12 | Convenciones de ERA5-Land: acumulación y advertencia de ECMWF sep-2022–feb-2024 [M07] | ◐ | Acumulación revisada (decisiones, nota de radiación horaria). La advertencia de ECMWF no está revisada ni escrita. |
 | 13 | Cada archivo de datos con su `.meta.json` [R08] | ✗ | Solo hay `metadatos_descarga.json` por carpeta en ERA5-Land y TerraClimate; ningún `.meta.json` por archivo; nada en el brillo solar ni en la copia de la Tarea 1. |
 | 14 | Periodo de la ETo | ✓ | 1998–2022 (decisiones, 2026-11-17). |
-| 15 | Decisiones en `anexos/decisiones.md` | ✗ | Sigue en `temp/decisiones.md`. |
+| 15 | Decisiones en `anexos/decisiones.md` | ✗ | Sigue en `anexos/decisiones.md`. |
 | 16 | Bitácora de IA | ✗ | No existe `anexos/bitacora_ia.md`. |
 
 Numeración: 01 descarga, 02 mensuales y 03–04 Rn y ETo son de las fases 1 y 2; 04b y 04c son comprobaciones de la fase 2;

@@ -37,7 +37,7 @@ SALIDA_DIARIA = CARPETA_PRODUCTOS / "eto_diaria_puntos.csv"
 SALIDA_MENSUAL = CARPETA_PRODUCTOS / "eto_mensual_puntos.csv"
 SALIDA_CUENCA = CARPETA_PRODUCTOS / "eto_mensual_cuenca.csv"
 
-# Peso de cada punto = fracción del área de la cuenca en su región de Voronoi (temp/decisiones.md).
+# Peso de cada punto = fracción del área de la cuenca en su región de Voronoi (anexos/decisiones.md).
 PESOS = {1: 0.124, 2: 0.173, 3: 0.120, 4: 0.146, 5: 0.186, 6: 0.252}
 
 ALTURA_VIENTO_M = 10.0

@@ -1,0 +1,15 @@
+{
+  "archivo": "ssebop_v61_eta_mensual_2012_2022_fonce.nc",
+  "fuente": "SSEBop, USGS FEWS NET (Senay et al., 2023), https://doi.org/10.5066/P9QJWQ6K",
+  "version": "v6.1 (VIIRS)",
+  "variable": "eta: evapotranspiración real (actual ET) del mes",
+  "unidades": "mm/mes; int16 sin factor de escala; _FillValue = -9999",
+  "periodo": "2012-02 a 2022-12 (131 meses); la v6.1 no tiene datos antes de 2012-02",
+  "resolucion": "0.009652° (~1 km), mensual",
+  "recorte_espacial": "73 x 42 celdas (lat x lon); centros lat 5.9257 a 6.6207, lon -73.2537 a -72.8580; caja del polígono CAMELS-COL 24027010 (O -73.2490, S 5.9278, E -72.8609, N 6.6155) + 1 celda",
+  "url": "https://edcintl.cr.usgs.gov/downloads/sciweb1/shared/fews/web/global/monthly/etav61/downloads/monthly/mYYYYMM.zip",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "cada GeoTIFF global se recortó a la caja y se apiló en un NetCDF; valores sin transformar; los ZIP globales se borraron",
+  "script": "codigo/punto1/08_descarga_ssebop.py",
+  "sha256": "8af5bf79715ccc9f5a1c0c378b1200a45fd072b562b864dfb99ecd1e19c13823"
+}

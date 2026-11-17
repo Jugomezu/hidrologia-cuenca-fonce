@@ -1,0 +1,35 @@
+{
+  "archivo": "suelo_punto_3.csv",
+  "fuente": "ERA5-Land (Muñoz-Sabater et al., 2021), Copernicus Climate Data Store",
+  "producto": "reanalysis-era5-land-timeseries",
+  "version": "ERA5-Land, series de tiempo horarias (versión servida por el CDS en la fecha de descarga)",
+  "variables": {
+    "swvl1": {
+      "nombre_cds": "volumetric_soil_water_level_1",
+      "capa": "0-7 cm",
+      "unidades": "m3/m3 (contenido volumétrico de agua)"
+    },
+    "swvl2": {
+      "nombre_cds": "volumetric_soil_water_level_2",
+      "capa": "7-28 cm",
+      "unidades": "m3/m3 (contenido volumétrico de agua)"
+    },
+    "swvl3": {
+      "nombre_cds": "volumetric_soil_water_level_3",
+      "capa": "28-100 cm",
+      "unidades": "m3/m3 (contenido volumétrico de agua)"
+    },
+    "swvl4": {
+      "nombre_cds": "volumetric_soil_water_level_4",
+      "capa": "100-289 cm",
+      "unidades": "m3/m3 (contenido volumétrico de agua)"
+    }
+  },
+  "periodo": "1998-01-01 00:00 a 2022-12-31 23:00 UTC, horario (219144 horas)",
+  "recorte_espacial": "punto pedido lon -73.1, lat 6.3; celda de 0.1° entregada lon -73.1000, lat 6.3000",
+  "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land-timeseries",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "los CSV del ZIP del CDS unidos por valid_time y ordenados; valores sin transformar",
+  "script": "codigo/punto1/06_descarga_era5land_puntos_suelo.py",
+  "sha256": "8ab74577f55f713e62d64b009b4a5eba2ddd89714ac5e4f36b905112f5745032"
+}

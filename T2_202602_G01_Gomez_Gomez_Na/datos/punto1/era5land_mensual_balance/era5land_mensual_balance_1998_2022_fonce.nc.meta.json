@@ -1,0 +1,49 @@
+{
+  "archivo": "era5land_mensual_balance_1998_2022_fonce.nc",
+  "fuente": "ERA5-Land (Muñoz-Sabater et al., 2021), Copernicus Climate Data Store",
+  "producto": "reanalysis-era5-land-monthly-means",
+  "version": "ERA5-Land monthly averaged reanalysis (versión servida por el CDS en la fecha de descarga)",
+  "variables": {
+    "ssr": {
+      "nombre_cds": "surface_net_solar_radiation",
+      "nombre_largo": "Surface net short-wave (solar) radiation",
+      "unidades_en_archivo": "J m**-2",
+      "nota_unidades": "media mensual de la acumulación diaria (por día); positivo hacia la superficie",
+      "nan": 0
+    },
+    "str": {
+      "nombre_cds": "surface_net_thermal_radiation",
+      "nombre_largo": "Surface net long-wave (thermal) radiation",
+      "unidades_en_archivo": "J m**-2",
+      "nota_unidades": "media mensual de la acumulación diaria (por día); valores negativos = flujo hacia arriba",
+      "nan": 0
+    },
+    "e": {
+      "nombre_cds": "total_evaporation",
+      "nombre_largo": "Evaporation",
+      "unidades_en_archivo": "m of water equivalent",
+      "nota_unidades": "media mensual de la acumulación diaria (por día); valores negativos = flujo hacia arriba",
+      "nan": 0
+    },
+    "pev": {
+      "nombre_cds": "potential_evaporation",
+      "nombre_largo": "Potential evaporation",
+      "unidades_en_archivo": "m",
+      "nota_unidades": "media mensual de la acumulación diaria (por día); valores negativos = flujo hacia arriba",
+      "nan": 0
+    }
+  },
+  "periodo": "1998-01 a 2022-12 (300 meses)",
+  "resolucion": "0.1°, mensual",
+  "recorte_espacial": "10 x 8 celdas de 0.1° (lat x lon); centros lat 5.80 a 6.70, lon -73.40 a -72.70; caja pedida N/O/S/E [6.7, -73.4, 5.8, -72.7]",
+  "dimensiones": {
+    "valid_time": 300,
+    "latitude": 10,
+    "longitude": 8
+  },
+  "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land-monthly-means",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "ninguno: el NetCDF tal como lo entrega el CDS",
+  "script": "codigo/punto1/07_descarga_era5land_mensual_balance.py",
+  "sha256": "e9630184fcc74c7cae23383be0ac4f37a75c740a7c2569103c1287bb5966c9c7"
+}

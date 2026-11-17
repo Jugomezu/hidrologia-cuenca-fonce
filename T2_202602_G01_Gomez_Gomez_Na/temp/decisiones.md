@@ -134,3 +134,28 @@ de ~4 km por el área de su intersección con el polígono de CAMELS-COL.
 **Razonamiento.** `aet` es un producto de ET real de la familia de balance hídrico (apartado 1.2); `pet` es un producto
 independiente de demanda, Penman-Monteith de pasto de referencia (apartado 1.1.b). No requiere registro. Pendiente:
 citar cómo define TerraClimate cada variable en su documentación.
+
+## 2026-11-17 · Punto 1 · ETo con medias mensuales (comprobación)
+
+**Decisión.** Cálculo aparte (script 04b): ETo de un "día medio" con las medias del mes de Tmax, Tmin, ea, P, viento
+y Rs, por los días del mes. Ra del día J = int(30.4 M − 15). G mensual con la ec. 43, G = 0.07 (T_i+1 − T_i−1), como
+pide el plan; en 1998-01 y 2022-12 falta un vecino y se usa la ec. 44. Se guarda también la versión con G = 0 para
+separar el efecto de agregar del de G.
+
+**Resultado.** Diferencia con la suma de diarias muy pequeña: en la cuenca, entre −1.2 y +0.8 % mes a mes; en promedio por
+mes del año, de −0.5 % (enero) a +0.3 % (mayo). G aporta como mucho ~1 mm/mes. La suma de diarias sigue siendo la ETo
+mensual oficial; esto la respalda. Tabla: `anexos/punto1/eto_medias_mensuales_vs_suma_diarias.csv`.
+
+## 2026-11-17 · Punto 1 · Altura de los 6 puntos frente al DEM
+
+**Resultado.** (script 04b) La altura del modelo (despejada de `sp`) queda entre −318 m (punto 5) y +224 m (punto 4) de la
+media del DEM en su región de Voronoi; en promedio ponderado, 2 200 m frente a 2 265 m (65 m más baja). Con el gradiente
+del propio ERA5-Land entre los 6 puntos (T −5.2 °C/km, ea −0.50 kPa/km), eso es +0.3 °C y +0.03 kPa en la cuenca; en el
+punto 5, +1.7 °C. No se corrige: queda como limitación. Las alturas de celda del DEM coinciden con la tabla del 2026-11-12.
+Las regiones de Voronoi se copiaron a `datos/punto1/era5land_puntos/regiones_voronoi_puntos.geojson`.
+
+## 2026-11-17 · Punto 1 · Día verificado a mano
+
+**Resultado.** `anexos/punto1/dia_verificado_a_mano.xlsx` (script 04c): 2010-02-15, punto 6, desde las 24 horas crudas
+hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Falta que
+el grupo lo revise él mismo.

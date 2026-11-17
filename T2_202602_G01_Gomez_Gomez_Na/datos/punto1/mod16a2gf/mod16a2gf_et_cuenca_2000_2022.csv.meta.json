@@ -1,0 +1,15 @@
+{
+  "archivo": "mod16a2gf_et_cuenca_2000_2022.csv",
+  "fuente": "MOD16A2GF, NASA LP DAAC (Running et al., 2021), vía Google Earth Engine",
+  "version": "v061 (colección MODIS/061/MOD16A2GF)",
+  "variable": "et_mm_compuesto: ET real media de la cuenca en el compuesto (banda ET × 0.1)",
+  "unidades": "mm por compuesto (kg/m²); 'dias' da la longitud del compuesto (8, o 5–6 al final del año)",
+  "periodo": "2000-01-01 a 2022-12-27 (1058 compuestos; fechas de inicio leídas de la colección)",
+  "resolucion": "500 m (sinusoidal MODIS), compuestos de 8 días",
+  "recorte_espacial": "polígono CAMELS-COL 24027010; media de los píxeles con dato dentro de él",
+  "url": "https://developers.google.com/earth-engine/datasets/catalog/MODIS_061_MOD16A2GF",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "códigos de relleno (> 32700) descartados; factor 0.1 aplicado; media espacial en Earth Engine; pct_pixeles_validos = % de píxeles de la cuenca con dato",
+  "script": "codigo/punto1/10_mod16a2gf_cuenca_gee.py",
+  "sha256": "e9b48f09f31a595fc6a9ca2a35fdeb316b2fe2ef7839053c3d661fcd2c51125c"
+}

@@ -15,7 +15,7 @@ Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/05_descarga_terraclimate.py
 
 Salidas:
-    datos/punto1/terraclimate/terraclimate_<var>_fonce_1998_2022.nc   recorte de la malla (caja de la cuenca + 1 celda)
+    datos/punto1/terraclimate/terraclimate_<var>_fonce_1998_2022.nc   recorte de la malla (caja de la cuenca + ~media celda, 0.02-0.03°)
     datos/punto1/terraclimate/metadatos_descarga.json                 fuente, versión, URL, fecha y SHA-256
     productos/punto1/terraclimate_mensual_cuenca.csv                   promedio de cuenca, mm/mes
 

@@ -1,0 +1,22 @@
+{
+  "archivo": "terraclimate_aet_fonce_1998_2022.nc",
+  "fuente": "TerraClimate (Abatzoglou et al., 2018), Northwest Knowledge Network, Universidad de Idaho",
+  "version": "v1.1",
+  "doi": "10.5281/zenodo.23961197",
+  "variable": "aet",
+  "descripcion": "evapotranspiración real (Actual Evapotranspiration), de un balance hídrico mensual de una capa de suelo",
+  "nombre_largo": "water_evaporation_amount",
+  "unidades": "mm/mes (atributo 'units' = 'mm', total del mes)",
+  "codificacion": "int16 con scale_factor = 0.1, add_offset = 0, _FillValue = -32768; xarray aplica la escala al leer",
+  "periodo": "1998-01 a 2022-12 (300 meses; la marca de tiempo es el día 1 de cada mes)",
+  "resolucion": "1/24° (~4 km), mensual",
+  "recorte_espacial": "22 x 13 celdas (lat x lon), centros de celda lon -73.250 a -72.850, lat 5.917 a 6.617 (las celdas que cubren la caja del polígono de la cuenca); latitud descendente como en la fuente",
+  "cuenca": "CAMELS-COL IDEAM 24027010 (2098.9 km²); 193 celdas tocan la cuenca",
+  "url": "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_terraclimate_aet_1950_CurrentYear_GLOBE.nc",
+  "acceso": "OPeNDAP, sin registro",
+  "fecha_modificacion_fuente": "2026-11-14",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "solo recorte espacial y temporal; valores, atributos y codificación sin transformar",
+  "script": "codigo/punto1/05_descarga_terraclimate.py",
+  "sha256": "b19c026d31e837e1ff692598abea0b938a08ce5080c41b17353f5137e87d17e4"
+}

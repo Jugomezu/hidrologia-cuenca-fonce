@@ -1,0 +1,47 @@
+{
+  "fecha_descarga": "2026-11-17",
+  "periodo": [
+    "1998-01-01",
+    "2022-12-31"
+  ],
+  "cuenca": "CAMELS-COL IDEAM 24027010",
+  "area_cuenca_km2": 2098.9,
+  "ponderacion": "área de intersección celda-cuenca en ESRI:54034",
+  "archivos": {
+    "terraclimate_aet_fonce_1998_2022.nc": {
+      "variable": "aet",
+      "unidades": "mm/mes",
+      "nombre_largo": "water_evaporation_amount",
+      "url_opendap": "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_terraclimate_aet_1950_CurrentYear_GLOBE.nc",
+      "version": "v1.1",
+      "doi": "10.5281/zenodo.23961197",
+      "fecha_modificacion_fuente": "2026-11-14",
+      "resolucion_grados": 0.03333333333333144,
+      "celdas_lat_lon": [
+        22,
+        13
+      ],
+      "celdas_con_area_en_cuenca": 193,
+      "area_ponderada_km2": 2098.9,
+      "sha256": "b19c026d31e837e1ff692598abea0b938a08ce5080c41b17353f5137e87d17e4"
+    },
+    "terraclimate_pet_fonce_1998_2022.nc": {
+      "variable": "pet",
+      "unidades": "mm/mes",
+      "nombre_largo": "water_potential_evaporation_amount",
+      "url_opendap": "http://thredds.northwestknowledge.net:8080/thredds/dodsC/agg_terraclimate_pet_1950_CurrentYear_GLOBE.nc",
+      "version": "v1.1",
+      "doi": "10.5281/zenodo.23961197",
+      "fecha_modificacion_fuente": "2026-11-14",
+      "resolucion_grados": 0.03333333333333144,
+      "celdas_lat_lon": [
+        22,
+        13
+      ],
+      "celdas_con_area_en_cuenca": 193,
+      "area_ponderada_km2": 2098.9,
+      "sha256": "f5abb281ad0c1a6baaf80d4f2c5713eb335b4cb73f0b77c2b261993dc64cc582"
+    }
+  },
+  "producto": "productos/punto1/terraclimate_mensual_cuenca.csv"
+}

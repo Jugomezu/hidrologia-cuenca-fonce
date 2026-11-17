@@ -124,3 +124,13 @@ Tarea 1 (dato en ≥ 70 % de los meses): 96.3, 96.3 y 93.0 %. Medias de 5.42, 3.
 
 **Razonamiento.** Es el periodo ya descargado y procesado, y el mismo de IMERG. Las tendencias de la Tarea 1 empiezan
 en 1981, así que cualquier comparación de tendencias con ellas debe decir que los periodos no coinciden.
+
+## 2026-11-17 · Punto 1 · TerraClimate (aet y pet)
+
+**Decisión.** Se descargaron de TerraClimate v1.1, por OPeNDAP, la evapotranspiración real (`aet`) y la de
+referencia (`pet`), mensuales, 1998–2022, recortadas a la cuenca (script 05). El promedio de cuenca pondera cada celda
+de ~4 km por el área de su intersección con el polígono de CAMELS-COL.
+
+**Razonamiento.** `aet` es un producto de ET real de la familia de balance hídrico (apartado 1.2); `pet` es un producto
+independiente de demanda, Penman-Monteith de pasto de referencia (apartado 1.1.b). No requiere registro. Pendiente:
+citar cómo define TerraClimate cada variable en su documentación.

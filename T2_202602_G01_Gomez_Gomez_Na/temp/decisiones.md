@@ -117,3 +117,10 @@ Escuela Agrícola Mogotes (24025040, 1673 m), La Sierra (24025030, 2850 m) y Cha
 Son las únicas estaciones de la cuenca con serie larga en DHIME y cubren tres alturas. Las tres pasan el criterio de la
 Tarea 1 (dato en ≥ 70 % de los meses): 96.3, 96.3 y 93.0 %. Medias de 5.42, 3.32 y 5.33 h/día, cercanas a las normales
 1991–2020 del IDEAM. Todo el registro es «Preliminar». Se descartó Mogotes-AUT (24025090): solo tiene 2020–2022.
+
+## 2026-11-17 · Punto 1 · Periodo de la ETo
+
+**Decisión.** La ETo se queda en 1998–2022; no se extiende a 1981.
+
+**Razonamiento.** Es el periodo ya descargado y procesado, y el mismo de IMERG. Las tendencias de la Tarea 1 empiezan
+en 1981, así que cualquier comparación de tendencias con ellas debe decir que los periodos no coinciden.

@@ -157,8 +157,8 @@ Las regiones de Voronoi se copiaron a `datos/punto1/era5land_puntos/regiones_vor
 ## 2026-11-17 · Punto 1 · Día verificado a mano
 
 **Resultado.** `anexos/punto1/dia_verificado_a_mano.xlsx` (script 04c): 2010-02-15, punto 6, desde las 24 horas crudas
-hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Falta que
-el grupo lo revise él mismo.
+hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Juan lo
+revisó a mano contra FAO-56 el 2026-11-17.
 
 ## 2026-11-17 · Punto 1 · Torre de flujo (covarianza de remolinos)
 

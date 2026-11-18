@@ -59,6 +59,11 @@ section { margin-bottom: 64px; }
 .tabla th, .tabla td { padding: 6px 12px; border-bottom: 1px solid var(--linea); text-align: right; white-space: nowrap; }
 .tabla th:first-child, .tabla td:first-child { text-align: left; }
 .tabla th { color: var(--tenue); font-weight: 500; }
+.metodos { overflow-x: auto; }
+.metodos table { border-collapse: collapse; font-size: 13.5px; line-height: 1.45; min-width: 760px; }
+.metodos th, .metodos td { padding: 7px 10px; border-bottom: 1px solid var(--linea); text-align: left; vertical-align: top; }
+.metodos th { color: var(--tenue); font-weight: 500; }
+.metodos td.si { color: #1B7F4B; } .metodos td.no { color: #B3412E; }
 footer { border-top: 1px solid var(--linea); padding-top: 24px; font-size: 14px; color: var(--tenue); }
 code { font: 400 .86em var(--f-dato); }
 @media (max-width: 1000px) { .rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -159,6 +164,33 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tabla" id="t-et-anual"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>ET real mensual (mm/mes)</h3><div class="grafico" id="g-et-mensual"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3 id="h-et-ciclo">Ciclo anual (mm/mes)</h3><div class="grafico" id="g-et-ciclo"></div></div>
+</section>
+
+<section>
+  <h2>Fase 4 · Métodos disponibles en las notas del curso</h2>
+  <p>Solo métodos de la sección «Caja de herramientas» y afines de las notas de C. D. Hoyos. Datos: ERA5-Land horario
+  en 6 puntos (t2m, d2m, sp, u10, v10, ssrd), Rn FAO-56, estaciones DHIME, brillo solar. Quedan fuera las mediciones
+  (lisímetro, covarianza de remolinos), los modelos satelitales (ya están como productos) y Budyko (fase 7).
+  Pendiente: elección de Juan (4 de la tabla del enunciado + 2 de fuera).</p>
+  <div class="metodos"><table>
+    <tr><th>Familia</th><th>Método</th><th>Variables</th><th>¿Las tenemos?</th><th>Recomendación</th></tr>
+    <tr><td>Tabla · temperatura</td><td>Thornthwaite (1948)</td><td>T media mensual, latitud (horas de sol N)</td><td class="si">Sí</td><td><b>Recomendado.</b> Mensual; hace falta en la fase 8.</td></tr>
+    <tr><td>Tabla · temperatura</td><td>Hamon (1961)</td><td>T media, duración del día D</td><td class="si">Sí</td><td>Alternativa a Thornthwaite.</td></tr>
+    <tr><td>Tabla · T + Ra</td><td>Hargreaves–Samani (1985)</td><td>Tmáx, Tmín, T media, Ra</td><td class="si">Sí (ya está en la Tarea 1)</td><td><b>Recomendado.</b> Recalcular con los 6 puntos y el mismo periodo que la ETo.</td></tr>
+    <tr><td>Tabla · T + Ra</td><td>Oudin (2005)</td><td>T media, Ra</td><td class="si">Sí</td><td>Alternativa a Hargreaves.</td></tr>
+    <tr><td>Tabla · radiación</td><td>Priestley–Taylor (1972)</td><td>Rn, G, T (Δ, γ con presión)</td><td class="si">Sí (Rn FAO-56 ya calculada)</td><td><b>Recomendado</b>, α = 1.26.</td></tr>
+    <tr><td>Tabla · transferencia de masa</td><td>Meyer (1915)</td><td>es(Ts) − ea, viento a 9 m</td><td class="si">Sí, con T del aire en vez de la del agua (declararlo)</td><td><b>Recomendado</b>: la página da sus constantes; Dalton solo da f(u) genérica.</td></tr>
+    <tr><td>Tabla · transferencia de masa</td><td>Dalton (1802)</td><td>f(u), es(Ts) − ea</td><td class="no">Falta la forma de f(u)</td><td>No: sin constantes en las notas.</td></tr>
+    <tr><td>Fuera · radiación</td><td>Makkink (1957) / de Bruin</td><td>Rs, T</td><td class="si">Sí (ssrd)</td><td><b>Recomendado</b>: las notas lo sugieren para clima húmedo.</td></tr>
+    <tr><td>Fuera · radiación</td><td>Turc (1961)</td><td>Rs, T, HR</td><td class="si">Sí</td><td>Alternativa a Makkink.</td></tr>
+    <tr><td>Fuera · radiación</td><td>Jensen–Haise (1963), Abtew (1996)</td><td>Rs, T</td><td class="si">Sí</td><td>No: calibrados en zona árida y humedales de Florida.</td></tr>
+    <tr><td>Fuera · combinación</td><td>Penman (1948), agua libre</td><td>Rn, T, ea, viento</td><td class="si">Sí</td><td>Calcula E0 (declararlo). Va dentro de la relación complementaria.</td></tr>
+    <tr><td>Fuera · relación complementaria</td><td>Brutsaert–Stricker (1979), AA</td><td>Penman + Priestley–Taylor</td><td class="si">Sí</td><td><b>Recomendado</b>: estima ET real, comparable con GLEAM, MOD16 y SSEBop (fase 6).</td></tr>
+    <tr><td>Fuera · temperatura</td><td>Blaney–Criddle (1950 / FAO-24)</td><td>T, % de horas de luz, K o c</td><td class="no">T sí; c sale de ábacos</td><td>No: c de ábaco no es reproducible.</td></tr>
+    <tr><td>Fuera · temperatura</td><td>Linacre (1977)</td><td>T, Td, latitud, altitud</td><td class="si">Sí</td><td>Posible; es un Penman simplificado para agua libre.</td></tr>
+    <tr><td>Fuera · tanque</td><td>Tanque clase A × Kp</td><td>Evaporación de tanque, viento, HR, fetch</td><td class="no">Tanque DHIME con unidades imposibles</td><td>No.</td></tr>
+    <tr><td>Fuera · combinación</td><td>ASCE-EWRI (2005), FAO-56 horaria</td><td>Lo mismo que FAO-56</td><td class="si">Sí</td><td>No: es la misma familia que la referencia.</td></tr>
+  </table></div>
 </section>
 
 <footer>

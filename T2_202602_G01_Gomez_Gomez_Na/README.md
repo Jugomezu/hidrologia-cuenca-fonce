@@ -23,7 +23,12 @@ anexos/
 ## Pendiente para la entrega
 
 - Integrantes con su nombre completo.
-- Procedencia de los datos, requisitos (`requirements.txt`) y orden de ejecución.
+- Procedencia de los datos y orden de ejecución.
+
+Requisitos: `pip install -r codigo/requirements.txt`. Antes de armar el ZIP, `python codigo/verificar_entrega.py`
+revisa nombre, estructura, nombres ASCII, rutas absolutas y credenciales. Cada archivo de `datos/` lleva su
+`.meta.json` (fuente, versión, unidades, fecha de descarga, procesamiento); los que faltan los escribe
+`python codigo/punto1/00_metadatos_datos.py`.
 
 ## `datos/punto1/`
 

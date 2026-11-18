@@ -1,0 +1,11 @@
+{
+  "archivo": "dem/dem_fonce_alos_12m.tif",
+  "fuente": "DEM ALOS PALSAR 12.5 m (Alaska Satellite Facility), recorte de la zona de la cuenca",
+  "version": "no registrada: el mosaico ya estaba recortado para Colombia (ver DATOS_FUENTES.md de la Tarea 1)",
+  "unidades": "altura en m",
+  "fecha_descarga": "no registrada; recorte hecho el 2026-09-27",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md; recorte con ../Analisis_De_Cuenca/scripts/03_recorte_dem.py",
+  "tamano_bytes": 31747447,
+  "sha256": "d394fbcfb09157eaf7086f85e52ea0663d9ebc6dcde786ae6ed299742347231d",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

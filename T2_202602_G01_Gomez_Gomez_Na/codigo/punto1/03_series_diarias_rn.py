@@ -4,7 +4,7 @@ Lee las series horarias de datos/punto1/era5land_puntos/punto_N.csv y escribe:
     productos/punto1/era5land_diario_puntos.csv   una fila por punto y día (hora local), con Rn
     productos/punto1/rn_mensual_puntos.csv        Rn acumulada por punto y mes (MJ/m²·mes)
 
-Días en hora local de Colombia (UTC−5), como en 02_series_mensuales_era5land.py (temp/decisiones.md).
+Días en hora local de Colombia (UTC−5), como en 02_series_mensuales_era5land.py (anexos/decisiones.md).
 
 Radiación neta, FAO-56 (Allen et al., 1998), en MJ/m²·día:
     Ra   radiación extraterrestre, ec. 21, con dr (ec. 23), δ (ec. 24) y ωs (ec. 25)

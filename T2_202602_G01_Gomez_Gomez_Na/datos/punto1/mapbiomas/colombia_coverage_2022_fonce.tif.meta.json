@@ -1,0 +1,11 @@
+{
+  "archivo": "mapbiomas/colombia_coverage_2022_fonce.tif",
+  "fuente": "MapBiomas Colombia, colección 3, cobertura y uso del suelo 2022 (Google Cloud Storage público)",
+  "version": "colección 3, año 2022",
+  "unidades": "clase de cobertura (código entero de MapBiomas)",
+  "fecha_descarga": "2026-10-09",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md; ventana leída con ../Analisis_De_Cuenca/scripts/03d_coberturas_mapbiomas.py",
+  "tamano_bytes": 280562,
+  "sha256": "22957c058c523283b40fbc14526b1758e5804dbb45e62ad00c4bd11e7508e58f",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

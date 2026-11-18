@@ -1,0 +1,11 @@
+{
+  "archivo": "ideam_brillo_solar/brillo_solar_diario_1998_2022_3est.zip",
+  "fuente": "IDEAM, DHIME, brillo solar total diario de Escuela Agrícola Mogotes (24025040), La Sierra (24025030) y Charalá (24025050)",
+  "version": "datos con nivel de aprobación «Preliminar»",
+  "unidades": "horas de sol por día",
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "ninguno: ZIP tal como lo entrega DHIME (anexos/decisiones.md, 2026-11-17)",
+  "tamano_bytes": 123976,
+  "sha256": "1b8c366502b0bfd35ea0bb4c2274329e0d51e2bdbfc9025434b44818f75f724d",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

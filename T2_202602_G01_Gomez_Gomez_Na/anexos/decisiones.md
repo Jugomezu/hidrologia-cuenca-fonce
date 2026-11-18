@@ -1,7 +1,6 @@
-# Decisiones (temporal)
+# Decisiones
 
-Registro de las decisiones tomadas y su razonamiento. Archivo temporal: la carpeta `temp/` se borra antes de
-armar el ZIP de la entrega.
+Registro de las decisiones tomadas y su razonamiento, en orden. Va en la entrega como anexo.
 
 ## 2026-11-12 · Punto 1 · Puntos de ERA5-Land
 
@@ -158,8 +157,8 @@ Las regiones de Voronoi se copiaron a `datos/punto1/era5land_puntos/regiones_vor
 ## 2026-11-17 · Punto 1 · Día verificado a mano
 
 **Resultado.** `anexos/punto1/dia_verificado_a_mano.xlsx` (script 04c): 2010-02-15, punto 6, desde las 24 horas crudas
-hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Falta que
-el grupo lo revise él mismo.
+hasta la ETo, con fórmulas vivas. ETo = 3.76 mm/día; todos los pasos coinciden con los productos a 4 decimales. Juan lo
+revisó a mano contra FAO-56 el 2026-11-17.
 
 ## 2026-11-17 · Punto 1 · Torre de flujo (covarianza de remolinos)
 
@@ -170,3 +169,44 @@ Panamá (PA-SPs y PA-SPn, a unos 800 km) y la Amazonia.
 
 **Decisión.** No se usa torre de flujo. La ET real se contrasta solo entre productos (TerraClimate, ERA5-Land, SSEBop y
 MOD16) y con el balance hídrico. Esto queda como limitación.
+
+## 2026-11-17 · Punto 1 · Cómo se declara la ponderación espacial
+
+**Decisión.** En el informe basta con «promedio ponderado por Voronoi», sin justificarlo más ni compararlo con la Tarea 1.
+
+**Razonamiento.** La razón de los pesos ya está en la entrada del 2026-11-12. La Tarea 1 ponderó distinto (IMERG por
+área de celda, pluviómetros sin pesos); no se presenta como equivalente.
+
+## 2026-11-17 · Punto 1 · γ con la presión de cada punto
+
+**Decisión.** γ (ec. 8) se calcula con la `sp` diaria de cada punto, no con la presión de la elevación media de la
+cuenca como decía el plan. Se declara así en la metodología.
+
+**Razonamiento.** Cada punto usa la presión de su propia altura, coherente con su T y su ea. La diferencia frente a la
+presión media de la cuenca solo mueve γ en proporción a P y entra en la ETo por el denominador y el término
+aerodinámico.
+
+## 2026-11-17 · Punto 1 · Qué supone la ec. 47 (viento de 10 a 2 m)
+
+**Nota para la metodología.** u2 = u10 · 4.87 / ln(67.8 · 10 − 5.42) = 0.748 u10. La ec. 47 supone un perfil
+logarítmico del viento, en atmósfera neutra, sobre el pasto de referencia de 0.12 m (d = 0.08 m, z0m = 0.0148 m).
+El viento de ERA5-Land a 10 m no viene de una superficie de pasto sino de la rugosidad del modelo en cada celda, y en
+montaña la estabilidad cambia del día a la noche. Por eso u2 es el viento que tendría un pasto de referencia bajo ese
+u10, no el viento real a 2 m. Pesa poco en la ETo: en el día verificado a mano, la parte aerodinámica es 0.37 de
+3.76 mm/día.
+
+## 2026-11-17 · Punto 1 · Error de ECMWF en ERA5-Land, sep-2022 a feb-2024
+
+**Resultado.** ECMWF anunció el 2024-04-02 que en `reanalysis-era5-land-monthly-means` todas las variables acumuladas de
+sep-2022 a feb-2024 están mal y no se reemplazarán; propone el tipo `monthly_averaged_reanalysis_by_hour_of_day` a las
+00:00 ([foro de ECMWF](https://forum.ecmwf.int/t/issue-affecting-era5-land-monthly-averaged-reanalysis-for-the-period-september-2022-to-february-2024/2370)).
+El script 04d lo revisa en nuestros datos (`anexos/punto1/era5land_sep_dic_2022_comprobacion.csv`):
+- `era5land_mensual_balance` (script 07: ssr, str, e, pev) **sí está afectado**: sep–dic 2022 valen entre 0.29 y 0.48
+  veces la media de 1998–2021, fuera del rango histórico los 4 meses.
+- La Rs del producto de series de tiempo (6 puntos, base de la ETo) **no**: cociente 0.94–1.04, dentro del rango.
+
+**Decisión (Juan, 2026-11-17).** Toda comparación que use `era5land_mensual_balance` (Rn y evaporación de ERA5-Land
+mensual) se hace sobre 1998-01 a 2022-08 (296 meses). El archivo descargado no se toca. La ETo sigue en 1998–2022.
+
+**Razonamiento.** Los 4 meses están claramente mal y ECMWF no los corrigió. Recortar es lo más simple de declarar y
+no depende de una descarga nueva.

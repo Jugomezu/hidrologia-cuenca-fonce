@@ -1,0 +1,11 @@
+{
+  "archivo": "sgc/mgc2023.gdb.zip",
+  "fuente": "Servicio Geológico Colombiano, Mapa Geológico de Colombia 2023, escala 1:1 500 000",
+  "version": "2023",
+  "unidades": "no aplica (unidades cronoestratigráficas y fallas)",
+  "fecha_descarga": "2026-10-09",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md",
+  "tamano_bytes": 7187299,
+  "sha256": "e7b0e9733dc92a72d33e1578d92717774e2a43d6bc67f23e9ad567931db39167",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

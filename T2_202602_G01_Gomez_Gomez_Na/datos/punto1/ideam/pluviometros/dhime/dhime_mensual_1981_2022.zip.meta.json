@@ -1,0 +1,11 @@
+{
+  "archivo": "ideam/pluviometros/dhime/dhime_mensual_1981_2022.zip",
+  "fuente": "IDEAM, DHIME (atencionciudadano.ideam.gov.co), precipitación de pluviómetros; uso investigativo no comercial citando al IDEAM",
+  "version": "datos con nivel de aprobación «Preliminar»",
+  "unidades": "precipitación en mm (diaria o mensual según el archivo)",
+  "fecha_descarga": "2026-09-23 (primera descarga), 2026-09-24 (mensual 1998-2022 de 8 estaciones) y 2026-10-07 (mensual 1981-1997)",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md",
+  "tamano_bytes": 6418,
+  "sha256": "c91cd3865a290dc3678b977acdf0f25c2dd38d13b757633956c59396f3f86150",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

@@ -1,0 +1,21 @@
+variable,mes,valor_2022,media_1998_2021,minimo_1998_2021,maximo_1998_2021,cociente_2022_sobre_media,fuera_del_rango_historico
+"ssr (reanalysis-era5-land-monthly-means, caja)",2022-09,5.45845e+06,1.67161e+07,1.54018e+07,1.82559e+07,0.326539,True
+"ssr (reanalysis-era5-land-monthly-means, caja)",2022-10,5.19641e+06,1.54356e+07,1.34933e+07,1.63056e+07,0.336652,True
+"ssr (reanalysis-era5-land-monthly-means, caja)",2022-11,4.76317e+06,1.48041e+07,1.2834e+07,1.60267e+07,0.321746,True
+"ssr (reanalysis-era5-land-monthly-means, caja)",2022-12,5.3551e+06,1.56267e+07,1.38143e+07,1.76062e+07,0.342689,True
+"str (reanalysis-era5-land-monthly-means, caja)",2022-09,-1.98456e+06,-4.72651e+06,-5.38952e+06,-4.10216e+06,0.419879,True
+"str (reanalysis-era5-land-monthly-means, caja)",2022-10,-1.85215e+06,-4.21834e+06,-4.56554e+06,-3.47183e+06,0.439072,True
+"str (reanalysis-era5-land-monthly-means, caja)",2022-11,-1.63922e+06,-4.0833e+06,-4.65814e+06,-3.29633e+06,0.401444,True
+"str (reanalysis-era5-land-monthly-means, caja)",2022-12,-2.19336e+06,-4.60738e+06,-5.72737e+06,-3.76263e+06,0.476053,True
+"e (reanalysis-era5-land-monthly-means, caja)",2022-09,-0.00112468,-0.00355021,-0.00379751,-0.00332121,0.316793,True
+"e (reanalysis-era5-land-monthly-means, caja)",2022-10,-0.00105478,-0.00330145,-0.00346906,-0.00294853,0.31949,True
+"e (reanalysis-era5-land-monthly-means, caja)",2022-11,-0.00099637,-0.00316003,-0.00340389,-0.00283461,0.315304,True
+"e (reanalysis-era5-land-monthly-means, caja)",2022-12,-0.0010432,-0.00326924,-0.00346908,-0.00297811,0.319096,True
+"pev (reanalysis-era5-land-monthly-means, caja)",2022-09,-0.00242015,-0.00823263,-0.00983105,-0.00669097,0.29397,True
+"pev (reanalysis-era5-land-monthly-means, caja)",2022-10,-0.0022127,-0.00705328,-0.00803065,-0.00559793,0.313712,True
+"pev (reanalysis-era5-land-monthly-means, caja)",2022-11,-0.00194187,-0.00663741,-0.00786723,-0.00498812,0.292564,True
+"pev (reanalysis-era5-land-monthly-means, caja)",2022-12,-0.00264473,-0.00758227,-0.0100871,-0.00592095,0.348805,True
+"rs_MJm2 (reanalysis-era5-land-timeseries, 6 puntos)",2022-09,19.4703,19.9842,18.3198,21.9447,0.974286,False
+"rs_MJm2 (reanalysis-era5-land-timeseries, 6 puntos)",2022-10,18.0292,18.3293,15.9802,19.3631,0.983632,False
+"rs_MJm2 (reanalysis-era5-land-timeseries, 6 puntos)",2022-11,16.4901,17.4966,15.0812,18.9952,0.942478,False
+"rs_MJm2 (reanalysis-era5-land-timeseries, 6 puntos)",2022-12,19.14,18.4455,16.1485,20.6603,1.03765,False

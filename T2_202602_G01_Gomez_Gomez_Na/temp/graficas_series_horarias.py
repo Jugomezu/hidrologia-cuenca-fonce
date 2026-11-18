@@ -11,7 +11,7 @@ Lee datos/punto1/era5land_puntos/punto_N.csv (salida de codigo/punto1/01_descarg
 temp/series_horarias_era5land.html: una gráfica Plotly por variable, con los 6 puntos, a la que se le puede hacer
 zoom (arrastrar un recuadro, rueda del ratón, doble clic para volver).
 
-Hora local de Colombia = valid_time (UTC) − 5 h (decisión del 2026-11-12, temp/decisiones.md).
+Hora local de Colombia = valid_time (UTC) − 5 h (decisión del 2026-11-12, anexos/decisiones.md).
 Conversiones solo de unidades, para leer mejor: K → °C, Pa → kPa, ssrd J/m² en la hora → W/m² promedio de la hora
 (÷ 3600). u10 y v10 se muestran tal cual (m/s).
 

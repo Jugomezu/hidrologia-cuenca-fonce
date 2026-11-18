@@ -5,7 +5,7 @@ y escribe dos productos:
     productos/punto1/era5land_viento_horario_puntos.csv   rapidez horaria del viento a 10 m (m/s), un punto por columna
     productos/punto1/era5land_mensual_puntos.csv          una fila por punto y mes (columnas abajo)
 
-Decisiones (temp/decisiones.md):
+Decisiones (anexos/decisiones.md):
 - Los días y los meses se arman en hora local de Colombia: hora local = valid_time (UTC) − 5 h. Las 5 primeras
   horas descargadas (1997-12-31 19:00–23:00 local) quedan fuera del período; a diciembre de 2022 le faltan sus
   últimas 5 horas (31-12, 19:00–23:00 local), sin consecuencia práctica.

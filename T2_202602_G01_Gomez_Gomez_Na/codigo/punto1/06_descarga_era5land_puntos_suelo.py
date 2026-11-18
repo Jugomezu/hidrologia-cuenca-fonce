@@ -54,7 +54,7 @@ FECHA_INICIO = "1998-01-01"
 FECHA_FIN = "2022-12-31"
 HORAS_ESPERADAS = 219144  # 9 131 días × 24 h
 
-# Los mismos puntos de 01_descarga_era5land_puntos.py (temp/decisiones.md).
+# Los mismos puntos de 01_descarga_era5land_puntos.py (anexos/decisiones.md).
 PUNTOS = [
     {"punto": 1, "lon": -73.1, "lat": 6.0},
     {"punto": 2, "lon": -73.1, "lat": 6.2},

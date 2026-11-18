@@ -1,0 +1,11 @@
+{
+  "archivo": "camels_col/hydromet/3_Hydrometeorological_data/Hydromet_data_24027010.txt",
+  "fuente": "CAMELS-COL (Jimenez et al., 2026), Zenodo, doi:10.5281/zenodo.18794895; licencia CC-BY-4.0",
+  "version": "publicada 2026-02-26 (3a versión del registro)",
+  "unidades": "series diarias: pr mm, poten_evapo mm/día, t_max/t_min/t_mean °C, streamflow m³/s; atributos según attrs/01_CAMELS_COL_Attributes/CAMELS_COL_readme.txt",
+  "fecha_descarga": "2026-09-18",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md",
+  "tamano_bytes": 660366,
+  "sha256": "64d7eca93ebe27d9ca4213f441fa3be27d2150fe71fd89e6536168e8776bf3b3",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

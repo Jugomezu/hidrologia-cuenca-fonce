@@ -1,0 +1,11 @@
+{
+  "archivo": "era5land_puntos/regiones_voronoi_puntos.geojson",
+  "fuente": "Elaboración propia: regiones de Voronoi de los 6 puntos de ERA5-Land, recortadas al polígono de CAMELS-COL 24027010",
+  "version": "opción E (decisión del 2026-11-12, anexos/decisiones.md)",
+  "unidades": "geometrías en lon/lat (CRS84); peso = fracción del área de la cuenca",
+  "fecha_descarga": "2026-11-17 (copiado del proyecto)",
+  "procesamiento": "copiado por codigo/punto1/04b_comprobaciones_eto.py",
+  "tamano_bytes": 192542,
+  "sha256": "a3efe92e80f8621188f0f311842db11b54c8940ff9e44abed8c1bde4e8a50ce8",
+  "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
+}

@@ -247,3 +247,14 @@ mensual) se hace sobre 1998-01 a 2022-08 (296 meses). El archivo descargado no s
 
 **Razonamiento.** Los 4 meses están claramente mal y ECMWF no los corrigió. Recortar es lo más simple de declarar y
 no depende de una descarga nueva.
+
+## 2026-11-18 · Punto 1 · ET real de cuenca de cada producto
+
+**Decisión.** Script 14: cada producto en malla (GLEAM E y Ep, SSEBop v6.1 y v5, ERA5-Land e y pev) se promedia en la
+cuenca pesando cada celda por el área de su intersección con el polígono (ESRI:54034), igual que TerraClimate (script
+05). MOD16A2GF ya viene promediado en la cuenca; cada compuesto de 8 días se reparte por igual entre sus días. ERA5-Land
+mensual se corta en 2022-08. Media anual en el periodo de cada producto y en el periodo común 2013–2021 (años en que
+todos los productos de ET real tienen los 12 meses).
+
+**Resultado.** Media anual 2013–2021, mm: ERA5-Land e 1281, GLEAM E 1192, MOD16A2GF 1136, TerraClimate 1032, SSEBop
+v6.1 848, SSEBop v5 474. Potenciales: GLEAM Ep 1138, ERA5-Land pev 3204. Tabla: `productos/punto1/et_real_anual_productos.csv`.

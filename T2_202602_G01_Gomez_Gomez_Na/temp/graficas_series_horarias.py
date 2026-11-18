@@ -19,6 +19,10 @@ Al final, la fase 3 (pruebas de la referencia): Rs de Angstrom con el brillo sol
 a la ssrd de ERA5-Land, y ETo FAO-56 de estación frente a la de ERA5-Land, con sus dos variantes de viento. Lee las
 salidas de codigo/punto1/12_rs_brillo_solar_vs_era5land.py y 13_eto_estaciones_vs_era5land.py; no calcula nada nuevo.
 
+También: la ETo de la fase 2 por mes calendario y su comprobación con medias mensuales (salidas de 04 y 04b, las
+mismas que dibuja 04e), el estado de la auditoría de las fases 0 a 2 (cada casilla comprueba que su archivo exista), y
+la ET real de cuenca de cada producto (salida de codigo/punto1/14_et_real_productos_cuenca.py).
+
 Escribe también temp/documento_trabajo_ligero.html: lo mismo sin las series horarias (pesa menos de 1 MB), para
 abrirlo con un enlace.
 
@@ -42,6 +46,40 @@ CARPETA_DATOS = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_puntos"
 SALIDA = RAIZ_ENTREGA / "temp" / "series_horarias_era5land.html"
 SALIDA_LIGERA = RAIZ_ENTREGA / "temp" / "documento_trabajo_ligero.html"
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
+ANEXOS = RAIZ_ENTREGA / "anexos"
+NOMBRES_PRODUCTO = {
+    "era5land_e": "ERA5-Land e", "gleam_E": "GLEAM v4.3a E", "mod16a2gf": "MOD16A2GF v061",
+    "terraclimate_aet": "TerraClimate aet", "ssebop_v61": "SSEBop v6.1", "ssebop_v5": "SSEBop v5",
+    "gleam_Ep": "GLEAM v4.3a Ep (potencial)", "era5land_pev": "ERA5-Land pev (potencial)",
+}
+
+# Auditoría de las fases 0 a 2: (casilla, evidencia, archivos que deben existir). Todas cerradas el 2026-11-17.
+AUDITORIA = [
+    ("verificar_entrega.py y requirements.txt", "Existen; hoy solo reclama el informe, la presentación y temp/, que se hacen o borran al cerrar.",
+     ["codigo/verificar_entrega.py", "codigo/requirements.txt"]),
+    ("Inventario de la Tarea 1, con longitud y pendiente del cauce", "anexos/inventario_t1.md", ["anexos/inventario_t1.md"]),
+    ("Ponderación espacial declarada [M05]", "Voronoi; en el informe se dice así, sin presentarlo como igual a la Tarea 1 (decisiones).",
+     ["anexos/decisiones.md"]),
+    ("Tmáx, Tmín horarias y es [M10]", "Scripts 03 y 04, ec. 12.", ["codigo/punto1/03_series_diarias_rn.py"]),
+    ("ea con el punto de rocío [M11]", "Promedio diario de e°(Td) horario.", ["codigo/punto1/03_series_diarias_rn.py"]),
+    ("Viento y ec. 47 [M12]", "Qué supone la ec. 47, escrito en decisiones: u2 = 0.748 u10, perfil logarítmico sobre pasto.",
+     ["anexos/decisiones.md"]),
+    ("Rn con α = 0.23; Rn de ERA5-Land aparte [M13]", "Rn neta de ERA5-Land descargada (script 07).",
+     ["datos/punto1/era5land_mensual_balance/era5land_mensual_balance_1998_2022_fonce.nc"]),
+    ("G = 0 y γ [M14]", "γ con la presión de cada punto, declarado como decisión.", ["anexos/decisiones.md"]),
+    ("Elevación de los puntos frente al DEM [M15]", "Script 04b; tabla abajo.", ["anexos/punto1/elevacion_puntos_dem.csv"]),
+    ("Medias mensuales frente a suma de diarias [K02, F02]", "Script 04b y figura 04e; gráfica abajo.",
+     ["anexos/punto1/eto_medias_mensuales_vs_suma_diarias.csv", "anexos/punto1/eto_medias_mensuales_vs_suma_diarias.png"]),
+    ("Un día a mano [K01]", "2010-02-15, punto 6: ETo = 3.76 mm/día, igual a los productos a 4 decimales. Juan lo revisó contra FAO-56.",
+     ["anexos/punto1/dia_verificado_a_mano.xlsx"]),
+    ("Convenciones de ERA5-Land y error de ECMWF [M07]", "Script 04d: el mensual está dañado en sep–dic 2022; se usa hasta 2022-08. Los 6 puntos horarios no.",
+     ["anexos/punto1/era5land_sep_dic_2022_comprobacion.csv"]),
+    ("Un .meta.json por archivo de datos [R08]", "Script 00.", ["codigo/punto1/00_metadatos_datos.py"]),
+    ("Periodo de la ETo", "1998–2022.", ["anexos/decisiones.md"]),
+    ("Decisiones en anexos/", "anexos/decisiones.md", ["anexos/decisiones.md"]),
+    ("Bitácora de IA", "anexos/bitacora_ia.md", ["anexos/bitacora_ia.md"]),
+]
+
 NOMBRES_ESTACION = {"24025040": "Mogotes (1 673 m)", "24025030": "La Sierra (2 850 m)", "24025050": "Charalá (1 350 m)"}
 ETO_CUENCA = RAIZ_ENTREGA / "productos" / "punto1" / "eto_mensual_cuenca.csv"
 # La ETP de Hargreaves de la Tarea 1 (fuera de la carpeta de la entrega): solo para comparar en este documento.
@@ -138,6 +176,60 @@ def datos_fase3():
     return estaciones
 
 
+def datos_fase2_y_auditoria():
+    """ETo por mes calendario (cuenca, términos y puntos), comprobación con medias mensuales, alturas y auditoría."""
+    cuenca = pd.read_csv(ETO_CUENCA)
+    mes = pd.to_datetime(cuenca["mes"]).dt.month
+    ciclo = cuenca.groupby(mes)[["eto_mm_mes", "eto_radiativa_mm_mes", "eto_aerodinamica_mm_mes"]].mean()
+    puntos = pd.read_csv(CARPETA_PRODUCTOS / "eto_mensual_puntos.csv")
+    puntos["m"] = pd.to_datetime(puntos["mes"]).dt.month
+    ciclo_puntos = puntos.groupby(["punto", "m"])["eto_mm_mes"].mean().unstack("m")
+    alturas = pd.read_csv(ANEXOS / "punto1" / "elevacion_puntos_dem.csv")
+    comprobacion = pd.read_csv(ANEXOS / "punto1" / "eto_medias_mensuales_vs_suma_diarias.csv", dtype={"punto": str})
+    c = comprobacion[comprobacion["punto"] == "cuenca"].copy()
+    assert len(c) == 300
+    c["agregar_pct"] = 100 * c["parte_agregar_mm_mes"] / c["eto_suma_diarias_mm_mes"]
+    c["g_pct"] = 100 * c["parte_g_mm_mes"] / c["eto_suma_diarias_mm_mes"]
+    r = c.groupby(pd.to_datetime(c["mes"]).dt.month)[["diferencia_pct", "agregar_pct", "g_pct"]].agg(["mean", "min", "max"])
+    auditoria = []
+    for casilla, evidencia, archivos in AUDITORIA:
+        faltan = [a for a in archivos if not (RAIZ_ENTREGA / a).exists()]
+        auditoria.append({"casilla": casilla, "evidencia": evidencia, "cerrada": not faltan, "faltan": faltan})
+    return {
+        "ciclo": {"eto": ciclo["eto_mm_mes"].round(1).tolist(), "radiativa": ciclo["eto_radiativa_mm_mes"].round(1).tolist(),
+                  "aerodinamica": ciclo["eto_aerodinamica_mm_mes"].round(1).tolist()},
+        "ciclo_puntos": {str(n): ciclo_puntos.loc[n].round(1).tolist() for n in ciclo_puntos.index},
+        "alturas": alturas[["punto", "z_celda_dem_m", "z_region_dem_m", "z_modelo_m", "modelo_menos_region_m",
+                            "efecto_t_era5land_C", "efecto_ea_era5land_kPa"]].round(3).to_dict("records"),
+        "comprobacion": {k: r[(col, est)].round(2).tolist() for k, (col, est) in {
+            "media": ("diferencia_pct", "mean"), "min": ("diferencia_pct", "min"), "max": ("diferencia_pct", "max"),
+            "agregar": ("agregar_pct", "mean"), "g": ("g_pct", "mean")}.items()},
+        "auditoria": auditoria,
+    }
+
+
+def datos_et_real():
+    """ET real mensual y anual de cada producto (salidas de 14_et_real_productos_cuenca.py)."""
+    mensual = pd.read_csv(CARPETA_PRODUCTOS / "et_real_mensual_productos.csv")
+    anual = pd.read_csv(CARPETA_PRODUCTOS / "et_real_anual_productos.csv")
+    periodo = anual["periodo_comun"].iloc[0]
+    primero, ultimo = (int(a) for a in periodo.split("–"))
+    comunes = mensual[mensual["mes"].str[:4].astype(int).between(primero, ultimo)]
+    ciclo = comunes.groupby(comunes["mes"].str[5:7].astype(int)).mean(numeric_only=True)
+    columnas = list(NOMBRES_PRODUCTO)
+    return {
+        "periodo_comun": periodo,
+        "meses": mensual["mes"].tolist(),
+        "nombres": NOMBRES_PRODUCTO,
+        "series": {c: [None if pd.isna(v) else round(float(v), 1) for v in mensual[c]] for c in columnas},
+        "ciclo": {c: ciclo[c].round(1).tolist() for c in columnas},
+        "anual": [{"producto": NOMBRES_PRODUCTO[f.producto], "clave": f.producto,
+                   "anios": f"{int(f.primer_anio)}–{int(f.ultimo_anio)} ({int(f.anios_completos_propio)})",
+                   "propio": round(float(f.media_anual_propio_mm)), "comun": round(float(f.media_anual_comun_mm))}
+                  for f in anual.itertuples()],
+    }
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -154,6 +246,8 @@ def main():
         "horas": largo,
         "mensual": mensual,
         "fase3": datos_fase3(),
+        "fase2": datos_fase2_y_auditoria(),
+        "et_real": datos_et_real(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -272,6 +366,36 @@ code { font: 400 .86em var(--f-dato); }
   </div>
 </section>
 
+<section>
+  <h2>ETo por mes del año</h2>
+  <p>Media de 1998–2022 por mes calendario. Mismos datos que <code>productos/punto1/eto_ciclo_anual.png</code>
+  (script 04e).</p>
+  <div class="dos">
+    <div class="tarjeta"><h3>Cuenca: términos radiativo y aerodinámico (suman la ETo)</h3><div class="grafico" id="g-f2-terminos"></div></div>
+    <div class="tarjeta"><h3>ETo de cada punto y de la cuenca</h3><div class="grafico" id="g-f2-puntos"></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>Comprobaciones de la ETo</h2>
+  <p><b>Medias mensuales frente a suma de diarias.</b> ETo calculada con las medias del mes (G con la ec. 43) menos la
+  suma de las ETo diarias, en % de la suma, para la cuenca. Línea: media de los 25 años; banda: mínimo a máximo.
+  Script 04b; figura fija en <code>anexos/punto1/eto_medias_mensuales_vs_suma_diarias.png</code>.</p>
+  <div class="tarjeta"><div class="grafico" id="g-f2-comprobacion"></div></div>
+  <p style="margin-top:20px"><b>Altura de los 6 puntos frente al DEM</b> (script 04b). z del modelo despejada de la
+  presión media; efecto en T y ea con el gradiente del propio ERA5-Land.</p>
+  <div class="tabla" id="t-f2-alturas"></div>
+  <p style="margin-top:20px"><b>Un día a mano.</b> 2010-02-15, punto 6, desde las 24 horas crudas hasta la ETo, en
+  <code>anexos/punto1/dia_verificado_a_mano.xlsx</code> (script 04c): ETo = 3.76 mm/día, igual a los productos a 4
+  decimales. Juan lo revisó contra FAO-56 el 2026-11-17.</p>
+</section>
+
+<section>
+  <h2>Auditoría de las fases 0 a 2</h2>
+  <p id="p-auditoria"></p>
+  <div class="tabla" id="t-auditoria"></div>
+</section>
+
 <section id="s-horarias">
   <h2>Series horarias de las 6 variables</h2>
   <p>El zoom en el tiempo se sincroniza en las 6 gráficas. Clic en un punto de la leyenda lo oculta o lo muestra en todas.</p>
@@ -308,7 +432,20 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:16px"><h3>ETo diaria</h3><div class="grafico" id="g-eto-diaria"></div></div>
 </section>
 
+<section>
+  <h2>ET real de la cuenca por producto</h2>
+  <p>Promedio de cuenca ponderado por el área de cada celda dentro del polígono (MOD16: media de los píxeles en Earth
+  Engine; TerraClimate: script 05). ERA5-Land mensual (e y pev) se corta en 2022-08: sep–dic de 2022 están dañados por
+  el error de ECMWF (decisión del 2026-11-17). GLEAM Ep y ERA5-Land pev son evaporación potencial, no ET real; se
+  muestran solo como referencia y no entran al periodo común. Script 14.</p>
+  <div class="tabla" id="t-et-anual"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ET real mensual (mm/mes)</h3><div class="grafico" id="g-et-mensual"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3 id="h-et-ciclo">Ciclo anual (mm/mes)</h3><div class="grafico" id="g-et-ciclo"></div></div>
+</section>
+
 <footer>
+  <p>ET real: <code>productos/punto1/et_real_mensual_productos.csv</code> y <code>et_real_anual_productos.csv</code>
+  (script 14).</p>
   <p>Fase 3: salidas de <code>codigo/punto1/12_rs_brillo_solar_vs_era5land.py</code> y
   <code>13_eto_estaciones_vs_era5land.py</code> en <code>productos/punto1/</code>.</p>
   <p>Generado por <code>temp/graficas_series_horarias.py</code> a partir de <code>datos/punto1/era5land_puntos/</code>,
@@ -425,6 +562,62 @@ for (const [valor, texto] of CARGA.cifras) {
     else if (ev['xaxis.autorange']) cambio['xaxis.autorange'] = true; else return;
     enSincronia = true; Plotly.relayout(b, cambio).then(() => { enSincronia = false; });
   }));
+})();
+
+// ---------- Fase 2, auditoría y ET real ----------
+(() => {
+  const F = CARGA.fase2, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
+  const tabla = (id, cab, filas) => { document.getElementById(id).innerHTML =
+    `<table><thead><tr>${cab.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    filas.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') + '</tbody></table>'; };
+  const fmt = (v, d) => (v > 0 ? '+' : '') + v.toFixed(d);
+
+  const l1 = ejeMes(base('mm/mes')); l1.barmode = 'stack'; l1.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-f2-terminos', [
+    {type: 'bar', name: 'Radiativo', x: xm, y: F.ciclo.radiativa, marker: {color: COLOR.radiativa}},
+    {type: 'bar', name: 'Aerodinámico', x: xm, y: F.ciclo.aerodinamica, marker: {color: COLOR.aerodinamica}}], l1, OPCIONES);
+  const alt = Object.fromEntries(F.alturas.map(a => [String(a.punto), a.z_celda_dem_m]));
+  const l2 = ejeMes(base('mm/mes')); l2.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-f2-puntos', [
+    ...Object.entries(F.ciclo_puntos).map(([n, y], k) => ({type: 'scatter', mode: 'lines+markers', name: `P${n} (${Math.round(alt[n])} m)`,
+      x: xm, y, line: {color: COLOR_PUNTO[k], width: 1.3}, marker: {size: 4}})),
+    {type: 'scatter', mode: 'lines', name: 'Cuenca', x: xm, y: F.ciclo.eto, line: {color: css('--tinta'), width: 3}}], l2, OPCIONES);
+  const C = F.comprobacion;
+  Plotly.newPlot('g-f2-comprobacion', [
+    {type: 'scatter', mode: 'lines', x: xm, y: C.max, line: {width: 0}, showlegend: false, hoverinfo: 'skip'},
+    {type: 'scatter', mode: 'lines', name: 'Rango de los 25 años', x: xm, y: C.min, fill: 'tonexty', fillcolor: 'rgba(27,106,128,0.18)', line: {width: 0}},
+    {type: 'scatter', mode: 'lines+markers', name: 'Diferencia total, media', x: xm, y: C.media, line: {color: COLOR.eto, width: 2.4}},
+    {type: 'scatter', mode: 'lines+markers', name: 'Parte de agregar (G = 0)', x: xm, y: C.agregar, line: {color: COLOR.radiativa, dash: 'dash'}},
+    {type: 'scatter', mode: 'lines+markers', name: 'Parte de G (ec. 43)', x: xm, y: C.g, line: {color: COLOR.hargreaves, dash: 'dot'}}],
+    ejeMes(base('% de la suma de diarias')), OPCIONES);
+  tabla('t-f2-alturas', ['Punto', 'z celda DEM (m)', 'z región DEM (m)', 'z modelo (m)', 'Modelo − región (m)', 'Efecto en T (°C)', 'Efecto en ea (kPa)'],
+    F.alturas.map(a => [a.punto, Math.round(a.z_celda_dem_m), Math.round(a.z_region_dem_m), Math.round(a.z_modelo_m),
+      fmt(a.modelo_menos_region_m, 0), fmt(a.efecto_t_era5land_C, 2), fmt(a.efecto_ea_era5land_kPa, 3)]));
+
+  const cerradas = F.auditoria.filter(a => a.cerrada).length;
+  document.getElementById('p-auditoria').textContent =
+    `${cerradas} de ${F.auditoria.length} casillas cerradas. Cada casilla comprueba que su archivo exista al generar este documento.`;
+  tabla('t-auditoria', ['#', 'Casilla', 'Estado', 'Evidencia'], F.auditoria.map((a, i) =>
+    [i + 1, a.casilla, a.cerrada ? '✓ cerrada' : '✗ falta ' + a.faltan.join(', '), a.evidencia]));
+  document.querySelectorAll('#t-auditoria td').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; });
+
+  const E = CARGA.et_real, claves = Object.keys(E.nombres);
+  const COLOR_PROD = {era5land_e: '#0072B2', gleam_E: '#009E73', mod16a2gf: '#D55E00', terraclimate_aet: '#CC79A7',
+    ssebop_v61: '#E69F00', ssebop_v5: '#8C6D31', gleam_Ep: '#009E73', era5land_pev: '#0072B2'};
+  const potencial = c => c === 'gleam_Ep' || c === 'era5land_pev';
+  tabla('t-et-anual', ['Producto', 'Años completos', 'Media anual, su periodo (mm)', `Media anual, ${E.periodo_comun} (mm)`],
+    E.anual.map(a => [a.producto, a.anios, a.propio, a.comun]));
+  const xs = E.meses.map(m => m + '-01');
+  const lm = base('mm/mes'); lm.hovermode = 'x unified';
+  Plotly.newPlot('g-et-mensual', claves.map(c => ({type: 'scatter', mode: 'lines', name: E.nombres[c], x: xs, y: E.series[c],
+    line: {color: COLOR_PROD[c], width: potencial(c) ? 1 : 1.5, dash: potencial(c) ? 'dot' : 'solid'},
+    visible: c === 'era5land_pev' ? 'legendonly' : true})), lm, OPCIONES);
+  document.getElementById('h-et-ciclo').textContent = `Ciclo anual, media ${E.periodo_comun} (mm/mes)`;
+  const lc = ejeMes(base('mm/mes')); lc.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-et-ciclo', claves.map(c => ({type: 'scatter', mode: 'lines+markers', name: E.nombres[c], x: xm, y: E.ciclo[c],
+    line: {color: COLOR_PROD[c], dash: potencial(c) ? 'dot' : 'solid'}, marker: {size: 4},
+    visible: c === 'era5land_pev' ? 'legendonly' : true})), lc, OPCIONES);
 })();
 
 // Series horarias en rejilla, con el zoom en el tiempo sincronizado.

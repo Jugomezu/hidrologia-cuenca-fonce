@@ -1,0 +1,110 @@
+{
+  "archivo": "dhime_t_hr_parte1_1998_2022.zip",
+  "nombre_original": "Reporte de información Hidrometeorológica de DHIME generado (5).zip",
+  "fuente": "IDEAM, portal DHIME (atencionciudadano.ideam.gov.co), consulta y descarga de datos hidrometeorológicos",
+  "version": "datos servidos por DHIME en la fecha de descarga",
+  "contenido": "descargaDhime.csv: CodigoEstacion, NombreEstacion, Variable, Parametro, Fecha, Unidad, Valor, NivelAprobacion",
+  "estaciones": [
+    "24025030",
+    "24025040",
+    "24025050",
+    "24035350"
+  ],
+  "series": [
+    {
+      "estacion": "24025030 LA SIERRA - AUT [24025030]",
+      "parametro": "Temperatura máxima diaria",
+      "unidades": "degC",
+      "filas": 6188,
+      "desde": "2001-10-10",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24025030 LA SIERRA - AUT [24025030]",
+      "parametro": "Temperatura mínima diaria",
+      "unidades": "degC",
+      "filas": 8606,
+      "desde": "1998-02-01",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24025040 ESCUELA AGRICOLA MOGOTES [24025040]",
+      "parametro": "Húmeda relativa calculada máxima diaria",
+      "unidades": "%",
+      "filas": 6842,
+      "desde": "1998-01-01",
+      "hasta": "2022-12-30"
+    },
+    {
+      "estacion": "24025040 ESCUELA AGRICOLA MOGOTES [24025040]",
+      "parametro": "Temperatura máxima diaria",
+      "unidades": "degC",
+      "filas": 8339,
+      "desde": "1998-01-01",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24025040 ESCUELA AGRICOLA MOGOTES [24025040]",
+      "parametro": "Temperatura mínima diaria",
+      "unidades": "degC",
+      "filas": 6500,
+      "desde": "1998-01-01",
+      "hasta": "2021-06-25"
+    },
+    {
+      "estacion": "24025050 CHARALÁ [24025050]",
+      "parametro": "Húmeda relativa calculada máxima diaria",
+      "unidades": "%",
+      "filas": 6590,
+      "desde": "1998-01-01",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24025050 CHARALÁ [24025050]",
+      "parametro": "Temperatura máxima diaria",
+      "unidades": "degC",
+      "filas": 7026,
+      "desde": "1998-01-01",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24025050 CHARALÁ [24025050]",
+      "parametro": "Temperatura mínima diaria",
+      "unidades": "degC",
+      "filas": 7551,
+      "desde": "1998-01-01",
+      "hasta": "2022-12-31"
+    },
+    {
+      "estacion": "24035350 ANDALUCIA [24035350]",
+      "parametro": "Temperatura máxima diaria",
+      "unidades": "degC",
+      "filas": 5659,
+      "desde": "1998-01-01",
+      "hasta": "2017-02-16"
+    },
+    {
+      "estacion": "24035350 ANDALUCIA [24035350]",
+      "parametro": "Temperatura mínima diaria",
+      "unidades": "degC",
+      "filas": 5197,
+      "desde": "1998-01-01",
+      "hasta": "2017-02-17"
+    }
+  ],
+  "periodo": "pedido 1998-01-01 a 2022-12-31, diario; el rango real de cada serie está en 'series'",
+  "recorte_espacial": "estaciones puntuales (ver 'estaciones')",
+  "niveles_aprobacion": {
+    "Preliminar": 29441,
+    "Definitivo": 27438,
+    "En revisión": 11619
+  },
+  "fecha_descarga": "2026-11-17",
+  "procesamiento": "sin procesar: ZIP tal como lo entregó DHIME, solo renombrado a ASCII",
+  "avisos": [
+    "24035350 ANDALUCIA queda a ~3 km fuera de la cuenca, en la subzona hidrográfica 2403; no está dentro del polígono CAMELS-COL 24027010.",
+    "La HR de 24025040 y 24025050 en esta parte es solo la máxima diaria calculada; la mínima está en la parte 2.",
+    "La Tmin de 24025040 termina el 2021-06-25; la Tmax de 24025030 empieza el 2001-10-10."
+  ],
+  "sha256": "0e96d162925c28f7c723d17860924d0fdcf73476900fd1753721aed6da2371d7"
+}

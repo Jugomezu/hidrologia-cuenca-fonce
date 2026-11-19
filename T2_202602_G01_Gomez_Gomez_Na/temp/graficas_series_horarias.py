@@ -132,6 +132,9 @@ def series_mensuales_eto():
     }
 
 
+DIAS_MINIMOS_MES = 15   # series mensuales de estación: mínimo de días con dato
+
+
 def datos_fase3():
     """Salidas de los scripts 12 y 13: ciclo anual, sesgo por mes, series diarias y resumen, por estación."""
     rs_mes = pd.read_csv(CARPETA_PRODUCTOS / "rs_estaciones_vs_era5land_por_mes.csv", dtype={"estacion": str})
@@ -147,12 +150,18 @@ def datos_fase3():
         e = {v: eto_mes[(eto_mes["estacion"] == codigo) & (eto_mes["variante_viento"] == v)].sort_values("mes")
              for v in ["mogotes_aut", "2ms"]}
         er = eto_res[eto_res["estacion"] == codigo].set_index("variante_viento")
-        # Días sin dato como vacíos (null en el JSON), para que la línea se corte en los huecos y no los una.
-        todos = pd.date_range("1998-01-01", "2022-12-31", freq="D").strftime("%Y-%m-%d")
-        rd = rs_dia[rs_dia["estacion"] == codigo].set_index("fecha").reindex(todos).rename_axis("fecha").reset_index()
-        ed = eto_dia[eto_dia["estacion"] == codigo].set_index("fecha").reindex(todos).rename_axis("fecha").reset_index()
-        rd = rd.astype(object).where(rd.notna(), None)
-        ed = ed.astype(object).where(ed.notna(), None)
+        # Serie mensual: media de los días con dato; el mes queda vacío (null) si tiene menos de DIAS_MINIMOS_MES días.
+        def mensual(tabla, columnas):
+            t = tabla.assign(fecha=pd.to_datetime(tabla["fecha"])).set_index("fecha")[columnas]
+            media = t.resample("MS").mean().reindex(pd.date_range("1998-01-01", "2022-12-01", freq="MS"))
+            cuenta = t.resample("MS").count().reindex(media.index).fillna(0)
+            media = media.where(cuenta >= DIAS_MINIMOS_MES)
+            salida = {"fecha": media.index.strftime("%Y-%m-01").tolist()}
+            for c in columnas:
+                salida[c] = [None if pd.isna(v) else round(float(v), 2) for v in media[c]]
+            return salida
+        rd = mensual(rs_dia[rs_dia["estacion"] == codigo], ["rs_estacion_MJm2", "rs_era5_MJm2"])
+        ed = mensual(eto_dia[eto_dia["estacion"] == codigo], ["eto_mogotes_aut_mm", "eto_2ms_mm", "eto_era5_mm"])
         estaciones.append({
             "codigo": codigo, "nombre": nombre, "punto": int(rr["punto_era5"]),
             "distancia_km": float(rr["distancia_km"]), "dz_celda_m": float(rr["estacion_menos_celda_dem_m"]),
@@ -169,10 +178,8 @@ def datos_fase3():
                                     "pct": round(float(er.loc[v, "sesgo_pct"]), 1),
                                     "rmse": round(float(er.loc[v, "rmse_mm_dia"]), 2), "dias": int(er.loc[v, "dias"])}
                                 for v in ["mogotes_aut", "2ms"]}},
-            "diaria_rs": {"fecha": rd["fecha"].tolist(), "estacion": [None if v is None else round(float(v), 2) for v in rd["rs_estacion_MJm2"]],
-                          "era5": [None if v is None else round(float(v), 2) for v in rd["rs_era5_MJm2"]]},
-            "diaria_eto": {"fecha": ed["fecha"].tolist(), "a": [None if v is None else round(float(v), 2) for v in ed["eto_mogotes_aut_mm"]],
-                           "b": [None if v is None else round(float(v), 2) for v in ed["eto_2ms_mm"]], "era5": [None if v is None else round(float(v), 2) for v in ed["eto_era5_mm"]]},
+            "diaria_rs": {"fecha": rd["fecha"], "estacion": rd["rs_estacion_MJm2"], "era5": rd["rs_era5_MJm2"]},
+            "diaria_eto": {"fecha": ed["fecha"], "a": ed["eto_mogotes_aut_mm"], "b": ed["eto_2ms_mm"], "era5": ed["eto_era5_mm"]},
         })
     return estaciones
 
@@ -503,11 +510,11 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
-  <h2>Fase 3 · Series diarias por estación</h2>
-  <p>Rs y ETo de cada día con dato. Elige la estación; el zoom en el tiempo se sincroniza entre las dos gráficas.</p>
+  <h2>Fase 3 · Series mensuales por estación</h2>
+  <p>Rs y ETo mensuales: media de los días con todas las entradas de estación, en los mismos días para los dos lados. Mes vacío si tiene menos de 15 días con dato. Elige la estación; el zoom en el tiempo se sincroniza entre las dos gráficas.</p>
   <div class="controles" id="c-estacion"></div>
-  <div class="tarjeta"><h3>Rs diaria</h3><div class="grafico" id="g-rs-diaria"></div></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>ETo diaria</h3><div class="grafico" id="g-eto-diaria"></div></div>
+  <div class="tarjeta"><h3>Rs, media mensual (MJ/m²·día)</h3><div class="grafico" id="g-rs-diaria"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo, media mensual (mm/día)</h3><div class="grafico" id="g-eto-diaria"></div></div>
 </section>
 
 <section>
@@ -658,14 +665,14 @@ for (const [valor, texto] of CARGA.cifras) {
     const e = F[k];
     const l1 = base('MJ/m²·día'); l1.hovermode = 'closest';
     Plotly.react('g-rs-diaria', [
-      {type: 'scatter', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1}},
-      {type: 'scatter', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1}}],
+      {type: 'scatter', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1.5}},
+      {type: 'scatter', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1.5}}],
       l1, OPCIONES);
     const l2 = base('mm/día'); l2.hovermode = 'closest';
     Plotly.react('g-eto-diaria', [
-      {type: 'scatter', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1}},
-      {type: 'scatter', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1}, visible: 'legendonly'},
-      {type: 'scatter', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
+      {type: 'scatter', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1.5}},
+      {type: 'scatter', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1.5}, visible: 'legendonly'},
+      {type: 'scatter', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1.5}}],
       l2, OPCIONES);
   };
   F.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e.nombre; b.setAttribute('aria-pressed', String(k === 0));

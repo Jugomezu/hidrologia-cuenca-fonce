@@ -339,14 +339,14 @@ for (const [valor, texto] of CARGA.cifras) {
     const e = F[k];
     const l1 = base('MJ/m²·día'); l1.hovermode = 'closest';
     Plotly.react('g-rs-diaria', [
-      {type: 'scattergl', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1}},
-      {type: 'scattergl', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1}}],
+      {type: 'scatter', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1}},
+      {type: 'scatter', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1}}],
       l1, OPCIONES);
     const l2 = base('mm/día'); l2.hovermode = 'closest';
     Plotly.react('g-eto-diaria', [
-      {type: 'scattergl', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1}},
-      {type: 'scattergl', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1}, visible: 'legendonly'},
-      {type: 'scattergl', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
+      {type: 'scatter', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1}},
+      {type: 'scatter', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1}, visible: 'legendonly'},
+      {type: 'scatter', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
       l2, OPCIONES);
   };
   F.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e.nombre; b.setAttribute('aria-pressed', String(k === 0));

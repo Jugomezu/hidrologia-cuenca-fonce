@@ -127,13 +127,30 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Fase 3 · Cómo leer las comparaciones con estaciones</h2>
+  <p><b>Todos los sesgos de esta fase son de ERA5-Land, medidos respecto a las estaciones del IDEAM:</b>
+  sesgo = promedio de (ERA5-Land − estación), en los mismos días. Positivo: ERA5-Land da más que la estación.
+  Negativo: da menos. El sesgo en % se divide por la media de la estación. El RMSE es el tamaño típico del error de un
+  día, sin signo: un sesgo pequeño con RMSE grande quiere decir que los errores de días distintos se compensan.</p>
+  <p><b>Rs de estación: ecuación de Angstrom</b> (FAO-56 ec. 35, p. 50):
+  Rs = (a<sub>s</sub> + b<sub>s</sub>·n/N)·Ra, con n = horas de brillo solar medidas, N = (24/π)·ω<sub>s</sub> las horas
+  de luz posibles (ec. 34) y Ra la radiación extraterrestre (ec. 21, con ec. 23–25), las dos calculadas cada día con la
+  latitud de la estación. a<sub>s</sub> = 0.25 es la fracción de Ra que llega en un día cubierto (n = 0) y
+  a<sub>s</sub> + b<sub>s</sub> = 0.75 la que llega en un día despejado (n = N). Son los valores que FAO-56 recomienda
+  sin calibración local; en la cuenca no hay radiación medida para calibrarlos, así que ese error queda dentro del sesgo.</p>
+  <p><b>Viento de la ETo de estación: variantes (a) y (b).</b> Solo Mogotes-AUT mide viento; La Sierra y Charalá no.
+  (a) es la variante final: media mensual de Mogotes-AUT medida a 10 m (Manual del Observador Meteorológico del IDEAM,
+  GDI-M003, p. 37) y llevada a 2 m con la ec. 47 (u2 ≈ 0.75 m/s), usada en las tres estaciones. (b), u2 = 2 m/s, es el
+  valor de FAO-56 cuando no hay viento medido; se deja solo como sensibilidad.</p>
+</section>
+
+<section>
   <h2>Fase 3 · Radiación de estaciones frente a ERA5-Land</h2>
-  <p>Rs de estación con Angstrom (FAO-56 ec. 35, a<sub>s</sub> = 0.25, b<sub>s</sub> = 0.50) a partir del brillo solar
-  diario del IDEAM. Cada estación se compara con el punto de ERA5-Land más cercano, en los mismos días. Sesgo =
-  ERA5-Land − estación.</p>
+  <p>Rs de Angstrom con el brillo solar diario del IDEAM. Cada estación se compara con el punto de ERA5-Land más
+  cercano, en los mismos días. Sesgo de ERA5-Land = ERA5-Land − estación.</p>
   <div class="tabla" id="t-rs"></div>
   <div class="rejilla" id="r-rs"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de Rs por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-rs-sesgo"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ERA5-Land en Rs, por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-rs-sesgo"></div></div>
 </section>
 
 <section>
@@ -141,10 +158,10 @@ code { font: 400 .86em var(--f-dato); }
   <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
   variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
   Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), u2 = 2 m/s, queda como sensibilidad. Solo días con todas
-  las entradas.</p>
+  las entradas. Sesgo de ERA5-Land = ERA5-Land − estación.</p>
   <div class="tabla" id="t-eto"></div>
   <div class="rejilla" id="r-eto"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ETo por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ERA5-Land en ETo, por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
 </section>
 
 <section>
@@ -273,10 +290,10 @@ for (const [valor, texto] of CARGA.cifras) {
     t.innerHTML = `<h3>${titulo}</h3>`; const g = document.createElement('div'); g.className = 'grafico';
     t.appendChild(g); document.getElementById(cont).appendChild(t); return g; };
 
-  tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
+  tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
     F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
                 fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
-  tabla('t-eto', ['Estación', 'Días', 'Sesgo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
+  tabla('t-eto', ['Estación', 'Días', 'Sesgo de ERA5-Land (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
     F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'];
       return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2)]; }));
 

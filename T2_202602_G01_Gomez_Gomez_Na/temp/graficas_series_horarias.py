@@ -21,7 +21,8 @@ salidas de codigo/punto1/12_rs_brillo_solar_vs_era5land.py y 13_eto_estaciones_v
 
 También: la ETo de la fase 2 por mes calendario y su comprobación con medias mensuales (salidas de 04 y 04b, las
 mismas que dibuja 04e), el estado de la auditoría de las fases 0 a 2 (cada casilla comprueba que su archivo exista), y
-la ET real de cuenca de cada producto (salida de codigo/punto1/14_et_real_productos_cuenca.py).
+la ET real de cuenca de cada producto (salida de codigo/punto1/14_et_real_productos_cuenca.py) y el balance hídrico
+P − Q − ΔS (salida de codigo/punto1/15_balance_hidrico.py).
 
 Escribe también temp/documento_trabajo_ligero.html: lo mismo sin las series horarias (pesa menos de 1 MB), para
 abrirlo con un enlace.
@@ -230,6 +231,21 @@ def datos_et_real():
     }
 
 
+def datos_balance():
+    """Balance hídrico P − Q − ΔS (salidas de codigo/punto1/15_balance_hidrico.py)."""
+    resumen = pd.read_csv(CARPETA_PRODUCTOS / "balance_hidrico_resumen.csv")
+    anual = pd.read_csv(CARPETA_PRODUCTOS / "balance_hidrico_anual.csv")
+    return {
+        "resumen": [{"camino": f.camino, "n": f"{int(f.n)} {f.unidad_n}", "PI": round(f.P_PI), "PL": round(f.P_PL),
+                     "Q": round(f.Q), "ETR_PI": round(f.ETR_PI), "ETR_PL": round(f.ETR_PL)} for f in resumen.itertuples()],
+        "ds_neto": round(float(resumen["dS_suelo_neto_mm_anio"].iloc[0]), 1),
+        "ds_desv": round(float(resumen["dS_suelo_anual_desv_est_mm"].iloc[0])),
+        "anios": anual["anio"].astype(str).tolist(),
+        "etr_pi": anual["ETR_PI_con_dS"].round(0).tolist(),
+        "etr_pl": anual["ETR_PL_con_dS"].round(0).tolist(),
+    }
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -248,6 +264,7 @@ def main():
         "fase3": datos_fase3(),
         "fase2": datos_fase2_y_auditoria(),
         "et_real": datos_et_real(),
+        "balance": datos_balance(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -449,6 +466,18 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Balance hídrico: ET real = P − Q − ΔS</h2>
+  <p>ET real que no depende de ningún modelo de ET: lluvia (PI = IMERG, PL = pluviómetros del IDEAM depurados, en
+  paralelo), caudal observado en San Gil (CAMELS-COL, lámina sobre 2 098.85 km²) y agua en el suelo de ERA5-Land (4
+  capas, 0–289 cm, 6 puntos con pesos de Voronoi). Camino principal: ciclo anual medio con los meses que tienen Q;
+  comprobación: los años con los 12 meses de Q. Decisiones del 2026-11-19. Script 15.</p>
+  <div class="tabla" id="t-balance"></div>
+  <p id="p-balance-ds"></p>
+  <div class="tarjeta" style="margin-top:16px"><h3>ET real del balance frente a los productos (mm/año)</h3><div class="grafico" id="g-balance-productos"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ET real del balance por año completo de Q, con ΔS (mm/año)</h3><div class="grafico" id="g-balance-anual"></div></div>
+</section>
+
+<section>
   <h2>Fase 4 · Métodos disponibles en las notas del curso</h2>
   <p>Solo métodos de la sección «Caja de herramientas» y afines de las notas de C. D. Hoyos. Datos: ERA5-Land horario
   en 6 puntos (t2m, d2m, sp, u10, v10, ssrd), Rn FAO-56, estaciones DHIME, brillo solar. Quedan fuera las mediciones
@@ -476,6 +505,7 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <footer>
+  <p>Balance hídrico: <code>productos/punto1/balance_hidrico_*.csv</code> (script 15).</p>
   <p>ET real: <code>productos/punto1/et_real_mensual_productos.csv</code> y <code>et_real_anual_productos.csv</code>
   (script 14).</p>
   <p>Fase 3: salidas de <code>codigo/punto1/12_rs_brillo_solar_vs_era5land.py</code> y
@@ -650,6 +680,24 @@ for (const [valor, texto] of CARGA.cifras) {
   Plotly.newPlot('g-et-ciclo', claves.map(c => ({type: 'scatter', mode: 'lines+markers', name: E.nombres[c], x: xm, y: E.ciclo[c],
     line: {color: COLOR_PROD[c], dash: potencial(c) ? 'dot' : 'solid'}, marker: {size: 4},
     visible: c === 'era5land_pev' ? 'legendonly' : true})), lc, OPCIONES);
+
+  const B = CARGA.balance;
+  tabla('t-balance', ['Camino', 'Datos', 'PI (mm/año)', 'PL (mm/año)', 'Q (mm/año)', 'ET real con PI', 'ET real con PL'],
+    B.resumen.map(r => [r.camino, r.n, r.PI, r.PL, r.Q, r.ETR_PI, r.ETR_PL]));
+  document.querySelectorAll('#t-balance td:first-child').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; });
+  document.getElementById('p-balance-ds').textContent =
+    `ΔS del suelo: cambio neto ${fmt(B.ds_neto, 1)} mm/año entre 1998 y 2022; de un año a otro varía con desviación estándar de ${B.ds_desv} mm.`;
+  const reales = E.anual.filter(a => !potencial(a.clave));
+  const etiquetas = ['Balance con PL', 'Balance con PI', ...reales.map(a => a.producto)];
+  const valores = [B.resumen[0].ETR_PL, B.resumen[0].ETR_PI, ...reales.map(a => a.propio)];
+  const lb = base('mm/año'); lb.yaxis.rangemode = 'tozero'; lb.showlegend = false; lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'category'});
+  Plotly.newPlot('g-balance-productos', [{type: 'bar', x: etiquetas, y: valores,
+    marker: {color: etiquetas.map((_, i) => i < 2 ? css('--tinta') : COLOR_PROD[reales[i - 2].clave])},
+    hovertemplate: '%{x}: %{y} mm/año<extra></extra>'}], lb, OPCIONES);
+  const la = base('mm/año'); la.yaxis.rangemode = 'tozero'; la.barmode = 'group'; la.xaxis = Object.assign(la.xaxis || {}, {type: 'category'});
+  Plotly.newPlot('g-balance-anual', [
+    {type: 'bar', name: 'Con PL', x: B.anios, y: B.etr_pl, marker: {color: '#0072B2'}},
+    {type: 'bar', name: 'Con PI', x: B.anios, y: B.etr_pi, marker: {color: '#E69F00'}}], la, OPCIONES);
 })();
 
 // Series horarias en rejilla, con el zoom en el tiempo sincronizado.

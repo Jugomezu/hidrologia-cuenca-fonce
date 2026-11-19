@@ -174,7 +174,7 @@ MOD16) y con el balance hídrico. Esto queda como limitación.
 
 **Decisión.** Rs de estación con Angstrom, FAO-56 ec. 35, Rs = (0.25 + 0.50 n/N) Ra, con N de la ec. 34 y Ra de la ec. 21
 en la latitud de la estación. a_s = 0.25 y b_s = 0.50 son los que FAO-56 recomienda sin calibración local (cap. 3,
-verificado en la versión HTML de FAO; la página del PDF falta verificarla). Cada estación se compara con el más cercano de
+ec. 35 en la p. 50 del PDF, verificada por Juan el 2026-11-19). Cada estación se compara con el más cercano de
 los 6 puntos ya descargados, no con la celda que la contiene (no está descargada). Solo días con brillo solar; no se
 rellena. Se descarta el día con n > N (no hubo ninguno). Script 12.
 

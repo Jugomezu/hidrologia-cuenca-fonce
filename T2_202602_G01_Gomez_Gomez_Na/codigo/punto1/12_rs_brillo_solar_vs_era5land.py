@@ -16,7 +16,7 @@ Escribe en productos/punto1/:
 Método, FAO-56 (Allen et al., 1998), cap. 3:
     N   horas de luz del día, ec. 34: N = (24/π) ωs, con ωs de la ec. 25 y la latitud de la estación
     Ra  radiación extraterrestre, ec. 21 (con ec. 23, 24 y 25), latitud de la estación
-    Rs  ecuación de Angstrom, ec. 35: Rs = (a_s + b_s n/N) Ra, con a_s = 0.25 y b_s = 0.50, los valores que FAO-56
+    Rs  ecuación de Angstrom, ec. 35 (p. 50): Rs = (a_s + b_s n/N) Ra, con a_s = 0.25 y b_s = 0.50, los valores que FAO-56
         recomienda cuando no hay calibración local (no la hay: no existe radiación medida en la cuenca).
 
 Celda de ERA5-Land: solo se descargaron los 6 puntos de la cuenca, así que cada estación se compara con el punto más

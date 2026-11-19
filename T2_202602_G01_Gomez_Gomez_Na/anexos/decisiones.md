@@ -275,3 +275,19 @@ tienen Q (262 de 300); los 11 años completos de Q, como comprobación. ΔS: agu
 **Razonamiento.** Q tiene 12.7 % de meses vacíos, concentrados en 2014–2015 y 2022. Exigir años completos deja solo 11
 años; el ciclo anual medio aprovecha todos los meses con dato. El ΔS de ERA5-Land no incluye el agua subterránea
 profunda.
+
+## 2026-11-19 · Punto 1 · Segunda prueba de la ETo: TerraClimate pet
+
+**Decisión (Juan).** La segunda prueba de la fase 3 es la pet de TerraClimate v1.1, porque es una ETo de referencia y
+no una ETP: el archivo la describe como «Reference Evapotranspiration» y la página del producto como ASCE
+Penman-Monteith corregida por CO2 (Yang et al., 2018). GLEAM Ep (Priestley-Taylor) y ERA5-Land pev son ETP y no
+sirven como prueba de la ETo. El tanque de Mogotes-AUT no se usa (unidades erróneas). Script 16.
+
+**Lo que se declara.** (1) La corrección por CO2 cambia la resistencia de superficie de FAO-56. (2) En v1.1 las
+anomalías mensuales vienen solo de ERA5, así que la prueba no es independiente de ERA5 en la variabilidad; sí en la
+climatología (CHELSA 2.1 y CRU TS) y en la resolución. No se verificó en el artículo de 2018 la superficie de
+referencia ni el albedo (el artículo no cargó); queda pendiente.
+
+**Resultado.** Sesgo de ERA5-Land (ETo − pet), 1998–2022: +10.3 mm/mes (+11.8 %); MAE 10.3, RMSE 10.4, r = 0.97.
+ERA5-Land queda por encima en los 300 meses (+5.7 a +14.9 mm/mes). Por mes calendario, de +8.2 (junio) a +12.1 (marzo).
+Anual: 1 166 frente a 1 043 mm.

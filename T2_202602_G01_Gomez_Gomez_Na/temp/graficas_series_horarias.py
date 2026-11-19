@@ -209,6 +209,25 @@ def datos_fase2_y_auditoria():
     }
 
 
+def datos_prueba_terraclimate():
+    """Segunda prueba de la ETo: ERA5-Land frente a TerraClimate pet (salidas de 16_eto_vs_terraclimate_pet.py)."""
+    eto = pd.read_csv(ETO_CUENCA)
+    pet = pd.read_csv(CARPETA_PRODUCTOS / "terraclimate_mensual_cuenca.csv")
+    assert list(eto["mes"]) == list(pet["mes"])
+    por_mes = pd.read_csv(CARPETA_PRODUCTOS / "eto_vs_terraclimate_pet_por_mes.csv")
+    r = pd.read_csv(CARPETA_PRODUCTOS / "eto_vs_terraclimate_pet_resumen.csv").iloc[0]
+    return {
+        "meses": list(eto["mes"]), "eto": eto["eto_mm_mes"].round(1).tolist(), "pet": pet["pet_mm_mes"].round(1).tolist(),
+        "ciclo_eto": por_mes["eto_era5land_media"].round(1).tolist(), "ciclo_pet": por_mes["pet_terraclimate_media"].round(1).tolist(),
+        "sesgo": por_mes["sesgo_mm_mes"].round(2).tolist(), "mae": por_mes["mae_mm_mes"].round(2).tolist(),
+        "rmse": por_mes["rmse_mm_mes"].round(2).tolist(),
+        "resumen": {"sesgo": round(float(r["sesgo_mm_mes"]), 1), "pct": round(float(r["sesgo_pct"]), 1),
+                    "mae": round(float(r["mae_mm_mes"]), 1), "rmse": round(float(r["rmse_mm_mes"]), 1),
+                    "r": round(float(r["correlacion"]), 2), "anual_eto": round(float(r["eto_era5land_anual_mm"])),
+                    "anual_pet": round(float(r["pet_terraclimate_anual_mm"]))},
+    }
+
+
 def datos_et_real():
     """ET real mensual y anual de cada producto (salidas de 14_et_real_productos_cuenca.py)."""
     mensual = pd.read_csv(CARPETA_PRODUCTOS / "et_real_mensual_productos.csv")
@@ -264,6 +283,7 @@ def main():
         "fase3": datos_fase3(),
         "fase2": datos_fase2_y_auditoria(),
         "et_real": datos_et_real(),
+        "prueba_tc": datos_prueba_terraclimate(),
         "balance": datos_balance(),
         "puntos": PUNTOS,
         "variables": [
@@ -464,6 +484,22 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Fase 3 · Segunda prueba: TerraClimate pet</h2>
+  <p>La pet de TerraClimate v1.1 es una ETo de referencia, no una ETP: ASCE Penman–Monteith corregida por CO<sub>2</sub>
+  (Yang et al., 2018), según el archivo («Reference Evapotranspiration») y la página del producto. Por eso sirve para
+  probar nuestra ETo; GLEAM Ep y ERA5-Land pev son ETP y no. Se declaran dos diferencias: la corrección por
+  CO<sub>2</sub>, y que en v1.1 sus anomalías mensuales vienen de ERA5, así que no es independiente de ERA5 en la
+  variabilidad (sí en la climatología, CHELSA y CRU, y en la resolución, ~4 km). Promedio de cuenca, 1998–2022,
+  300 meses. <b>Sesgo de ERA5-Land = ETo ERA5-Land − pet TerraClimate.</b> Script 16.</p>
+  <div class="tabla" id="t-tc"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Serie mensual (mm/mes)</h3><div class="grafico" id="g-tc-serie"></div></div>
+  <div class="dos">
+    <div class="tarjeta"><h3>Ciclo anual (mm/mes)</h3><div class="grafico" id="g-tc-ciclo"></div></div>
+    <div class="tarjeta"><h3>Sesgo de ERA5-Land, MAE y RMSE por mes (mm/mes)</h3><div class="grafico" id="g-tc-sesgo"></div></div>
+  </div>
+</section>
+
+<section>
   <h2>Fase 3 · Series diarias por estación</h2>
   <p>Rs y ETo de cada día con dato. Elige la estación; el zoom en el tiempo se sincroniza entre las dos gráficas.</p>
   <div class="controles" id="c-estacion"></div>
@@ -641,6 +677,30 @@ for (const [valor, texto] of CARGA.cifras) {
     else if (ev['xaxis.autorange']) cambio['xaxis.autorange'] = true; else return;
     enSincronia = true; Plotly.relayout(b, cambio).then(() => { enSincronia = false; });
   }));
+})();
+
+// ---------- Fase 3, segunda prueba: TerraClimate pet ----------
+(() => {
+  const T = CARGA.prueba_tc, R = T.resumen, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
+  const mas = v => (v > 0 ? '+' : '') + v;
+  document.getElementById('t-tc').innerHTML = '<table><thead><tr><th>ETo ERA5-Land (mm/año)</th><th>pet TerraClimate (mm/año)</th>' +
+    '<th>Sesgo de ERA5-Land (mm/mes)</th><th>Sesgo %</th><th>MAE</th><th>RMSE</th><th>r mensual</th></tr></thead><tbody><tr>' +
+    [R.anual_eto, R.anual_pet, mas(R.sesgo), mas(R.pct), R.mae, R.rmse, R.r].map(v => `<td>${v}</td>`).join('') + '</tr></tbody></table>';
+  const x = T.meses.map(m => m + '-01');
+  Plotly.newPlot('g-tc-serie', [
+    {type: 'scatter', mode: 'lines', name: 'ETo FAO-56, ERA5-Land', x, y: T.eto, line: {color: COLOR.eto, width: 1.6}},
+    {type: 'scatter', mode: 'lines', name: 'pet TerraClimate v1.1', x, y: T.pet, line: {color: '#CC79A7', width: 1.6, dash: 'dash'}}],
+    base('mm/mes'), OPCIONES);
+  const lc = ejeMes(base('mm/mes')); lc.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-tc-ciclo', [
+    {type: 'scatter', mode: 'lines+markers', name: 'ETo ERA5-Land', x: xm, y: T.ciclo_eto, line: {color: COLOR.eto}},
+    {type: 'scatter', mode: 'lines+markers', name: 'pet TerraClimate', x: xm, y: T.ciclo_pet, line: {color: '#CC79A7', dash: 'dash'}}], lc, OPCIONES);
+  const ls = ejeMes(base('mm/mes')); ls.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-tc-sesgo', [
+    {type: 'bar', name: 'Sesgo de ERA5-Land', x: xm, y: T.sesgo, marker: {color: COLOR.eto}},
+    {type: 'scatter', mode: 'lines+markers', name: 'MAE', x: xm, y: T.mae, line: {color: COLOR.radiativa}},
+    {type: 'scatter', mode: 'lines+markers', name: 'RMSE', x: xm, y: T.rmse, line: {color: COLOR.hargreaves, dash: 'dot'}}], ls, OPCIONES);
 })();
 
 // ---------- Fase 2, auditoría y ET real ----------

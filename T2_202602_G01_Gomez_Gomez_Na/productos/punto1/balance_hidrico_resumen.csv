@@ -1,0 +1,4 @@
+camino,n,unidad_n,P_PI,P_PL,Q,ETR_PI,ETR_PL,dS_suelo_neto_mm_anio,dS_suelo_anual_desv_est_mm
+"ciclo anual medio, meses con Q",262,meses,2229.3,2550.5,1344.8,884.5,1205.8,0.2,28.1
+años completos de Q,11,años,2223.4,2579.1,1358.6,864.8,1220.5,0.2,28.1
+"años completos de Q, restando ΔS del suelo",11,años,2223.4,2579.1,1358.6,867.2,1223.0,0.2,28.1

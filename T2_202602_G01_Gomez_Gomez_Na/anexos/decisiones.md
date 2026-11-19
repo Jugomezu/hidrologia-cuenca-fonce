@@ -258,3 +258,20 @@ todos los productos de ET real tienen los 12 meses).
 
 **Resultado.** Media anual 2013–2021, mm: ERA5-Land e 1281, GLEAM E 1192, MOD16A2GF 1136, TerraClimate 1032, SSEBop
 v6.1 848, SSEBop v5 474. Potenciales: GLEAM Ep 1138, ERA5-Land pev 3204. Tabla: `productos/punto1/et_real_anual_productos.csv`.
+
+## 2026-11-19 · Punto 1 · Balance hídrico: ET real = P − Q − ΔS
+
+**Decisión (Juan).** Script 15. P con las dos fuentes en paralelo, como en la Tarea 1: PI (IMERG ponderado por área de
+celda) y PL (7 pluviómetros dentro de la divisoria, con las exclusiones de la Tarea 1). Q observado de CAMELS-COL en
+San Gil, en lámina sobre 2 098.85 km², con la regla de la Tarea 1 (mes vacío si faltan 5 o más días). El Q estimado
+del modelo M5 de la Tarea 1 no se usa porque lleva Hargreaves adentro. Largo plazo: ciclo anual medio con los meses que
+tienen Q (262 de 300); los 11 años completos de Q, como comprobación. ΔS: agua en las 4 capas de suelo de ERA5-Land
+(0–289 cm), con los pesos de Voronoi de los 6 puntos. Se usan años calendario.
+
+**Resultado.** ET real de largo plazo: 1 206 mm/año con PL y 884 con PI (Q = 1 345). Con los años completos da 1 220 y
+865. ΔS del suelo: cambio neto de +0.2 mm/año entre 1998 y 2022 y variación de un año a otro con desviación estándar de
+28 mm, así que ΔS ≈ 0 se sostiene. PI y PL reproducen las series de la Tarea 1 (diferencia máxima de 0.005 mm/mes).
+
+**Razonamiento.** Q tiene 12.7 % de meses vacíos, concentrados en 2014–2015 y 2022. Exigir años completos deja solo 11
+años; el ciclo anual medio aprovecha todos los meses con dato. El ΔS de ERA5-Land no incluye el agua subterránea
+profunda.

@@ -1,2 +1,2 @@
-,meses,eto_era5land_media,pet_terraclimate_media,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,correlacion,eto_era5land_anual_mm,pet_terraclimate_anual_mm
+,meses,eto_fao56_media,pet_terraclimate_media,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,correlacion,eto_fao56_anual_mm,pet_terraclimate_anual_mm
 todos_los_meses,300.0,97.169,86.906,10.263,11.809,10.263,10.389,0.973,1166.025,1042.873

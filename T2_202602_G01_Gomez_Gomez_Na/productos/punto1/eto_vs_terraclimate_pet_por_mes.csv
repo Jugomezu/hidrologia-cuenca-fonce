@@ -1,4 +1,4 @@
-mes_calendario,meses,eto_era5land_media,pet_terraclimate_media,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,correlacion
+mes_calendario,meses,eto_fao56_media,pet_terraclimate_media,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,correlacion
 1,25.0,100.602,90.409,10.193,11.274,10.193,10.302,0.97
 2,25.0,96.499,85.531,10.967,12.823,10.967,11.12,0.955
 3,25.0,106.485,94.363,12.122,12.847,12.122,12.171,0.992

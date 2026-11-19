@@ -1,4 +1,7 @@
-"""Segunda prueba de la ETo (punto 1, fase 3): ETo FAO-56 de ERA5-Land frente a la pet de TerraClimate v1.1.
+"""Segunda prueba de la ETo (punto 1, fase 3): nuestra ETo FAO-56 frente a la pet de TerraClimate v1.1.
+
+«Nuestra ETo» = la ETo FAO-56 de este trabajo (scripts 01–04), calculada con forzantes de 6 puntos de ERA5-Land.
+No es un producto de ERA5-Land; ERA5-Land solo aporta las entradas.
 
 Lee:
     productos/punto1/eto_mensual_cuenca.csv           ETo mensual de la cuenca (04_eto_fao56.py), mm/mes
@@ -14,10 +17,10 @@ Qué es la pet de TerraClimate (atributos del archivo y https://www.climatologyl
     salen de anomalías mensuales de ERA5 sobre climatologías CHELSA 2.1 (1981–2010), con la presión de vapor corregida
     con CRU TS. Dos diferencias con nuestra ETo, que se declaran y no se corrigen:
       - la corrección por CO2 cambia la resistencia de la superficie de la ec. de FAO-56;
-      - comparte con ERA5-Land la variabilidad de ERA5, así que no es independiente en las anomalías; sí en la
+      - sus anomalías vienen de ERA5, de donde salen también nuestros forzantes (ERA5-Land), así que no es independiente en las anomalías; sí en la
         climatología (CHELSA y CRU) y en la resolución (~4 km frente a 6 puntos de 0.1°).
 
-Sesgo de ERA5-Land = media de (ETo ERA5-Land − pet TerraClimate); positivo es ERA5-Land por encima. MAE = media de
+Sesgo = media de (nuestra ETo − pet TerraClimate); positivo es nuestra ETo por encima. MAE = media de
 |diferencia|. RMSE = raíz de la media de la diferencia al cuadrado. Todo en mm/mes, 1998-01 a 2022-12 (300 meses; los
 dos productos no tienen huecos). El promedio de cuenca de los dos es el de cada script: Voronoi de 6 puntos en la ETo,
 área de cada celda dentro del polígono en TerraClimate.
@@ -46,21 +49,21 @@ MESES = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
 
 
 def metricas(grupo):
-    diferencia = grupo["eto_era5land"] - grupo["pet_terraclimate"]
+    diferencia = grupo["eto_fao56"] - grupo["pet_terraclimate"]
     return pd.Series({
         "meses": len(grupo),
-        "eto_era5land_media": grupo["eto_era5land"].mean(),
+        "eto_fao56_media": grupo["eto_fao56"].mean(),
         "pet_terraclimate_media": grupo["pet_terraclimate"].mean(),
         "sesgo_mm_mes": diferencia.mean(),
         "sesgo_pct": 100 * diferencia.mean() / grupo["pet_terraclimate"].mean(),
         "mae_mm_mes": diferencia.abs().mean(),
         "rmse_mm_mes": np.sqrt((diferencia ** 2).mean()),
-        "correlacion": grupo["eto_era5land"].corr(grupo["pet_terraclimate"]),
+        "correlacion": grupo["eto_fao56"].corr(grupo["pet_terraclimate"]),
     })
 
 
 def main():
-    eto = pd.read_csv(ETO)[["mes", "eto_mm_mes"]].rename(columns={"eto_mm_mes": "eto_era5land"})
+    eto = pd.read_csv(ETO)[["mes", "eto_mm_mes"]].rename(columns={"eto_mm_mes": "eto_fao56"})
     pet = pd.read_csv(TERRACLIMATE)[["mes", "pet_mm_mes", "pet_fraccion_area_valida"]]
     datos = eto.merge(pet.rename(columns={"pet_mm_mes": "pet_terraclimate"}), on="mes", how="inner")
     assert len(datos) == 300 and datos.notna().all().all()
@@ -69,19 +72,19 @@ def main():
 
     por_mes = datos.groupby("mes_calendario").apply(metricas, include_groups=False)
     resumen = metricas(datos).to_frame("todos_los_meses").T
-    resumen["eto_era5land_anual_mm"] = datos["eto_era5land"].sum() / 25
+    resumen["eto_fao56_anual_mm"] = datos["eto_fao56"].sum() / 25
     resumen["pet_terraclimate_anual_mm"] = datos["pet_terraclimate"].sum() / 25
     por_mes.round(3).to_csv(SALIDA_POR_MES)
     resumen.round(3).to_csv(SALIDA_RESUMEN)
 
     figura, (izq, der) = plt.subplots(1, 2, figsize=(13, 4.3), gridspec_kw={"width_ratios": [2, 1]})
     fechas = pd.to_datetime(datos["mes"])
-    izq.plot(fechas, datos["eto_era5land"], color="#1B6A80", lw=1.3, label="ETo FAO-56, ERA5-Land")
+    izq.plot(fechas, datos["eto_fao56"], color="#1B6A80", lw=1.3, label="ETo FAO-56 (este trabajo)")
     izq.plot(fechas, datos["pet_terraclimate"], color="#CC79A7", lw=1.3, ls="--", label="pet TerraClimate v1.1")
     izq.set_ylabel("mm/mes")
     izq.set_title("Serie mensual de la cuenca, 1998–2022", fontsize=10)
     x = range(1, 13)
-    der.plot(x, por_mes["eto_era5land_media"], "o-", color="#1B6A80", label="ETo ERA5-Land")
+    der.plot(x, por_mes["eto_fao56_media"], "o-", color="#1B6A80", label="ETo FAO-56 (este trabajo)")
     der.plot(x, por_mes["pet_terraclimate_media"], "s--", color="#CC79A7", label="pet TerraClimate")
     der.set_xticks(list(x), MESES)
     der.set_title("Ciclo anual (media por mes)", fontsize=10)

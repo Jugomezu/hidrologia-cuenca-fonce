@@ -291,3 +291,10 @@ referencia ni el albedo (el artículo no cargó); queda pendiente.
 **Resultado.** Sesgo de ERA5-Land (ETo − pet), 1998–2022: +10.3 mm/mes (+11.8 %); MAE 10.3, RMSE 10.4, r = 0.97.
 ERA5-Land queda por encima en los 300 meses (+5.7 a +14.9 mm/mes). Por mes calendario, de +8.2 (junio) a +12.1 (marzo).
 Anual: 1 166 frente a 1 043 mm.
+
+## 2026-11-19 · Punto 1 · Nombre de la ETo en las pruebas
+
+**Decisión (Juan).** La ETo que se pone a prueba se llama «nuestra ETo» o «ETo FAO-56 (este trabajo)», no «ETo de
+ERA5-Land»: es la FAO-56 de los scripts 01–04, calculada con forzantes de ERA5-Land, y no un producto de ERA5-Land.
+Sesgo = nuestra ETo − referencia (estación o pet de TerraClimate). En Rs sí se dice ERA5-Land: es su ssrd. Los nombres
+de archivo (`*_vs_era5land_*`) se dejan como están.

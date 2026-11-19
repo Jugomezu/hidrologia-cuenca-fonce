@@ -210,7 +210,7 @@ def datos_fase2_y_auditoria():
 
 
 def datos_prueba_terraclimate():
-    """Segunda prueba de la ETo: ERA5-Land frente a TerraClimate pet (salidas de 16_eto_vs_terraclimate_pet.py)."""
+    """Segunda prueba de la ETo: nuestra ETo frente a TerraClimate pet (salidas de 16_eto_vs_terraclimate_pet.py)."""
     eto = pd.read_csv(ETO_CUENCA)
     pet = pd.read_csv(CARPETA_PRODUCTOS / "terraclimate_mensual_cuenca.csv")
     assert list(eto["mes"]) == list(pet["mes"])
@@ -218,12 +218,12 @@ def datos_prueba_terraclimate():
     r = pd.read_csv(CARPETA_PRODUCTOS / "eto_vs_terraclimate_pet_resumen.csv").iloc[0]
     return {
         "meses": list(eto["mes"]), "eto": eto["eto_mm_mes"].round(1).tolist(), "pet": pet["pet_mm_mes"].round(1).tolist(),
-        "ciclo_eto": por_mes["eto_era5land_media"].round(1).tolist(), "ciclo_pet": por_mes["pet_terraclimate_media"].round(1).tolist(),
+        "ciclo_eto": por_mes["eto_fao56_media"].round(1).tolist(), "ciclo_pet": por_mes["pet_terraclimate_media"].round(1).tolist(),
         "sesgo": por_mes["sesgo_mm_mes"].round(2).tolist(), "mae": por_mes["mae_mm_mes"].round(2).tolist(),
         "rmse": por_mes["rmse_mm_mes"].round(2).tolist(),
         "resumen": {"sesgo": round(float(r["sesgo_mm_mes"]), 1), "pct": round(float(r["sesgo_pct"]), 1),
                     "mae": round(float(r["mae_mm_mes"]), 1), "rmse": round(float(r["rmse_mm_mes"]), 1),
-                    "r": round(float(r["correlacion"]), 2), "anual_eto": round(float(r["eto_era5land_anual_mm"])),
+                    "r": round(float(r["correlacion"]), 2), "anual_eto": round(float(r["eto_fao56_anual_mm"])),
                     "anual_pet": round(float(r["pet_terraclimate_anual_mm"]))},
     }
 
@@ -447,9 +447,12 @@ code { font: 400 .86em var(--f-dato); }
 
 <section>
   <h2>Fase 3 · Cómo leer las comparaciones con estaciones</h2>
-  <p><b>Todos los sesgos de esta fase son de ERA5-Land, medidos respecto a las estaciones del IDEAM:</b>
-  sesgo = promedio de (ERA5-Land − estación), en los mismos días. Positivo: ERA5-Land da más que la estación.
-  Negativo: da menos. El sesgo en % se divide por la media de la estación. El RMSE es el tamaño típico del error de un
+  <p><b>Qué se pone a prueba.</b> En Rs, la radiación de ERA5-Land (ssrd), que sí es un producto de ERA5-Land. En ETo,
+  <b>nuestra ETo</b>: la FAO-56 de este trabajo (scripts 01–04), calculada con forzantes de ERA5-Land. No es un
+  producto de ERA5-Land; ERA5-Land solo le da las entradas.</p>
+  <p><b>Sesgo = promedio de (lo que se prueba − la referencia)</b>, en los mismos días o meses. Rs: ERA5-Land − estación.
+  ETo con estaciones: nuestra ETo − ETo de estación. ETo con TerraClimate: nuestra ETo − pet de TerraClimate. Positivo:
+  lo que se prueba da más que la referencia; negativo, menos. El sesgo en % se divide por la media de la referencia. El RMSE es el tamaño típico del error de un
   día, sin signo: un sesgo pequeño con RMSE grande quiere decir que los errores de días distintos se compensan.</p>
   <p><b>Rs de estación: ecuación de Angstrom</b> (FAO-56 ec. 35, p. 50):
   Rs = (a<sub>s</sub> + b<sub>s</sub>·n/N)·Ra, con n = horas de brillo solar medidas, N = (24/π)·ω<sub>s</sub> las horas
@@ -473,14 +476,14 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
-  <h2>Fase 3 · ETo de estación frente a ERA5-Land</h2>
+  <h2>Fase 3 · Nuestra ETo frente a la ETo de estación</h2>
   <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
   variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
   Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), u2 = 2 m/s, queda como sensibilidad. Solo días con todas
-  las entradas. Sesgo de ERA5-Land = ERA5-Land − estación.</p>
+  las entradas. Nuestra ETo se toma en el punto más cercano. Sesgo = nuestra ETo − ETo de estación.</p>
   <div class="tabla" id="t-eto"></div>
   <div class="rejilla" id="r-eto"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de ERA5-Land en ETo, por mes (ERA5-Land − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de nuestra ETo, por mes (nuestra ETo − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
 </section>
 
 <section>
@@ -488,14 +491,14 @@ code { font: 400 .86em var(--f-dato); }
   <p>La pet de TerraClimate v1.1 es una ETo de referencia, no una ETP: ASCE Penman–Monteith corregida por CO<sub>2</sub>
   (Yang et al., 2018), según el archivo («Reference Evapotranspiration») y la página del producto. Por eso sirve para
   probar nuestra ETo; GLEAM Ep y ERA5-Land pev son ETP y no. Se declaran dos diferencias: la corrección por
-  CO<sub>2</sub>, y que en v1.1 sus anomalías mensuales vienen de ERA5, así que no es independiente de ERA5 en la
-  variabilidad (sí en la climatología, CHELSA y CRU, y en la resolución, ~4 km). Promedio de cuenca, 1998–2022,
-  300 meses. <b>Sesgo de ERA5-Land = ETo ERA5-Land − pet TerraClimate.</b> Script 16.</p>
+  CO<sub>2</sub>, y que en v1.1 sus anomalías mensuales vienen de ERA5, de donde salen también nuestros forzantes
+  (ERA5-Land); así que no es independiente en la variabilidad (sí en la climatología, CHELSA y CRU, y en la resolución, ~4 km). Promedio de cuenca, 1998–2022,
+  300 meses. <b>Sesgo = nuestra ETo − pet TerraClimate.</b> Script 16.</p>
   <div class="tabla" id="t-tc"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Serie mensual (mm/mes)</h3><div class="grafico" id="g-tc-serie"></div></div>
   <div class="dos">
     <div class="tarjeta"><h3>Ciclo anual (mm/mes)</h3><div class="grafico" id="g-tc-ciclo"></div></div>
-    <div class="tarjeta"><h3>Sesgo de ERA5-Land, MAE y RMSE por mes (mm/mes)</h3><div class="grafico" id="g-tc-sesgo"></div></div>
+    <div class="tarjeta"><h3>Sesgo de nuestra ETo, MAE y RMSE por mes (mm/mes)</h3><div class="grafico" id="g-tc-sesgo"></div></div>
   </div>
 </section>
 
@@ -628,7 +631,7 @@ for (const [valor, texto] of CARGA.cifras) {
   tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
     F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
                 fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
-  tabla('t-eto', ['Estación', 'Días', 'Sesgo de ERA5-Land (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
+  tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
     F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'];
       return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2)]; }));
 
@@ -640,7 +643,7 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot(tarjeta('r-eto', e.nombre), [
       {type: 'scatter', mode: 'lines+markers', name: 'Estación (a)', x: xm, y: e.eto.a, line: {color: C.estacion}},
       {type: 'scatter', mode: 'lines+markers', name: 'Estación (b)', x: xm, y: e.eto.b, line: {color: C.b, dash: 'dot'}},
-      {type: 'scatter', mode: 'lines+markers', name: `ERA5-Land (punto ${e.punto})`, x: xm, y: e.eto.era5, line: {color: C.era5, dash: 'dash'}}],
+      {type: 'scatter', mode: 'lines+markers', name: `Nuestra ETo (punto ${e.punto})`, x: xm, y: e.eto.era5, line: {color: C.era5, dash: 'dash'}}],
       ejeMes(base('mm/día')), OPCIONES);
   });
   Plotly.newPlot('g-rs-sesgo', F.map((e, k) => ({type: 'scatter', mode: 'lines+markers', name: e.nombre, x: xm, y: e.rs.sesgo,
@@ -662,7 +665,7 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.react('g-eto-diaria', [
       {type: 'scattergl', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1}},
       {type: 'scattergl', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1}, visible: 'legendonly'},
-      {type: 'scattergl', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
+      {type: 'scattergl', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1}}],
       l2, OPCIONES);
   };
   F.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e.nombre; b.setAttribute('aria-pressed', String(k === 0));
@@ -684,21 +687,21 @@ for (const [valor, texto] of CARGA.cifras) {
   const T = CARGA.prueba_tc, R = T.resumen, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
   const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
   const mas = v => (v > 0 ? '+' : '') + v;
-  document.getElementById('t-tc').innerHTML = '<table><thead><tr><th>ETo ERA5-Land (mm/año)</th><th>pet TerraClimate (mm/año)</th>' +
-    '<th>Sesgo de ERA5-Land (mm/mes)</th><th>Sesgo %</th><th>MAE</th><th>RMSE</th><th>r mensual</th></tr></thead><tbody><tr>' +
+  document.getElementById('t-tc').innerHTML = '<table><thead><tr><th>Nuestra ETo (mm/año)</th><th>pet TerraClimate (mm/año)</th>' +
+    '<th>Sesgo de nuestra ETo (mm/mes)</th><th>Sesgo %</th><th>MAE</th><th>RMSE</th><th>r mensual</th></tr></thead><tbody><tr>' +
     [R.anual_eto, R.anual_pet, mas(R.sesgo), mas(R.pct), R.mae, R.rmse, R.r].map(v => `<td>${v}</td>`).join('') + '</tr></tbody></table>';
   const x = T.meses.map(m => m + '-01');
   Plotly.newPlot('g-tc-serie', [
-    {type: 'scatter', mode: 'lines', name: 'ETo FAO-56, ERA5-Land', x, y: T.eto, line: {color: COLOR.eto, width: 1.6}},
+    {type: 'scatter', mode: 'lines', name: 'ETo FAO-56 (este trabajo)', x, y: T.eto, line: {color: COLOR.eto, width: 1.6}},
     {type: 'scatter', mode: 'lines', name: 'pet TerraClimate v1.1', x, y: T.pet, line: {color: '#CC79A7', width: 1.6, dash: 'dash'}}],
     base('mm/mes'), OPCIONES);
   const lc = ejeMes(base('mm/mes')); lc.yaxis.rangemode = 'tozero';
   Plotly.newPlot('g-tc-ciclo', [
-    {type: 'scatter', mode: 'lines+markers', name: 'ETo ERA5-Land', x: xm, y: T.ciclo_eto, line: {color: COLOR.eto}},
+    {type: 'scatter', mode: 'lines+markers', name: 'ETo FAO-56 (este trabajo)', x: xm, y: T.ciclo_eto, line: {color: COLOR.eto}},
     {type: 'scatter', mode: 'lines+markers', name: 'pet TerraClimate', x: xm, y: T.ciclo_pet, line: {color: '#CC79A7', dash: 'dash'}}], lc, OPCIONES);
   const ls = ejeMes(base('mm/mes')); ls.yaxis.rangemode = 'tozero';
   Plotly.newPlot('g-tc-sesgo', [
-    {type: 'bar', name: 'Sesgo de ERA5-Land', x: xm, y: T.sesgo, marker: {color: COLOR.eto}},
+    {type: 'bar', name: 'Sesgo de nuestra ETo', x: xm, y: T.sesgo, marker: {color: COLOR.eto}},
     {type: 'scatter', mode: 'lines+markers', name: 'MAE', x: xm, y: T.mae, line: {color: COLOR.radiativa}},
     {type: 'scatter', mode: 'lines+markers', name: 'RMSE', x: xm, y: T.rmse, line: {color: COLOR.hargreaves, dash: 'dot'}}], ls, OPCIONES);
 })();

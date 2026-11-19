@@ -1,4 +1,7 @@
-"""ETo FAO-56 calculada con datos de 3 estaciones del IDEAM, comparada con la ETo de ERA5-Land (punto 1, fase 3).
+"""ETo FAO-56 calculada con datos de 3 estaciones del IDEAM, comparada con nuestra ETo (punto 1, fase 3).
+
+«Nuestra ETo» = la ETo FAO-56 de este trabajo (scripts 01–04), con forzantes de ERA5-Land; no es un producto de
+ERA5-Land. Rs de ERA5-Land (ssrd) sí lo es y se compara en el script 12.
 
 Prueba de estaciones del plan: recalcular la ETo completa con datos medidos y compararla con la de los scripts 01–04
 en el punto de ERA5-Land más cercano (el mismo que usa 12_rs_brillo_solar_vs_era5land.py).
@@ -9,7 +12,7 @@ Lee:
     datos/punto1/ideam/cne_ideam.csv                                           altura y latitud de cada estación
     productos/punto1/rs_estaciones_diaria.csv     Rs de Angstrom por estación y día (salida de 12)
     productos/punto1/era5land_diario_puntos.csv   entradas diarias de ERA5-Land (salida de 03)
-    productos/punto1/eto_diaria_puntos.csv        ETo diaria de ERA5-Land (salida de 04)
+    productos/punto1/eto_diaria_puntos.csv        nuestra ETo diaria por punto (salida de 04)
 
 Escribe en productos/punto1/:
     eto_estaciones_diaria.csv                   ETo de estación por día, sus entradas y las de ERA5-Land del mismo día
@@ -41,7 +44,7 @@ Control de calidad (se descartan los días, no se rellena; se cuenta cuántos):
     Tmin ≥ Tmax; HRmin > HRmax; HR fuera de 0–100 %.
     Solo se calcula la ETo en días con Tmax, Tmin, HRmax, HRmin y brillo solar.
 
-Sesgo = media de (ETo ERA5-Land − ETo estación); positivo es ERA5-Land por encima. Mismos días en los dos.
+Sesgo = media de (nuestra ETo − ETo estación); positivo es nuestra ETo por encima. Mismos días en los dos.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/13_eto_estaciones_vs_era5land.py
@@ -255,14 +258,14 @@ def main():
         eje.plot(range(1, 13), datos.loc["2ms", "eto_estacion_media_mm_dia"], "^:", color="#5a9e6f",
                  label="Estación, u2 = 2 m/s (sensibilidad)")
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_era5_media_mm_dia"], "s--", color="#c8553d",
-                 label=f"ERA5-Land (punto {punto})")
+                 label=f"ETo FAO-56 (este trabajo, punto {punto})")
         nombre = catalogo.loc[codigo, "nombre"].split(" [")[0].title()
         eje.set_title(f"{nombre} ({int(float(catalogo.loc[codigo, 'altitud']))} m)", fontsize=10)
         eje.set_xticks(range(1, 13), nombres_mes)
         eje.grid(alpha=0.3)
     ejes[0].set_ylabel("ETo media (mm/día)")
     manijas, etiquetas = ejes[0].get_legend_handles_labels()
-    etiquetas[-1] = "ERA5-Land (punto más cercano)"
+    etiquetas[-1] = "ETo FAO-56 (este trabajo, punto más cercano)"
     figura.legend(manijas, etiquetas, loc="lower center", ncol=3, frameon=False, fontsize=9)
     figura.suptitle("Ciclo anual de la ETo FAO-56, 1998–2022 (solo días con todas las entradas de estación)",
                     fontsize=11)

@@ -9,7 +9,7 @@ Variables (definiciones de la documentación de TerraClimate):
     pet  evapotranspiración de referencia (mm/mes), Penman-Monteith para pasto de referencia (FAO-56).
 Las dos vienen como enteros con scale_factor = 0.1; xarray aplica la escala al leer.
 
-Período: 1998-01 a 2022-12, el mismo de la ETo de ERA5-Land (decisión del 2026-11-17).
+Período: 1998-01 a 2022-12, el mismo de nuestra ETo FAO-56 (decisión del 2026-11-17).
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/05_descarga_terraclimate.py

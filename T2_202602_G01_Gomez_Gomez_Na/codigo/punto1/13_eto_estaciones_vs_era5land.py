@@ -39,6 +39,9 @@ Cálculo, FAO-56 (Allen et al., 1998), igual que 03 y 04 salvo de dónde sale ca
                      versión 03, p. 37), según el cual los sensores de viento en Colombia están a 10 m.
                    «2ms»: u2 = 2 m/s, el valor que FAO-56 propone cuando no hay datos de viento (cap. 3). Se conserva
                      solo como sensibilidad al viento.
+                   «era5land»: u2 diario de ERA5-Land en el punto más cercano (el mismo de nuestra ETo, salida de 04).
+                     Sensibilidad: quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero la
+                     prueba deja de revisar el viento (los dos lados usan el mismo).
 
 Control de calidad (se descartan los días, no se rellena; se cuenta cuántos):
     Tmin ≥ Tmax; HRmin > HRmax; HR fuera de 0–100 %.
@@ -183,15 +186,16 @@ def main():
                * (1.35 * rs_sobre_rso - 0.35))
         tabla["rn_MJm2"] = (1 - ALBEDO_REFERENCIA) * tabla["rs_estacion_MJm2"] - rnl              # ec. 38 y 40
         presion = presion_por_altura(z)                                                           # ec. 7
-        u2_variantes = {"mogotes_aut": tabla.index.month.map(u2_mogotes).to_numpy(), "2ms": U2_SIN_DATOS}
+        punto = int(tabla["punto_era5"].iloc[0])
+        claves = pd.MultiIndex.from_arrays([np.full(len(tabla), punto), tabla.index])
+        u2_variantes = {"mogotes_aut": tabla.index.month.map(u2_mogotes).to_numpy(), "2ms": U2_SIN_DATOS,
+                        "era5land": eto_era5.loc[claves, "u2_ms"].to_numpy()}
         for nombre, u2 in u2_variantes.items():
             tabla[f"u2_{nombre}_ms"] = u2
             tabla[f"eto_{nombre}_mm"] = eto_fao56(tabla["tmax_C"], tabla["tmin_C"], tabla["ea_kPa"],
                                                   tabla["rn_MJm2"], presion, tabla[f"u2_{nombre}_ms"])
 
         # Lo mismo de ERA5-Land, en el punto más cercano y los mismos días
-        punto = int(tabla["punto_era5"].iloc[0])
-        claves = pd.MultiIndex.from_arrays([np.full(len(tabla), punto), tabla.index])
         tabla["tmax_era5_C"] = era5.loc[claves, "tmax_C"].to_numpy()
         tabla["tmin_era5_C"] = era5.loc[claves, "tmin_C"].to_numpy()
         tabla["ea_era5_kPa"] = era5.loc[claves, "ea_kPa"].to_numpy()
@@ -205,11 +209,11 @@ def main():
     diaria = pd.concat(diarias)
     diaria.index.name = "fecha"
     assert diaria.notna().all().all()
-    assert (diaria[["eto_mogotes_aut_mm", "eto_2ms_mm"]] > 0).all().all()
+    assert (diaria[["eto_mogotes_aut_mm", "eto_2ms_mm", "eto_era5land_mm"]] > 0).all().all()
 
     # Tabla larga: una fila por estación, variante de viento y día
     largas = []
-    for nombre in ["mogotes_aut", "2ms"]:
+    for nombre in ["mogotes_aut", "2ms", "era5land"]:
         parte = diaria[["estacion", "eto_era5_mm"]].copy()
         parte["variante_viento"] = nombre
         parte["eto_estacion_mm"] = diaria[f"eto_{nombre}_mm"]

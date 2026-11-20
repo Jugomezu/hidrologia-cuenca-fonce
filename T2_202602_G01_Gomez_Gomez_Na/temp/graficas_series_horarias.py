@@ -177,7 +177,7 @@ def datos_fase3():
                     "resumen": {v: {"sesgo": round(float(er.loc[v, "sesgo_mm_dia"]), 2),
                                     "pct": round(float(er.loc[v, "sesgo_pct"]), 1),
                                     "rmse": round(float(er.loc[v, "rmse_mm_dia"]), 2), "dias": int(er.loc[v, "dias"])}
-                                for v in ["mogotes_aut", "2ms"]}},
+                                for v in ["mogotes_aut", "2ms", "era5land"]}},
             "diaria_rs": {"fecha": rd["fecha"], "estacion": rd["rs_estacion_MJm2"], "era5": rd["rs_era5_MJm2"]},
             "diaria_eto": {"fecha": ed["fecha"], "a": ed["eto_mogotes_aut_mm"], "b": ed["eto_2ms_mm"], "era5": ed["eto_era5_mm"]},
         })
@@ -470,7 +470,9 @@ code { font: 400 .86em var(--f-dato); }
   <p><b>Viento de la ETo de estación: variantes (a) y (b).</b> Solo Mogotes-AUT mide viento; La Sierra y Charalá no.
   (a) es la variante final: media mensual de Mogotes-AUT medida a 10 m (Manual del Observador Meteorológico del IDEAM,
   GDI-M003, p. 37) y llevada a 2 m con la ec. 47 (u2 ≈ 0.75 m/s), usada en las tres estaciones. (b), u2 = 2 m/s, es el
-  valor de FAO-56 cuando no hay viento medido; se deja solo como sensibilidad.</p>
+  valor de FAO-56 cuando no hay viento medido; se deja solo como sensibilidad. (c) usa el u2 diario de ERA5-Land del punto
+  más cercano: sensibilidad que quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero con el
+  mismo viento en los dos lados la prueba ya no revisa el viento.</p>
 </section>
 
 <section>
@@ -638,9 +640,9 @@ for (const [valor, texto] of CARGA.cifras) {
   tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
     F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
                 fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
-  tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
-    F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'];
-      return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2)]; }));
+  tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)', 'Sesgo (c), mm/día', 'Sesgo (c) %', 'RMSE (c)'],
+    F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'], c = e.eto.resumen.era5land;
+      return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2), fmt(c.sesgo), fmt(c.pct, 1), c.rmse.toFixed(2)]; }));
 
   F.forEach(e => {
     Plotly.newPlot(tarjeta('r-rs', e.nombre), [

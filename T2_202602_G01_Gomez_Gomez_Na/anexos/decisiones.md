@@ -298,3 +298,10 @@ Anual: 1 166 frente a 1 043 mm.
 ERA5-Land»: es la FAO-56 de los scripts 01–04, calculada con forzantes de ERA5-Land, y no un producto de ERA5-Land.
 Sesgo = nuestra ETo − referencia (estación o pet de TerraClimate). En Rs sí se dice ERA5-Land: es su ssrd. Los nombres
 de archivo (`*_vs_era5land_*`) se dejan como están.
+
+## 2026-11-19 · Punto 1 · Viento de ERA5-Land en la ETo de estación (sensibilidad c)
+
+Juan preguntó si el viento de ERA5-Land evita suponer viento en La Sierra y Charalá. Se agrega como variante (c) en el
+script 13: u2 diario de ERA5-Land del punto más cercano. Sesgo de nuestra ETo (mm/día), (a) / (c): Mogotes −0.13 / −0.07,
+La Sierra +0.56 / +0.56, Charalá −0.15 / −0.12. Con (c) los dos lados usan el mismo viento y la prueba no revisa el
+viento. Por ahora (a) sigue como final; (c) es sensibilidad, hasta que Juan decida.

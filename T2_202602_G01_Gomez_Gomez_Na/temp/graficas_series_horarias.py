@@ -148,7 +148,7 @@ def datos_fase3():
         r = rs_mes[rs_mes["estacion"] == codigo].sort_values("mes")
         rr = rs_res[rs_res["estacion"] == codigo].iloc[0]
         e = {v: eto_mes[(eto_mes["estacion"] == codigo) & (eto_mes["variante_viento"] == v)].sort_values("mes")
-             for v in ["mogotes_aut", "2ms"]}
+             for v in ["mogotes_aut", "era5land"]}
         er = eto_res[eto_res["estacion"] == codigo].set_index("variante_viento")
         # Serie mensual: media de los días con dato; el mes queda vacío (null) si tiene menos de DIAS_MINIMOS_MES días.
         def mensual(tabla, columnas):
@@ -161,7 +161,7 @@ def datos_fase3():
                 salida[c] = [None if pd.isna(v) else round(float(v), 2) for v in media[c]]
             return salida
         rd = mensual(rs_dia[rs_dia["estacion"] == codigo], ["rs_estacion_MJm2", "rs_era5_MJm2"])
-        ed = mensual(eto_dia[eto_dia["estacion"] == codigo], ["eto_mogotes_aut_mm", "eto_2ms_mm", "eto_era5_mm"])
+        ed = mensual(eto_dia[eto_dia["estacion"] == codigo], ["eto_mogotes_aut_mm", "eto_era5land_mm", "eto_era5_mm"])
         estaciones.append({
             "codigo": codigo, "nombre": nombre, "punto": int(rr["punto_era5"]),
             "distancia_km": float(rr["distancia_km"]), "dz_celda_m": float(rr["estacion_menos_celda_dem_m"]),
@@ -170,16 +170,16 @@ def datos_fase3():
                    "sesgo_total": round(float(rr["sesgo_MJm2"]), 2), "sesgo_pct": round(float(rr["sesgo_pct"]), 1),
                    "rmse": round(float(rr["rmse_MJm2"]), 2), "dias": int(rr["dias"])},
             "eto": {"a": e["mogotes_aut"]["eto_estacion_media_mm_dia"].round(3).tolist(),
-                    "b": e["2ms"]["eto_estacion_media_mm_dia"].round(3).tolist(),
+                    "b": e["era5land"]["eto_estacion_media_mm_dia"].round(3).tolist(),
                     "era5": e["mogotes_aut"]["eto_era5_media_mm_dia"].round(3).tolist(),
                     "sesgo_a": e["mogotes_aut"]["sesgo_mm_dia"].round(3).tolist(),
-                    "sesgo_b": e["2ms"]["sesgo_mm_dia"].round(3).tolist(),
+                    "sesgo_b": e["era5land"]["sesgo_mm_dia"].round(3).tolist(),
                     "resumen": {v: {"sesgo": round(float(er.loc[v, "sesgo_mm_dia"]), 2),
                                     "pct": round(float(er.loc[v, "sesgo_pct"]), 1),
                                     "rmse": round(float(er.loc[v, "rmse_mm_dia"]), 2), "dias": int(er.loc[v, "dias"])}
-                                for v in ["mogotes_aut", "2ms", "era5land"]}},
+                                for v in ["mogotes_aut", "era5land"]}},
             "diaria_rs": {"fecha": rd["fecha"], "estacion": rd["rs_estacion_MJm2"], "era5": rd["rs_era5_MJm2"]},
-            "diaria_eto": {"fecha": ed["fecha"], "a": ed["eto_mogotes_aut_mm"], "b": ed["eto_2ms_mm"], "era5": ed["eto_era5_mm"]},
+            "diaria_eto": {"fecha": ed["fecha"], "a": ed["eto_mogotes_aut_mm"], "b": ed["eto_era5land_mm"], "era5": ed["eto_era5_mm"]},
         })
     return estaciones
 
@@ -469,9 +469,8 @@ code { font: 400 .86em var(--f-dato); }
   sin calibración local; en la cuenca no hay radiación medida para calibrarlos, así que ese error queda dentro del sesgo.</p>
   <p><b>Viento de la ETo de estación: variantes (a) y (b).</b> Solo Mogotes-AUT mide viento; La Sierra y Charalá no.
   (a) es la variante final: media mensual de Mogotes-AUT medida a 10 m (Manual del Observador Meteorológico del IDEAM,
-  GDI-M003, p. 37) y llevada a 2 m con la ec. 47 (u2 ≈ 0.75 m/s), usada en las tres estaciones. (b), u2 = 2 m/s, es el
-  valor de FAO-56 cuando no hay viento medido; se deja solo como sensibilidad. (c) usa el u2 diario de ERA5-Land del punto
-  más cercano: sensibilidad que quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero con el
+  GDI-M003, p. 37) y llevada a 2 m con la ec. 47 (u2 ≈ 0.75 m/s), usada en las tres estaciones. (b) usa el u2 diario de
+  ERA5-Land del punto más cercano: sensibilidad que quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero con el
   mismo viento en los dos lados la prueba ya no revisa el viento.</p>
 </section>
 
@@ -488,7 +487,7 @@ code { font: 400 .86em var(--f-dato); }
   <h2>Fase 3 · Nuestra ETo frente a la ETo de estación</h2>
   <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
   variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
-  Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), u2 = 2 m/s, queda como sensibilidad. Solo días con todas
+  Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), con el viento de ERA5-Land, queda como sensibilidad. Solo días con todas
   las entradas. Nuestra ETo se toma en el punto más cercano. Sesgo = nuestra ETo − ETo de estación.</p>
   <div class="tabla" id="t-eto"></div>
   <div class="rejilla" id="r-eto"></div>
@@ -640,9 +639,9 @@ for (const [valor, texto] of CARGA.cifras) {
   tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
     F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
                 fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
-  tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)', 'Sesgo (c), mm/día', 'Sesgo (c) %', 'RMSE (c)'],
-    F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen['2ms'], c = e.eto.resumen.era5land;
-      return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2), fmt(c.sesgo), fmt(c.pct, 1), c.rmse.toFixed(2)]; }));
+  tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
+    F.map(e => { const a = e.eto.resumen.mogotes_aut, b = e.eto.resumen.era5land;
+      return [e.nombre, a.dias, fmt(a.sesgo), fmt(a.pct, 1), a.rmse.toFixed(2), fmt(b.sesgo), fmt(b.pct, 1), b.rmse.toFixed(2)]; }));
 
   F.forEach(e => {
     Plotly.newPlot(tarjeta('r-rs', e.nombre), [

@@ -37,8 +37,6 @@ Cálculo, FAO-56 (Allen et al., 1998), igual que 03 y 04 salvo de dónde sale ca
                      Mogotes-AUT por mes calendario, el mismo en las tres estaciones, medido a 10 m y llevado a 2 m con
                      la ec. 47. La altura de 10 m sale del Manual del Observador Meteorológico del IDEAM (GDI-M003,
                      versión 03, p. 37), según el cual los sensores de viento en Colombia están a 10 m.
-                   «2ms»: u2 = 2 m/s, el valor que FAO-56 propone cuando no hay datos de viento (cap. 3). Se conserva
-                     solo como sensibilidad al viento.
                    «era5land»: u2 diario de ERA5-Land en el punto más cercano (el mismo de nuestra ETo, salida de 04).
                      Sensibilidad: quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero la
                      prueba deja de revisar el viento (los dos lados usan el mismo).
@@ -90,7 +88,6 @@ PARAMETROS = {
 PARAMETRO_VIENTO = "Velocidad 10 minutal del viento media diaria"
 
 ALTURA_ANEMOMETRO_M = 10.0            # IDEAM, Manual del Observador Meteorológico (GDI-M003, v. 03, p. 37)
-U2_SIN_DATOS = 2.0                    # m/s, FAO-56 cap. 3, cuando no hay datos de viento
 ALBEDO_REFERENCIA = 0.23
 STEFAN_BOLTZMANN = 4.903e-9           # MJ/K⁴·m²·día
 KELVIN = 273.15
@@ -188,7 +185,7 @@ def main():
         presion = presion_por_altura(z)                                                           # ec. 7
         punto = int(tabla["punto_era5"].iloc[0])
         claves = pd.MultiIndex.from_arrays([np.full(len(tabla), punto), tabla.index])
-        u2_variantes = {"mogotes_aut": tabla.index.month.map(u2_mogotes).to_numpy(), "2ms": U2_SIN_DATOS,
+        u2_variantes = {"mogotes_aut": tabla.index.month.map(u2_mogotes).to_numpy(), 
                         "era5land": eto_era5.loc[claves, "u2_ms"].to_numpy()}
         for nombre, u2 in u2_variantes.items():
             tabla[f"u2_{nombre}_ms"] = u2
@@ -209,11 +206,11 @@ def main():
     diaria = pd.concat(diarias)
     diaria.index.name = "fecha"
     assert diaria.notna().all().all()
-    assert (diaria[["eto_mogotes_aut_mm", "eto_2ms_mm", "eto_era5land_mm"]] > 0).all().all()
+    assert (diaria[["eto_mogotes_aut_mm", "eto_era5land_mm"]] > 0).all().all()
 
     # Tabla larga: una fila por estación, variante de viento y día
     largas = []
-    for nombre in ["mogotes_aut", "2ms", "era5land"]:
+    for nombre in ["mogotes_aut", "era5land"]:
         parte = diaria[["estacion", "eto_era5_mm"]].copy()
         parte["variante_viento"] = nombre
         parte["eto_estacion_mm"] = diaria[f"eto_{nombre}_mm"]
@@ -259,8 +256,8 @@ def main():
         punto = int(diaria.loc[diaria["estacion"] == codigo, "punto_era5"].iloc[0])
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_estacion_media_mm_dia"], "o-", color="#1f6f8b",
                  label="Estación, viento Mogotes-AUT a 10 m (final)")
-        eje.plot(range(1, 13), datos.loc["2ms", "eto_estacion_media_mm_dia"], "^:", color="#5a9e6f",
-                 label="Estación, u2 = 2 m/s (sensibilidad)")
+        eje.plot(range(1, 13), datos.loc["era5land", "eto_estacion_media_mm_dia"], "^:", color="#5a9e6f",
+                 label="Estación, viento de ERA5-Land (sensibilidad)")
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_era5_media_mm_dia"], "s--", color="#c8553d",
                  label=f"ETo FAO-56 (este trabajo, punto {punto})")
         nombre = catalogo.loc[codigo, "nombre"].split(" [")[0].title()

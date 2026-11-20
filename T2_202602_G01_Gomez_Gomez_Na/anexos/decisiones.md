@@ -305,3 +305,6 @@ Juan preguntó si el viento de ERA5-Land evita suponer viento en La Sierra y Cha
 script 13: u2 diario de ERA5-Land del punto más cercano. Sesgo de nuestra ETo (mm/día), (a) / (c): Mogotes −0.13 / −0.07,
 La Sierra +0.56 / +0.56, Charalá −0.15 / −0.12. Con (c) los dos lados usan el mismo viento y la prueba no revisa el
 viento. Por ahora (a) sigue como final; (c) es sensibilidad, hasta que Juan decida.
+
+**Decisión (Juan, 2026-11-19).** (a) Mogotes-AUT sigue como final. La variante u2 = 2 m/s se quita. El viento de
+ERA5-Land queda como única sensibilidad y pasa a llamarse (b).

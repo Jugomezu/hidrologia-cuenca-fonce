@@ -13,7 +13,7 @@ Escribe en productos/punto1/:
     eto_vs_terraclimate_pet.png             serie mensual y ciclo anual
 
 Qué es la pet de TerraClimate (atributos del archivo y https://www.climatologylab.org/terraclimate.html, 2026-11-19):
-    «Reference Evapotranspiration», ASCE Penman-Monteith corregida por CO2 (Yang et al., 2018). En v1.1 sus entradas
+    «Reference Evapotranspiration», ASCE Penman-Monteith corregida por CO2 (Yang et al., 2019). En v1.1 sus entradas
     salen de anomalías mensuales de ERA5 sobre climatologías CHELSA 2.1 (1981–2010), con la presión de vapor corregida
     con CRU TS. Dos diferencias con nuestra ETo, que se declaran y no se corrigen:
       - la corrección por CO2 cambia la resistencia de la superficie de la ec. de FAO-56;

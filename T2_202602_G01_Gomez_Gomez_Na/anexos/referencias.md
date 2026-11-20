@@ -12,5 +12,14 @@ Lista de trabajo: cada fuente citada en scripts, decisiones o informe. Formato A
   climate and climatic water balance dataset with climate scenarios. *Scientific Data*. Datos: Zenodo,
   https://doi.org/10.5281/zenodo.23961197 (referencia tal como la trae el archivo; volumen y páginas pendientes).
   Usado: pet (ETo de referencia) y aet, scripts 05, 14 y 16.
-- Yang et al. (2018), citado por TerraClimate para la corrección por CO2 de su pet; enlace en la página del producto:
-  https://doi.org/10.1038/s41558-018-0361-0. Pendiente: completar autores, título y revista leyendo el artículo.
+- Abatzoglou, J. T., Dobrowski, S. Z., Parks, S. A. y Hegewisch, K. C. (2018). TerraClimate, a high-resolution global
+  dataset of monthly climate and climatic water balance from 1958–2015. *Scientific Data, 5*, 170191.
+  https://doi.org/10.1038/sdata.2017.191. Usado: definición de la pet (versión original): «Monthly reference
+  evapotranspiration (ET0) was calculated using the Penman Montieth approach» y «ET0 assumes a reference grass surface».
+  El texto no dice si es FAO-56 o ASCE, ni da altura del pasto, albedo ni resistencia de superficie (leído en PMC,
+  PMC5759372, 2026-11-20).
+- Yang, Y., Roderick, M. L., Zhang, S., McVicar, T. R. y Donohue, R. J. (2019). Hydrologic implications of vegetation
+  response to elevated CO2 in climate projections. *Nature Climate Change, 9*(1), 44–48.
+  https://doi.org/10.1038/s41558-018-0361-0. Publicado en línea en 2018 (por eso la página de TerraClimate dice 2018).
+  Usado: corrección por CO2 de la resistencia de superficie en la pet de TerraClimate v1.1. Datos tomados de la ficha
+  RePEc/IDEAS; el texto completo no se leyó.

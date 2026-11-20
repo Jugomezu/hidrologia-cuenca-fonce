@@ -235,6 +235,22 @@ def datos_prueba_terraclimate():
     }
 
 
+def datos_cierre_fase3():
+    """Cierre de la fase 3: tabla de pruebas, dispersión y ETo frente a P − Q (salidas de 17)."""
+    pruebas = pd.read_csv(CARPETA_PRODUCTOS / "pruebas_referencia.csv")
+    disp = pd.read_csv(CARPETA_PRODUCTOS / "dispersion_pruebas.csv")
+    bal = pd.read_csv(CARPETA_PRODUCTOS / "eto_vs_p_menos_q.csv")
+    anual = pruebas[pruebas["mes"] == "anual"]
+    return {
+        "anual": anual[["serie", "base", "n", "eto_nuestra_mm_dia", "referencia_mm_dia", "sesgo_mm_dia", "sesgo_pct",
+                        "mae_mm_dia", "rmse_mm_dia"]].round(2).to_dict("records"),
+        "sesgo": {c.replace("sesgo_pct_", ""): disp[c].round(1).tolist() for c in disp.columns if c.startswith("sesgo_pct_")},
+        "dispersion": {c: disp[c].round(1).tolist() for c in ["rango_4_series_pct", "rango_2_pruebas_pct", "desv_est_4_series_pct"]},
+        "dispersion_media": {c: round(float(disp[c].mean()), 1) for c in ["rango_4_series_pct", "rango_2_pruebas_pct", "desv_est_4_series_pct"]},
+        "balance": bal.round(1).to_dict("records"),
+    }
+
+
 def datos_et_real():
     """ET real mensual y anual de cada producto (salidas de 14_et_real_productos_cuenca.py)."""
     mensual = pd.read_csv(CARPETA_PRODUCTOS / "et_real_mensual_productos.csv")
@@ -291,6 +307,7 @@ def main():
         "fase2": datos_fase2_y_auditoria(),
         "et_real": datos_et_real(),
         "prueba_tc": datos_prueba_terraclimate(),
+        "cierre_f3": datos_cierre_fase3(),
         "balance": datos_balance(),
         "puntos": PUNTOS,
         "variables": [
@@ -453,6 +470,38 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Fase 3 · Resumen: qué se hizo, cómo y para qué</h2>
+  <p><b>Para qué.</b> Nuestra ETo FAO-56 es la referencia de todo el punto 1, pero sale de un reanálisis. La fase 3
+  mide cuánto puede estar mal comparándola con fuentes que no salen de nuestro cálculo, y deja el margen (la
+  dispersión entre pruebas) que usan la fase 4 como umbral y la fase 5 como banda.</p>
+  <ol class="resumen">
+    <li><b>Rs de ERA5-Land frente al brillo solar</b> (script 12). Rs de estación con Angstrom (FAO-56 ec. 35, a<sub>s</sub>
+    0.25, b<sub>s</sub> 0.50) en Mogotes, La Sierra y Charalá, contra el punto de ERA5-Land más cercano. ERA5-Land da
+    +11 %, +35 % y +14 % más Rs (+1.9 a +4.8 MJ/m²·día). Valida la entrada de más peso; no cuenta como prueba.</li>
+    <li><b>Prueba 1, estaciones</b> (script 13). ETo FAO-56 completa con Tmáx, Tmín y HR de cada estación, su Rs de
+    Angstrom, presión por altura y viento medido en Mogotes-AUT a 10 m. Sesgo de nuestra ETo: Mogotes −0.13 mm/día
+    (−3.9 %), La Sierra +0.56 (+23.1 %), Charalá −0.15 (−4.3 %). Con el viento de ERA5-Land (sensibilidad) cambia
+    0.06 mm/día o menos.</li>
+    <li><b>Prueba 2, TerraClimate pet</b> (script 16). Otra ETo de referencia (Penman–Monteith sobre pasto, en v1.1
+    corregida por CO<sub>2</sub>), promedio de cuenca, 300 meses. Sesgo de nuestra ETo: +0.34 mm/día (+11.8 %),
+    r = 0.97; 1 166 frente a 1 043 mm/año.</li>
+    <li><b>Dispersión entre pruebas</b> (script 17). Sesgo % de las 4 series por mes calendario y tres formas de medir
+    cuánto discrepan. <b>Falta que Juan elija la definición</b> (tabla de abajo).</li>
+    <li><b>ETo frente a P − Q</b> (script 17). Nuestra ETo 1 166 mm/año en los 262 meses con caudal. P − Q es 884 mm/año
+    con IMERG (PI) y 1 206 con pluviómetros (PL). Con PI, P − Q queda por debajo de la ETo en los 11 años completos; con
+    PL queda 39 a 50 mm/año por encima, y en 6 de los 11 años. El plan pide, si ETo &lt; P − Q, revisar en este orden:
+    representatividad de la lluvia, pérdidas subterráneas, aportes externos y una cobertura que evapore más que el pasto.</li>
+    <li><b>Mes para verificar a mano</b> (script 18). <code>anexos/punto1/mes_estacion_a_mano.xlsx</code>: marzo de 2001
+    en Mogotes, cada paso de FAO-56 como fórmula de Excel. La hoja reproduce el script 13 con diferencia máxima de
+    0.0001 mm/día (recalculada con LibreOffice). Falta que Juan la revise.</li>
+  </ol>
+  <p><b>Pendiente de Juan:</b> definición de la dispersión; si se descarga la celda de ERA5-Land que contiene cada
+  estación (hoy se usa el más cercano de los 6 puntos); revisar el mes a mano. Referencias completadas: Abatzoglou et al.
+  (2018) y Yang et al. (2019) en <code>anexos/referencias.md</code>. El artículo de 2018 dice «Penman–Monteith» y «pasto de
+  referencia», sin albedo ni resistencia de superficie.</p>
+</section>
+
+<section>
   <h2>Fase 3 · Cómo leer las comparaciones con estaciones</h2>
   <p><b>Qué se pone a prueba.</b> En Rs, la radiación de ERA5-Land (ssrd), que sí es un producto de ERA5-Land. En ETo,
   <b>nuestra ETo</b>: la FAO-56 de este trabajo (scripts 01–04), calculada con forzantes de ERA5-Land. No es un
@@ -497,7 +546,7 @@ code { font: 400 .86em var(--f-dato); }
 <section>
   <h2>Fase 3 · Segunda prueba: TerraClimate pet</h2>
   <p>La pet de TerraClimate v1.1 es una ETo de referencia, no una ETP: ASCE Penman–Monteith corregida por CO<sub>2</sub>
-  (Yang et al., 2018), según el archivo («Reference Evapotranspiration») y la página del producto. Por eso sirve para
+  (Yang et al., 2019), según el archivo («Reference Evapotranspiration») y la página del producto. Por eso sirve para
   probar nuestra ETo; GLEAM Ep y ERA5-Land pev son ETP y no. Se declaran dos diferencias: la corrección por
   CO<sub>2</sub>, y que en v1.1 sus anomalías mensuales vienen de ERA5, de donde salen también nuestros forzantes
   (ERA5-Land); así que no es independiente en la variabilidad (sí en la climatología, CHELSA y CRU, y en la resolución, ~4 km). Promedio de cuenca, 1998–2022,
@@ -508,6 +557,21 @@ code { font: 400 .86em var(--f-dato); }
     <div class="tarjeta"><h3>Ciclo anual (mm/mes)</h3><div class="grafico" id="g-tc-ciclo"></div></div>
     <div class="tarjeta"><h3>Sesgo de nuestra ETo, MAE y RMSE por mes (mm/mes)</h3><div class="grafico" id="g-tc-sesgo"></div></div>
   </div>
+</section>
+
+<section>
+  <h2>Fase 3 · Dispersión entre pruebas y ETo frente a P − Q</h2>
+  <p>Script 17. Las dos pruebas en mm/día: estaciones día a día (viento de Mogotes-AUT), TerraClimate mes a mes
+  (cuenca). MAE y RMSE no son comparables entre las dos pruebas porque una es diaria y otra mensual; el sesgo % sí.
+  Sesgo % = (nuestra ETo − referencia) / referencia.</p>
+  <div class="tabla" id="t-cierre-pruebas"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo % de nuestra ETo por mes, cada serie de referencia</h3><div class="grafico" id="g-cierre-sesgo"></div></div>
+  <p style="margin-top:16px"><b>Tres definiciones de dispersión, por mes (puntos porcentuales).</b> Rango de las 4 series:
+  máximo − mínimo del sesgo % de las 3 estaciones y TerraClimate. Rango de 2 pruebas: |TerraClimate − media de las 3
+  estaciones|, cada prueba cuenta una vez. Desviación estándar de las 4 series.</p>
+  <div class="tarjeta"><h3>Dispersión por mes (pp)</h3><div class="grafico" id="g-cierre-disp"></div></div>
+  <p style="margin-top:16px"><b>ETo multianual frente a P − Q multianual</b> (mm/año), en los mismos meses o años.</p>
+  <div class="tabla" id="t-cierre-balance"></div>
 </section>
 
 <section>
@@ -712,6 +776,32 @@ for (const [valor, texto] of CARGA.cifras) {
     {type: 'bar', name: 'Sesgo de nuestra ETo', x: xm, y: T.sesgo, marker: {color: COLOR.eto}},
     {type: 'scatter', mode: 'lines+markers', name: 'MAE', x: xm, y: T.mae, line: {color: COLOR.radiativa}},
     {type: 'scatter', mode: 'lines+markers', name: 'RMSE', x: xm, y: T.rmse, line: {color: COLOR.hargreaves, dash: 'dot'}}], ls, OPCIONES);
+})();
+
+// ---------- Fase 3, cierre: dispersión y ETo frente a P − Q ----------
+(() => {
+  const K = CARGA.cierre_f3, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
+  const mas = v => (v > 0 ? '+' : '') + v;
+  const NOMBRE = {estacion_mogotes: 'Mogotes', estacion_la_sierra: 'La Sierra', estacion_charala: 'Charalá',
+                  terraclimate_pet: 'TerraClimate pet', media_estaciones: 'Media de las 3 estaciones'};
+  const tabla = (id, cab, filas) => { document.getElementById(id).innerHTML =
+    `<table><thead><tr>${cab.map(c => `<th>${c}</th>`).join('')}</tr></thead><tbody>` +
+    filas.map(f => `<tr>${f.map(c => `<td>${c}</td>`).join('')}</tr>`).join('') + '</tbody></table>'; };
+  tabla('t-cierre-pruebas', ['Referencia', 'Base', 'n', 'Nuestra ETo (mm/día)', 'Referencia (mm/día)', 'Sesgo (mm/día)', 'Sesgo %', 'MAE', 'RMSE'],
+    K.anual.map(r => [NOMBRE[r.serie], r.base, r.n, r.eto_nuestra_mm_dia, r.referencia_mm_dia, mas(r.sesgo_mm_dia), mas(r.sesgo_pct), r.mae_mm_dia, r.rmse_mm_dia]));
+  const colores = ['#0072B2', '#D55E00', '#009E73', '#CC79A7', '#555'];
+  Plotly.newPlot('g-cierre-sesgo', Object.entries(K.sesgo).map(([k, y], i) => ({type: 'scatter', mode: 'lines+markers',
+    name: NOMBRE[k], x: xm, y, line: {color: colores[i % colores.length], dash: k === 'media_estaciones' ? 'dot' : 'solid'}})),
+    ejeMes(base('%')), OPCIONES);
+  const ND = {rango_4_series_pct: 'Rango de las 4 series', rango_2_pruebas_pct: 'Rango de 2 pruebas', desv_est_4_series_pct: 'Desv. estándar de las 4 series'};
+  const ld = ejeMes(base('pp')); ld.yaxis.rangemode = 'tozero';
+  Plotly.newPlot('g-cierre-disp', Object.entries(K.dispersion).map(([k, y], i) => ({type: 'scatter', mode: 'lines+markers',
+    name: `${ND[k]} (media ${K.dispersion_media[k]})`, x: xm, y, line: {color: colores[i]}})), ld, OPCIONES);
+  tabla('t-cierre-balance', ['Camino', 'n', 'Nuestra ETo', 'P − Q (PI)', 'P − Q (PL)', 'ETo − (P − Q), PI', 'ETo − (P − Q), PL', 'Años con P − Q &gt; ETo, PI', 'Ídem, PL'],
+    K.balance.map(b => [b.camino, `${b.n} ${b.unidad_n}`, b.eto_mm_anio, b.p_menos_q_PI_mm_anio, b.p_menos_q_PL_mm_anio,
+      mas(b.eto_menos_p_menos_q_PI_mm_anio), mas(b.eto_menos_p_menos_q_PL_mm_anio),
+      `${b.anios_con_p_menos_q_mayor_que_eto_PI} de 11`, `${b.anios_con_p_menos_q_mayor_que_eto_PL} de 11`]));
 })();
 
 // ---------- Fase 2, auditoría y ET real ----------

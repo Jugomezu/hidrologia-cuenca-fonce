@@ -280,7 +280,7 @@ profunda.
 
 **Decisión (Juan).** La segunda prueba de la fase 3 es la pet de TerraClimate v1.1, porque es una ETo de referencia y
 no una ETP: el archivo la describe como «Reference Evapotranspiration» y la página del producto como ASCE
-Penman-Monteith corregida por CO2 (Yang et al., 2018). GLEAM Ep (Priestley-Taylor) y ERA5-Land pev son ETP y no
+Penman-Monteith corregida por CO2 (Yang et al., 2019). GLEAM Ep (Priestley-Taylor) y ERA5-Land pev son ETP y no
 sirven como prueba de la ETo. El tanque de Mogotes-AUT no se usa (unidades erróneas). Script 16.
 
 **Lo que se declara.** (1) La corrección por CO2 cambia la resistencia de superficie de FAO-56. (2) En v1.1 las
@@ -308,3 +308,19 @@ viento. Por ahora (a) sigue como final; (c) es sensibilidad, hasta que Juan deci
 
 **Decisión (Juan, 2026-11-19).** (a) Mogotes-AUT sigue como final. La variante u2 = 2 m/s se quita. El viento de
 ERA5-Land queda como única sensibilidad y pasa a llamarse (b).
+
+## 2026-11-20 · Punto 1 · Cierre de la fase 3 (scripts 17 y 18)
+
+**Pruebas en una tabla y dispersión (script 17).** Las dos pruebas se pasan a mm/día y a sesgo % (nuestra ETo −
+referencia, sobre la referencia), que es lo único comparable: estaciones es diaria y TerraClimate mensual. Se calculan
+tres dispersiones por mes: rango de las 4 series (media 28.6 pp), rango entre las 2 pruebas con las estaciones
+promediadas (6.8 pp) y desviación estándar de las 4 series (13.5 pp). **Pendiente: Juan elige la definición.**
+
+**ETo frente a P − Q (script 17).** Mismos meses o años que el script 15. Nuestra ETo 1 166 mm/año; P − Q 884 (PI) y
+1 206 (PL). Con PL, P − Q supera la ETo en 39–50 mm/año y en 6 de 11 años. Solo cifras; la interpretación es de Juan.
+
+**Mes a mano (script 18).** Marzo de 2001 en Mogotes (31 días completos), en anexos/punto1/mes_estacion_a_mano.xlsx,
+con fórmulas vivas. Reproduce el script 13 con diferencia máxima de 0.0001 mm/día. Falta la revisión de Juan.
+
+**Referencias.** Yang et al. es de 2019 (Nature Climate Change 9(1), 44–48; en línea en 2018). Abatzoglou et al. (2018)
+solo dice Penman–Monteith sobre pasto de referencia: no da albedo, altura ni resistencia de superficie.

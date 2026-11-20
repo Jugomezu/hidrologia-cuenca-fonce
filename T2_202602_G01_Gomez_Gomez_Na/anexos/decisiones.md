@@ -324,3 +324,8 @@ con fórmulas vivas. Reproduce el script 13 con diferencia máxima de 0.0001 mm/
 
 **Referencias.** Yang et al. es de 2019 (Nature Climate Change 9(1), 44–48; en línea en 2018). Abatzoglou et al. (2018)
 solo dice Penman–Monteith sobre pasto de referencia: no da albedo, altura ni resistencia de superficie.
+
+**Decisión (Juan, 2026-11-20).** Dispersión = rango entre las 2 pruebas: |sesgo % de TerraClimate − media del sesgo %
+de las 3 estaciones|, por mes (media 6.8 pp, de 3.5 a 9.9). Cada prueba cuenta una vez y deja un umbral que todavía
+separa métodos en la fase 4. Se declara que al promediar las estaciones se diluye La Sierra (+23 %). Columna
+`dispersion_pct` de productos/punto1/dispersion_pruebas.csv.

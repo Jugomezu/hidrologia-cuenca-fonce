@@ -20,7 +20,8 @@ días de cada mes antes de promediar. Sesgo = nuestra ETo − referencia; sesgo 
 Las estaciones se comparan día a día y TerraClimate mes a mes, así que MAE y RMSE no son comparables entre pruebas;
 el sesgo % sí.
 
-Dispersión entre pruebas, por mes calendario (la definición es decisión de Juan; se calculan tres para elegir):
+Dispersión entre pruebas, por mes calendario. DEFINICIÓN FINAL (Juan, 2026-11-20): rango_2_pruebas_pct, que se copia
+en la columna «dispersion_pct» para las fases 4 y 5. Las otras dos se dejan como referencia:
     rango_4_series_pct     máximo − mínimo del sesgo % de las 4 series (3 estaciones y TerraClimate)
     rango_2_pruebas_pct    |sesgo % de TerraClimate − media del sesgo % de las 3 estaciones| (cada prueba cuenta una vez)
     desv_est_4_series_pct  desviación estándar (n − 1) del sesgo % de las 4 series
@@ -101,6 +102,7 @@ def tabla_dispersion(pruebas):
     salida["rango_4_series_pct"] = sesgo.max(axis=1) - sesgo.min(axis=1)
     salida["rango_2_pruebas_pct"] = (sesgo["terraclimate_pet"] - sesgo[estaciones].mean(axis=1)).abs()
     salida["desv_est_4_series_pct"] = sesgo.std(axis=1, ddof=1)
+    salida["dispersion_pct"] = salida["rango_2_pruebas_pct"]   # definición final
     salida["banda_referencia_sobre_nuestra_min"] = razon.min(axis=1)
     salida["banda_referencia_sobre_nuestra_max"] = razon.max(axis=1)
     return salida

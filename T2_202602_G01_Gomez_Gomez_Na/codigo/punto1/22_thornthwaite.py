@@ -14,7 +14,7 @@ Decisiones de Juan (2026-11-20):
 Pasos (se completan uno a uno):
     1. T mensual de cada punto e índice de calor I.            <- hecho
     2. Exponente a y ETP sin corregir.                         <- hecho
-    3. Corrección por duración del día L y días del mes N.
+    3. Corrección por duración del día L y días del mes N.     <- hecho
     4. Cuenca (Voronoi) y ajuste frente a FAO-56.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
@@ -23,11 +23,13 @@ Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
 
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 ENTRADA_DIARIA = CARPETA_PRODUCTOS / "era5land_diario_puntos.csv"
+ENTRADA_PUNTOS = RAIZ_ENTREGA / "anexos" / "punto1" / "elevacion_puntos_dem.csv"  # latitud de cada punto
 
 # Por encima de 26.5 °C las notas del curso dan otra fórmula. Aquí no hace falta (Juan, 2026-11-20): la T mensual
 # máxima es de unos 18 °C. El assert del paso 2 lo comprueba.
@@ -66,6 +68,26 @@ def etp_sin_corregir(mensual, indice, a):
     return 16 * (10 * mensual["t_C"] / i) ** mensual["punto"].map(a)
 
 
+def duracion_del_dia(latitud_grados, dia_del_anio):
+    """Paso 3a. Horas de luz del día, FAO-56 ec. 24, 25 y 34: L = 24/π · ωs."""
+    phi = np.radians(latitud_grados)
+    declinacion = 0.409 * np.sin(2 * np.pi / 365 * dia_del_anio - 1.39)       # ec. 24
+    omega_s = np.arccos(-np.tan(phi) * np.tan(declinacion))                    # ec. 25
+    return 24 / np.pi * omega_s                                                # ec. 34
+
+
+def correccion_luz_y_dias(diaria, latitudes):
+    """Paso 3b. Factor (L/12)·(N/30) de cada mes y punto.
+
+    L = promedio de las horas de luz de los días del mes (no solo el día 15); N = días del mes.
+    """
+    horas = duracion_del_dia(diaria["punto"].map(latitudes), diaria["fecha"].dt.day_of_year)
+    luz = diaria.assign(L_h=horas).set_index("fecha").groupby("punto")["L_h"].resample("MS").mean().reset_index()
+    luz["N_dias"] = luz["fecha"].dt.days_in_month
+    luz["factor"] = (luz["L_h"] / 12) * (luz["N_dias"] / 30)
+    return luz
+
+
 def main():
     diaria = pd.read_csv(ENTRADA_DIARIA, parse_dates=["fecha"])
     mensual = temperatura_mensual(diaria)
@@ -82,6 +104,16 @@ def main():
     print(f"\nT mensual máxima: {mensual['t_C'].max():.1f} °C (límite {T_LIMITE_FORMULA_C} °C)")
     print("\nExponente a y ETP sin corregir, media 1998–2022:")
     print(resumen.round(3).to_string())
+
+    latitudes = pd.read_csv(ENTRADA_PUNTOS).set_index("punto")["lat"].to_dict()
+    luz = correccion_luz_y_dias(diaria, latitudes)
+    mensual = mensual.merge(luz, on=["punto", "fecha"], validate="one_to_one")
+    mensual["etp_thornthwaite_mm"] = mensual["etp_sin_corregir_mm"] * mensual["factor"]
+    por_mes = luz[luz["punto"] == 1].groupby(luz["fecha"].dt.month)[["L_h", "factor"]].mean()
+    print("\nCorrección por mes calendario, punto 1 (L en horas):")
+    print(por_mes.round(3).T.to_string())
+    print("\nETP de Thornthwaite, media 1998–2022 (mm/mes):")
+    print(mensual.groupby("punto")[["etp_sin_corregir_mm", "etp_thornthwaite_mm"]].mean().round(1).to_string())
 
 
 if __name__ == "__main__":

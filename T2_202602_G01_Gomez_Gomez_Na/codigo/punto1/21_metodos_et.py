@@ -7,7 +7,7 @@ aquí se importa su función y se compara con los demás.
     Thornthwaite (1948)             ETP       temperatura                 notas del curso, Parte 7 (script 22)
     Hargreaves–Samani (1985)        ETo       temperatura + Ra            notas del curso (C. D. Hoyos), Parte 7;
                                                                           FAO-56 ec. 52
-    Priestley–Taylor (1972)         ETp       radiación                   notas del curso, Partes 2 y 7
+    Priestley–Taylor (1972)         ETP       radiación                   notas del curso, Partes 2 y 7
     Makkink (1957)                  ETo       radiación + temperatura     notas del curso, Parte 7
     Brutsaert–Stricker (1979), AA   ET real   relación complementaria     notas del curso, Parte 7
     Penman (1948), forma FAO-24     E0        combinación (agua libre)    notas del curso, Parte 6 (lo usa la AA)
@@ -83,7 +83,7 @@ CENICAFE_EXPONENTE = -0.0002  # 1/m, Jaramillo (2006), p. 292
 METODOS = {
     "thornthwaite": ("Thornthwaite", "ETP"),
     "hargreaves": ("Hargreaves–Samani", "ETo"),
-    "priestley_taylor": ("Priestley–Taylor", "ETp"),
+    "priestley_taylor": ("Priestley–Taylor", "ETP"),
     "makkink": ("Makkink", "ETo"),
     "penman_1948": ("Penman 1948 (FAO-24)", "E0"),
     "aa_brutsaert_stricker": ("Brutsaert–Stricker (AA)", "ET real"),

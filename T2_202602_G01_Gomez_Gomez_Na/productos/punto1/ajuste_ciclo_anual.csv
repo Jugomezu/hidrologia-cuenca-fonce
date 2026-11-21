@@ -1,7 +1,7 @@
 metodo,cantidad,amplitud_metodo_mm_mes,amplitud_eto_mm_mes,error_amplitud_mm_mes,error_amplitud_pct,mes_maximo,mes_minimo,error_fase_maximo_meses,error_fase_minimo_meses,nota
 Thornthwaite,ETP,7.341,19.46,-12.12,-62.279,3,11,0,0,
 Hargreaves–Samani,ETo,23.369,19.46,3.909,20.086,8,11,5,0,
-Priestley–Taylor,ETp,23.48,19.46,4.02,20.656,3,11,0,0,
+Priestley–Taylor,ETP,23.48,19.46,4.02,20.656,3,11,0,0,
 Makkink,ETo,17.297,19.46,-2.163,-11.114,3,11,0,0,
 Penman 1948 (FAO-24),E0,22.911,19.46,3.451,17.733,3,11,0,0,
 Brutsaert–Stricker (AA),ET real,24.049,19.46,4.589,23.58,3,11,0,0,

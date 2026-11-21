@@ -10,7 +10,7 @@ Elegidos por Juan el 2026-11-20. Thornthwaite se programó paso a paso con Juan 
 |---|---|---|---|
 | Thornthwaite (1948) | ETP | 16 (L/12)(N/30)(10 T/I)^a; I = Σ(Tᵢ/5)^1.514; a = 6.75·10⁻⁷ I³ − 7.71·10⁻⁵ I² + 0.01792 I + 0.49239 | Notas del curso, Parte 7. Mensual. T = media de (Tmáx + Tmín)/2; I fijo por punto (1998–2022); L = media de las horas de luz del mes (FAO-56 ec. 24, 25, 34); N = días del mes |
 | Hargreaves–Samani (1985) | ETo | 0.0023 · 0.408 · Ra · (T + 17.8) · √(Tmáx − Tmín) | Notas del curso, Parte 7; FAO-56 ec. 52 |
-| Priestley–Taylor (1972) | ETp | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
+| Priestley–Taylor (1972) | ETP | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
 | Makkink (1957) | ETo | 0.61 · Δ/(Δ+γ) · Rs/λ − 0.12 | Notas del curso, Parte 7 |
 | Penman (1948), forma FAO-24 | E0 | Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea) | Notas del curso, Parte 6 (U2 en km/día, déficit en mbar) |
 | Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman | Notas del curso, Parte 7 |

@@ -360,3 +360,26 @@ Solo sirven para la prueba con estaciones.
 Jaramillo (2006), ETo = 4.37·exp(−0.0002 h), ajustada a Penman–Monteith; Juan descartó la versión de 1989 (4.658,
 ajustada a Penman) y pidió usar la actualizada. Toda cita lleva DOI o un enlace legible (anexos/referencias.md).
 Pendiente: si se agrega Meyer para cubrir la familia de transferencia de masa. Script 21; ecuaciones en anexos/ecuaciones_metodos.md.
+
+## 2026-11-21 · Punto 1 · Auditoría de citas
+
+**Hecho.** Se revisaron todas las citas del punto 1 (referencias, decisiones, scripts, plan, documento de trabajo y
+tablero), salvo las de los métodos de la fase 4, que revisó ese hilo. Cada una quedó en anexos/referencias.md con DOI
+o enlace y lo que se leyó. Se agregaron los datos (ERA5-Land, CAMELS-COL, GLEAM4, MOD16, SSEBop, IMERG, SGC), ASCE-EWRI
+(2005), el aviso de ECMWF y los métodos descartados.
+
+**Confirmado en la fuente.** FAO-56: todos los números de ecuación que usamos; a_s = 0.25 y b_s = 0.50; 2 m/s sin
+datos de viento; Rs/Rso ≤ 1.0 en la ec. 39 (el script 03 lo aplica). IDEAM GDI-M003 v03, p. 37: sensores de viento a
+10 m «en el territorio colombiano». Abatzoglou et al. (2018): las dos frases citadas. TerraClimate v1.1: pet ASCE
+Penman-Monteith corregida por CO2 y anomalías solo de ERA5. Yang et al. (2019): datos bibliográficos. ECMWF: el daño
+del ERA5-Land mensual empieza en sep. 2022.
+
+**Para Juan (no se cambió la afirmación).** (1) El script 05 y `terraclimate_pet_fonce_1998_2022.nc.meta.json` dicen
+que la pet de TerraClimate es FAO-56; la página de v1.1 dice ASCE corregida por CO2 (lo que ya dice el script 16).
+(2) Los DOI de SSEBop v6.1 y v5 no se pudieron confirmar: P9QJWQ6K parece ser la ficha de 2012 en adelante, pero no
+abrió; F72V2F1F lleva al portal de FEWS NET. (3) «Running et al., 2021» y «Senay et al., 2023»: autores y año sin
+confirmar en la fuente. (4) Documento de trabajo: «Jensen–Haise calibrado en zona árida» no se confirmó; Oudin (2005)
+es la parte 2.
+
+**Pendiente.** El texto de Yang et al. (de pago) y la superficie y el albedo de la pet de TerraClimate: ni el artículo
+de 2018 ni la página de v1.1 los dan; queda como limitación.

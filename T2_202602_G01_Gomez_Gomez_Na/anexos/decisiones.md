@@ -357,6 +357,6 @@ Solo sirven para la prueba con estaciones.
 
 **Decisión (Juan).** Thornthwaite, Hargreaves (ya existía en la Tarea 1; se recalcula con los 6 puntos), Priestley–Taylor
 (α = 1.26), Makkink, Brutsaert–Stricker (AA) y Cenicafé. Cenicafé no tiene ecuación en las notas del curso: se usa
-Jaramillo (2006), ETo = 4.37·exp(−0.0002 h), ajustada a Penman–Monteith, y la versión de 1989 (4.658, ajustada a
-Penman) como sensibilidad. Pendiente: si se agrega Meyer para cubrir la familia de transferencia de masa, y la fuente
-del documento donde Juan vio la versión de 1989. Script 21; ecuaciones en anexos/ecuaciones_metodos.md.
+Jaramillo (2006), ETo = 4.37·exp(−0.0002 h), ajustada a Penman–Monteith; Juan descartó la versión de 1989 (4.658,
+ajustada a Penman) y pidió usar la actualizada. Toda cita lleva DOI o un enlace legible (anexos/referencias.md).
+Pendiente: si se agrega Meyer para cubrir la familia de transferencia de masa. Script 21; ecuaciones en anexos/ecuaciones_metodos.md.

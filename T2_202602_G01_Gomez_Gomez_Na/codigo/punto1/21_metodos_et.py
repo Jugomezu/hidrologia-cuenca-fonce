@@ -10,7 +10,6 @@ Métodos elegidos por Juan el 2026-11-20. Thornthwaite se programa aparte, paso 
     Brutsaert–Stricker (1979), AA   ET real   relación complementaria     notas del curso, Parte 7
     Penman (1948), forma FAO-24     E0        combinación (agua libre)    notas del curso, Parte 6 (lo usa la AA)
     Cenicafé, Jaramillo (2006)      ETo       altitud                     Cenicafé 57(4):288–298, p. 292
-    Cenicafé, Jaramillo (1989)      ETP       altitud                     versión anterior; solo como sensibilidad
 
 Ecuaciones (todas diarias, en mm/día; Rn, Rs y Ra en MJ/m²·día; T en °C; presiones en kPa):
 
@@ -21,7 +20,6 @@ Ecuaciones (todas diarias, en mm/día; Rn, Rs y Ra en MJ/m²·día; T en °C; pr
                       con U2 = viento a 2 m en km/día y el déficit pasado de kPa a mbar (×10)
     AA                ET = 2 · ETw − ETp,   ETw = Priestley–Taylor, ETp = Penman
     Cenicafé 2006     4.37 · exp(−0.0002 · h)
-    Cenicafé 1989     4.658 · exp(−0.0002 · h)
 
 Supuestos (se declaran en anexos/ecuaciones_metodos.md):
     - Mismos forzantes y periodo que la ETo FAO-56: productos/punto1/era5land_diario_puntos.csv (salida de 03) y la
@@ -73,8 +71,8 @@ LAMBDA_MJ_KG = 2.45        # calor latente de vaporización, el de FAO-56 (0.408
 ALFA_PT = 1.26             # Priestley y Taylor (1972)
 G_DIARIO = 0.0             # FAO-56 ec. 42
 CENICAFE_2006 = 4.37       # Jaramillo (2006), p. 292: ETo (mm/día) = 4.37·exp(−0.0002 h)
-CENICAFE_1989 = 4.658      # Jaramillo (1989): ETP (mm/día) = 4.658·exp(−0.0002 h)
-CENICAFE_EXPONENTE = -0.0002  # 1/m, igual en las dos versiones
+CENICAFE_EXPONENTE = -0.0002  # 1/m, Jaramillo (2006), p. 292
+# Juan usa la versión de 2006 (ajustada a Penman–Monteith, como nuestra ETo), no la de 1989 (4.658, ajustada a Penman).
 
 # Nombre de columna -> (nombre corto para tablas, cantidad que estima). La AA es ET real: no se mezcla sin decirlo.
 METODOS = {
@@ -84,7 +82,6 @@ METODOS = {
     "penman_1948": ("Penman 1948 (FAO-24)", "E0"),
     "aa_brutsaert_stricker": ("Brutsaert–Stricker (AA)", "ET real"),
     "cenicafe_2006": ("Cenicafé 2006", "ETo"),
-    "cenicafe_1989": ("Cenicafé 1989", "ETP"),
 }
 
 
@@ -113,7 +110,6 @@ def metodos_diarios(diaria, altura_por_punto):
 
     h = diaria["punto"].map(altura_por_punto)
     salida["cenicafe_2006"] = CENICAFE_2006 * np.exp(CENICAFE_EXPONENTE * h)
-    salida["cenicafe_1989"] = CENICAFE_1989 * np.exp(CENICAFE_EXPONENTE * h)
     return salida
 
 
@@ -187,7 +183,7 @@ def main():
     metodos = pd.concat([diaria[["fecha", "punto"]], metodos_diarios(diaria, alturas)], axis=1)
     columnas = list(METODOS)
     assert metodos[columnas].notna().all().all()
-    for columna in ["hargreaves", "priestley_taylor", "penman_1948", "cenicafe_2006", "cenicafe_1989"]:
+    for columna in ["hargreaves", "priestley_taylor", "penman_1948", "cenicafe_2006"]:
         assert (metodos[columna] > 0).all(), f"{columna}: valores no positivos"
     dias_aa_negativa = int((metodos["aa_brutsaert_stricker"] < 0).sum())
     dias_makkink_negativa = int((metodos["makkink"] < 0).sum())

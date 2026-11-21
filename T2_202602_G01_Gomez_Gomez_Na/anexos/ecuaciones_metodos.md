@@ -5,7 +5,7 @@ y la cuenca es el promedio ponderado por Voronoi, igual que la ETo FAO-56. Unida
 MJ/m²·día; T en °C; presiones en kPa. Mismos forzantes que la ETo (ERA5-Land, 1998–2022). λ = 2.45 MJ/kg (el de
 FAO-56). G = 0 diario. Δ, γ, es, ea y u2 como en FAO-56 (ec. 8, 12, 13, 47), con la presión de cada punto.
 
-Elegidos por Juan el 2026-11-20. Thornthwaite queda pendiente: se programa paso a paso con Juan.
+Elegidos por Juan el 2026-11-20. De Cenicafé se usa solo la versión de 2006 (Juan). Referencias completas, con DOI o enlace, en `anexos/referencias.md`. Thornthwaite queda pendiente: se programa paso a paso con Juan.
 
 | Método | Estima | Ecuación | Fuente |
 |---|---|---|---|
@@ -15,7 +15,6 @@ Elegidos por Juan el 2026-11-20. Thornthwaite queda pendiente: se programa paso 
 | Penman (1948), forma FAO-24 | E0 | Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea) | Notas del curso, Parte 6 (U2 en km/día, déficit en mbar) |
 | Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman | Notas del curso, Parte 7 |
 | Cenicafé, Jaramillo (2006) | ETo | 4.37 · exp(−0.0002 h) | Cenicafé 57(4):288–298, p. 292; ajustada a Penman–Monteith, 34 estaciones, 170–3 700 m, R² = 0.80 |
-| Cenicafé, Jaramillo (1989) | ETP | 4.658 · exp(−0.0002 h) | Versión anterior, ajustada a Penman; solo como sensibilidad |
 
 Supuestos que se declaran:
 
@@ -38,7 +37,6 @@ h 2 144.948 m. Intermedios: T 17.0947 °C, Δ 0.12344, γ 0.05195 kPa/°C, Δ/(�
 | Penman 1948 | 4.4337 |
 | AA | 4.6847 |
 | Cenicafé 2006 | 2.8456 |
-| Cenicafé 1989 | 3.0331 |
 | ETo FAO-56 (referencia) | 3.76 |
 
 Calculado aparte, sin las funciones del script, y coincide a 4 decimales con `productos/punto1/metodos_diaria_puntos.csv`.

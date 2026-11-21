@@ -902,14 +902,13 @@ for (const [valor, texto] of CARGA.cifras) {
       `${fmt(r.sesgo, 1)} (${fmt(r.sesgo_min, 1)} a ${fmt(r.sesgo_max, 1)})`, r.mae.toFixed(1), r.rmse.toFixed(1),
       `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`])]);
   const NOMBRE_M = {eto_fao56: 'ETo FAO-56', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
-    penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', cenicafe_1989: 'Cenicafé 1989'};
+    penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006'};
   const COLOR_M = {eto_fao56: css('--tinta'), hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
-    penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', cenicafe_1989: '#CC79A7'};
+    penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7'};
   const lmc = ejeMes(base('mm/mes'));
   Plotly.newPlot('g-metodos-ciclo', Object.keys(NOMBRE_M).map(c => ({type: 'scatter', mode: 'lines+markers', name: NOMBRE_M[c],
     x: xm, y: MT.ciclo[c], marker: {size: 4},
-    line: {color: COLOR_M[c], width: c === 'eto_fao56' ? 3 : 1.6, dash: c === 'cenicafe_1989' ? 'dot' : (c === 'penman_1948' || c === 'aa_brutsaert_stricker') ? 'dash' : 'solid'},
-    visible: c === 'cenicafe_1989' ? 'legendonly' : true})), lmc, OPCIONES);
+    line: {color: COLOR_M[c], width: c === 'eto_fao56' ? 3 : 1.6, dash: (c === 'penman_1948' || c === 'aa_brutsaert_stricker') ? 'dash' : 'solid'}})), lmc, OPCIONES);
   const B = CARGA.balance;
   tabla('t-balance', ['Camino', 'Datos', 'PI (mm/año)', 'PL (mm/año)', 'Q (mm/año)', 'ET real con PI', 'ET real con PL'],
     B.resumen.map(r => [r.camino, r.n, r.PI, r.PL, r.Q, r.ETR_PI, r.ETR_PL]));

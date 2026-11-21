@@ -388,3 +388,9 @@ es la parte 2.
 
 **Pendiente.** El texto de Yang et al. (de pago) y la superficie y el albedo de la pet de TerraClimate: ni el artículo
 de 2018 ni la página de v1.1 los dan; queda como limitación.
+
+## 2026-11-20 · Punto 1 · Thornthwaite: T e índice de calor
+
+**Decisión (Juan).** T del mes = media de (Tmáx + Tmín)/2 diaria, la misma T de FAO-56 y los demás métodos. I fijo por
+punto, con las 12 medias climatológicas de 1998–2022, para no absorber la tendencia en la fase 8. I va de 40.0
+(punto 1, 11.1 °C) a 81.3 (punto 3, 17.7 °C). Script 22.

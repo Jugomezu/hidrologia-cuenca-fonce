@@ -5,10 +5,10 @@ y la cuenca es el promedio ponderado por Voronoi, igual que la ETo FAO-56. Unida
 MJ/m²·día; T en °C; presiones en kPa. Mismos forzantes que la ETo (ERA5-Land, 1998–2022). λ = 2.45 MJ/kg (el de
 FAO-56). G = 0 diario. Δ, γ, es, ea y u2 como en FAO-56 (ec. 8, 12, 13, 47), con la presión de cada punto.
 
-Elegidos por Juan el 2026-11-20. De Cenicafé se usa solo la versión de 2006 (Juan). Referencias completas, con DOI o enlace, en `anexos/referencias.md`. Thornthwaite queda pendiente: se programa paso a paso con Juan.
-
+Elegidos por Juan el 2026-11-20. Thornthwaite se programó paso a paso con Juan (script 22). De Cenicafé se usa solo la versión de 2006 (Juan). Referencias completas, con DOI o enlace, en `anexos/referencias.md`. 
 | Método | Estima | Ecuación | Fuente |
 |---|---|---|---|
+| Thornthwaite (1948) | ETP | 16 (L/12)(N/30)(10 T/I)^a; I = Σ(Tᵢ/5)^1.514; a = 6.75·10⁻⁷ I³ − 7.71·10⁻⁵ I² + 0.01792 I + 0.49239 | Notas del curso, Parte 7. Mensual. T = media de (Tmáx + Tmín)/2; I fijo por punto (1998–2022); L = media de las horas de luz del mes (FAO-56 ec. 24, 25, 34); N = días del mes |
 | Hargreaves–Samani (1985) | ETo | 0.0023 · 0.408 · Ra · (T + 17.8) · √(Tmáx − Tmín) | Notas del curso, Parte 7; FAO-56 ec. 52 |
 | Priestley–Taylor (1972) | ETp | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
 | Makkink (1957) | ETo | 0.61 · Δ/(Δ+γ) · Rs/λ − 0.12 | Notas del curso, Parte 7 |
@@ -40,3 +40,9 @@ h 2 144.948 m. Intermedios: T 17.0947 °C, Δ 0.12344, γ 0.05195 kPa/°C, Δ/(�
 | ETo FAO-56 (referencia) | 3.76 |
 
 Calculado aparte, sin las funciones del script, y coincide a 4 decimales con `productos/punto1/metodos_diaria_puntos.csv`.
+
+### Un mes a mano, Thornthwaite
+
+2010-02, punto 6 (lat 6.4°). T = 17.6923 °C, I = 67.9572, a = 1.5660, L = 11.798 h, N = 28.
+ETP = 16 · (10 · 17.6923/67.9572)^1.566 · (11.798/12) · (28/30) = 65.6928 mm/mes. Calculado aparte y coincide con
+`productos/punto1/thornthwaite_mensual_puntos.csv`.

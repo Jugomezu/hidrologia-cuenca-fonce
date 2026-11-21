@@ -1,8 +1,10 @@
 """Fase 4 (punto 1): métodos de evapotranspiración de otras familias, en los 6 puntos y en la cuenca, 1998–2022.
 
-Métodos elegidos por Juan el 2026-11-20. Thornthwaite se programa aparte, paso a paso con Juan, y se agrega después.
+Métodos elegidos por Juan el 2026-11-20. Thornthwaite se programó aparte, paso a paso con Juan (22_thornthwaite.py);
+aquí se importa su función y se compara con los demás.
 
     Método                          Estima    Familia                     Fuente de la ecuación
+    Thornthwaite (1948)             ETP       temperatura                 notas del curso, Parte 7 (script 22)
     Hargreaves–Samani (1985)        ETo       temperatura + Ra            notas del curso (C. D. Hoyos), Parte 7;
                                                                           FAO-56 ec. 52
     Priestley–Taylor (1972)         ETp       radiación                   notas del curso, Partes 2 y 7
@@ -66,6 +68,9 @@ _spec = importlib.util.spec_from_file_location("eto_fao56", Path(__file__).with_
 eto_fao56 = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(eto_fao56)
 PESOS = eto_fao56.PESOS
+_spec = importlib.util.spec_from_file_location("thornthwaite", Path(__file__).with_name("22_thornthwaite.py"))
+thornthwaite = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(thornthwaite)
 
 LAMBDA_MJ_KG = 2.45        # calor latente de vaporización, el de FAO-56 (0.408 = 1/2.45)
 ALFA_PT = 1.26             # Priestley y Taylor (1972)
@@ -76,6 +81,7 @@ CENICAFE_EXPONENTE = -0.0002  # 1/m, Jaramillo (2006), p. 292
 
 # Nombre de columna -> (nombre corto para tablas, cantidad que estima). La AA es ET real: no se mezcla sin decirlo.
 METODOS = {
+    "thornthwaite": ("Thornthwaite", "ETP"),
     "hargreaves": ("Hargreaves–Samani", "ETo"),
     "priestley_taylor": ("Priestley–Taylor", "ETp"),
     "makkink": ("Makkink", "ETo"),
@@ -178,10 +184,11 @@ def ajuste_ciclo_anual(mensual):
 
 def main():
     diaria = pd.read_csv(ENTRADA_DIARIA, parse_dates=["fecha"])
-    alturas = pd.read_csv(ENTRADA_ALTURAS).set_index("punto")["z_region_dem_m"].to_dict()
+    puntos = pd.read_csv(ENTRADA_ALTURAS).set_index("punto")
+    alturas = puntos["z_region_dem_m"].to_dict()
 
     metodos = pd.concat([diaria[["fecha", "punto"]], metodos_diarios(diaria, alturas)], axis=1)
-    columnas = list(METODOS)
+    columnas = [c for c in METODOS if c != "thornthwaite"]  # Thornthwaite es mensual: se agrega abajo
     assert metodos[columnas].notna().all().all()
     for columna in ["hargreaves", "priestley_taylor", "penman_1948", "cenicafe_2006"]:
         assert (metodos[columna] > 0).all(), f"{columna}: valores no positivos"
@@ -195,6 +202,11 @@ def main():
     # Mensual por punto = suma de los diarios (igual que la ETo); cuenca = promedio ponderado por Voronoi.
     mensual_puntos = (metodos.set_index("fecha").groupby("punto")[columnas].resample("MS").sum().reset_index())
     assert (mensual_puntos.groupby("punto").size() == 300).all()
+    etp_th = thornthwaite.thornthwaite_mensual(diaria, puntos["lat"].to_dict())
+    mensual_puntos = mensual_puntos.merge(
+        etp_th[["punto", "fecha", "etp_thornthwaite_mm"]].rename(columns={"etp_thornthwaite_mm": "thornthwaite"}),
+        on=["punto", "fecha"], validate="one_to_one")
+    columnas = list(METODOS)
     mensual = promedio_cuenca(mensual_puntos, columnas)
 
     eto = pd.read_csv(ENTRADA_ETO)

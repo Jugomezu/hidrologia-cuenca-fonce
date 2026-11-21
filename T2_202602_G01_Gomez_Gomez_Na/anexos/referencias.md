@@ -141,3 +141,6 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   McVicar et al. (2012), https://researchportalplus.anu.edu.au/en/publications/global-review-and-synthesis-of-trends-in-observed-terrestrial-nea/.
   Dingman (2015, *Physical Hydrology*, 3.ª ed.) y Shaw et al. (2010, *Hydrology in Practice*, 4.ª ed.) son libros sin
   enlace libre; las secciones citadas (tabla 6.2, sec. 6.7, 6.8 y 10.3) no se comprobaron.
+- Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review, 38*(1),
+  55–. https://doi.org/10.2307/210739 (Crossref solo da la página inicial). Leído: no; la ecuación (I, a y la
+  corrección (L/12)(N/30)) se toma de las notas del curso (Hoyos), Parte 7. Script 22.

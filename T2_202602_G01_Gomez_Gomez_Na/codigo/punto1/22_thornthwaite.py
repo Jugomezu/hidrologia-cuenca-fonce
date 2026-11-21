@@ -15,7 +15,10 @@ Pasos (se completan uno a uno):
     1. T mensual de cada punto e índice de calor I.            <- hecho
     2. Exponente a y ETP sin corregir.                         <- hecho
     3. Corrección por duración del día L y días del mes N.     <- hecho
-    4. Cuenca (Voronoi) y ajuste frente a FAO-56.
+    4. Cuenca (Voronoi) y ajuste frente a FAO-56.              <- hecho: la función thornthwaite_mensual la usa
+       21_metodos_et.py, que la promedia por Voronoi y la compara con FAO-56 junto con los demás métodos.
+
+Escribe productos/punto1/thornthwaite_mensual_puntos.csv: por mes y punto, T, I, a, L, N, factor y la ETP (mm/mes).
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/22_thornthwaite.py
@@ -29,6 +32,7 @@ import pandas as pd
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 ENTRADA_DIARIA = CARPETA_PRODUCTOS / "era5land_diario_puntos.csv"
+SALIDA_MENSUAL = CARPETA_PRODUCTOS / "thornthwaite_mensual_puntos.csv"
 ENTRADA_PUNTOS = RAIZ_ENTREGA / "anexos" / "punto1" / "elevacion_puntos_dem.csv"  # latitud de cada punto
 
 # Por encima de 26.5 °C las notas del curso dan otra fórmula. Aquí no hace falta (Juan, 2026-11-20): la T mensual
@@ -88,6 +92,20 @@ def correccion_luz_y_dias(diaria, latitudes):
     return luz
 
 
+def thornthwaite_mensual(diaria, latitudes):
+    """Pasos 1 a 3 juntos: ETP de Thornthwaite por mes y punto (mm/mes), con sus intermedios."""
+    mensual = temperatura_mensual(diaria)
+    _, indice = indice_de_calor(mensual)
+    a = exponente(indice)
+    mensual["I"] = mensual["punto"].map(indice)
+    mensual["a"] = mensual["punto"].map(a)
+    mensual["etp_sin_corregir_mm"] = etp_sin_corregir(mensual, indice, a)
+    luz = correccion_luz_y_dias(diaria, latitudes)
+    mensual = mensual.merge(luz, on=["punto", "fecha"], validate="one_to_one")
+    mensual["etp_thornthwaite_mm"] = mensual["etp_sin_corregir_mm"] * mensual["factor"]
+    return mensual
+
+
 def main():
     diaria = pd.read_csv(ENTRADA_DIARIA, parse_dates=["fecha"])
     mensual = temperatura_mensual(diaria)
@@ -114,6 +132,13 @@ def main():
     print(por_mes.round(3).T.to_string())
     print("\nETP de Thornthwaite, media 1998–2022 (mm/mes):")
     print(mensual.groupby("punto")[["etp_sin_corregir_mm", "etp_thornthwaite_mm"]].mean().round(1).to_string())
+
+    completo = thornthwaite_mensual(diaria, latitudes)
+    assert np.allclose(completo["etp_thornthwaite_mm"], mensual["etp_thornthwaite_mm"])
+    completo.assign(mes=completo["fecha"].dt.strftime("%Y-%m"))[
+        ["mes", "punto", "t_C", "I", "a", "etp_sin_corregir_mm", "L_h", "N_dias", "factor", "etp_thornthwaite_mm"]
+    ].round(4).to_csv(SALIDA_MENSUAL, index=False)
+    print(f"\nListo: {SALIDA_MENSUAL}")
 
 
 if __name__ == "__main__":

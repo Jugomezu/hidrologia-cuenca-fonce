@@ -1,4 +1,16 @@
 metodo,cantidad,mes,n_anios,eto_fao56_mm_mes,metodo_mm_mes,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,dispersion_pruebas_pct,supera_dispersion
+Thornthwaite,ETP,1,25,100.602,60.386,-40.216,-39.976,40.216,40.377,6.545,True
+Thornthwaite,ETP,2,25,96.499,57.637,-38.862,-40.272,38.862,39.168,6.93,True
+Thornthwaite,ETP,3,25,106.485,63.934,-42.551,-39.96,42.551,42.818,2.002,True
+Thornthwaite,ETP,4,25,96.262,61.847,-34.415,-35.751,34.415,34.696,3.294,True
+Thornthwaite,ETP,5,25,94.001,63.314,-30.687,-32.646,30.687,30.975,5.228,True
+Thornthwaite,ETP,6,25,92.498,59.253,-33.245,-35.941,33.245,33.367,1.236,True
+Thornthwaite,ETP,7,25,98.533,60.012,-38.521,-39.094,38.521,38.679,3.418,True
+Thornthwaite,ETP,8,25,103.668,60.173,-43.495,-41.956,43.495,43.628,4.663,True
+Thornthwaite,ETP,9,25,101.337,58.201,-43.136,-42.567,43.136,43.247,3.692,True
+Thornthwaite,ETP,10,25,96.031,59.425,-36.606,-38.119,36.606,36.729,6.764,True
+Thornthwaite,ETP,11,25,87.025,56.594,-30.432,-34.969,30.432,30.676,8.488,True
+Thornthwaite,ETP,12,25,93.083,58.16,-34.923,-37.519,34.923,35.126,7.767,True
 Hargreaves–Samani,ETo,1,25,100.602,103.044,2.442,2.427,2.558,3.199,6.545,False
 Hargreaves–Samani,ETo,2,25,96.499,99.893,3.394,3.517,3.407,4.131,6.93,False
 Hargreaves–Samani,ETo,3,25,106.485,114.303,7.818,7.342,7.818,8.615,2.002,True

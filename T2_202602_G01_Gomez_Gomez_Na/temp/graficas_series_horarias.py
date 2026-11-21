@@ -631,7 +631,7 @@ code { font: 400 .86em var(--f-dato); }
 
 <section>
   <h2>Fase 4 · Métodos frente a la ETo FAO-56</h2>
-  <p>Elegidos por Juan: Thornthwaite (pendiente, se programa paso a paso), Hargreaves, Priestley–Taylor, Makkink,
+  <p>Elegidos por Juan: Thornthwaite (programado paso a paso, script 22), Hargreaves, Priestley–Taylor, Makkink,
   Brutsaert–Stricker (AA) y Cenicafé. Mismos forzantes y periodo que la ETo (1998–2022), paso diario, cuenca por
   Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Sesgo % = (método −
   ETo)/ETo, media de los 12 meses calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que
@@ -920,9 +920,9 @@ for (const [valor, texto] of CARGA.cifras) {
     [['ETo FAO-56', 'ETo', MT.eto_anual, '—', '—', '—', '—', '—', '—'], ...MT.resumen.map(r => [r.metodo, r.cantidad, r.anual,
       `${fmt(r.sesgo, 1)} (${fmt(r.sesgo_min, 1)} a ${fmt(r.sesgo_max, 1)})`, r.mae.toFixed(1), r.rmse.toFixed(1),
       `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`])]);
-  const NOMBRE_M = {eto_fao56: 'ETo FAO-56', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
+  const NOMBRE_M = {eto_fao56: 'ETo FAO-56', thornthwaite: 'Thornthwaite', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
     penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006'};
-  const COLOR_M = {eto_fao56: css('--tinta'), hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
+  const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
     penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7'};
   const lmc = ejeMes(base('mm/mes'));
   Plotly.newPlot('g-metodos-ciclo', Object.keys(NOMBRE_M).map(c => ({type: 'scatter', mode: 'lines+markers', name: NOMBRE_M[c],

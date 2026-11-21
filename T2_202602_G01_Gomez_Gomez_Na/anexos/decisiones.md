@@ -394,3 +394,7 @@ de 2018 ni la página de v1.1 los dan; queda como limitación.
 **Decisión (Juan).** T del mes = media de (Tmáx + Tmín)/2 diaria, la misma T de FAO-56 y los demás métodos. I fijo por
 punto, con las 12 medias climatológicas de 1998–2022, para no absorber la tendencia en la fase 8. I va de 40.0
 (punto 1, 11.1 °C) a 81.3 (punto 3, 17.7 °C). Script 22.
+
+**Paso 3 (2026-11-20).** L de cada mes = promedio de las horas de luz de sus días (FAO-56 ec. 24, 25 y 34), no el día
+15; N = días del mes. Juan no se opuso. Resultado: Thornthwaite 719 mm/año en la cuenca, −38 % frente a FAO-56 en los
+12 meses (script 22, comparado en el 21).

@@ -360,3 +360,8 @@ Solo sirven para la prueba con estaciones.
 Jaramillo (2006), ETo = 4.37·exp(−0.0002 h), ajustada a Penman–Monteith; Juan descartó la versión de 1989 (4.658,
 ajustada a Penman) y pidió usar la actualizada. Toda cita lleva DOI o un enlace legible (anexos/referencias.md).
 Pendiente: si se agrega Meyer para cubrir la familia de transferencia de masa. Script 21; ecuaciones en anexos/ecuaciones_metodos.md.
+
+**Decisión (Juan, 2026-11-20).** Meyer no entra. Su fórmula usa es a la temperatura de la superficie del agua y está
+calibrada para lagos; con la T del aire deja de ser evaporación de lago y el sesgo no se puede medir. La familia de
+transferencia de masa se declara fuera, y el efecto del viento y del déficit de vapor se lee en el término
+aerodinámico de FAO-56.

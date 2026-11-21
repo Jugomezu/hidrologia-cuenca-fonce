@@ -273,6 +273,7 @@ code { font: 400 .86em var(--f-dato); }
   ETo)/ETo, media de los 12 meses calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que
   la dispersión entre pruebas de la fase 3. Ojo con la columna «Estima»: la AA es ET real y Penman es E0; no son ETo.</p>
   <div class="tabla" id="t-metodos"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 por método, agrupada por las variables que usa (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:460px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Ciclo anual medio, 1998–2022 (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo"></div></div>
 </section>
 
@@ -560,6 +561,28 @@ for (const [valor, texto] of CARGA.cifras) {
     penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006'};
   const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
     penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7'};
+  // Grupos por variables de entrada (de menos a más información). La ETo FAO-56 es la línea de referencia.
+  const GRUPOS = [
+    ['Solo altitud', [['Cenicafé 2006', 'ETo']]],
+    ['T (y latitud)', [['Thornthwaite', 'ETP']]],
+    ['T + Ra', [['Hargreaves–Samani', 'ETo']]],
+    ['Rs + T', [['Makkink', 'ETo']]],
+    ['Rn + T', [['Priestley–Taylor', 'ETP']]],
+    ['Rn + T + humedad + viento', [['ETo FAO-56', 'ETo'], ['Penman 1948 (FAO-24)', 'E0'], ['Brutsaert–Stricker (AA)', 'ET real']]],
+  ];
+  const COLOR_GRUPO = ['#CC79A7', '#8C6D31', '#7C5BC7', '#009E73', '#E69F00', '#0072B2'];
+  const anualDe = m => m === 'ETo FAO-56' ? MT.eto_anual : MT.resumen.find(r => r.metodo === m).anual;
+  const trazas = GRUPOS.map(([grupo, metodos], i) => ({type: 'bar', name: grupo, orientation: 'h',
+    y: metodos.map(([m, q]) => `${m} · ${q}`), x: metodos.map(([m]) => anualDe(m)),
+    marker: {color: COLOR_GRUPO[i]}, text: metodos.map(([m]) => anualDe(m)), textposition: 'outside',
+    hovertemplate: '%{y}: %{x} mm/año<extra>' + grupo + '</extra>'}));
+  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 250; lg.barmode = 'group';
+  lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', autorange: 'reversed', title: ''});
+  lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', rangemode: 'tozero', title: 'mm/año'});
+  lg.shapes = [{type: 'line', x0: MT.eto_anual, x1: MT.eto_anual, yref: 'paper', y0: 0, y1: 1,
+    line: {color: css('--tinta'), dash: 'dot', width: 1.5}}];
+  Plotly.newPlot('g-metodos-grupos', trazas, lg, OPCIONES);
+
   const lmc = ejeMes(base('mm/mes'));
   Plotly.newPlot('g-metodos-ciclo', Object.keys(NOMBRE_M).map(c => ({type: 'scatter', mode: 'lines+markers', name: NOMBRE_M[c],
     x: xm, y: MT.ciclo[c], marker: {size: 4},

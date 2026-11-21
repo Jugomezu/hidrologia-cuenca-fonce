@@ -70,8 +70,11 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
   No tiene DOI.
 - Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
   Engineers, 11*, 277–288. Sin DOI ni enlace en línea encontrado: la ecuación se toma de las notas del curso (Hoyos),
-  Parte 7. FAO-24 (Doorenbos y Pruitt, 1977) dice que su método de radiación es una adaptación de la fórmula de
-  Makkink (1957). Leído: no.
+  Parte 7. Leído: no (el original no está en línea). Lo que sí se leyó: FAO-24 (Doorenbos y Pruitt, 1977), p. 8,
+  dice «The Radiation Method is essentially an adaptation of the Makkink formula (1957)» y su método de radiación,
+  ETo = c (W · Rs), estima la ETo del pasto de referencia (8 a 15 cm, bien regado). W es el factor de peso que depende
+  de la temperatura y la altura (el mismo papel que Δ/(Δ + γ)); c se lee en la figura 2 según HR media y viento diurno.
+  FAO-24 no da las constantes 0.61 y −0.12: esas salen de las notas del curso.
 - Penman, H. L. (1948). Natural evaporation from open water, bare soil and grass. *Proceedings of the Royal Society of
   London. Series A, 193*(1032), 120–145. https://doi.org/10.1098/rspa.1948.0037. Leído: no; se usa la forma de
   FAO-24 (arriba).

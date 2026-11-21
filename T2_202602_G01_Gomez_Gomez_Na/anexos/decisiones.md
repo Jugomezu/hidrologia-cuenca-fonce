@@ -346,3 +346,9 @@ las mismas funciones de 03 y 04 (script 20). Las entradas anteriores de este reg
 Charalá −0.16 / −0.11. Dispersión (rango entre las 2 pruebas): media 5.0 pp, de 1.2 a 8.5 (antes 6.8). TerraClimate y
 ETo frente a P − Q no cambian. El mes a mano de Mogotes no cambia del lado de la estación; solo cambia la columna de
 nuestra ETo (3.591 mm/día en marzo de 2001, antes 3.509).
+
+## 2026-11-20 · Punto 1 · La ETo de la cuenca sigue con los 6 puntos
+
+**Decisión (Juan).** Las 3 celdas de las estaciones no entran en la ETo de la cuenca. La Sierra y Charalá quedan casi
+fuera de la cuenca y Mogotes en el borde norte; se escogieron por la estación, no por franja de altura (criterio E).
+Solo sirven para la prueba con estaciones.

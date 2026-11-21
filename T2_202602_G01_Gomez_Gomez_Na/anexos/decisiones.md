@@ -329,3 +329,6 @@ solo dice Penman–Monteith sobre pasto de referencia: no da albedo, altura ni r
 de las 3 estaciones|, por mes (media 6.8 pp, de 3.5 a 9.9). Cada prueba cuenta una vez y deja un umbral que todavía
 separa métodos en la fase 4. Se declara que al promediar las estaciones se diluye La Sierra (+23 %). Columna
 `dispersion_pct` de productos/punto1/dispersion_pruebas.csv.
+
+**Verificación (Juan, 2026-11-20).** Juan revisó a mano el mes de estación (anexos/punto1/mes_estacion_a_mano.xlsx,
+Mogotes, marzo de 2001): está bien. Con esto la fase 3 queda cerrada.

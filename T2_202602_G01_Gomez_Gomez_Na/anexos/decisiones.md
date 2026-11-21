@@ -398,3 +398,9 @@ punto, con las 12 medias climatológicas de 1998–2022, para no absorber la ten
 **Paso 3 (2026-11-20).** L de cada mes = promedio de las horas de luz de sus días (FAO-56 ec. 24, 25 y 34), no el día
 15; N = días del mes. Juan no se opuso. Resultado: Thornthwaite 719 mm/año en la cuenca, −38 % frente a FAO-56 en los
 12 meses (script 22, comparado en el 21).
+
+## 2026-11-20 · Punto 1 · Constantes de Makkink
+
+**Decisión (Juan).** Makkink con las constantes de las notas del curso (0.61 y −0.12), no con el método de radiación
+de FAO-24, donde c se lee en un gráfico según la humedad y el viento (no reproducible). FAO-24, p. 8, dice que su
+método es una adaptación de Makkink (1957) y que estima ETo; el artículo de 1957 no está en línea.

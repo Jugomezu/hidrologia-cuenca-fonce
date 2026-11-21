@@ -13,7 +13,7 @@ Decisiones de Juan (2026-11-20):
 
 Pasos (se completan uno a uno):
     1. T mensual de cada punto e índice de calor I.            <- hecho
-    2. Exponente a y ETP sin corregir.
+    2. Exponente a y ETP sin corregir.                         <- hecho
     3. Corrección por duración del día L y días del mes N.
     4. Cuenca (Voronoi) y ajuste frente a FAO-56.
 
@@ -28,6 +28,10 @@ import pandas as pd
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 ENTRADA_DIARIA = CARPETA_PRODUCTOS / "era5land_diario_puntos.csv"
+
+# Por encima de 26.5 °C las notas del curso dan otra fórmula. Aquí no hace falta (Juan, 2026-11-20): la T mensual
+# máxima es de unos 18 °C. El assert del paso 2 lo comprueba.
+T_LIMITE_FORMULA_C = 26.5
 
 
 def temperatura_mensual(diaria):
@@ -49,6 +53,19 @@ def indice_de_calor(mensual):
     return climatologia, indice
 
 
+def exponente(indice):
+    """Paso 2a. a = 6.75·10⁻⁷ I³ − 7.71·10⁻⁵ I² + 0.01792 I + 0.49239."""
+    return 6.75e-7 * indice ** 3 - 7.71e-5 * indice ** 2 + 0.01792 * indice + 0.49239
+
+
+def etp_sin_corregir(mensual, indice, a):
+    """Paso 2b. ETP sin corregir = 16 · (10·T/I)^a, en mm/mes para meses de 30 días con 12 h de luz."""
+    assert mensual["t_C"].max() < T_LIMITE_FORMULA_C, "hay meses sobre 26.5 °C: falta la otra fórmula"
+    assert (mensual["t_C"] > 0).all()
+    i = mensual["punto"].map(indice)
+    return 16 * (10 * mensual["t_C"] / i) ** mensual["punto"].map(a)
+
+
 def main():
     diaria = pd.read_csv(ENTRADA_DIARIA, parse_dates=["fecha"])
     mensual = temperatura_mensual(diaria)
@@ -57,6 +74,14 @@ def main():
     print(climatologia.round(1).to_string())
     print("\nÍndice de calor I por punto:")
     print(indice.round(2).to_string())
+
+    a = exponente(indice)
+    mensual["etp_sin_corregir_mm"] = etp_sin_corregir(mensual, indice, a)
+    resumen = pd.DataFrame({"I": indice, "a": a,
+                            "etp_sin_corregir_mm_mes": mensual.groupby("punto")["etp_sin_corregir_mm"].mean()})
+    print(f"\nT mensual máxima: {mensual['t_C'].max():.1f} °C (límite {T_LIMITE_FORMULA_C} °C)")
+    print("\nExponente a y ETP sin corregir, media 1998–2022:")
+    print(resumen.round(3).to_string())
 
 
 if __name__ == "__main__":

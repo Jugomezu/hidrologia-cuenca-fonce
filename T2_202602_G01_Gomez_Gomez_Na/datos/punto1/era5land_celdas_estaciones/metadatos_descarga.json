@@ -1,0 +1,57 @@
+{
+  "fuente": "Copernicus Climate Data Store",
+  "producto": "reanalysis-era5-land-timeseries",
+  "variables": [
+    "2m_temperature",
+    "2m_dewpoint_temperature",
+    "surface_pressure",
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+    "surface_solar_radiation_downwards"
+  ],
+  "periodo": [
+    "1998-01-01",
+    "2022-12-31"
+  ],
+  "resolucion_temporal": "horaria",
+  "seleccion_del_punto": "centro de la celda de 0.1° que contiene cada estación del IDEAM",
+  "fecha_de_descarga": "2026-11-20",
+  "archivos": [
+    {
+      "punto": "24025040",
+      "nombre": "Escuela Agrícola Mogotes",
+      "lon": -73.0,
+      "lat": 6.5,
+      "archivo": "punto_24025040.csv",
+      "sha256": "aa6affc85cdfb478fe722813279bb4db55fdc4759a8967d5fe579cc23380ba46",
+      "celda_entregada": {
+        "lat": 6.50000000000083,
+        "lon": -73.00000000000324
+      }
+    },
+    {
+      "punto": "24025030",
+      "nombre": "La Sierra-AUT",
+      "lon": -73.2,
+      "lat": 6.0,
+      "archivo": "punto_24025030.csv",
+      "sha256": "150c47d587e781958b94d6b88668b973fd8faa25408314c73dac60aaf4c24321",
+      "celda_entregada": {
+        "lat": 6.000000000000831,
+        "lon": -73.20000000000329
+      }
+    },
+    {
+      "punto": "24025050",
+      "nombre": "Charalá",
+      "lon": -73.2,
+      "lat": 6.3,
+      "archivo": "punto_24025050.csv",
+      "sha256": "909c1af49af21f451dfa744fbce8c84b7b39f7fe18ca55820eb614fb42171b80",
+      "celda_entregada": {
+        "lat": 6.30000000000083,
+        "lon": -73.20000000000329
+      }
+    }
+  ]
+}

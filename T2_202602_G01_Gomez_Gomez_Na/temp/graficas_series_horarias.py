@@ -667,6 +667,25 @@ code { font: 400 .86em var(--f-dato); }
   </table></div>
 </section>
 
+<section>
+  <h2>Auditoría de citas (2026-11-21)</h2>
+  <p>Cada cita del punto 1 tiene DOI o enlace en <code>anexos/referencias.md</code>, con lo que se leyó. Los métodos de
+  la fase 4 los revisó su propio hilo. Detalle en <code>anexos/decisiones.md</code>.</p>
+  <div class="tabla"><table>
+    <tr><th>Fuente</th><th>Lo que afirmamos</th><th>¿Lo dice?</th></tr>
+    <tr><td>FAO-56 (Allen et al., 1998)</td><td>Números de ecuación; a_s = 0.25, b_s = 0.50; 2 m/s sin viento; ec. 47 sobre pasto corto</td><td class="si">Sí (Rs/Rso ≤ 1.0 en la ec. 39, ya aplicado)</td></tr>
+    <tr><td>IDEAM GDI-M003 v03, p. 37</td><td>Sensores de viento a 10 m</td><td class="si">Sí: «en el territorio colombiano… a una altura de 10 m»</td></tr>
+    <tr><td>ASCE-EWRI (2005), p. 20</td><td>Límite 0.3 &lt; Rs/Rso ≤ 1.0</td><td class="si">Sí (lectura parcial del PDF)</td></tr>
+    <tr><td>Abatzoglou et al. (2018)</td><td>pet Penman-Monteith, pasto de referencia</td><td class="si">Sí; no da altura, albedo ni resistencia</td></tr>
+    <tr><td>TerraClimate v1.1 (página)</td><td>pet ASCE corregida por CO2; anomalías de ERA5</td><td class="si">Sí. Pero el script 05 y el meta.json de la pet dicen FAO-56</td></tr>
+    <tr><td>Yang et al. (2019)</td><td>rs depende del CO2</td><td class="si">Sí, en el resumen; texto de pago</td></tr>
+    <tr><td>Aviso de ECMWF</td><td>ERA5-Land mensual dañado desde sep. 2022</td><td class="si">Sí (sep. 2022 a feb. 2024, variables acumuladas)</td></tr>
+    <tr><td>SSEBop v6.1 y v5</td><td>DOI P9QJWQ6K y F72V2F1F; Senay et al. 2023</td><td class="no">Sin confirmar: las fichas no abrieron</td></tr>
+    <tr><td>MOD16A2GF</td><td>Running et al. (2021)</td><td class="no">DOI sí; autores y año sin confirmar</td></tr>
+    <tr><td>Jensen–Haise (1963)</td><td>Calibrado en zona árida</td><td class="no">Sin confirmar</td></tr>
+  </table></div>
+</section>
+
 <footer>
   <p>Balance hídrico: <code>productos/punto1/balance_hidrico_*.csv</code> (script 15).</p>
   <p>ET real: <code>productos/punto1/et_real_mensual_productos.csv</code> y <code>et_real_anual_productos.csv</code>

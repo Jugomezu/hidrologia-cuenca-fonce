@@ -288,6 +288,26 @@ def datos_balance():
     }
 
 
+def datos_metodos():
+    """Fase 4: métodos frente a la ETo FAO-56 (salidas de 21_metodos_et.py)."""
+    mensual = pd.read_csv(CARPETA_PRODUCTOS / "metodos_mensual.csv")
+    ajuste = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_por_mes.csv")
+    ciclo_anual = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_ciclo_anual.csv")
+    columnas = [c for c in mensual.columns if c.endswith("_mm_mes")]
+    ciclo = mensual.groupby(mensual["mes"].str[5:7].astype(int))[columnas].mean()
+    resumen = ajuste.groupby(["metodo", "cantidad"], sort=False).agg(
+        sesgo=("sesgo_pct", "mean"), sesgo_min=("sesgo_pct", "min"), sesgo_max=("sesgo_pct", "max"),
+        mae=("mae_mm_mes", "mean"), rmse=("rmse_mm_mes", "mean"), supera=("supera_dispersion", "sum")).reset_index()
+    resumen = resumen.merge(ciclo_anual[["metodo", "error_amplitud_pct", "error_fase_maximo_meses",
+                                         "error_fase_minimo_meses"]], on="metodo")
+    resumen["anual"] = [round(float(mensual[c].mean() * 12)) for c in columnas[:-1]]
+    return {
+        "eto_anual": round(float(mensual["eto_fao56_mm_mes"].mean() * 12)),
+        "ciclo": {c.removesuffix("_mm_mes"): ciclo[c].round(1).tolist() for c in columnas},
+        "resumen": resumen.round(1).to_dict(orient="records"),
+    }
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -309,6 +329,7 @@ def main():
         "prueba_tc": datos_prueba_terraclimate(),
         "cierre_f3": datos_cierre_fase3(),
         "balance": datos_balance(),
+        "metodos": datos_metodos(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -609,6 +630,17 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Fase 4 · Métodos frente a la ETo FAO-56</h2>
+  <p>Elegidos por Juan: Thornthwaite (pendiente, se programa paso a paso), Hargreaves, Priestley–Taylor, Makkink,
+  Brutsaert–Stricker (AA) y Cenicafé. Mismos forzantes y periodo que la ETo (1998–2022), paso diario, cuenca por
+  Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Sesgo % = (método −
+  ETo)/ETo, media de los 12 meses calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que
+  la dispersión entre pruebas de la fase 3. Ojo con la columna «Estima»: la AA es ET real y Penman es E0; no son ETo.</p>
+  <div class="tabla" id="t-metodos"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Ciclo anual medio, 1998–2022 (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo"></div></div>
+</section>
+
+<section>
   <h2>Fase 4 · Métodos disponibles en las notas del curso</h2>
   <p>Solo métodos de la sección «Caja de herramientas» y afines de las notas de C. D. Hoyos. Datos: ERA5-Land horario
   en 6 puntos (t2m, d2m, sp, u10, v10, ssrd), Rn FAO-56, estaciones DHIME, brillo solar. Quedan fuera las mediciones
@@ -862,6 +894,22 @@ for (const [valor, texto] of CARGA.cifras) {
     line: {color: COLOR_PROD[c], dash: potencial(c) ? 'dot' : 'solid'}, marker: {size: 4},
     visible: c === 'era5land_pev' ? 'legendonly' : true})), lc, OPCIONES);
 
+
+  const MT = CARGA.metodos;
+  tabla('t-metodos', ['Método', 'Estima', 'Media anual (mm)', 'Sesgo % (rango)', 'MAE (mm/mes)', 'RMSE (mm/mes)',
+    'Meses sobre la dispersión', 'Error de amplitud %', 'Desfase del máx. / mín. (meses)'],
+    [['ETo FAO-56', 'ETo', MT.eto_anual, '—', '—', '—', '—', '—', '—'], ...MT.resumen.map(r => [r.metodo, r.cantidad, r.anual,
+      `${fmt(r.sesgo, 1)} (${fmt(r.sesgo_min, 1)} a ${fmt(r.sesgo_max, 1)})`, r.mae.toFixed(1), r.rmse.toFixed(1),
+      `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`])]);
+  const NOMBRE_M = {eto_fao56: 'ETo FAO-56', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
+    penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', cenicafe_1989: 'Cenicafé 1989'};
+  const COLOR_M = {eto_fao56: css('--tinta'), hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
+    penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', cenicafe_1989: '#CC79A7'};
+  const lmc = ejeMes(base('mm/mes'));
+  Plotly.newPlot('g-metodos-ciclo', Object.keys(NOMBRE_M).map(c => ({type: 'scatter', mode: 'lines+markers', name: NOMBRE_M[c],
+    x: xm, y: MT.ciclo[c], marker: {size: 4},
+    line: {color: COLOR_M[c], width: c === 'eto_fao56' ? 3 : 1.6, dash: c === 'cenicafe_1989' ? 'dot' : (c === 'penman_1948' || c === 'aa_brutsaert_stricker') ? 'dash' : 'solid'},
+    visible: c === 'cenicafe_1989' ? 'legendonly' : true})), lmc, OPCIONES);
   const B = CARGA.balance;
   tabla('t-balance', ['Camino', 'Datos', 'PI (mm/año)', 'PL (mm/año)', 'Q (mm/año)', 'ET real con PI', 'ET real con PL'],
     B.resumen.map(r => [r.camino, r.n, r.PI, r.PL, r.Q, r.ETR_PI, r.ETR_PL]));

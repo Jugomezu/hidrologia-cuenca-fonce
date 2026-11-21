@@ -352,3 +352,11 @@ nuestra ETo (3.591 mm/día en marzo de 2001, antes 3.509).
 **Decisión (Juan).** Las 3 celdas de las estaciones no entran en la ETo de la cuenca. La Sierra y Charalá quedan casi
 fuera de la cuenca y Mogotes en el borde norte; se escogieron por la estación, no por franja de altura (criterio E).
 Solo sirven para la prueba con estaciones.
+
+## 2026-11-20 · Punto 1 · Métodos de la fase 4
+
+**Decisión (Juan).** Thornthwaite, Hargreaves (ya existía en la Tarea 1; se recalcula con los 6 puntos), Priestley–Taylor
+(α = 1.26), Makkink, Brutsaert–Stricker (AA) y Cenicafé. Cenicafé no tiene ecuación en las notas del curso: se usa
+Jaramillo (2006), ETo = 4.37·exp(−0.0002 h), ajustada a Penman–Monteith, y la versión de 1989 (4.658, ajustada a
+Penman) como sensibilidad. Pendiente: si se agrega Meyer para cubrir la familia de transferencia de masa, y la fuente
+del documento donde Juan vio la versión de 1989. Script 21; ecuaciones en anexos/ecuaciones_metodos.md.

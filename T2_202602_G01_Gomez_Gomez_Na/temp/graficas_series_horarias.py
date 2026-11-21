@@ -163,7 +163,7 @@ def datos_fase3():
         rd = mensual(rs_dia[rs_dia["estacion"] == codigo], ["rs_estacion_MJm2", "rs_era5_MJm2"])
         ed = mensual(eto_dia[eto_dia["estacion"] == codigo], ["eto_mogotes_aut_mm", "eto_era5land_mm", "eto_era5_mm"])
         estaciones.append({
-            "codigo": codigo, "nombre": nombre, "punto": int(rr["punto_era5"]),
+            "codigo": codigo, "nombre": nombre, "punto": str(rr["celda_era5"]),
             "distancia_km": float(rr["distancia_km"]), "dz_celda_m": float(rr["estacion_menos_celda_dem_m"]),
             "rs": {"estacion": r["rs_estacion_media"].round(2).tolist(), "era5": r["rs_era5_media"].round(2).tolist(),
                    "sesgo": r["sesgo_MJm2"].round(2).tolist(),
@@ -476,18 +476,18 @@ code { font: 400 .86em var(--f-dato); }
   dispersión entre pruebas) que usan la fase 4 como umbral y la fase 5 como banda.</p>
   <ol class="resumen">
     <li><b>Rs de ERA5-Land frente al brillo solar</b> (script 12). Rs de estación con Angstrom (FAO-56 ec. 35, a<sub>s</sub>
-    0.25, b<sub>s</sub> 0.50) en Mogotes, La Sierra y Charalá, contra el punto de ERA5-Land más cercano. ERA5-Land da
-    +11 %, +35 % y +14 % más Rs (+1.9 a +4.8 MJ/m²·día). Valida la entrada de más peso; no cuenta como prueba.</li>
+    0.25, b<sub>s</sub> 0.50) en Mogotes, La Sierra y Charalá, contra la celda de ERA5-Land que contiene a cada estación. ERA5-Land da
+    +11 %, +34 % y +13 % más Rs (+1.8 a +4.7 MJ/m²·día). Valida la entrada de más peso; no cuenta como prueba.</li>
     <li><b>Prueba 1, estaciones</b> (script 13). ETo FAO-56 completa con Tmáx, Tmín y HR de cada estación, su Rs de
-    Angstrom, presión por altura y viento medido en Mogotes-AUT a 10 m. Sesgo de nuestra ETo: Mogotes −0.13 mm/día
-    (−3.9 %), La Sierra +0.56 (+23.1 %), Charalá −0.15 (−4.3 %). Con el viento de ERA5-Land (sensibilidad) cambia
-    0.06 mm/día o menos.</li>
+    Angstrom, presión por altura y viento medido en Mogotes-AUT a 10 m. Nuestra ETo se toma en la celda de ERA5-Land de cada
+    estación. Sesgo: Mogotes −0.08 mm/día (−2.3 %), La Sierra +0.66 (+27.2 %), Charalá −0.16 (−4.5 %). Con el viento de
+    ERA5-Land (sensibilidad) cambia 0.09 mm/día o menos.</li>
     <li><b>Prueba 2, TerraClimate pet</b> (script 16). Otra ETo de referencia (Penman–Monteith sobre pasto, en v1.1
     corregida por CO<sub>2</sub>), promedio de cuenca, 300 meses. Sesgo de nuestra ETo: +0.34 mm/día (+11.8 %),
     r = 0.97; 1 166 frente a 1 043 mm/año.</li>
     <li><b>Dispersión entre pruebas</b> (script 17). Sesgo % de las 4 series por mes calendario y tres formas de medir
     cuánto discrepan. <b>Definición elegida por Juan: rango entre las 2 pruebas</b>, |TerraClimate − media de las 3
-    estaciones|, media 6.8 pp (3.5 a 9.9 según el mes). Es el umbral de la fase 4 y la banda de la fase 5.</li>
+    estaciones|, media 5.0 pp (1.2 a 8.5 según el mes). Es el umbral de la fase 4 y la banda de la fase 5.</li>
     <li><b>ETo frente a P − Q</b> (script 17). Nuestra ETo 1 166 mm/año en los 262 meses con caudal. P − Q es 884 mm/año
     con IMERG (PI) y 1 206 con pluviómetros (PL). Con PI, P − Q queda por debajo de la ETo en los 11 años completos; con
     PL queda 39 a 50 mm/año por encima, y en 6 de los 11 años. El plan pide, si ETo &lt; P − Q, revisar en este orden:
@@ -496,8 +496,10 @@ code { font: 400 .86em var(--f-dato); }
     en Mogotes, cada paso de FAO-56 como fórmula de Excel. La hoja reproduce el script 13 con diferencia máxima de
     0.0001 mm/día (recalculada con LibreOffice). Revisada por Juan el 20 nov: está bien.</li>
   </ol>
-  <p><b>Opcional:</b> si se descarga la celda de ERA5-Land que contiene cada
-  estación (hoy se usa el más cercano de los 6 puntos). Referencias completadas: Abatzoglou et al.
+  <p><b>Celda de cada estación (20 nov).</b> Hasta el 20 de noviembre las estaciones se comparaban con el más cercano de los
+  6 puntos de la cuenca. Juan pidió bajar la celda que contiene a cada estación (scripts 19 y 20) y rehacer todo con ella:
+  las cifras de esta página ya son con esa celda. Antes: Rs +1.9 a +4.8 MJ/m²·día; ETo Mogotes −0.13, La Sierra +0.56,
+  Charalá −0.15 mm/día; dispersión 6.8 pp. Referencias completadas: Abatzoglou et al.
   (2018) y Yang et al. (2019) en <code>anexos/referencias.md</code>. El artículo de 2018 dice «Penman–Monteith» y «pasto de
   referencia», sin albedo ni resistencia de superficie.</p>
 </section>
@@ -520,7 +522,7 @@ code { font: 400 .86em var(--f-dato); }
   <p><b>Viento de la ETo de estación: variantes (a) y (b).</b> Solo Mogotes-AUT mide viento; La Sierra y Charalá no.
   (a) es la variante final: media mensual de Mogotes-AUT medida a 10 m (Manual del Observador Meteorológico del IDEAM,
   GDI-M003, p. 37) y llevada a 2 m con la ec. 47 (u2 ≈ 0.75 m/s), usada en las tres estaciones. (b) usa el u2 diario de
-  ERA5-Land del punto más cercano: sensibilidad que quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero con el
+  ERA5-Land de la celda de la estación: sensibilidad que quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero con el
   mismo viento en los dos lados la prueba ya no revisa el viento.</p>
 </section>
 
@@ -538,7 +540,7 @@ code { font: 400 .86em var(--f-dato); }
   <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
   variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
   Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), con el viento de ERA5-Land, queda como sensibilidad. Solo días con todas
-  las entradas. Nuestra ETo se toma en el punto más cercano. Sesgo = nuestra ETo − ETo de estación.</p>
+  las entradas. Nuestra ETo se toma en la celda de ERA5-Land de la estación. Sesgo = nuestra ETo − ETo de estación.</p>
   <div class="tabla" id="t-eto"></div>
   <div class="rejilla" id="r-eto"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de nuestra ETo, por mes (nuestra ETo − estación)</h3><div class="grafico" id="g-eto-sesgo"></div></div>
@@ -701,7 +703,7 @@ for (const [valor, texto] of CARGA.cifras) {
     t.innerHTML = `<h3>${titulo}</h3>`; const g = document.createElement('div'); g.className = 'grafico';
     t.appendChild(g); document.getElementById(cont).appendChild(t); return g; };
 
-  tabla('t-rs', ['Estación', 'Punto ERA5', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
+  tabla('t-rs', ['Estación', 'Celda ERA5 (lat, lon)', 'Distancia', 'Estación − celda DEM', 'Días', 'Sesgo de ERA5-Land (MJ/m²·día)', 'Sesgo %', 'RMSE diario'],
     F.map(e => [e.nombre, e.punto, e.distancia_km.toFixed(1) + ' km', fmt(e.dz_celda_m, 0) + ' m', e.rs.dias,
                 fmt(e.rs.sesgo_total), fmt(e.rs.sesgo_pct, 1), e.rs.rmse.toFixed(2)]));
   tabla('t-eto', ['Estación', 'Días', 'Sesgo de nuestra ETo (a), mm/día', 'Sesgo (a) %', 'RMSE (a)', 'Sesgo (b), mm/día', 'Sesgo (b) %', 'RMSE (b)'],
@@ -711,12 +713,12 @@ for (const [valor, texto] of CARGA.cifras) {
   F.forEach(e => {
     Plotly.newPlot(tarjeta('r-rs', e.nombre), [
       {type: 'scatter', mode: 'lines+markers', name: 'Estación (Angstrom)', x: xm, y: e.rs.estacion, line: {color: C.estacion}},
-      {type: 'scatter', mode: 'lines+markers', name: `ERA5-Land (punto ${e.punto})`, x: xm, y: e.rs.era5, line: {color: C.era5, dash: 'dash'}}],
+      {type: 'scatter', mode: 'lines+markers', name: `ERA5-Land (celda ${e.punto})`, x: xm, y: e.rs.era5, line: {color: C.era5, dash: 'dash'}}],
       ejeMes(base('MJ/m²·día')), OPCIONES);
     Plotly.newPlot(tarjeta('r-eto', e.nombre), [
       {type: 'scatter', mode: 'lines+markers', name: 'Estación (a)', x: xm, y: e.eto.a, line: {color: C.estacion}},
       {type: 'scatter', mode: 'lines+markers', name: 'Estación (b)', x: xm, y: e.eto.b, line: {color: C.b, dash: 'dot'}},
-      {type: 'scatter', mode: 'lines+markers', name: `Nuestra ETo (punto ${e.punto})`, x: xm, y: e.eto.era5, line: {color: C.era5, dash: 'dash'}}],
+      {type: 'scatter', mode: 'lines+markers', name: `Nuestra ETo (celda ${e.punto})`, x: xm, y: e.eto.era5, line: {color: C.era5, dash: 'dash'}}],
       ejeMes(base('mm/día')), OPCIONES);
   });
   Plotly.newPlot('g-rs-sesgo', F.map((e, k) => ({type: 'scatter', mode: 'lines+markers', name: e.nombre, x: xm, y: e.rs.sesgo,
@@ -732,13 +734,13 @@ for (const [valor, texto] of CARGA.cifras) {
     const l1 = base('MJ/m²·día'); l1.hovermode = 'closest';
     Plotly.react('g-rs-diaria', [
       {type: 'scatter', mode: 'lines', name: 'Estación (Angstrom)', x: e.diaria_rs.fecha, y: e.diaria_rs.estacion, line: {color: C.estacion, width: 1.5}},
-      {type: 'scatter', mode: 'lines', name: `ERA5-Land (punto ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1.5}}],
+      {type: 'scatter', mode: 'lines', name: `ERA5-Land (celda ${e.punto})`, x: e.diaria_rs.fecha, y: e.diaria_rs.era5, line: {color: C.era5, width: 1.5}}],
       l1, OPCIONES);
     const l2 = base('mm/día'); l2.hovermode = 'closest';
     Plotly.react('g-eto-diaria', [
       {type: 'scatter', mode: 'lines', name: 'Estación (a)', x: e.diaria_eto.fecha, y: e.diaria_eto.a, line: {color: C.estacion, width: 1.5}},
       {type: 'scatter', mode: 'lines', name: 'Estación (b)', x: e.diaria_eto.fecha, y: e.diaria_eto.b, line: {color: C.b, width: 1.5}, visible: 'legendonly'},
-      {type: 'scatter', mode: 'lines', name: `Nuestra ETo (punto ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1.5}}],
+      {type: 'scatter', mode: 'lines', name: `Nuestra ETo (celda ${e.punto})`, x: e.diaria_eto.fecha, y: e.diaria_eto.era5, line: {color: C.era5, width: 1.5}}],
       l2, OPCIONES);
   };
   F.forEach((e, k) => { const b = document.createElement('button'); b.textContent = e.nombre; b.setAttribute('aria-pressed', String(k === 0));

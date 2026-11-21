@@ -4,15 +4,16 @@
 ERA5-Land. Rs de ERA5-Land (ssrd) sí lo es y se compara en el script 12.
 
 Prueba de estaciones del plan: recalcular la ETo completa con datos medidos y compararla con la de los scripts 01–04
-en el punto de ERA5-Land más cercano (el mismo que usa 12_rs_brillo_solar_vs_era5land.py).
+en la celda de ERA5-Land que contiene a cada estación (scripts 19 y 20; decisión de Juan del 2026-11-20; antes se usaba
+el más cercano de los 6 puntos de la cuenca). Es la misma celda que usa 12_rs_brillo_solar_vs_era5land.py.
 
 Lee:
     datos/punto1/ideam_estaciones/dhime_t_hr_parte1_1998_2022.zip              Tmax, Tmin y HR máxima diarias (DHIME)
     datos/punto1/ideam_estaciones/dhime_hr_viento_tanque_parte2_1998_2022.zip  HR mínima diaria y viento de Mogotes-AUT
     datos/punto1/ideam/cne_ideam.csv                                           altura y latitud de cada estación
     productos/punto1/rs_estaciones_diaria.csv     Rs de Angstrom por estación y día (salida de 12)
-    productos/punto1/era5land_diario_puntos.csv   entradas diarias de ERA5-Land (salida de 03)
-    productos/punto1/eto_diaria_puntos.csv        nuestra ETo diaria por punto (salida de 04)
+    productos/punto1/era5land_diario_celdas_estaciones.csv   entradas diarias de ERA5-Land en la celda (salida de 20)
+    productos/punto1/eto_diaria_celdas_estaciones.csv        nuestra ETo diaria en la celda (salida de 20)
 
 Escribe en productos/punto1/:
     eto_estaciones_diaria.csv                   ETo de estación por día, sus entradas y las de ERA5-Land del mismo día
@@ -37,7 +38,7 @@ Cálculo, FAO-56 (Allen et al., 1998), igual que 03 y 04 salvo de dónde sale ca
                      Mogotes-AUT por mes calendario, el mismo en las tres estaciones, medido a 10 m y llevado a 2 m con
                      la ec. 47. La altura de 10 m sale del Manual del Observador Meteorológico del IDEAM (GDI-M003,
                      versión 03, p. 37), según el cual los sensores de viento en Colombia están a 10 m.
-                   «era5land»: u2 diario de ERA5-Land en el punto más cercano (el mismo de nuestra ETo, salida de 04).
+                   «era5land»: u2 diario de ERA5-Land en la celda de la estación (el mismo de nuestra ETo, salida de 20).
                      Sensibilidad: quita el supuesto de llevar el viento de Mogotes-AUT a las otras estaciones, pero la
                      prueba deja de revisar el viento (los dos lados usan el mismo).
 
@@ -67,8 +68,8 @@ ZIPS_DHIME = ["dhime_t_hr_parte1_1998_2022.zip", "dhime_hr_viento_tanque_parte2_
 CATALOGO_IDEAM = RAIZ_ENTREGA / "datos" / "punto1" / "ideam" / "cne_ideam.csv"
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 RS_ESTACIONES = CARPETA_PRODUCTOS / "rs_estaciones_diaria.csv"
-DIARIO_ERA5 = CARPETA_PRODUCTOS / "era5land_diario_puntos.csv"
-ETO_ERA5 = CARPETA_PRODUCTOS / "eto_diaria_puntos.csv"
+DIARIO_ERA5 = CARPETA_PRODUCTOS / "era5land_diario_celdas_estaciones.csv"
+ETO_ERA5 = CARPETA_PRODUCTOS / "eto_diaria_celdas_estaciones.csv"
 
 SALIDA_DIARIA = CARPETA_PRODUCTOS / "eto_estaciones_diaria.csv"
 SALIDA_POR_MES = CARPETA_PRODUCTOS / "eto_estaciones_vs_era5land_por_mes.csv"
@@ -153,8 +154,8 @@ def main():
     dhime = leer_dhime()
     u2_mogotes, dias_viento = u2_mensual_mogotes_aut(dhime)
     rs = pd.read_csv(RS_ESTACIONES, dtype={"estacion": str}, parse_dates=["fecha"])
-    era5 = pd.read_csv(DIARIO_ERA5, parse_dates=["fecha"]).set_index(["punto", "fecha"])
-    eto_era5 = pd.read_csv(ETO_ERA5, parse_dates=["fecha"]).set_index(["punto", "fecha"])
+    era5 = pd.read_csv(DIARIO_ERA5, parse_dates=["fecha"], dtype={"estacion": str}).set_index(["estacion", "fecha"])
+    eto_era5 = pd.read_csv(ETO_ERA5, parse_dates=["fecha"], dtype={"estacion": str}).set_index(["estacion", "fecha"])
 
     diarias, conteos = [], []
     for codigo in ESTACIONES:
@@ -163,7 +164,7 @@ def main():
                    .pivot(index="fecha", columns="Parametro", values="Valor").rename(columns=PARAMETROS)
                    .loc[INICIO:FIN])
         rs_est = rs[rs["estacion"] == codigo].set_index("fecha")
-        tabla = medidas.join(rs_est[["punto_era5", "ra_MJm2", "rs_estacion_MJm2"]], how="inner").dropna()
+        tabla = medidas.join(rs_est[["celda_era5", "ra_MJm2", "rs_estacion_MJm2"]], how="inner").dropna()
         dias_completos = len(tabla)
         malos = ((tabla["tmin_C"] >= tabla["tmax_C"]) | (tabla["hrmin_pct"] > tabla["hrmax_pct"])
                  | (tabla[["hrmax_pct", "hrmin_pct"]] < 0).any(axis=1)
@@ -183,8 +184,7 @@ def main():
                * (1.35 * rs_sobre_rso - 0.35))
         tabla["rn_MJm2"] = (1 - ALBEDO_REFERENCIA) * tabla["rs_estacion_MJm2"] - rnl              # ec. 38 y 40
         presion = presion_por_altura(z)                                                           # ec. 7
-        punto = int(tabla["punto_era5"].iloc[0])
-        claves = pd.MultiIndex.from_arrays([np.full(len(tabla), punto), tabla.index])
+        claves = pd.MultiIndex.from_arrays([np.full(len(tabla), codigo), tabla.index])
         u2_variantes = {"mogotes_aut": tabla.index.month.map(u2_mogotes).to_numpy(), 
                         "era5land": eto_era5.loc[claves, "u2_ms"].to_numpy()}
         for nombre, u2 in u2_variantes.items():
@@ -192,7 +192,7 @@ def main():
             tabla[f"eto_{nombre}_mm"] = eto_fao56(tabla["tmax_C"], tabla["tmin_C"], tabla["ea_kPa"],
                                                   tabla["rn_MJm2"], presion, tabla[f"u2_{nombre}_ms"])
 
-        # Lo mismo de ERA5-Land, en el punto más cercano y los mismos días
+        # Lo mismo de ERA5-Land, en la celda de la estación y los mismos días
         tabla["tmax_era5_C"] = era5.loc[claves, "tmax_C"].to_numpy()
         tabla["tmin_era5_C"] = era5.loc[claves, "tmin_C"].to_numpy()
         tabla["ea_era5_kPa"] = era5.loc[claves, "ea_kPa"].to_numpy()
@@ -240,7 +240,7 @@ def main():
         "u2_mogotes_aut_ms", "u2_era5_ms"]].mean().add_prefix("media_")
     resumen = (resumen.reset_index().merge(pd.DataFrame(conteos), on="estacion")
                .merge(entradas.reset_index(), on="estacion"))
-    resumen.insert(1, "punto_era5", resumen["estacion"].map(diaria.groupby("estacion")["punto_era5"].first()))
+    resumen.insert(1, "celda_era5", resumen["estacion"].map(diaria.groupby("estacion")["celda_era5"].first()))
 
     salida_diaria = diaria.copy()
     salida_diaria.index = salida_diaria.index.strftime("%Y-%m-%d")
@@ -253,20 +253,20 @@ def main():
     figura, ejes = plt.subplots(1, 3, figsize=(12, 4.3), sharey=True)
     for eje, codigo in zip(ejes, ESTACIONES):
         datos = por_mes.loc[codigo]
-        punto = int(diaria.loc[diaria["estacion"] == codigo, "punto_era5"].iloc[0])
+        celda = diaria.loc[diaria["estacion"] == codigo, "celda_era5"].iloc[0]
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_estacion_media_mm_dia"], "o-", color="#1f6f8b",
                  label="Estación, viento Mogotes-AUT a 10 m (final)")
         eje.plot(range(1, 13), datos.loc["era5land", "eto_estacion_media_mm_dia"], "^:", color="#5a9e6f",
                  label="Estación, viento de ERA5-Land (sensibilidad)")
         eje.plot(range(1, 13), datos.loc["mogotes_aut", "eto_era5_media_mm_dia"], "s--", color="#c8553d",
-                 label=f"ETo FAO-56 (este trabajo, punto {punto})")
+                 label=f"ETo FAO-56 (este trabajo, celda {celda})")
         nombre = catalogo.loc[codigo, "nombre"].split(" [")[0].title()
         eje.set_title(f"{nombre} ({int(float(catalogo.loc[codigo, 'altitud']))} m)", fontsize=10)
         eje.set_xticks(range(1, 13), nombres_mes)
         eje.grid(alpha=0.3)
     ejes[0].set_ylabel("ETo media (mm/día)")
     manijas, etiquetas = ejes[0].get_legend_handles_labels()
-    etiquetas[-1] = "ETo FAO-56 (este trabajo, punto más cercano)"
+    etiquetas[-1] = "ETo FAO-56 (este trabajo, celda de la estación)"
     figura.legend(manijas, etiquetas, loc="lower center", ncol=3, frameon=False, fontsize=9)
     figura.suptitle("Ciclo anual de la ETo FAO-56, 1998–2022 (solo días con todas las entradas de estación)",
                     fontsize=11)

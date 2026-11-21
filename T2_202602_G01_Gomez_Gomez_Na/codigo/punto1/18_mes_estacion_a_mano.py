@@ -7,7 +7,7 @@ Escribe anexos/punto1/mes_estacion_a_mano.xlsx con dos hojas:
     constantes   latitud y altura de la estación, a_s, b_s, albedo, σ, Gsc y el u2 del mes (variante (a), Mogotes-AUT)
     dias         un día por fila: las entradas medidas (Tmáx, Tmín, HRmáx, HRmín, horas de brillo solar) y, como
                  fórmulas de Excel, cada paso de FAO-56 hasta la ETo (ec. 6), con la ETo del script 13 y la diferencia.
-                 Abajo, la media del mes en la hoja, en el script y nuestra ETo del mismo mes en el punto más cercano.
+                 Abajo, la media del mes en la hoja, en el script y nuestra ETo del mismo mes en la celda de ERA5-Land de la estación (script 20).
 
 Las entradas salen de productos/punto1/eto_estaciones_diaria.csv y rs_estaciones_diaria.csv (salidas de 12 y 13), y
 la latitud y la altura del catálogo del IDEAM. El script repite el cálculo con la librería math y se detiene si no
@@ -62,7 +62,7 @@ COLUMNAS = [
     ("AA", "ETo hoja, ec. 6 (mm/día)", "=(0.408*X{r}*V{r}+Z{r}*900/(W{r}+273)*H{r}*MAX(S{r}-T{r},0))/(X{r}+Z{r}*(1+0.34*H{r}))"),
     ("AB", "ETo script 13 (mm/día)", None),
     ("AC", "diferencia hoja − script", "=AA{r}-AB{r}"),
-    ("AD", "nuestra ETo, punto más cercano (mm/día)", None),
+    ("AD", "nuestra ETo, celda de la estación (mm/día)", None),
 ]
 
 

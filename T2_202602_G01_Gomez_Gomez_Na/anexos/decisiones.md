@@ -332,3 +332,17 @@ separa métodos en la fase 4. Se declara que al promediar las estaciones se dilu
 
 **Verificación (Juan, 2026-11-20).** Juan revisó a mano el mes de estación (anexos/punto1/mes_estacion_a_mano.xlsx,
 Mogotes, marzo de 2001): está bien. Con esto la fase 3 queda cerrada.
+
+## 2026-11-20 · Punto 1 · Estaciones contra la celda de ERA5-Land que las contiene (scripts 19 y 20)
+
+**Decisión (Juan).** Bajar la celda de ERA5-Land que contiene a cada estación y rehacer con ella, de forma retroactiva,
+las comparaciones de la fase 3 (scripts 12, 13, 17 y 18). Antes se usaba el más cercano de los 6 puntos de la cuenca,
+que no es la celda de la estación. Celdas (lat, lon): Mogotes 6.5, −73.0; La Sierra 6.0, −73.2; Charalá 6.3, −73.2
+(Charalá queda a 0.0006° del borde con −73.1). Descarga en el PC de Juan (script 19); nuestra ETo en esas celdas con
+las mismas funciones de 03 y 04 (script 20). Las entradas anteriores de este registro conservan las cifras de entonces.
+
+**Cifras nuevas.** Rs, sesgo de ERA5-Land (MJ/m²·día): Mogotes +1.82 (+10.7 %), La Sierra +4.71 (+33.9 %), Charalá
++2.27 (+13.4 %). ETo, sesgo de nuestra ETo (mm/día), viento (a) / (b): Mogotes −0.08 / +0.01, La Sierra +0.66 / +0.66,
+Charalá −0.16 / −0.11. Dispersión (rango entre las 2 pruebas): media 5.0 pp, de 1.2 a 8.5 (antes 6.8). TerraClimate y
+ETo frente a P − Q no cambian. El mes a mano de Mogotes no cambia del lado de la estación; solo cambia la columna de
+nuestra ETo (3.591 mm/día en marzo de 2001, antes 3.509).

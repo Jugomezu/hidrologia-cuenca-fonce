@@ -3,9 +3,9 @@
 Lee:
     datos/punto1/ideam_brillo_solar/brillo_solar_diario_1998_2022_3est.zip   brillo solar total diario (h), DHIME
     datos/punto1/ideam/cne_ideam.csv                                         coordenadas y altura de cada estación
-    datos/punto1/era5land_puntos/metadatos_descarga.json                     coordenadas de los 6 puntos de ERA5-Land
-    productos/punto1/era5land_diario_puntos.csv                              Rs diaria de ERA5-Land (salida de 03)
-    anexos/punto1/elevacion_puntos_dem.csv                                   altura de cada punto (salida de 04b)
+    datos/punto1/era5land_celdas_estaciones/metadatos_descarga.json          celda de ERA5-Land de cada estación (19)
+    productos/punto1/era5land_diario_celdas_estaciones.csv                   Rs diaria de esa celda y z del modelo (20)
+    datos/punto1/dem/dem_fonce_alos_12m.tif                                  altura media del terreno en la celda
 
 Escribe en productos/punto1/:
     rs_estaciones_diaria.csv                   Rs de Angstrom por estación y día, con la Rs de ERA5-Land del mismo día
@@ -19,10 +19,10 @@ Método, FAO-56 (Allen et al., 1998), cap. 3:
     Rs  ecuación de Angstrom, ec. 35 (p. 50): Rs = (a_s + b_s n/N) Ra, con a_s = 0.25 y b_s = 0.50, los valores que FAO-56
         recomienda cuando no hay calibración local (no la hay: no existe radiación medida en la cuenca).
 
-Celda de ERA5-Land: solo se descargaron los 6 puntos de la cuenca, así que cada estación se compara con el punto más
-cercano de esos 6 (distancia geodésica en una esfera de radio 6 371 km). No es necesariamente la celda que contiene
-a la estación. Se reportan la distancia y la diferencia de altura estación − punto, con dos alturas del punto: la
-media del DEM en su celda y la altura del modelo despejada de sp (ambas de anexos/punto1/elevacion_puntos_dem.csv).
+Celda de ERA5-Land: la que contiene a cada estación (script 19; decisión de Juan del 2026-11-20). Hasta esa fecha se
+usaba el más cercano de los 6 puntos de la cuenca. Se reportan la distancia estación − centro de la celda y la
+diferencia de altura estación − celda, con dos alturas de la celda: la media del DEM ALOS en la celda (el DEM está
+recortado a la cuenca; se reporta qué fracción de la celda cubre) y la altura del modelo despejada de sp (script 20).
 
 Días: DHIME entrega el brillo solar con fecha «AAAA-MM-DD 00:00», que se toma como el día civil local. La Rs de
 ERA5-Land ya está en días locales (UTC−5, script 03). Se comparan solo los días con dato en la estación; no se rellena.
@@ -50,9 +50,10 @@ import matplotlib.pyplot as plt  # noqa: E402  (va después de fijar el backend 
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 ZIP_BRILLO = RAIZ_ENTREGA / "datos" / "punto1" / "ideam_brillo_solar" / "brillo_solar_diario_1998_2022_3est.zip"
 CATALOGO_IDEAM = RAIZ_ENTREGA / "datos" / "punto1" / "ideam" / "cne_ideam.csv"
-METADATOS_ERA5 = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_puntos" / "metadatos_descarga.json"
-DIARIO_ERA5 = RAIZ_ENTREGA / "productos" / "punto1" / "era5land_diario_puntos.csv"
-ALTURAS_PUNTOS = RAIZ_ENTREGA / "anexos" / "punto1" / "elevacion_puntos_dem.csv"
+METADATOS_ERA5 = RAIZ_ENTREGA / "datos" / "punto1" / "era5land_celdas_estaciones" / "metadatos_descarga.json"
+DIARIO_ERA5 = RAIZ_ENTREGA / "productos" / "punto1" / "era5land_diario_celdas_estaciones.csv"
+ENTRADA_DEM = RAIZ_ENTREGA / "datos" / "punto1" / "dem" / "dem_fonce_alos_12m.tif"
+MEDIO_LADO_CELDA = 0.05     # grados; celdas de 0.1° de ERA5-Land
 
 CARPETA_SALIDA = RAIZ_ENTREGA / "productos" / "punto1"
 SALIDA_DIARIA = CARPETA_SALIDA / "rs_estaciones_diaria.csv"
@@ -111,28 +112,36 @@ def leer_brillo_solar():
     return crudo.pivot(index="fecha", columns="CodigoEstacion", values="Valor")
 
 
-def punto_mas_cercano(estaciones):
-    """Para cada estación, el punto de ERA5-Land más cercano de los 6, su distancia y sus alturas."""
-    puntos = pd.DataFrame(json.loads(METADATOS_ERA5.read_text(encoding="utf-8"))["archivos"])[["punto", "lon", "lat"]]
-    alturas = pd.read_csv(ALTURAS_PUNTOS).set_index("punto")[["z_celda_dem_m", "z_modelo_m"]]
+def celda_de_cada_estacion(estaciones):
+    """Para cada estación, la celda de ERA5-Land que la contiene, la distancia a su centro y sus alturas."""
+    import geopandas as gpd
+    import rasterio
+    import rasterio.mask
+    from shapely.geometry import box
+    celdas = {a["punto"]: a["celda_entregada"]
+              for a in json.loads(METADATOS_ERA5.read_text(encoding="utf-8"))["archivos"]}
+    z_modelo = pd.read_csv(DIARIO_ERA5, dtype={"estacion": str}).groupby("estacion")["z_modelo_m"].first()
     filas = []
-    for codigo, est in estaciones.iterrows():
-        d = distancia_km(est["longitud"], est["latitud"], puntos["lon"], puntos["lat"])
-        cercano = puntos.loc[d.idxmin()]
-        n = int(cercano["punto"])
-        filas.append({
-            "estacion": codigo,
-            "nombre": est["nombre"],
-            "lon_estacion": est["longitud"],
-            "lat_estacion": est["latitud"],
-            "z_estacion_m": est["altitud"],
-            "punto_era5": n,
-            "lon_punto": cercano["lon"],
-            "lat_punto": cercano["lat"],
-            "distancia_km": round(float(d.min()), 1),
-            "z_celda_dem_m": round(alturas.loc[n, "z_celda_dem_m"], 0),
-            "z_modelo_m": round(alturas.loc[n, "z_modelo_m"], 0),
-        })
+    with rasterio.open(ENTRADA_DEM) as dem:
+        for codigo, est in estaciones.iterrows():
+            lon, lat = round(celdas[codigo]["lon"], 1), round(celdas[codigo]["lat"], 1)
+            geometria = gpd.GeoSeries([box(lon - MEDIO_LADO_CELDA, lat - MEDIO_LADO_CELDA, lon + MEDIO_LADO_CELDA,
+                                           lat + MEDIO_LADO_CELDA)], crs="EPSG:4326").to_crs(dem.crs).iloc[0]
+            recorte = rasterio.mask.mask(dem, [geometria], crop=True, filled=False)[0][0]
+            filas.append({
+                "estacion": codigo,
+                "nombre": est["nombre"],
+                "lon_estacion": est["longitud"],
+                "lat_estacion": est["latitud"],
+                "z_estacion_m": est["altitud"],
+                "celda_era5": f"{lat:.1f}, {lon:.1f}",
+                "lon_celda": lon,
+                "lat_celda": lat,
+                "distancia_km": round(float(distancia_km(est["longitud"], est["latitud"], lon, lat)), 1),
+                "z_celda_dem_m": round(float(recorte.mean()), 0),
+                "cobertura_dem_celda": round(float(recorte.count() / recorte.size), 2),
+                "z_modelo_m": round(float(z_modelo.loc[codigo]), 0),
+            })
     tabla = pd.DataFrame(filas).set_index("estacion")
     tabla["estacion_menos_celda_dem_m"] = tabla["z_estacion_m"] - tabla["z_celda_dem_m"]
     tabla["estacion_menos_modelo_m"] = tabla["z_estacion_m"] - tabla["z_modelo_m"]
@@ -156,9 +165,9 @@ def metricas(grupo):
 def main():
     estaciones = leer_estaciones()
     brillo = leer_brillo_solar()
-    vecinos = punto_mas_cercano(estaciones)
-    era5 = pd.read_csv(DIARIO_ERA5, parse_dates=["fecha"])[["fecha", "punto", "rs_MJm2"]]
-    era5 = era5.pivot(index="fecha", columns="punto", values="rs_MJm2")
+    vecinos = celda_de_cada_estacion(estaciones)
+    era5 = pd.read_csv(DIARIO_ERA5, parse_dates=["fecha"], dtype={"estacion": str})[["fecha", "estacion", "rs_MJm2"]]
+    era5 = era5.pivot(index="fecha", columns="estacion", values="rs_MJm2")
 
     diarias = []
     for codigo in ESTACIONES:
@@ -171,8 +180,8 @@ def main():
         vecinos.loc[codigo, "dias_descartados_n_mayor_N"] = int(fuera_de_rango.sum())
         tabla = tabla[~fuera_de_rango]
         tabla["rs_estacion_MJm2"] = (A_S + B_S * tabla["brillo_h"] / tabla["N_h"]) * tabla["ra_MJm2"]   # ec. 35
-        tabla["rs_era5_MJm2"] = era5.loc[tabla.index, vecinos.loc[codigo, "punto_era5"]].to_numpy()
-        tabla.insert(0, "punto_era5", vecinos.loc[codigo, "punto_era5"])
+        tabla["rs_era5_MJm2"] = era5.loc[tabla.index, codigo].to_numpy()
+        tabla.insert(0, "celda_era5", vecinos.loc[codigo, "celda_era5"])
         tabla.insert(0, "estacion", codigo)
         diarias.append(tabla)
 
@@ -203,7 +212,7 @@ def main():
         info = resumen.loc[codigo]
         eje.plot(datos["mes"], datos["rs_estacion_media"], "o-", color="#1f6f8b", label="Estación (Angstrom)")
         eje.plot(datos["mes"], datos["rs_era5_media"], "s--", color="#c8553d",
-                 label=f"ERA5-Land (punto {int(info['punto_era5'])})")
+                 label=f"ERA5-Land (celda {info['celda_era5']})")
         eje.set_title(f"{info['nombre'].split(' [')[0].title()} ({int(info['z_estacion_m'])} m)", fontsize=10)
         eje.set_xticks(range(1, 13), nombres_mes)
         eje.grid(alpha=0.3)
@@ -214,7 +223,7 @@ def main():
     figura.savefig(SALIDA_FIGURA, dpi=150)
 
     pd.set_option("display.width", 200)
-    print(resumen[["punto_era5", "distancia_km", "estacion_menos_celda_dem_m", "estacion_menos_modelo_m",
+    print(resumen[["celda_era5", "distancia_km", "cobertura_dem_celda", "estacion_menos_celda_dem_m", "estacion_menos_modelo_m",
                    "dias", "dias_descartados_n_mayor_N", "rs_estacion_media", "rs_era5_media",
                    "sesgo_MJm2", "sesgo_pct", "rmse_MJm2", "correlacion_diaria"]].round(2).to_string())
     print(por_mes.pivot(index="mes", columns="estacion", values="sesgo_MJm2").round(2).to_string())

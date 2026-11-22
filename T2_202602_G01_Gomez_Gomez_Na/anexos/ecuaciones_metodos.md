@@ -12,9 +12,9 @@ Elegidos por Juan el 2026-11-20. Thornthwaite se programó paso a paso con Juan 
 | Hargreaves–Samani (1985) | ETo | 0.0023 · 0.408 · Ra · (T + 17.8) · √(Tmáx − Tmín) | Notas del curso, Parte 7; FAO-56 ec. 52 |
 | Priestley–Taylor (1972) | ETP | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
 | Makkink (1957) | ETo | 0.61 · Δ/(Δ+γ) · Rs/λ − 0.12 | Notas del curso, Parte 7 |
-| Penman, forma FAO-24 (c = 1) | ETo | Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea) | Notas del curso, Parte 6; FAO-24, p. 16–17 (U2 en km/día, déficit en mbar). Con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24 sin el factor c |
+| Penman, forma FAO-24 (c = 0.8) | ETo | c · [Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea)], c = 0.8 | Notas del curso, Parte 6; FAO-24, p. 16–17 (U2 en km/día, déficit en mbar). Con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24. c = 0.8, el que recomienda FAO-24 (Juan, 22 nov); esta aproximación solo vale con tiempo en calma (calm weather) |
 | FAO-56 con rs = 0 (referencia de Priestley–Taylor) | ETP superficie húmeda | [0.408 Δ (Rn − G) + γ · 900/(T + 273) · u2 · (es − ea)] / (Δ + γ) | FAO-56 ec. 6 sin resistencia de superficie: 0.34 u2 = rs/ra con rs = 70 s/m pasa a 0 |
-| Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman | Notas del curso, Parte 7 |
+| Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman sin c (c = 1) | Notas del curso, Parte 7 |
 | Cenicafé, Jaramillo (2006) | ETo | 4.37 · exp(−0.0002 h) | Cenicafé 57(4):288–298, p. 292; ajustada a Penman–Monteith, 34 estaciones, 170–3 700 m, R² = 0.80 |
 
 Supuestos que se declaran:
@@ -36,7 +36,7 @@ h 2 144.948 m. Intermedios: T 17.0947 °C, Δ 0.12344, γ 0.05195 kPa/°C, Δ/(�
 | Hargreaves | 4.0149 |
 | Priestley–Taylor | 4.5592 |
 | Makkink | 3.6895 |
-| Penman (FAO-24, c = 1) | 4.4337 |
+| Penman (FAO-24, c = 0.8) | 3.5469 (sin c: 4.4337, el que usa la AA) |
 | AA | 4.6847 |
 | Cenicafé 2006 | 2.8456 |
 | FAO-56 con rs = 0 | 4.0150 |
@@ -60,7 +60,7 @@ ETP = 16 · (10 · 17.6923/67.9572)^1.566 · (11.798/12) · (28/30) = 65.6928 mm
 | Makkink | ETo | Pasto bien regado | FAO-24, p. 8: su método de radiación, «adaptation of the Makkink formula», estima ETo |
 | Thornthwaite | ETP | Superficie vegetal extensa sin falta de agua; sin cultivo definido | Notas del curso |
 | Priestley–Taylor | ETP (ambiente húmedo) | Superficie saturada sin advección; no es el pasto de referencia | Notas del curso |
-| Penman, forma FAO-24 (c = 1) | ETo | El pasto: f(u) = 0.27 (1 + U2/100) es la de FAO-24 para pasto, y la Rn es la del pasto. No es E0 (agua libre) | FAO-24, p. 16–17 |
+| Penman, forma FAO-24 (c = 0.8) | ETo | El pasto: f(u) = 0.27 (1 + U2/100) es la de FAO-24 para pasto, y la Rn es la del pasto. No es E0 (agua libre) | FAO-24, p. 16–17 |
 | Brutsaert–Stricker (AA) | ET real | La cuenca, con el agua que tiene | Notas del curso |
 
 Comparación con la misma superficie (Juan, 22 nov). No se calibra nada; cada método se compara con una referencia de
@@ -73,7 +73,8 @@ su misma superficie:
 | Priestley–Taylor | FAO-56 con rs = 0 | Superficie húmeda sin resistencia; mismos datos y misma ra que la ETo |
 | AA | No se compara aquí | ET real: va a la fase 6, frente al balance P − Q, GLEAM y los demás productos |
 
-Con esto, Priestley–Taylor queda +16.5 % sobre su referencia (1 450 frente a 1 245 mm/año). La referencia sin
+Con esto, Priestley–Taylor queda +16.5 % sobre su referencia (1 450 frente a 1 245 mm/año). Penman con c = 0.8 queda −7 % bajo la ETo (1 080 mm/año); el
+c = 0.8 de FAO-24 solo vale con tiempo en calma (calm weather), y se declara así. La referencia sin
 resistencia sube la ETo un 7 %; el resto de la diferencia está en α = 1.26.
 
 ## Ficha de los métodos de fuera de la tabla

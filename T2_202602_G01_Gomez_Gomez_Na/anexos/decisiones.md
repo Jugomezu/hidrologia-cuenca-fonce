@@ -416,3 +416,7 @@ pasa a la fase 6.
 **Resultado (script 21).** FAO-56 con rs = 0: 1 245 mm/año (+7 % sobre la ETo). Priestley–Taylor queda +16.5 % sobre
 esa referencia; la resistencia de superficie explica una parte y el resto está en α = 1.26. Penman (FAO-24): +15.8 %
 sobre la ETo.
+
+**Penman con c = 0.8 (Juan, 22 nov).** El c que recomienda FAO-24; la aproximación solo vale con tiempo en calma (calm
+weather), y se declara. Penman queda en 1 080 mm/año, −7 % frente a la ETo. La AA sigue con Penman sin c, como en las
+notas del curso, así que no cambia (1 550).

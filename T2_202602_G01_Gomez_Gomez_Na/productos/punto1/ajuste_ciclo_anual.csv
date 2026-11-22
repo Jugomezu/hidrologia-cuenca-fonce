@@ -3,7 +3,7 @@ Thornthwaite,ETP,ETo FAO-56,7.341,19.46,-12.12,-62.279,3,11,0,0,
 Hargreaves–Samani,ETo,ETo FAO-56,23.369,19.46,3.909,20.086,8,11,5,0,
 Priestley–Taylor,ETP,FAO-56 con rs = 0,23.48,20.726,2.754,13.287,3,11,0,0,
 Makkink,ETo,ETo FAO-56,17.297,19.46,-2.163,-11.114,3,11,0,0,
-"Penman (FAO-24, c = 1)",ETo,ETo FAO-56,22.911,19.46,3.451,17.733,3,11,0,0,
+"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,18.329,19.46,-1.131,-5.814,3,11,0,0,
 Cenicafé 2006,ETo,ETo FAO-56,7.723,19.46,-11.737,-60.313,1,2,-2,3,solo cambia por los días del mes
 ETo FAO-56,ETo,ETo FAO-56,19.46,19.46,0.0,0.0,3,11,0,0,referencia
 FAO-56 con rs = 0,ETP superficie húmeda,FAO-56 con rs = 0,20.726,20.726,0.0,0.0,3,11,0,0,referencia

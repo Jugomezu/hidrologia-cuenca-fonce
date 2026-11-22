@@ -9,13 +9,15 @@ aquí se importa su función y se compara con los demás.
                                                                       FAO-56 ec. 52
     Priestley–Taylor (1972)         ETP       FAO-56 con rs = 0       notas del curso, Partes 2 y 7
     Makkink (1957)                  ETo       ETo FAO-56              notas del curso, Parte 7
-    Penman, forma FAO-24 (c = 1)    ETo       ETo FAO-56              notas del curso, Parte 6; FAO-24 (lo usa la AA)
+    Penman, forma FAO-24 (c = 0.8)  ETo       ETo FAO-56              notas del curso, Parte 6; FAO-24 (lo usa la AA)
     Cenicafé, Jaramillo (2006)      ETo       ETo FAO-56              Cenicafé 57(4):288–298, p. 292
     Brutsaert–Stricker (1979), AA   ET real   no se compara aquí      notas del curso, Parte 7 (va a la fase 6)
 
 Misma superficie (Juan, 2026-11-22): cada método se compara con una referencia de la misma superficie, sin calibrar.
     - Thornthwaite no tiene conversión (índice de temperatura); se compara con la ETo y se declara.
-    - Penman se calcula con la f(u) de FAO-24 y la Rn del pasto: es la ETo de FAO-24 sin el factor c (c = 1), no E0.
+    - Penman se calcula con la f(u) de FAO-24 y la Rn del pasto: es la ETo de FAO-24, no E0. Lleva c = 0.8, el que
+      recomienda FAO-24 (Juan, 2026-11-22); esa aproximación vale solo con tiempo en calma (calm weather). La AA usa
+      el Penman sin c (c = 1), como en las notas del curso.
     - Priestley–Taylor es ETP de superficie húmeda: se compara con FAO-56 con rs = 0 (mismos datos; el denominador
       pasa de Δ + γ(1 + 0.34 u2) a Δ + γ).
     - La AA es ET real: queda en metodos_mensual.csv pero sale de los ajustes; se compara en la fase 6.
@@ -25,9 +27,10 @@ Ecuaciones (todas diarias, en mm/día; Rn, Rs y Ra en MJ/m²·día; T en °C; pr
     Hargreaves        0.0023 · 0.408 · Ra · (T + 17.8) · √(Tmáx − Tmín)
     Priestley–Taylor  α · Δ/(Δ + γ) · (Rn − G)/λ,                 α = 1.26
     Makkink           0.61 · Δ/(Δ + γ) · Rs/λ − 0.12
-    Penman (FAO-24)   Δ/(Δ + γ) · Rn/λ + γ/(Δ + γ) · f(u) · (es − ea)·10,   f(u) = 0.27 · (1 + U2/100)
+    Penman (FAO-24)   c · [Δ/(Δ + γ) · Rn/λ + γ/(Δ + γ) · f(u) · (es − ea)·10],   f(u) = 0.27 · (1 + U2/100),
+                      c = 0.8
                       con U2 = viento a 2 m en km/día y el déficit pasado de kPa a mbar (×10)
-    AA                ET = 2 · ETw − ETp,   ETw = Priestley–Taylor, ETp = Penman
+    AA                ET = 2 · ETw − ETp,   ETw = Priestley–Taylor, ETp = Penman con c = 1
     Cenicafé 2006     4.37 · exp(−0.0002 · h)
 
 Supuestos (se declaran en anexos/ecuaciones_metodos.md):
@@ -82,6 +85,7 @@ _spec.loader.exec_module(thornthwaite)
 LAMBDA_MJ_KG = 2.45        # calor latente de vaporización, el de FAO-56 (0.408 = 1/2.45)
 ALFA_PT = 1.26             # Priestley y Taylor (1972)
 G_DIARIO = 0.0             # FAO-56 ec. 42
+C_PENMAN_FAO24 = 0.8       # FAO-24, Juan (2026-11-22); solo vale con tiempo en calma (calm weather)
 CENICAFE_2006 = 4.37       # Jaramillo (2006), p. 292: ETo (mm/día) = 4.37·exp(−0.0002 h)
 CENICAFE_EXPONENTE = -0.0002  # 1/m, Jaramillo (2006), p. 292
 # Juan usa la versión de 2006 (ajustada a Penman–Monteith, como nuestra ETo), no la de 1989 (4.658, ajustada a Penman).
@@ -92,7 +96,7 @@ METODOS = {
     "hargreaves": ("Hargreaves–Samani", "ETo"),
     "priestley_taylor": ("Priestley–Taylor", "ETP"),
     "makkink": ("Makkink", "ETo"),
-    "penman_fao24": ("Penman (FAO-24, c = 1)", "ETo"),
+    "penman_fao24": ("Penman (FAO-24, c = 0.8)", "ETo"),
     "aa_brutsaert_stricker": ("Brutsaert–Stricker (AA)", "ET real"),
     "cenicafe_2006": ("Cenicafé 2006", "ETo"),
 }
@@ -121,12 +125,13 @@ def metodos_diarios(diaria, altura_por_punto):
     salida["priestley_taylor"] = ALFA_PT * peso_radiativo * (diaria["rn_MJm2"] - G_DIARIO) / LAMBDA_MJ_KG
     salida["makkink"] = 0.61 * peso_radiativo * diaria["rs_MJm2"] / LAMBDA_MJ_KG - 0.12
 
-    # Penman en la forma de FAO-24 (ETo con c = 1): f(u) en mm/día/mbar con U2 en km/día; 1 kPa = 10 mbar.
+    # Penman en la forma de FAO-24: f(u) en mm/día/mbar con U2 en km/día; 1 kPa = 10 mbar.
     u2_km_dia = u2 * 86.4
     funcion_viento = 0.27 * (1 + u2_km_dia / 100)
-    salida["penman_fao24"] = (peso_radiativo * diaria["rn_MJm2"] / LAMBDA_MJ_KG
-                             + (1 - peso_radiativo) * funcion_viento * deficit_kpa * 10)
-    salida["aa_brutsaert_stricker"] = 2 * salida["priestley_taylor"] - salida["penman_fao24"]
+    penman_c1 = (peso_radiativo * diaria["rn_MJm2"] / LAMBDA_MJ_KG
+                 + (1 - peso_radiativo) * funcion_viento * deficit_kpa * 10)
+    salida["penman_fao24"] = C_PENMAN_FAO24 * penman_c1
+    salida["aa_brutsaert_stricker"] = 2 * salida["priestley_taylor"] - penman_c1   # la AA usa Penman sin c
 
     # Referencia de superficie húmeda para Priestley–Taylor: FAO-56 ec. 6 con rs = 0 (0.34 u2 = rs/ra con rs = 70).
     numerador = 0.408 * delta * (diaria["rn_MJm2"] - G_DIARIO) + gamma * 900 / (t + 273) * u2 * deficit_kpa

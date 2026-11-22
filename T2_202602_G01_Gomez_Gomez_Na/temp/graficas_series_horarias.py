@@ -301,7 +301,7 @@ def datos_metodos():
     resumen = resumen.merge(ciclo_anual[["metodo", "error_amplitud_pct", "error_fase_maximo_meses",
                                          "error_fase_minimo_meses"]], on="metodo")
     nombres = {"thornthwaite": "Thornthwaite", "hargreaves": "Hargreaves–Samani", "priestley_taylor": "Priestley–Taylor",
-               "makkink": "Makkink", "penman_fao24": "Penman (FAO-24, c = 1)", "cenicafe_2006": "Cenicafé 2006",
+               "makkink": "Makkink", "penman_fao24": "Penman (FAO-24, c = 0.8)", "cenicafe_2006": "Cenicafé 2006",
                "aa_brutsaert_stricker": "Brutsaert–Stricker (AA)", "eto_fao56_rs0": "FAO-56 con rs = 0",
                "eto_fao56": "ETo FAO-56"}
     anual = {nombres[c.removesuffix("_mm_mes")]: round(float(mensual[c].mean() * 12)) for c in columnas}
@@ -641,7 +641,7 @@ code { font: 400 .86em var(--f-dato); }
   Brutsaert–Stricker (AA) y Cenicafé. Mismos forzantes y periodo que la ETo (1998–2022), paso diario, cuenca por
   Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Misma superficie (Juan, 22 nov): cada
   método se compara con una referencia de su misma superficie, sin calibrar. Hargreaves, Makkink, Cenicafé y Penman
-  (forma FAO-24 con c = 1, que es ETo del pasto y no E0) frente a la ETo FAO-56; Thornthwaite también, porque no tiene
+  (forma FAO-24, que es ETo del pasto y no E0; con c = 0.8, el que recomienda FAO-24, que solo vale con tiempo en calma) frente a la ETo FAO-56; Thornthwaite también, porque no tiene
   conversión (se declara); Priestley–Taylor (superficie húmeda) frente a FAO-56 con rs = 0, con los mismos datos. La AA
   es ET real: no entra aquí y va a la fase 6. Sesgo % = (método − referencia)/referencia, media de los 12 meses
   calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que la dispersión entre pruebas de
@@ -669,7 +669,7 @@ code { font: 400 .86em var(--f-dato); }
     <tr><td>Fuera · radiación</td><td>Makkink (1957) / de Bruin</td><td>Rs, T</td><td class="si">Sí (ssrd)</td><td><b>Recomendado</b>: las notas lo sugieren para clima húmedo.</td></tr>
     <tr><td>Fuera · radiación</td><td>Turc (1961)</td><td>Rs, T, HR</td><td class="si">Sí</td><td>Alternativa a Makkink.</td></tr>
     <tr><td>Fuera · radiación</td><td>Jensen–Haise (1963), Abtew (1996)</td><td>Rs, T</td><td class="si">Sí</td><td>No: calibrados en zona árida y humedales de Florida.</td></tr>
-    <tr><td>Fuera · combinación</td><td>Penman (1948), agua libre</td><td>Rn, T, ea, viento</td><td class="si">Sí</td><td>En la forma de FAO-24 (la que usamos) con la Rn del pasto da ETo con c = 1, no E0 (corregido el 22 nov). Va dentro de la relación complementaria.</td></tr>
+    <tr><td>Fuera · combinación</td><td>Penman (1948), agua libre</td><td>Rn, T, ea, viento</td><td class="si">Sí</td><td>En la forma de FAO-24 (la que usamos) con la Rn del pasto da ETo, no E0 (corregido el 22 nov); se usa c = 0.8. Va dentro de la relación complementaria.</td></tr>
     <tr><td>Fuera · relación complementaria</td><td>Brutsaert–Stricker (1979), AA</td><td>Penman + Priestley–Taylor</td><td class="si">Sí</td><td><b>Recomendado</b>: estima ET real, comparable con GLEAM, MOD16 y SSEBop (fase 6).</td></tr>
     <tr><td>Fuera · temperatura</td><td>Blaney–Criddle (1950 / FAO-24)</td><td>T, % de horas de luz, K o c</td><td class="no">T sí; c sale de ábacos</td><td>No: c de ábaco no es reproducible.</td></tr>
     <tr><td>Fuera · temperatura</td><td>Linacre (1977)</td><td>T, Td, latitud, altitud</td><td class="si">Sí</td><td>Posible; es un Penman simplificado para agua libre.</td></tr>
@@ -945,7 +945,7 @@ for (const [valor, texto] of CARGA.cifras) {
     ['T + Ra', [['Hargreaves–Samani', 'ETo']]],
     ['Rs + T', [['Makkink', 'ETo']]],
     ['Rn + T', [['Priestley–Taylor', 'ETP']]],
-    ['Rn + T + humedad + viento', [['ETo FAO-56', 'ETo'], ['FAO-56 con rs = 0', 'ETP húmeda'], ['Penman (FAO-24, c = 1)', 'ETo'], ['Brutsaert–Stricker (AA)', 'ET real']]],
+    ['Rn + T + humedad + viento', [['ETo FAO-56', 'ETo'], ['FAO-56 con rs = 0', 'ETP húmeda'], ['Penman (FAO-24, c = 0.8)', 'ETo'], ['Brutsaert–Stricker (AA)', 'ET real']]],
   ];
   const COLOR_GRUPO = ['#CC79A7', '#8C6D31', '#7C5BC7', '#009E73', '#E69F00', '#0072B2'];
   const anualDe = m => MT.anual[m];

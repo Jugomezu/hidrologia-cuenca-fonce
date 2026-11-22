@@ -306,7 +306,10 @@ def datos_metodos():
                "eto_fao56": "ETo Penman–Monteith (FAO-56)"}
     anual = {nombres[c.removesuffix("_mm_mes")]: round(float(mensual[c].mean() * 12)) for c in columnas}
     resumen["anual"] = resumen["metodo"].map(anual)
+    partes = pd.read_csv(ETO_CUENCA)
     return {
+        "eto_partes": {"radiativa": round(float(partes["eto_radiativa_mm_mes"].mean() * 12)),
+                       "aerodinamica": round(float(partes["eto_aerodinamica_mm_mes"].mean() * 12))},
         "eto_anual": anual["ETo Penman–Monteith (FAO-56)"],
         "anual": anual,
         "ciclo": {c.removesuffix("_mm_mes"): ciclo[c].round(1).tolist() for c in columnas},
@@ -975,13 +978,21 @@ for (const [valor, texto] of CARGA.cifras) {
     ['T + Ra', ['Hargreaves–Samani'], '#7C5BC7'],
     ['Rs + T', ['Makkink'], '#009E73'],
     ['Rn + T', ['Priestley–Taylor'], '#E69F00'],
-    ['Rn + T + humedad + viento', ['ETo Penman–Monteith (FAO-56)', 'Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
+    ['Rn + T + humedad + viento', ['Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
   ];
   const trazas = VARIABLES.map(([grupo, metodos, color]) => ({type: 'bar', name: grupo, orientation: 'h',
     y: metodos.map(etiqueta), x: metodos.map(m => MT.anual[m]),
     marker: {color}, text: metodos.map(m => MT.anual[m]), textposition: 'outside',
     hovertemplate: '%{y}: %{x} mm/año<extra>' + grupo + '</extra>'}));
-  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 300;
+  // La barra de la ETo Penman–Monteith se parte en sus dos términos (Juan, 22 nov): radiativo y aerodinámico.
+  const PM = 'ETo Penman–Monteith (FAO-56)', P = MT.eto_partes;
+  trazas.push({type: 'bar', orientation: 'h', name: 'P–M: término radiativo', y: [etiqueta(PM)], x: [P.radiativa],
+      marker: {color: '#0072B2'}, text: [`radiativo ${P.radiativa}`], textposition: 'inside', insidetextanchor: 'middle',
+      hovertemplate: 'Término radiativo: %{x} mm/año<extra></extra>'},
+    {type: 'bar', orientation: 'h', name: 'P–M: término aerodinámico', y: [etiqueta(PM)], x: [P.aerodinamica],
+      marker: {color: '#56B4E9'}, text: [`aerodinámico ${P.aerodinamica} · total ${MT.eto_anual}`], textposition: 'outside',
+      hovertemplate: 'Término aerodinámico: %{x} mm/año<extra></extra>'});
+  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 300; lg.barmode = 'stack'; lg.legend = Object.assign(lg.legend || {}, {traceorder: 'normal'});
   lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', categoryorder: 'array',
     categoryarray: ORDEN.map(([m]) => etiqueta(m)), autorange: 'reversed', title: ''});
   lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', rangemode: 'tozero', title: 'mm/año'});

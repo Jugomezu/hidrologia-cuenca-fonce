@@ -667,7 +667,7 @@ code { font: 400 .86em var(--f-dato); }
   calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que la dispersión entre pruebas de
   la fase 3.</p>
   <div class="tabla" id="t-metodos"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método tal como es: agrupada por lo que estima, color según las variables que usa; línea punteada = ETo Penman–Monteith (FAO-56) (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:520px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método, tal como es (mm/año)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Agrupados por lo que estima cada método; el color dice qué variables usa. Al lado de cada barra, la diferencia con la ETo Penman–Monteith (FAO-56), que es la línea punteada. Su barra se parte en término radiativo (lleno) y aerodinámico (rayado).</p><div class="grafico" id="g-metodos-grupos" style="height:600px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
@@ -965,40 +965,63 @@ for (const [valor, texto] of CARGA.cifras) {
      ['Brutsaert–Stricker (AA)', 'ET real', 'fase 6 (balance, GLEAM)', MT.anual['Brutsaert–Stricker (AA)'], '—', '—', '—', '—', '—', '—']]);
   const NOMBRE_M = {eto_fao56: 'ETo Penman–Monteith (FAO-56)', thornthwaite: 'Thornthwaite', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
     penman_fao24: 'Penman (FAO-24)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', eto_fao56_rs0: 'Penman–Monteith (FAO-56) con rs = 0'};
-  const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
+  const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#A65E1A', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
     penman_fao24: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', eto_fao56_rs0: '#0072B2'};
-  // Los métodos tal como son (Juan, 22 nov): agrupados en el eje por la cantidad que estiman; el color dice las
-  // variables que usan. La línea punteada es la ETo Penman–Monteith (FAO-56).
-  const ORDEN = [['ETo Penman–Monteith (FAO-56)', 'ETo'], ['Penman (FAO-24, c = 0.8)', 'ETo'], ['Makkink', 'ETo'], ['Hargreaves–Samani', 'ETo'],
-    ['Cenicafé 2006', 'ETo'], ['Priestley–Taylor', 'ETP'], ['Thornthwaite', 'ETP'], ['Brutsaert–Stricker (AA)', 'ET real']];
-  const etiqueta = m => { const q = ORDEN.find(o => o[0] === m)[1]; return `${m} · ${q}`; };
+  // Los métodos tal como son (Juan, 22 nov): agrupados en el eje por la cantidad que estiman (con un encabezado por
+  // bloque); el color dice las variables que usan. La línea punteada es la ETo Penman–Monteith (FAO-56); la barra de
+  // la ETo se parte en término radiativo (lleno) y aerodinámico (rayado).
+  const PM = 'ETo Penman–Monteith (FAO-56)', P = MT.eto_partes;
+  const miles = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const BLOQUES = [
+    ['ETo · pasto de referencia', [PM, 'Penman (FAO-24, c = 0.8)', 'Makkink', 'Hargreaves–Samani', 'Cenicafé 2006']],
+    ['ETP · superficie sin falta de agua', ['Priestley–Taylor', 'Thornthwaite']],
+    ['ET real · la cuenca', ['Brutsaert–Stricker (AA)']],
+  ];
+  const filas = [], textoFila = [];
+  BLOQUES.forEach(([titulo, metodos], k) => {
+    if (k) { filas.push(`_esp${k}`); textoFila.push(''); }
+    filas.push(`_tit${k}`); textoFila.push('');
+    metodos.forEach(m => { filas.push(m); textoFila.push(m.replace(' (FAO-56)', '').replace('ETo ', '')); });
+  });
   const VARIABLES = [
     ['Solo altitud', ['Cenicafé 2006'], '#CC79A7'],
-    ['T (y latitud)', ['Thornthwaite'], '#8C6D31'],
+    ['T (y latitud)', ['Thornthwaite'], '#A65E1A'],
     ['T + Ra', ['Hargreaves–Samani'], '#7C5BC7'],
     ['Rs + T', ['Makkink'], '#009E73'],
     ['Rn + T', ['Priestley–Taylor'], '#E69F00'],
     ['Rn + T + humedad + viento', ['Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
   ];
+  const frente = m => { const d = Math.round(100 * (MT.anual[m] / MT.eto_anual - 1)); return `${d > 0 ? '+' : d < 0 ? '−' : '±'}${Math.abs(d)} %`; };
   const trazas = VARIABLES.map(([grupo, metodos, color]) => ({type: 'bar', name: grupo, orientation: 'h',
-    y: metodos.map(etiqueta), x: metodos.map(m => MT.anual[m]),
-    marker: {color}, text: metodos.map(m => MT.anual[m]), textposition: 'outside',
-    hovertemplate: '%{y}: %{x} mm/año<extra>' + grupo + '</extra>'}));
-  // La barra de la ETo Penman–Monteith se parte en sus dos términos (Juan, 22 nov): radiativo y aerodinámico.
-  const PM = 'ETo Penman–Monteith (FAO-56)', P = MT.eto_partes;
-  trazas.push({type: 'bar', orientation: 'h', name: 'P–M: término radiativo', y: [etiqueta(PM)], x: [P.radiativa],
-      marker: {color: '#0072B2'}, text: [`radiativo ${P.radiativa}`], textposition: 'inside', insidetextanchor: 'middle',
-      hovertemplate: 'Término radiativo: %{x} mm/año<extra></extra>'},
-    {type: 'bar', orientation: 'h', name: 'P–M: término aerodinámico', y: [etiqueta(PM)], x: [P.aerodinamica],
-      marker: {color: '#56B4E9'}, text: [`aerodinámico ${P.aerodinamica} · total ${MT.eto_anual}`], textposition: 'outside',
-      hovertemplate: 'Término aerodinámico: %{x} mm/año<extra></extra>'});
-  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 300; lg.barmode = 'stack'; lg.legend = Object.assign(lg.legend || {}, {traceorder: 'normal'});
-  lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', categoryorder: 'array',
-    categoryarray: ORDEN.map(([m]) => etiqueta(m)), autorange: 'reversed', title: ''});
-  lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', rangemode: 'tozero', title: 'mm/año'});
-  const separador = y => ({type: 'line', xref: 'paper', x0: -0.35, x1: 1, y0: y, y1: y, line: {color: css('--tinta'), width: 1}});
+    y: metodos, x: metodos.map(m => MT.anual[m]), marker: {color},
+    text: metodos.map(m => `<b>${miles(MT.anual[m])}</b>  ${frente(m)}`), textposition: 'outside', cliponaxis: false,
+    textfont: {color: css('--tinta')},
+    hovertemplate: '%{y}<br>%{x} mm/año · usa ' + grupo + '<extra></extra>'}));
+  const pct = Math.round(100 * P.radiativa / MT.eto_anual);
+  trazas.push(
+    {type: 'bar', orientation: 'h', name: 'Rn + T + humedad + viento', showlegend: false, y: [PM], x: [P.radiativa],
+      marker: {color: '#0072B2'}, text: [`término radiativo ${miles(P.radiativa)} (${pct} %)`], textposition: 'inside',
+      insidetextanchor: 'middle', textfont: {color: '#FFFFFF'},
+      hovertemplate: 'Penman–Monteith, término radiativo: %{x} mm/año<extra></extra>'},
+    {type: 'bar', orientation: 'h', name: 'rayado: término aerodinámico', y: [PM], x: [P.aerodinamica],
+      marker: {color: css('--superficie'), line: {color: '#0072B2', width: 1.5}, pattern: {shape: '/', fgcolor: '#0072B2', size: 6, solidity: 0.35}},
+      text: [`<b>${miles(MT.eto_anual)}</b>  aerodinámico ${P.aerodinamica} (${100 - pct} %)`], textposition: 'outside', cliponaxis: false,
+      textfont: {color: css('--tinta')},
+      hovertemplate: 'Penman–Monteith, término aerodinámico: %{x} mm/año<extra></extra>'});
+  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 210; lg.margin.r = 40; lg.margin.t = 60;
+  lg.barmode = 'stack'; lg.bargap = 0.32;
+  lg.legend = {orientation: 'h', x: 0, xanchor: 'left', y: 1.02, yanchor: 'bottom', traceorder: 'normal',
+    title: {text: 'Variables que usa:  '}, font: {size: 12}};
+  lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', categoryorder: 'array', categoryarray: filas,
+    tickmode: 'array', tickvals: filas, ticktext: textoFila, autorange: 'reversed', title: '', showgrid: false,
+    ticks: '', tickfont: {size: 13}});
+  lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', range: [0, 1900], title: 'mm/año', zeroline: false});
   lg.shapes = [{type: 'line', x0: MT.eto_anual, x1: MT.eto_anual, yref: 'paper', y0: 0, y1: 1,
-    line: {color: css('--tinta'), dash: 'dot', width: 1.5}}, separador(4.5), separador(6.5)];
+    line: {color: css('--tenue'), dash: 'dot', width: 1.5}}];
+  lg.annotations = [...BLOQUES.map(([titulo], k) => ({x: 0, y: `_tit${k}`, xanchor: 'left', yanchor: 'middle',
+    showarrow: false, text: `<b>${titulo}</b>`, font: {size: 14, color: css('--tinta')}})),
+    {x: MT.eto_anual, yref: 'paper', y: 1, yanchor: 'bottom', showarrow: false,
+    text: `ETo Penman–Monteith ${miles(MT.eto_anual)}`, font: {size: 11, color: css('--tenue')}}];
   Plotly.newPlot('g-metodos-grupos', trazas, lg, OPCIONES);
 
   // Comparaciones, cada una con su referencia de la misma superficie.

@@ -1,73 +1,73 @@
 metodo,cantidad,referencia,mes,n_anios,referencia_mm_mes,metodo_mm_mes,sesgo_mm_mes,sesgo_pct,mae_mm_mes,rmse_mm_mes,dispersion_pruebas_pct,supera_dispersion
-Thornthwaite,ETP,ETo FAO-56,1,25,100.602,60.386,-40.216,-39.976,40.216,40.377,6.545,True
-Thornthwaite,ETP,ETo FAO-56,2,25,96.499,57.637,-38.862,-40.272,38.862,39.168,6.93,True
-Thornthwaite,ETP,ETo FAO-56,3,25,106.485,63.934,-42.551,-39.96,42.551,42.818,2.002,True
-Thornthwaite,ETP,ETo FAO-56,4,25,96.262,61.847,-34.415,-35.751,34.415,34.696,3.294,True
-Thornthwaite,ETP,ETo FAO-56,5,25,94.001,63.314,-30.687,-32.646,30.687,30.975,5.228,True
-Thornthwaite,ETP,ETo FAO-56,6,25,92.498,59.253,-33.245,-35.941,33.245,33.367,1.236,True
-Thornthwaite,ETP,ETo FAO-56,7,25,98.533,60.012,-38.521,-39.094,38.521,38.679,3.418,True
-Thornthwaite,ETP,ETo FAO-56,8,25,103.668,60.173,-43.495,-41.956,43.495,43.628,4.663,True
-Thornthwaite,ETP,ETo FAO-56,9,25,101.337,58.201,-43.136,-42.567,43.136,43.247,3.692,True
-Thornthwaite,ETP,ETo FAO-56,10,25,96.031,59.425,-36.606,-38.119,36.606,36.729,6.764,True
-Thornthwaite,ETP,ETo FAO-56,11,25,87.025,56.594,-30.432,-34.969,30.432,30.676,8.488,True
-Thornthwaite,ETP,ETo FAO-56,12,25,93.083,58.16,-34.923,-37.519,34.923,35.126,7.767,True
-Hargreaves–Samani,ETo,ETo FAO-56,1,25,100.602,103.044,2.442,2.427,2.558,3.199,6.545,False
-Hargreaves–Samani,ETo,ETo FAO-56,2,25,96.499,99.893,3.394,3.517,3.407,4.131,6.93,False
-Hargreaves–Samani,ETo,ETo FAO-56,3,25,106.485,114.303,7.818,7.342,7.818,8.615,2.002,True
-Hargreaves–Samani,ETo,ETo FAO-56,4,25,96.262,108.726,12.464,12.948,12.464,12.651,3.294,True
-Hargreaves–Samani,ETo,ETo FAO-56,5,25,94.001,108.323,14.322,15.236,14.322,14.452,5.228,True
-Hargreaves–Samani,ETo,ETo FAO-56,6,25,92.498,105.653,13.155,14.222,13.155,13.205,1.236,True
-Hargreaves–Samani,ETo,ETo FAO-56,7,25,98.533,112.544,14.011,14.219,14.011,14.069,3.418,True
-Hargreaves–Samani,ETo,ETo FAO-56,8,25,103.668,117.607,13.938,13.445,13.938,14.009,4.663,True
-Hargreaves–Samani,ETo,ETo FAO-56,9,25,101.337,113.741,12.404,12.24,12.404,12.468,3.692,True
-Hargreaves–Samani,ETo,ETo FAO-56,10,25,96.031,107.076,11.045,11.502,11.045,11.114,6.764,True
-Hargreaves–Samani,ETo,ETo FAO-56,11,25,87.025,94.238,7.213,8.288,7.213,7.508,8.488,False
-Hargreaves–Samani,ETo,ETo FAO-56,12,25,93.083,97.587,4.504,4.839,4.504,4.993,7.767,False
-Priestley–Taylor,ETP,FAO-56 con rs = 0,1,25,107.688,123.336,15.648,14.531,15.648,15.693,6.545,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,2,25,103.018,118.798,15.78,15.317,15.78,15.82,6.93,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,3,25,113.486,132.534,19.049,16.785,19.049,19.067,2.002,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,4,25,102.453,120.694,18.241,17.805,18.241,18.251,3.294,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,5,25,100.046,117.978,17.932,17.924,17.932,17.938,5.228,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,6,25,98.814,115.296,16.482,16.68,16.482,16.493,1.236,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,7,25,105.493,122.32,16.828,15.952,16.828,16.841,3.418,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,8,25,111.128,128.671,17.543,15.786,17.543,17.563,4.663,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,9,25,108.437,126.093,17.657,16.283,17.657,17.671,3.692,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,10,25,102.417,120.227,17.81,17.39,17.81,17.819,6.764,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,11,25,92.76,109.054,16.295,17.567,16.295,16.3,8.488,True
-Priestley–Taylor,ETP,FAO-56 con rs = 0,12,25,99.568,115.32,15.752,15.82,15.752,15.772,7.767,True
-Makkink,ETo,ETo FAO-56,1,25,100.602,100.649,0.047,0.047,0.597,0.773,6.545,False
-Makkink,ETo,ETo FAO-56,2,25,96.499,94.528,-1.97,-2.042,1.97,2.181,6.93,False
-Makkink,ETo,ETo FAO-56,3,25,106.485,102.443,-4.042,-3.796,4.042,4.148,2.002,True
-Makkink,ETo,ETo FAO-56,4,25,96.262,91.078,-5.183,-5.385,5.183,5.241,3.294,True
-Makkink,ETo,ETo FAO-56,5,25,94.001,88.938,-5.063,-5.386,5.063,5.123,5.228,True
-Makkink,ETo,ETo FAO-56,6,25,92.498,88.949,-3.549,-3.837,3.549,3.58,1.236,True
-Makkink,ETo,ETo FAO-56,7,25,98.533,95.086,-3.447,-3.499,3.447,3.512,3.418,True
-Makkink,ETo,ETo FAO-56,8,25,103.668,99.922,-3.747,-3.614,3.747,3.776,4.663,False
-Makkink,ETo,ETo FAO-56,9,25,101.337,97.732,-3.606,-3.558,3.606,3.642,3.692,False
-Makkink,ETo,ETo FAO-56,10,25,96.031,92.511,-3.52,-3.665,3.52,3.58,6.764,False
-Makkink,ETo,ETo FAO-56,11,25,87.025,85.146,-1.879,-2.16,1.879,2.1,8.488,False
-Makkink,ETo,ETo FAO-56,12,25,93.083,93.271,0.188,0.202,0.709,0.851,7.767,False
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,1,25,100.602,94.465,-6.137,-6.101,6.137,6.178,6.545,False
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,2,25,96.499,90.116,-6.383,-6.614,6.383,6.423,6.93,False
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,3,25,106.485,98.394,-8.092,-7.599,8.092,8.108,2.002,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,4,25,96.262,88.283,-7.979,-8.289,7.979,7.986,3.294,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,5,25,94.001,86.154,-7.847,-8.348,7.847,7.854,5.228,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,6,25,92.498,85.633,-6.865,-7.422,6.865,6.881,1.236,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,7,25,98.533,91.726,-6.808,-6.909,6.808,6.823,3.418,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,8,25,103.668,96.501,-7.167,-6.913,7.167,7.188,4.663,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,9,25,101.337,93.989,-7.348,-7.251,7.348,7.36,3.692,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,10,25,96.031,88.433,-7.598,-7.912,7.598,7.603,6.764,True
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,11,25,87.025,80.065,-6.96,-7.998,6.96,6.963,8.488,False
-"Penman (FAO-24, c = 0.8)",ETo,ETo FAO-56,12,25,93.083,86.684,-6.399,-6.875,6.399,6.422,7.767,False
-Cenicafé 2006,ETo,ETo FAO-56,1,25,100.602,86.745,-13.857,-13.774,13.857,15.044,6.545,True
-Cenicafé 2006,ETo,ETo FAO-56,2,25,96.499,79.022,-17.477,-18.111,17.477,18.421,6.93,True
-Cenicafé 2006,ETo,ETo FAO-56,3,25,106.485,86.745,-19.741,-18.538,19.741,20.766,2.002,True
-Cenicafé 2006,ETo,ETo FAO-56,4,25,96.262,83.947,-12.315,-12.793,12.315,13.196,3.294,True
-Cenicafé 2006,ETo,ETo FAO-56,5,25,94.001,86.745,-7.256,-7.719,7.256,8.164,5.228,True
-Cenicafé 2006,ETo,ETo FAO-56,6,25,92.498,83.947,-8.551,-9.245,8.635,9.156,1.236,True
-Cenicafé 2006,ETo,ETo FAO-56,7,25,98.533,86.745,-11.789,-11.964,11.789,12.319,3.418,True
-Cenicafé 2006,ETo,ETo FAO-56,8,25,103.668,86.745,-16.924,-16.325,16.924,17.352,4.663,True
-Cenicafé 2006,ETo,ETo FAO-56,9,25,101.337,83.947,-17.391,-17.161,17.391,17.855,3.692,True
-Cenicafé 2006,ETo,ETo FAO-56,10,25,96.031,86.745,-9.286,-9.67,9.445,9.861,6.764,True
-Cenicafé 2006,ETo,ETo FAO-56,11,25,87.025,83.947,-3.079,-3.538,4.68,5.464,8.488,False
-Cenicafé 2006,ETo,ETo FAO-56,12,25,93.083,86.745,-6.338,-6.809,7.05,8.154,7.767,False
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),1,25,100.602,60.386,-40.216,-39.976,40.216,40.377,6.545,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),2,25,96.499,57.637,-38.862,-40.272,38.862,39.168,6.93,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),3,25,106.485,63.934,-42.551,-39.96,42.551,42.818,2.002,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),4,25,96.262,61.847,-34.415,-35.751,34.415,34.696,3.294,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),5,25,94.001,63.314,-30.687,-32.646,30.687,30.975,5.228,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),6,25,92.498,59.253,-33.245,-35.941,33.245,33.367,1.236,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),7,25,98.533,60.012,-38.521,-39.094,38.521,38.679,3.418,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),8,25,103.668,60.173,-43.495,-41.956,43.495,43.628,4.663,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),9,25,101.337,58.201,-43.136,-42.567,43.136,43.247,3.692,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),10,25,96.031,59.425,-36.606,-38.119,36.606,36.729,6.764,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),11,25,87.025,56.594,-30.432,-34.969,30.432,30.676,8.488,True
+Thornthwaite,ETP,ETo Penman–Monteith (FAO-56),12,25,93.083,58.16,-34.923,-37.519,34.923,35.126,7.767,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),1,25,100.602,103.044,2.442,2.427,2.558,3.199,6.545,False
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),2,25,96.499,99.893,3.394,3.517,3.407,4.131,6.93,False
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),3,25,106.485,114.303,7.818,7.342,7.818,8.615,2.002,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),4,25,96.262,108.726,12.464,12.948,12.464,12.651,3.294,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),5,25,94.001,108.323,14.322,15.236,14.322,14.452,5.228,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),6,25,92.498,105.653,13.155,14.222,13.155,13.205,1.236,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),7,25,98.533,112.544,14.011,14.219,14.011,14.069,3.418,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),8,25,103.668,117.607,13.938,13.445,13.938,14.009,4.663,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),9,25,101.337,113.741,12.404,12.24,12.404,12.468,3.692,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),10,25,96.031,107.076,11.045,11.502,11.045,11.114,6.764,True
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),11,25,87.025,94.238,7.213,8.288,7.213,7.508,8.488,False
+Hargreaves–Samani,ETo,ETo Penman–Monteith (FAO-56),12,25,93.083,97.587,4.504,4.839,4.504,4.993,7.767,False
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,1,25,107.688,123.336,15.648,14.531,15.648,15.693,6.545,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,2,25,103.018,118.798,15.78,15.317,15.78,15.82,6.93,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,3,25,113.486,132.534,19.049,16.785,19.049,19.067,2.002,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,4,25,102.453,120.694,18.241,17.805,18.241,18.251,3.294,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,5,25,100.046,117.978,17.932,17.924,17.932,17.938,5.228,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,6,25,98.814,115.296,16.482,16.68,16.482,16.493,1.236,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,7,25,105.493,122.32,16.828,15.952,16.828,16.841,3.418,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,8,25,111.128,128.671,17.543,15.786,17.543,17.563,4.663,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,9,25,108.437,126.093,17.657,16.283,17.657,17.671,3.692,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,10,25,102.417,120.227,17.81,17.39,17.81,17.819,6.764,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,11,25,92.76,109.054,16.295,17.567,16.295,16.3,8.488,True
+Priestley–Taylor,ETP,Penman–Monteith (FAO-56) con rs = 0,12,25,99.568,115.32,15.752,15.82,15.752,15.772,7.767,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),1,25,100.602,100.649,0.047,0.047,0.597,0.773,6.545,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),2,25,96.499,94.528,-1.97,-2.042,1.97,2.181,6.93,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),3,25,106.485,102.443,-4.042,-3.796,4.042,4.148,2.002,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),4,25,96.262,91.078,-5.183,-5.385,5.183,5.241,3.294,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),5,25,94.001,88.938,-5.063,-5.386,5.063,5.123,5.228,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),6,25,92.498,88.949,-3.549,-3.837,3.549,3.58,1.236,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),7,25,98.533,95.086,-3.447,-3.499,3.447,3.512,3.418,True
+Makkink,ETo,ETo Penman–Monteith (FAO-56),8,25,103.668,99.922,-3.747,-3.614,3.747,3.776,4.663,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),9,25,101.337,97.732,-3.606,-3.558,3.606,3.642,3.692,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),10,25,96.031,92.511,-3.52,-3.665,3.52,3.58,6.764,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),11,25,87.025,85.146,-1.879,-2.16,1.879,2.1,8.488,False
+Makkink,ETo,ETo Penman–Monteith (FAO-56),12,25,93.083,93.271,0.188,0.202,0.709,0.851,7.767,False
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),1,25,100.602,94.465,-6.137,-6.101,6.137,6.178,6.545,False
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),2,25,96.499,90.116,-6.383,-6.614,6.383,6.423,6.93,False
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),3,25,106.485,98.394,-8.092,-7.599,8.092,8.108,2.002,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),4,25,96.262,88.283,-7.979,-8.289,7.979,7.986,3.294,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),5,25,94.001,86.154,-7.847,-8.348,7.847,7.854,5.228,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),6,25,92.498,85.633,-6.865,-7.422,6.865,6.881,1.236,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),7,25,98.533,91.726,-6.808,-6.909,6.808,6.823,3.418,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),8,25,103.668,96.501,-7.167,-6.913,7.167,7.188,4.663,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),9,25,101.337,93.989,-7.348,-7.251,7.348,7.36,3.692,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),10,25,96.031,88.433,-7.598,-7.912,7.598,7.603,6.764,True
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),11,25,87.025,80.065,-6.96,-7.998,6.96,6.963,8.488,False
+"Penman (FAO-24, c = 0.8)",ETo,ETo Penman–Monteith (FAO-56),12,25,93.083,86.684,-6.399,-6.875,6.399,6.422,7.767,False
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),1,25,100.602,86.745,-13.857,-13.774,13.857,15.044,6.545,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),2,25,96.499,79.022,-17.477,-18.111,17.477,18.421,6.93,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),3,25,106.485,86.745,-19.741,-18.538,19.741,20.766,2.002,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),4,25,96.262,83.947,-12.315,-12.793,12.315,13.196,3.294,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),5,25,94.001,86.745,-7.256,-7.719,7.256,8.164,5.228,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),6,25,92.498,83.947,-8.551,-9.245,8.635,9.156,1.236,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),7,25,98.533,86.745,-11.789,-11.964,11.789,12.319,3.418,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),8,25,103.668,86.745,-16.924,-16.325,16.924,17.352,4.663,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),9,25,101.337,83.947,-17.391,-17.161,17.391,17.855,3.692,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),10,25,96.031,86.745,-9.286,-9.67,9.445,9.861,6.764,True
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),11,25,87.025,83.947,-3.079,-3.538,4.68,5.464,8.488,False
+Cenicafé 2006,ETo,ETo Penman–Monteith (FAO-56),12,25,93.083,86.745,-6.338,-6.809,7.05,8.154,7.767,False

@@ -16,7 +16,7 @@ Conversiones solo de unidades, para leer mejor: K → °C, Pa → kPa, ssrd J/m�
 (÷ 3600). u10 y v10 se muestran tal cual (m/s).
 
 Al final, la fase 3 (pruebas de la referencia): Rs de Angstrom con el brillo solar de 3 estaciones del IDEAM frente
-a la ssrd de ERA5-Land, y ETo FAO-56 de estación frente a la de ERA5-Land, con sus dos variantes de viento. Lee las
+a la ssrd de ERA5-Land, y ETo Penman–Monteith (FAO-56) de estación frente a la de ERA5-Land, con sus dos variantes de viento. Lee las
 salidas de codigo/punto1/12_rs_brillo_solar_vs_era5land.py y 13_eto_estaciones_vs_era5land.py; no calcula nada nuevo.
 
 También: la ETo de la fase 2 por mes calendario y su comprobación con medias mensuales (salidas de 04 y 04b, las
@@ -289,7 +289,7 @@ def datos_balance():
 
 
 def datos_metodos():
-    """Fase 4: métodos frente a la ETo FAO-56 (salidas de 21_metodos_et.py)."""
+    """Fase 4: métodos frente a la ETo Penman–Monteith (FAO-56) (salidas de 21_metodos_et.py)."""
     mensual = pd.read_csv(CARPETA_PRODUCTOS / "metodos_mensual.csv")
     ajuste = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_por_mes.csv")
     ciclo_anual = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_ciclo_anual.csv")
@@ -302,12 +302,12 @@ def datos_metodos():
                                          "error_fase_minimo_meses"]], on="metodo")
     nombres = {"thornthwaite": "Thornthwaite", "hargreaves": "Hargreaves–Samani", "priestley_taylor": "Priestley–Taylor",
                "makkink": "Makkink", "penman_fao24": "Penman (FAO-24, c = 0.8)", "cenicafe_2006": "Cenicafé 2006",
-               "aa_brutsaert_stricker": "Brutsaert–Stricker (AA)", "eto_fao56_rs0": "FAO-56 con rs = 0",
-               "eto_fao56": "ETo FAO-56"}
+               "aa_brutsaert_stricker": "Brutsaert–Stricker (AA)", "eto_fao56_rs0": "Penman–Monteith (FAO-56) con rs = 0",
+               "eto_fao56": "ETo Penman–Monteith (FAO-56)"}
     anual = {nombres[c.removesuffix("_mm_mes")]: round(float(mensual[c].mean() * 12)) for c in columnas}
     resumen["anual"] = resumen["metodo"].map(anual)
     return {
-        "eto_anual": anual["ETo FAO-56"],
+        "eto_anual": anual["ETo Penman–Monteith (FAO-56)"],
         "anual": anual,
         "ciclo": {c.removesuffix("_mm_mes"): ciclo[c].round(1).tolist() for c in columnas},
         "resumen": resumen.round(1).to_dict(orient="records"),
@@ -498,14 +498,14 @@ code { font: 400 .86em var(--f-dato); }
 
 <section>
   <h2>Fase 3 · Resumen: qué se hizo, cómo y para qué</h2>
-  <p><b>Para qué.</b> Nuestra ETo FAO-56 es la referencia de todo el punto 1, pero sale de un reanálisis. La fase 3
+  <p><b>Para qué.</b> Nuestra ETo Penman–Monteith (FAO-56) es la referencia de todo el punto 1, pero sale de un reanálisis. La fase 3
   mide cuánto puede estar mal comparándola con fuentes que no salen de nuestro cálculo, y deja el margen (la
   dispersión entre pruebas) que usan la fase 4 como umbral y la fase 5 como banda.</p>
   <ol class="resumen">
     <li><b>Rs de ERA5-Land frente al brillo solar</b> (script 12). Rs de estación con Angstrom (FAO-56 ec. 35, a<sub>s</sub>
     0.25, b<sub>s</sub> 0.50) en Mogotes, La Sierra y Charalá, contra la celda de ERA5-Land que contiene a cada estación. ERA5-Land da
     +11 %, +34 % y +13 % más Rs (+1.8 a +4.7 MJ/m²·día). Valida la entrada de más peso; no cuenta como prueba.</li>
-    <li><b>Prueba 1, estaciones</b> (script 13). ETo FAO-56 completa con Tmáx, Tmín y HR de cada estación, su Rs de
+    <li><b>Prueba 1, estaciones</b> (script 13). ETo Penman–Monteith (FAO-56) completa con Tmáx, Tmín y HR de cada estación, su Rs de
     Angstrom, presión por altura y viento medido en Mogotes-AUT a 10 m. Nuestra ETo se toma en la celda de ERA5-Land de cada
     estación. Sesgo: Mogotes −0.08 mm/día (−2.3 %), La Sierra +0.66 (+27.2 %), Charalá −0.16 (−4.5 %). Con el viento de
     ERA5-Land (sensibilidad) cambia 0.09 mm/día o menos.</li>
@@ -564,7 +564,7 @@ code { font: 400 .86em var(--f-dato); }
 
 <section>
   <h2>Fase 3 · Nuestra ETo frente a la ETo de estación</h2>
-  <p>ETo FAO-56 con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
+  <p>ETo Penman–Monteith (FAO-56) con Tmáx, Tmín y HR de estación, la Rs de Angstrom y la presión por altura. Viento: (a), la
   variante final, es la media mensual de Mogotes-AUT medida a 10 m (altura de los anemómetros del IDEAM, Manual del
   Observador Meteorológico) y llevada a 2 m con la ec. 47; (b), con el viento de ERA5-Land, queda como sensibilidad. Solo días con todas
   las entradas. Nuestra ETo se toma en la celda de ERA5-Land de la estación. Sesgo = nuestra ETo − ETo de estación.</p>
@@ -641,15 +641,15 @@ code { font: 400 .86em var(--f-dato); }
   Brutsaert–Stricker (AA) y Cenicafé. Mismos forzantes y periodo que la ETo (1998–2022), paso diario, cuenca por
   Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Misma superficie (Juan, 22 nov): cada
   método se compara con una referencia de su misma superficie, sin calibrar. Hargreaves, Makkink, Cenicafé y Penman
-  (forma FAO-24, que es ETo del pasto y no E0; con c = 0.8, el que recomienda FAO-24, que solo vale con tiempo en calma) frente a la ETo FAO-56; Thornthwaite también, porque no tiene
-  conversión (se declara); Priestley–Taylor (superficie húmeda) frente a FAO-56 con rs = 0, con los mismos datos. La AA
+  (forma FAO-24, que es ETo del pasto y no E0; con c = 0.8, el que recomienda FAO-24, que solo vale con tiempo en calma) frente a la ETo Penman–Monteith (FAO-56); Thornthwaite también, porque no tiene
+  conversión (se declara); Priestley–Taylor (superficie húmeda) frente a Penman–Monteith (FAO-56) con rs = 0, con los mismos datos. La AA
   es ET real: no entra aquí y va a la fase 6. Sesgo % = (método − referencia)/referencia, media de los 12 meses
   calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que la dispersión entre pruebas de
   la fase 3.</p>
   <div class="tabla" id="t-metodos"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método tal como es: agrupada por lo que estima, color según las variables que usa; línea punteada = ETo FAO-56 (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:520px"></div></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo FAO-56: ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a FAO-56 con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método tal como es: agrupada por lo que estima, color según las variables que usa; línea punteada = ETo Penman–Monteith (FAO-56) (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:520px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
 </section>
 
@@ -831,12 +831,12 @@ for (const [valor, texto] of CARGA.cifras) {
     [R.anual_eto, R.anual_pet, mas(R.sesgo), mas(R.pct), R.mae, R.rmse, R.r].map(v => `<td>${v}</td>`).join('') + '</tr></tbody></table>';
   const x = T.meses.map(m => m + '-01');
   Plotly.newPlot('g-tc-serie', [
-    {type: 'scatter', mode: 'lines', name: 'ETo FAO-56 (este trabajo)', x, y: T.eto, line: {color: COLOR.eto, width: 1.6}},
+    {type: 'scatter', mode: 'lines', name: 'ETo Penman–Monteith (FAO-56) (este trabajo)', x, y: T.eto, line: {color: COLOR.eto, width: 1.6}},
     {type: 'scatter', mode: 'lines', name: 'pet TerraClimate v1.1', x, y: T.pet, line: {color: '#CC79A7', width: 1.6, dash: 'dash'}}],
     base('mm/mes'), OPCIONES);
   const lc = ejeMes(base('mm/mes')); lc.yaxis.rangemode = 'tozero';
   Plotly.newPlot('g-tc-ciclo', [
-    {type: 'scatter', mode: 'lines+markers', name: 'ETo FAO-56 (este trabajo)', x: xm, y: T.ciclo_eto, line: {color: COLOR.eto}},
+    {type: 'scatter', mode: 'lines+markers', name: 'ETo Penman–Monteith (FAO-56) (este trabajo)', x: xm, y: T.ciclo_eto, line: {color: COLOR.eto}},
     {type: 'scatter', mode: 'lines+markers', name: 'pet TerraClimate', x: xm, y: T.ciclo_pet, line: {color: '#CC79A7', dash: 'dash'}}], lc, OPCIONES);
   const ls = ejeMes(base('mm/mes')); ls.yaxis.rangemode = 'tozero';
   Plotly.newPlot('g-tc-sesgo', [
@@ -930,19 +930,19 @@ for (const [valor, texto] of CARGA.cifras) {
   const MT = CARGA.metodos;
   tabla('t-metodos', ['Método', 'Estima', 'Se compara con', 'Media anual (mm)', 'Sesgo % (rango)', 'MAE (mm/mes)', 'RMSE (mm/mes)',
     'Meses sobre la dispersión', 'Error de amplitud %', 'Desfase del máx. / mín. (meses)'],
-    [['ETo FAO-56', 'ETo', 'referencia', MT.eto_anual, '—', '—', '—', '—', '—', '—'],
-     ['FAO-56 con rs = 0', 'ETP superficie húmeda', 'referencia', MT.anual['FAO-56 con rs = 0'], '—', '—', '—', '—', '—', '—'],
+    [['ETo Penman–Monteith (FAO-56)', 'ETo', 'referencia', MT.eto_anual, '—', '—', '—', '—', '—', '—'],
+     ['Penman–Monteith (FAO-56) con rs = 0', 'ETP superficie húmeda', 'referencia', MT.anual['Penman–Monteith (FAO-56) con rs = 0'], '—', '—', '—', '—', '—', '—'],
      ...MT.resumen.map(r => [r.metodo, r.cantidad, r.referencia, r.anual,
       `${fmt(r.sesgo, 1)} (${fmt(r.sesgo_min, 1)} a ${fmt(r.sesgo_max, 1)})`, r.mae.toFixed(1), r.rmse.toFixed(1),
       `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`]),
      ['Brutsaert–Stricker (AA)', 'ET real', 'fase 6 (balance, GLEAM)', MT.anual['Brutsaert–Stricker (AA)'], '—', '—', '—', '—', '—', '—']]);
-  const NOMBRE_M = {eto_fao56: 'ETo FAO-56', thornthwaite: 'Thornthwaite', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
-    penman_fao24: 'Penman (FAO-24)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', eto_fao56_rs0: 'FAO-56 con rs = 0'};
+  const NOMBRE_M = {eto_fao56: 'ETo Penman–Monteith (FAO-56)', thornthwaite: 'Thornthwaite', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
+    penman_fao24: 'Penman (FAO-24)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', eto_fao56_rs0: 'Penman–Monteith (FAO-56) con rs = 0'};
   const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
     penman_fao24: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', eto_fao56_rs0: '#0072B2'};
   // Los métodos tal como son (Juan, 22 nov): agrupados en el eje por la cantidad que estiman; el color dice las
-  // variables que usan. La línea punteada es la ETo FAO-56.
-  const ORDEN = [['ETo FAO-56', 'ETo'], ['Penman (FAO-24, c = 0.8)', 'ETo'], ['Makkink', 'ETo'], ['Hargreaves–Samani', 'ETo'],
+  // variables que usan. La línea punteada es la ETo Penman–Monteith (FAO-56).
+  const ORDEN = [['ETo Penman–Monteith (FAO-56)', 'ETo'], ['Penman (FAO-24, c = 0.8)', 'ETo'], ['Makkink', 'ETo'], ['Hargreaves–Samani', 'ETo'],
     ['Cenicafé 2006', 'ETo'], ['Priestley–Taylor', 'ETP'], ['Thornthwaite', 'ETP'], ['Brutsaert–Stricker (AA)', 'ET real']];
   const etiqueta = m => { const q = ORDEN.find(o => o[0] === m)[1]; return `${m} · ${q}`; };
   const VARIABLES = [
@@ -951,13 +951,13 @@ for (const [valor, texto] of CARGA.cifras) {
     ['T + Ra', ['Hargreaves–Samani'], '#7C5BC7'],
     ['Rs + T', ['Makkink'], '#009E73'],
     ['Rn + T', ['Priestley–Taylor'], '#E69F00'],
-    ['Rn + T + humedad + viento', ['ETo FAO-56', 'Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
+    ['Rn + T + humedad + viento', ['ETo Penman–Monteith (FAO-56)', 'Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
   ];
   const trazas = VARIABLES.map(([grupo, metodos, color]) => ({type: 'bar', name: grupo, orientation: 'h',
     y: metodos.map(etiqueta), x: metodos.map(m => MT.anual[m]),
     marker: {color}, text: metodos.map(m => MT.anual[m]), textposition: 'outside',
     hovertemplate: '%{y}: %{x} mm/año<extra>' + grupo + '</extra>'}));
-  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 260;
+  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 300;
   lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', categoryorder: 'array',
     categoryarray: ORDEN.map(([m]) => etiqueta(m)), autorange: 'reversed', title: ''});
   lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', rangemode: 'tozero', title: 'mm/año'});

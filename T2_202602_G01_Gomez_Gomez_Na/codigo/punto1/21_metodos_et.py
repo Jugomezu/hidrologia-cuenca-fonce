@@ -4,13 +4,13 @@ Métodos elegidos por Juan el 2026-11-20. Thornthwaite se programó aparte, paso
 aquí se importa su función y se compara con los demás.
 
     Método                          Estima    Se compara con          Fuente de la ecuación
-    Thornthwaite (1948)             ETP       ETo FAO-56              notas del curso, Parte 7 (script 22)
-    Hargreaves–Samani (1985)        ETo       ETo FAO-56              notas del curso (C. D. Hoyos), Parte 7;
+    Thornthwaite (1948)             ETP       ETo Penman–Monteith (FAO-56)              notas del curso, Parte 7 (script 22)
+    Hargreaves–Samani (1985)        ETo       ETo Penman–Monteith (FAO-56)              notas del curso (C. D. Hoyos), Parte 7;
                                                                       FAO-56 ec. 52
-    Priestley–Taylor (1972)         ETP       FAO-56 con rs = 0       notas del curso, Partes 2 y 7
-    Makkink (1957)                  ETo       ETo FAO-56              notas del curso, Parte 7
-    Penman, forma FAO-24 (c = 0.8)  ETo       ETo FAO-56              notas del curso, Parte 6; FAO-24 (lo usa la AA)
-    Cenicafé, Jaramillo (2006)      ETo       ETo FAO-56              Cenicafé 57(4):288–298, p. 292
+    Priestley–Taylor (1972)         ETP       Penman–Monteith (FAO-56) con rs = 0       notas del curso, Partes 2 y 7
+    Makkink (1957)                  ETo       ETo Penman–Monteith (FAO-56)              notas del curso, Parte 7
+    Penman, forma FAO-24 (c = 0.8)  ETo       ETo Penman–Monteith (FAO-56)              notas del curso, Parte 6; FAO-24 (lo usa la AA)
+    Cenicafé, Jaramillo (2006)      ETo       ETo Penman–Monteith (FAO-56)              Cenicafé 57(4):288–298, p. 292
     Brutsaert–Stricker (1979), AA   ET real   no se compara aquí      notas del curso, Parte 7 (va a la fase 6)
 
 Misma superficie (Juan, 2026-11-22): cada método se compara con una referencia de la misma superficie, sin calibrar.
@@ -18,7 +18,7 @@ Misma superficie (Juan, 2026-11-22): cada método se compara con una referencia 
     - Penman se calcula con la f(u) de FAO-24 y la Rn del pasto: es la ETo de FAO-24, no E0. Lleva c = 0.8, el que
       recomienda FAO-24 (Juan, 2026-11-22); esa aproximación vale solo con tiempo en calma (calm weather). La AA usa
       el Penman sin c (c = 1), como en las notas del curso.
-    - Priestley–Taylor es ETP de superficie húmeda: se compara con FAO-56 con rs = 0 (mismos datos; el denominador
+    - Priestley–Taylor es ETP de superficie húmeda: se compara con Penman–Monteith (FAO-56) con rs = 0 (mismos datos; el denominador
       pasa de Δ + γ(1 + 0.34 u2) a Δ + γ).
     - La AA es ET real: queda en metodos_mensual.csv pero sale de los ajustes; se compara en la fase 6.
 
@@ -34,7 +34,7 @@ Ecuaciones (todas diarias, en mm/día; Rn, Rs y Ra en MJ/m²·día; T en °C; pr
     Cenicafé 2006     4.37 · exp(−0.0002 · h)
 
 Supuestos (se declaran en anexos/ecuaciones_metodos.md):
-    - Mismos forzantes y periodo que la ETo FAO-56: productos/punto1/era5land_diario_puntos.csv (salida de 03) y la
+    - Mismos forzantes y periodo que la ETo Penman–Monteith (FAO-56): productos/punto1/era5land_diario_puntos.csv (salida de 03) y la
       misma T, Δ, γ, es, ea y u2 que 04_eto_fao56.py (se importan sus funciones).
     - λ = 2.45 MJ/kg constante, el mismo que FAO-56 usa en el factor 0.408 = 1/2.45, para que las diferencias con la
       ETo salgan del método y no de λ.
@@ -46,7 +46,7 @@ Supuestos (se declaran en anexos/ecuaciones_metodos.md):
 
 Escribe en productos/punto1/:
     metodos_diaria_puntos.csv   por día y punto, cada método (mm/día)
-    metodos_mensual.csv         por mes, cada método en la cuenca (mm/mes), la ETo FAO-56 y FAO-56 con rs = 0,
+    metodos_mensual.csv         por mes, cada método en la cuenca (mm/mes), la ETo Penman–Monteith (FAO-56) y Penman–Monteith (FAO-56) con rs = 0,
                                 promedio ponderado por Voronoi como en 04
     ajuste_por_mes.csv          por método y mes calendario, frente a su referencia (sin la AA): sesgo, sesgo %, MAE,
                                 RMSE (mm/mes) y si |sesgo %| supera la dispersión entre pruebas de la fase 3
@@ -106,7 +106,7 @@ REFERENCIA = {
     "thornthwaite": "eto_fao56", "hargreaves": "eto_fao56", "makkink": "eto_fao56", "penman_fao24": "eto_fao56",
     "cenicafe_2006": "eto_fao56", "priestley_taylor": "eto_fao56_rs0", "aa_brutsaert_stricker": None,
 }
-NOMBRE_REFERENCIA = {"eto_fao56": "ETo FAO-56", "eto_fao56_rs0": "FAO-56 con rs = 0"}
+NOMBRE_REFERENCIA = {"eto_fao56": "ETo Penman–Monteith (FAO-56)", "eto_fao56_rs0": "Penman–Monteith (FAO-56) con rs = 0"}
 
 
 def metodos_diarios(diaria, altura_por_punto):

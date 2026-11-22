@@ -1,7 +1,7 @@
 # Ecuaciones de los métodos de la fase 4 (punto 1)
 
 Script: `codigo/punto1/21_metodos_et.py`. Paso diario, en cada uno de los 6 puntos; el mensual es la suma de los días
-y la cuenca es el promedio ponderado por Voronoi, igual que la ETo FAO-56. Unidades: mm/día; Rn, Rs y Ra en
+y la cuenca es el promedio ponderado por Voronoi, igual que la ETo Penman–Monteith (FAO-56). Unidades: mm/día; Rn, Rs y Ra en
 MJ/m²·día; T en °C; presiones en kPa. Mismos forzantes que la ETo (ERA5-Land, 1998–2022). λ = 2.45 MJ/kg (el de
 FAO-56). G = 0 diario. Δ, γ, es, ea y u2 como en FAO-56 (ec. 8, 12, 13, 47), con la presión de cada punto.
 
@@ -13,7 +13,7 @@ Elegidos por Juan el 2026-11-20. Thornthwaite se programó paso a paso con Juan 
 | Priestley–Taylor (1972) | ETP | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
 | Makkink (1957) | ETo | 0.61 · Δ/(Δ+γ) · Rs/λ − 0.12 | Notas del curso, Parte 7 |
 | Penman, forma FAO-24 (c = 0.8) | ETo | c · [Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea)], c = 0.8 | Notas del curso, Parte 6; FAO-24, p. 16–17 (U2 en km/día, déficit en mbar). Con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24. c = 0.8, el que recomienda FAO-24 (Juan, 22 nov); esta aproximación solo vale con tiempo en calma (calm weather) |
-| FAO-56 con rs = 0 (referencia de Priestley–Taylor) | ETP superficie húmeda | [0.408 Δ (Rn − G) + γ · 900/(T + 273) · u2 · (es − ea)] / (Δ + γ) | FAO-56 ec. 6 sin resistencia de superficie: 0.34 u2 = rs/ra con rs = 70 s/m pasa a 0 |
+| Penman–Monteith (FAO-56) con rs = 0 (referencia de Priestley–Taylor) | ETP superficie húmeda | [0.408 Δ (Rn − G) + γ · 900/(T + 273) · u2 · (es − ea)] / (Δ + γ) | FAO-56 ec. 6 sin resistencia de superficie: 0.34 u2 = rs/ra con rs = 70 s/m pasa a 0 |
 | Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman sin c (c = 1) | Notas del curso, Parte 7 |
 | Cenicafé, Jaramillo (2006) | ETo | 4.37 · exp(−0.0002 h) | Cenicafé 57(4):288–298, p. 292; ajustada a Penman–Monteith, 34 estaciones, 170–3 700 m, R² = 0.80 |
 
@@ -39,8 +39,8 @@ h 2 144.948 m. Intermedios: T 17.0947 °C, Δ 0.12344, γ 0.05195 kPa/°C, Δ/(�
 | Penman (FAO-24, c = 0.8) | 3.5469 (sin c: 4.4337, el que usa la AA) |
 | AA | 4.6847 |
 | Cenicafé 2006 | 2.8456 |
-| FAO-56 con rs = 0 | 4.0150 |
-| ETo FAO-56 (referencia) | 3.7607 |
+| Penman–Monteith (FAO-56) con rs = 0 | 4.0150 |
+| ETo Penman–Monteith (FAO-56) (referencia) | 3.7607 |
 
 Calculado aparte, sin las funciones del script, y coincide a 4 decimales con `productos/punto1/metodos_diaria_puntos.csv`.
 
@@ -68,9 +68,9 @@ su misma superficie:
 
 | Método | Se compara con | Por qué |
 |---|---|---|
-| Hargreaves, Makkink, Cenicafé, Penman (FAO-24) | ETo FAO-56 | Ya estiman ETo del pasto |
-| Thornthwaite | ETo FAO-56 | No tiene conversión (índice de temperatura). Se usa como ETo y se declara |
-| Priestley–Taylor | FAO-56 con rs = 0 | Superficie húmeda sin resistencia; mismos datos y misma ra que la ETo |
+| Hargreaves, Makkink, Cenicafé, Penman (FAO-24) | ETo Penman–Monteith (FAO-56) | Ya estiman ETo del pasto |
+| Thornthwaite | ETo Penman–Monteith (FAO-56) | No tiene conversión (índice de temperatura). Se usa como ETo y se declara |
+| Priestley–Taylor | Penman–Monteith (FAO-56) con rs = 0 | Superficie húmeda sin resistencia; mismos datos y misma ra que la ETo |
 | AA | No se compara aquí | ET real: va a la fase 6, frente al balance P − Q, GLEAM y los demás productos |
 
 Con esto, Priestley–Taylor queda +16.5 % sobre su referencia (1 450 frente a 1 245 mm/año). Penman con c = 0.8 queda −7 % bajo la ETo (1 080 mm/año); el

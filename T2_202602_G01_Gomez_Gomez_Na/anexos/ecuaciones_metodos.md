@@ -46,3 +46,60 @@ Calculado aparte, sin las funciones del script, y coincide a 4 decimales con `pr
 2010-02, punto 6 (lat 6.4°). T = 17.6923 °C, I = 67.9572, a = 1.5660, L = 11.798 h, N = 28.
 ETP = 16 · (10 · 17.6923/67.9572)^1.566 · (11.798/12) · (28/30) = 65.6928 mm/mes. Calculado aparte y coincide con
 `productos/punto1/thornthwaite_mensual_puntos.csv`.
+
+## Qué cantidad estima cada método
+
+| Método | Estima | Superficie | De dónde sale |
+|---|---|---|---|
+| Penman–Monteith FAO-56 | ETo | Pasto de referencia: 0.12 m, rs = 70 s/m, albedo 0.23, bien regado | FAO-56 |
+| Hargreaves–Samani | ETo | El mismo pasto (calibrado para reproducirlo) | FAO-56 ec. 52 la llama ETo |
+| Cenicafé 2006 | ETo | El mismo pasto: regresión sobre valores de Penman–Monteith | Jaramillo (2006), p. 290–292 |
+| Makkink | ETo | Pasto bien regado | FAO-24, p. 8: su método de radiación, «adaptation of the Makkink formula», estima ETo |
+| Thornthwaite | ETP | Superficie vegetal extensa sin falta de agua; sin cultivo definido | Notas del curso |
+| Priestley–Taylor | ETP (ambiente húmedo) | Superficie saturada sin advección; no es el pasto de referencia | Notas del curso |
+| Penman 1948 | E0 | Agua libre. Aquí se calcula con la Rn del pasto, así que queda como una potencial | Notas del curso |
+| Brutsaert–Stricker (AA) | ET real | La cuenca, con el agua que tiene | Notas del curso |
+
+Consecuencia: frente a la ETo FAO-56 solo se comparan directamente las ETo (Hargreaves, Cenicafé, Makkink). Thornthwaite
+y Priestley–Taylor son potenciales sin superficie fija y se leen con cuidado. La AA se compara con la ET real (balance
+P − Q y productos, fase 6), no con la ETo.
+
+## Ficha de los métodos de fuera de la tabla
+
+### Makkink (1957)
+
+- **Publicación original.** Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the
+  Institution of Water Engineers, 11*, 277–288. No está en línea y no se leyó.
+- **Proceso.** Evaporación controlada por la energía solar que llega al suelo: ET ∝ Δ/(Δ + γ) · Rs/λ. Δ/(Δ + γ) es la
+  fracción de la energía que va a evaporar a una temperatura dada.
+- **Qué simplifica.** Deja fuera el término aerodinámico (viento y déficit de vapor) y la radiación de onda larga: usa
+  Rs en vez de Rn, con dos constantes empíricas (0.61 y −0.12) que absorben esas diferencias.
+- **Clima de calibración.** Con lisímetros (lo dice el título). El lugar y el cultivo no se verificaron en el original.
+- **Por qué sirve aquí.** La cuenca es húmeda y de viento débil: el término aerodinámico es solo el 7.6 % de la ETo
+  FAO-56 (1998–2022, `eto_mensual_cuenca.csv`), así que lo que Makkink deja fuera pesa poco. Las notas del curso lo
+  recomiendan, junto con Priestley–Taylor, para climas húmedos con datos de radiación y temperatura. Resultado: −3 %.
+
+### Brutsaert y Stricker (1979), advección-aridez (AA)
+
+- **Publicación original.** Brutsaert, W. y Stricker, H. (1979). *Water Resources Research, 15*(2), 443–450.
+  https://doi.org/10.1029/WR015i002p00443. No se leyó el texto (la página de la revista no abrió).
+- **Proceso.** Relación complementaria (Bouchet, 1963): cuando la superficie se seca, la ET real baja y la energía que
+  sobra calienta y seca el aire, lo que sube la ET potencial. ET + ETp = 2 · ETw.
+- **Qué simplifica.** Supone que la relación es simétrica; ETw con Priestley–Taylor (α = 1.26) y ETp con Penman. No
+  usa datos de suelo ni de vegetación. Las notas lo dan para escala regional, mensual a anual.
+- **Clima de calibración.** No verificado en el original.
+- **Por qué sirve aquí.** Da ET real solo con datos meteorológicos, independiente del balance P − Q y de los productos
+  satelitales. Limitación encontrada: aquí Priestley–Taylor supera a Penman en el 96 % de los días (viento débil), y
+  por eso la AA da una ET real mayor que la potencial (1 550 mm/año), lo que no es físico. Se explica en la fase 5.
+
+### Cenicafé, Jaramillo (2006)
+
+- **Publicación original.** Jaramillo Robledo, A. (2006). Evapotranspiración de referencia en la región Andina de
+  Colombia. *Cenicafé, 57*(4), 288–298. Leída completa.
+- **Proceso.** Ninguno directo: es una regresión de la ETo de Penman–Monteith contra la altitud. La forma exponencial se
+  justifica porque la presión y la densidad del aire bajan exponencialmente con la altura (p. 291).
+- **Qué simplifica.** Todo menos la altitud: no tiene ciclo anual ni cambia de un año a otro; un valor fijo por punto.
+- **Clima de calibración.** 34 estaciones de los valles interandinos del Cauca y el Magdalena, de 170 a 3 700 m
+  (R² = 0.80), dos de ellas en Santander (p. 291–292).
+- **Por qué sirve aquí.** Es una ecuación regional para los Andes colombianos y cubre la altura de los 6 puntos (1 598 a
+  3 128 m de altura media de sus regiones). Sirve como referencia de orden de magnitud. Resultado: −12 %.

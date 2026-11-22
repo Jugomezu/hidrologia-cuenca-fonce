@@ -56,7 +56,7 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
 - Doorenbos, J. y Pruitt, W. O. (1977). *Guidelines for predicting crop water requirements* (FAO Irrigation and
   Drainage Paper 24, ed. revisada). FAO. https://www.fao.org/4/f2430e/f2430e.pdf. Usado: forma FAO-24 de la función de
   viento de Penman, f(u) = 0.27 (1 + U2/100), con U2 el recorrido del viento a 2 m en km/día y el déficit en mbar. Leído:
-  sí, p. 16–17 (lo dicen también las notas del curso). El título se leyó de un PDF con OCR dañado: confirmarlo a mano.
+  sí, p. 16–17 (lo dicen también las notas del curso). c = 0.8 con tiempo en calma: p. 15 (leído por Juan, 22 nov). El título se leyó de un PDF con OCR dañado: confirmarlo a mano.
 - Hargreaves, G. H. y Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in
   Agriculture, 1*(2), 96–99. https://doi.org/10.13031/2013.26773. Leído: el artículo no; la ecuación coincide con FAO-56
   ec. 52, ETo = 0.0023 (Tmedia + 17.8)(Tmáx − Tmín)^0.5 Ra, con Ra en mm/día (p. web del cap. 3, x0490e07): por eso el

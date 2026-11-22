@@ -85,7 +85,7 @@ _spec.loader.exec_module(thornthwaite)
 LAMBDA_MJ_KG = 2.45        # calor latente de vaporización, el de FAO-56 (0.408 = 1/2.45)
 ALFA_PT = 1.26             # Priestley y Taylor (1972)
 G_DIARIO = 0.0             # FAO-56 ec. 42
-C_PENMAN_FAO24 = 0.8       # FAO-24, Juan (2026-11-22); solo vale con tiempo en calma (calm weather)
+C_PENMAN_FAO24 = 0.8       # FAO-24, p. 15, Juan (2026-11-22); solo vale con tiempo en calma (calm weather)
 CENICAFE_2006 = 4.37       # Jaramillo (2006), p. 292: ETo (mm/día) = 4.37·exp(−0.0002 h)
 CENICAFE_EXPONENTE = -0.0002  # 1/m, Jaramillo (2006), p. 292
 # Juan usa la versión de 2006 (ajustada a Penman–Monteith, como nuestra ETo), no la de 1989 (4.658, ajustada a Penman).

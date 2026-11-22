@@ -417,7 +417,7 @@ pasa a la fase 6.
 esa referencia; la resistencia de superficie explica una parte y el resto está en α = 1.26. Penman (FAO-24): +15.8 %
 sobre la ETo.
 
-**Penman con c = 0.8 (Juan, 22 nov).** El c que recomienda FAO-24; la aproximación solo vale con tiempo en calma (calm
+**Penman con c = 0.8 (Juan, 22 nov).** El c que recomienda FAO-24 (p. 15, leído por Juan); la aproximación solo vale con tiempo en calma (calm
 weather), y se declara. Penman queda en 1 080 mm/año, −7 % frente a la ETo. La AA sigue con Penman sin c, como en las
 notas del curso, así que no cambia (1 550).
 

@@ -12,7 +12,7 @@ Elegidos por Juan el 2026-11-20. Thornthwaite se programó paso a paso con Juan 
 | Hargreaves–Samani (1985) | ETo | 0.0023 · 0.408 · Ra · (T + 17.8) · √(Tmáx − Tmín) | Notas del curso, Parte 7; FAO-56 ec. 52 |
 | Priestley–Taylor (1972) | ETP | 1.26 · Δ/(Δ+γ) · (Rn − G)/λ | Notas del curso, Partes 2 y 7 |
 | Makkink (1957) | ETo | 0.61 · Δ/(Δ+γ) · Rs/λ − 0.12 | Notas del curso, Parte 7 |
-| Penman, forma FAO-24 (c = 0.8) | ETo | c · [Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea)], c = 0.8 | Notas del curso, Parte 6; FAO-24, p. 16–17 (U2 en km/día, déficit en mbar). Con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24. c = 0.8, el que recomienda FAO-24 (Juan, 22 nov); esta aproximación solo vale con tiempo en calma (calm weather) |
+| Penman, forma FAO-24 (c = 0.8) | ETo | c · [Δ/(Δ+γ) · Rn/λ + γ/(Δ+γ) · 0.27 (1 + U2/100) · (es − ea)], c = 0.8 | Notas del curso, Parte 6; FAO-24, p. 16–17 (U2 en km/día, déficit en mbar). Con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24. c = 0.8, el que recomienda FAO-24, p. 15 (Juan, 22 nov); esta aproximación solo vale con tiempo en calma (calm weather) |
 | Penman–Monteith (FAO-56) con rs = 0 (referencia de Priestley–Taylor) | ETP superficie húmeda | [0.408 Δ (Rn − G) + γ · 900/(T + 273) · u2 · (es − ea)] / (Δ + γ) | FAO-56 ec. 6 sin resistencia de superficie: 0.34 u2 = rs/ra con rs = 70 s/m pasa a 0 |
 | Brutsaert y Stricker (1979), AA | ET real | 2 · ETw − ETp, con ETw = Priestley–Taylor y ETp = Penman sin c (c = 1) | Notas del curso, Parte 7 |
 | Cenicafé, Jaramillo (2006) | ETo | 4.37 · exp(−0.0002 h) | Cenicafé 57(4):288–298, p. 292; ajustada a Penman–Monteith, 34 estaciones, 170–3 700 m, R² = 0.80 |

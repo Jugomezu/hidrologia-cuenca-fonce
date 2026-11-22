@@ -1,9 +1,9 @@
-metodo,cantidad,amplitud_metodo_mm_mes,amplitud_eto_mm_mes,error_amplitud_mm_mes,error_amplitud_pct,mes_maximo,mes_minimo,error_fase_maximo_meses,error_fase_minimo_meses,nota
-Thornthwaite,ETP,7.341,19.46,-12.12,-62.279,3,11,0,0,
-Hargreaves–Samani,ETo,23.369,19.46,3.909,20.086,8,11,5,0,
-Priestley–Taylor,ETP,23.48,19.46,4.02,20.656,3,11,0,0,
-Makkink,ETo,17.297,19.46,-2.163,-11.114,3,11,0,0,
-Penman 1948 (FAO-24),E0,22.911,19.46,3.451,17.733,3,11,0,0,
-Brutsaert–Stricker (AA),ET real,24.049,19.46,4.589,23.58,3,11,0,0,
-Cenicafé 2006,ETo,7.723,19.46,-11.737,-60.313,1,2,-2,3,solo cambia por los días del mes
-ETo FAO-56,ETo,19.46,19.46,0.0,0.0,3,11,0,0,referencia
+metodo,cantidad,referencia,amplitud_metodo_mm_mes,amplitud_referencia_mm_mes,error_amplitud_mm_mes,error_amplitud_pct,mes_maximo,mes_minimo,error_fase_maximo_meses,error_fase_minimo_meses,nota
+Thornthwaite,ETP,ETo FAO-56,7.341,19.46,-12.12,-62.279,3,11,0,0,
+Hargreaves–Samani,ETo,ETo FAO-56,23.369,19.46,3.909,20.086,8,11,5,0,
+Priestley–Taylor,ETP,FAO-56 con rs = 0,23.48,20.726,2.754,13.287,3,11,0,0,
+Makkink,ETo,ETo FAO-56,17.297,19.46,-2.163,-11.114,3,11,0,0,
+"Penman (FAO-24, c = 1)",ETo,ETo FAO-56,22.911,19.46,3.451,17.733,3,11,0,0,
+Cenicafé 2006,ETo,ETo FAO-56,7.723,19.46,-11.737,-60.313,1,2,-2,3,solo cambia por los días del mes
+ETo FAO-56,ETo,ETo FAO-56,19.46,19.46,0.0,0.0,3,11,0,0,referencia
+FAO-56 con rs = 0,ETP superficie húmeda,FAO-56 con rs = 0,20.726,20.726,0.0,0.0,3,11,0,0,referencia

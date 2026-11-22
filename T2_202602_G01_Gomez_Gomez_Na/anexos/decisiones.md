@@ -404,3 +404,15 @@ punto, con las 12 medias climatológicas de 1998–2022, para no absorber la ten
 **Decisión (Juan).** Makkink con las constantes de las notas del curso (0.61 y −0.12), no con el método de radiación
 de FAO-24, donde c se lee en un gráfico según la humedad y el viento (no reproducible). FAO-24, p. 8, dice que su
 método es una adaptación de Makkink (1957) y que estima ETo; el artículo de 1957 no está en línea.
+
+## 2026-11-22 · Punto 1 · Métodos comparados con la misma superficie
+
+**Decisión (Juan).** Cada método se compara con una referencia de su misma superficie, sin calibrar: calibrar daría
+sesgo cero por construcción. Hargreaves, Makkink, Cenicafé y Thornthwaite frente a la ETo FAO-56 (Thornthwaite no
+tiene conversión; se declara). Penman se renombra: con la f(u) de FAO-24 y la Rn del pasto es la ETo de FAO-24 con
+c = 1, no E0; los números no cambian. Priestley–Taylor frente a FAO-56 con rs = 0 (mismos datos). La AA es ET real y
+pasa a la fase 6.
+
+**Resultado (script 21).** FAO-56 con rs = 0: 1 245 mm/año (+7 % sobre la ETo). Priestley–Taylor queda +16.5 % sobre
+esa referencia; la resistencia de superficie explica una parte y el resto está en α = 1.26. Penman (FAO-24): +15.8 %
+sobre la ETo.

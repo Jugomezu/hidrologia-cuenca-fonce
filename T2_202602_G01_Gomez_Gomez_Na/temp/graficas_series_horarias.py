@@ -295,14 +295,20 @@ def datos_metodos():
     ciclo_anual = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_ciclo_anual.csv")
     columnas = [c for c in mensual.columns if c.endswith("_mm_mes")]
     ciclo = mensual.groupby(mensual["mes"].str[5:7].astype(int))[columnas].mean()
-    resumen = ajuste.groupby(["metodo", "cantidad"], sort=False).agg(
+    resumen = ajuste.groupby(["metodo", "cantidad", "referencia"], sort=False).agg(
         sesgo=("sesgo_pct", "mean"), sesgo_min=("sesgo_pct", "min"), sesgo_max=("sesgo_pct", "max"),
         mae=("mae_mm_mes", "mean"), rmse=("rmse_mm_mes", "mean"), supera=("supera_dispersion", "sum")).reset_index()
     resumen = resumen.merge(ciclo_anual[["metodo", "error_amplitud_pct", "error_fase_maximo_meses",
                                          "error_fase_minimo_meses"]], on="metodo")
-    resumen["anual"] = [round(float(mensual[c].mean() * 12)) for c in columnas[:-1]]
+    nombres = {"thornthwaite": "Thornthwaite", "hargreaves": "Hargreaves–Samani", "priestley_taylor": "Priestley–Taylor",
+               "makkink": "Makkink", "penman_fao24": "Penman (FAO-24, c = 1)", "cenicafe_2006": "Cenicafé 2006",
+               "aa_brutsaert_stricker": "Brutsaert–Stricker (AA)", "eto_fao56_rs0": "FAO-56 con rs = 0",
+               "eto_fao56": "ETo FAO-56"}
+    anual = {nombres[c.removesuffix("_mm_mes")]: round(float(mensual[c].mean() * 12)) for c in columnas}
+    resumen["anual"] = resumen["metodo"].map(anual)
     return {
-        "eto_anual": round(float(mensual["eto_fao56_mm_mes"].mean() * 12)),
+        "eto_anual": anual["ETo FAO-56"],
+        "anual": anual,
         "ciclo": {c.removesuffix("_mm_mes"): ciclo[c].round(1).tolist() for c in columnas},
         "resumen": resumen.round(1).to_dict(orient="records"),
     }
@@ -630,12 +636,16 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
-  <h2>Fase 4 · Métodos frente a la ETo FAO-56</h2>
+  <h2>Fase 4 · Métodos frente a una referencia de la misma superficie</h2>
   <p>Elegidos por Juan: Thornthwaite (programado paso a paso, script 22), Hargreaves, Priestley–Taylor, Makkink,
   Brutsaert–Stricker (AA) y Cenicafé. Mismos forzantes y periodo que la ETo (1998–2022), paso diario, cuenca por
-  Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Sesgo % = (método −
-  ETo)/ETo, media de los 12 meses calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que
-  la dispersión entre pruebas de la fase 3. Ojo con la columna «Estima»: la AA es ET real y Penman es E0; no son ETo.</p>
+  Voronoi. Script 21; ecuaciones y un día a mano en <code>anexos/ecuaciones_metodos.md</code>. Misma superficie (Juan, 22 nov): cada
+  método se compara con una referencia de su misma superficie, sin calibrar. Hargreaves, Makkink, Cenicafé y Penman
+  (forma FAO-24 con c = 1, que es ETo del pasto y no E0) frente a la ETo FAO-56; Thornthwaite también, porque no tiene
+  conversión (se declara); Priestley–Taylor (superficie húmeda) frente a FAO-56 con rs = 0, con los mismos datos. La AA
+  es ET real: no entra aquí y va a la fase 6. Sesgo % = (método − referencia)/referencia, media de los 12 meses
+  calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que la dispersión entre pruebas de
+  la fase 3.</p>
   <div class="tabla" id="t-metodos"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 por método, agrupada por las variables que usa (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:460px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Ciclo anual medio, 1998–2022 (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo"></div></div>
@@ -659,7 +669,7 @@ code { font: 400 .86em var(--f-dato); }
     <tr><td>Fuera · radiación</td><td>Makkink (1957) / de Bruin</td><td>Rs, T</td><td class="si">Sí (ssrd)</td><td><b>Recomendado</b>: las notas lo sugieren para clima húmedo.</td></tr>
     <tr><td>Fuera · radiación</td><td>Turc (1961)</td><td>Rs, T, HR</td><td class="si">Sí</td><td>Alternativa a Makkink.</td></tr>
     <tr><td>Fuera · radiación</td><td>Jensen–Haise (1963), Abtew (1996)</td><td>Rs, T</td><td class="si">Sí</td><td>No: calibrados en zona árida y humedales de Florida.</td></tr>
-    <tr><td>Fuera · combinación</td><td>Penman (1948), agua libre</td><td>Rn, T, ea, viento</td><td class="si">Sí</td><td>Calcula E0 (declararlo). Va dentro de la relación complementaria.</td></tr>
+    <tr><td>Fuera · combinación</td><td>Penman (1948), agua libre</td><td>Rn, T, ea, viento</td><td class="si">Sí</td><td>En la forma de FAO-24 (la que usamos) con la Rn del pasto da ETo con c = 1, no E0 (corregido el 22 nov). Va dentro de la relación complementaria.</td></tr>
     <tr><td>Fuera · relación complementaria</td><td>Brutsaert–Stricker (1979), AA</td><td>Penman + Priestley–Taylor</td><td class="si">Sí</td><td><b>Recomendado</b>: estima ET real, comparable con GLEAM, MOD16 y SSEBop (fase 6).</td></tr>
     <tr><td>Fuera · temperatura</td><td>Blaney–Criddle (1950 / FAO-24)</td><td>T, % de horas de luz, K o c</td><td class="no">T sí; c sale de ábacos</td><td>No: c de ábaco no es reproducible.</td></tr>
     <tr><td>Fuera · temperatura</td><td>Linacre (1977)</td><td>T, Td, latitud, altitud</td><td class="si">Sí</td><td>Posible; es un Penman simplificado para agua libre.</td></tr>
@@ -916,15 +926,18 @@ for (const [valor, texto] of CARGA.cifras) {
 
 
   const MT = CARGA.metodos;
-  tabla('t-metodos', ['Método', 'Estima', 'Media anual (mm)', 'Sesgo % (rango)', 'MAE (mm/mes)', 'RMSE (mm/mes)',
+  tabla('t-metodos', ['Método', 'Estima', 'Se compara con', 'Media anual (mm)', 'Sesgo % (rango)', 'MAE (mm/mes)', 'RMSE (mm/mes)',
     'Meses sobre la dispersión', 'Error de amplitud %', 'Desfase del máx. / mín. (meses)'],
-    [['ETo FAO-56', 'ETo', MT.eto_anual, '—', '—', '—', '—', '—', '—'], ...MT.resumen.map(r => [r.metodo, r.cantidad, r.anual,
+    [['ETo FAO-56', 'ETo', 'referencia', MT.eto_anual, '—', '—', '—', '—', '—', '—'],
+     ['FAO-56 con rs = 0', 'ETP superficie húmeda', 'referencia', MT.anual['FAO-56 con rs = 0'], '—', '—', '—', '—', '—', '—'],
+     ...MT.resumen.map(r => [r.metodo, r.cantidad, r.referencia, r.anual,
       `${fmt(r.sesgo, 1)} (${fmt(r.sesgo_min, 1)} a ${fmt(r.sesgo_max, 1)})`, r.mae.toFixed(1), r.rmse.toFixed(1),
-      `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`])]);
+      `${r.supera} de 12`, fmt(r.error_amplitud_pct, 1), `${r.error_fase_maximo_meses} / ${r.error_fase_minimo_meses}`]),
+     ['Brutsaert–Stricker (AA)', 'ET real', 'fase 6 (balance, GLEAM)', MT.anual['Brutsaert–Stricker (AA)'], '—', '—', '—', '—', '—', '—']]);
   const NOMBRE_M = {eto_fao56: 'ETo FAO-56', thornthwaite: 'Thornthwaite', hargreaves: 'Hargreaves', priestley_taylor: 'Priestley–Taylor', makkink: 'Makkink',
-    penman_1948: 'Penman 1948 (E0)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006'};
+    penman_fao24: 'Penman (FAO-24)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', eto_fao56_rs0: 'FAO-56 con rs = 0'};
   const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
-    penman_1948: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7'};
+    penman_fao24: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', eto_fao56_rs0: '#0072B2'};
   // Grupos por variables de entrada (de menos a más información). La ETo FAO-56 es la línea de referencia.
   const GRUPOS = [
     ['Solo altitud', [['Cenicafé 2006', 'ETo']]],
@@ -932,10 +945,10 @@ for (const [valor, texto] of CARGA.cifras) {
     ['T + Ra', [['Hargreaves–Samani', 'ETo']]],
     ['Rs + T', [['Makkink', 'ETo']]],
     ['Rn + T', [['Priestley–Taylor', 'ETP']]],
-    ['Rn + T + humedad + viento', [['ETo FAO-56', 'ETo'], ['Penman 1948 (FAO-24)', 'E0'], ['Brutsaert–Stricker (AA)', 'ET real']]],
+    ['Rn + T + humedad + viento', [['ETo FAO-56', 'ETo'], ['FAO-56 con rs = 0', 'ETP húmeda'], ['Penman (FAO-24, c = 1)', 'ETo'], ['Brutsaert–Stricker (AA)', 'ET real']]],
   ];
   const COLOR_GRUPO = ['#CC79A7', '#8C6D31', '#7C5BC7', '#009E73', '#E69F00', '#0072B2'];
-  const anualDe = m => m === 'ETo FAO-56' ? MT.eto_anual : MT.resumen.find(r => r.metodo === m).anual;
+  const anualDe = m => MT.anual[m];
   const trazas = GRUPOS.map(([grupo, metodos], i) => ({type: 'bar', name: grupo, orientation: 'h',
     y: metodos.map(([m, q]) => `${m} · ${q}`), x: metodos.map(([m]) => anualDe(m)),
     marker: {color: COLOR_GRUPO[i]}, text: metodos.map(([m]) => anualDe(m)), textposition: 'outside',
@@ -950,7 +963,7 @@ for (const [valor, texto] of CARGA.cifras) {
   const lmc = ejeMes(base('mm/mes'));
   Plotly.newPlot('g-metodos-ciclo', Object.keys(NOMBRE_M).map(c => ({type: 'scatter', mode: 'lines+markers', name: NOMBRE_M[c],
     x: xm, y: MT.ciclo[c], marker: {size: 4},
-    line: {color: COLOR_M[c], width: c === 'eto_fao56' ? 3 : 1.6, dash: (c === 'penman_1948' || c === 'aa_brutsaert_stricker') ? 'dash' : 'solid'}})), lmc, OPCIONES);
+    line: {color: COLOR_M[c], width: c === 'eto_fao56' ? 3 : 1.6, dash: c === 'aa_brutsaert_stricker' ? 'dash' : c === 'eto_fao56_rs0' ? 'dot' : 'solid'}})), lmc, OPCIONES);
   const B = CARGA.balance;
   tabla('t-balance', ['Camino', 'Datos', 'PI (mm/año)', 'PL (mm/año)', 'Q (mm/año)', 'ET real con PI', 'ET real con PL'],
     B.resumen.map(r => [r.camino, r.n, r.PI, r.PL, r.Q, r.ETR_PI, r.ETR_PL]));

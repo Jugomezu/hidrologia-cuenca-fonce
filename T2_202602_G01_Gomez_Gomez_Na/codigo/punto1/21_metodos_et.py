@@ -3,15 +3,22 @@
 Métodos elegidos por Juan el 2026-11-20. Thornthwaite se programó aparte, paso a paso con Juan (22_thornthwaite.py);
 aquí se importa su función y se compara con los demás.
 
-    Método                          Estima    Familia                     Fuente de la ecuación
-    Thornthwaite (1948)             ETP       temperatura                 notas del curso, Parte 7 (script 22)
-    Hargreaves–Samani (1985)        ETo       temperatura + Ra            notas del curso (C. D. Hoyos), Parte 7;
-                                                                          FAO-56 ec. 52
-    Priestley–Taylor (1972)         ETP       radiación                   notas del curso, Partes 2 y 7
-    Makkink (1957)                  ETo       radiación + temperatura     notas del curso, Parte 7
-    Brutsaert–Stricker (1979), AA   ET real   relación complementaria     notas del curso, Parte 7
-    Penman (1948), forma FAO-24     E0        combinación (agua libre)    notas del curso, Parte 6 (lo usa la AA)
-    Cenicafé, Jaramillo (2006)      ETo       altitud                     Cenicafé 57(4):288–298, p. 292
+    Método                          Estima    Se compara con          Fuente de la ecuación
+    Thornthwaite (1948)             ETP       ETo FAO-56              notas del curso, Parte 7 (script 22)
+    Hargreaves–Samani (1985)        ETo       ETo FAO-56              notas del curso (C. D. Hoyos), Parte 7;
+                                                                      FAO-56 ec. 52
+    Priestley–Taylor (1972)         ETP       FAO-56 con rs = 0       notas del curso, Partes 2 y 7
+    Makkink (1957)                  ETo       ETo FAO-56              notas del curso, Parte 7
+    Penman, forma FAO-24 (c = 1)    ETo       ETo FAO-56              notas del curso, Parte 6; FAO-24 (lo usa la AA)
+    Cenicafé, Jaramillo (2006)      ETo       ETo FAO-56              Cenicafé 57(4):288–298, p. 292
+    Brutsaert–Stricker (1979), AA   ET real   no se compara aquí      notas del curso, Parte 7 (va a la fase 6)
+
+Misma superficie (Juan, 2026-11-22): cada método se compara con una referencia de la misma superficie, sin calibrar.
+    - Thornthwaite no tiene conversión (índice de temperatura); se compara con la ETo y se declara.
+    - Penman se calcula con la f(u) de FAO-24 y la Rn del pasto: es la ETo de FAO-24 sin el factor c (c = 1), no E0.
+    - Priestley–Taylor es ETP de superficie húmeda: se compara con FAO-56 con rs = 0 (mismos datos; el denominador
+      pasa de Δ + γ(1 + 0.34 u2) a Δ + γ).
+    - La AA es ET real: queda en metodos_mensual.csv pero sale de los ajustes; se compara en la fase 6.
 
 Ecuaciones (todas diarias, en mm/día; Rn, Rs y Ra en MJ/m²·día; T en °C; presiones en kPa):
 
@@ -36,10 +43,10 @@ Supuestos (se declaran en anexos/ecuaciones_metodos.md):
 
 Escribe en productos/punto1/:
     metodos_diaria_puntos.csv   por día y punto, cada método (mm/día)
-    metodos_mensual.csv         por mes, cada método en la cuenca (mm/mes) y la ETo FAO-56, promedio ponderado por
-                                Voronoi como en 04
-    ajuste_por_mes.csv          por método y mes calendario, frente a la ETo FAO-56: sesgo, sesgo %, MAE, RMSE (mm/mes)
-                                y si |sesgo %| supera la dispersión entre pruebas de la fase 3
+    metodos_mensual.csv         por mes, cada método en la cuenca (mm/mes), la ETo FAO-56 y FAO-56 con rs = 0,
+                                promedio ponderado por Voronoi como en 04
+    ajuste_por_mes.csv          por método y mes calendario, frente a su referencia (sin la AA): sesgo, sesgo %, MAE,
+                                RMSE (mm/mes) y si |sesgo %| supera la dispersión entre pruebas de la fase 3
     ajuste_ciclo_anual.csv      por método: error de amplitud y de fase del ciclo anual medio
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
@@ -85,10 +92,17 @@ METODOS = {
     "hargreaves": ("Hargreaves–Samani", "ETo"),
     "priestley_taylor": ("Priestley–Taylor", "ETP"),
     "makkink": ("Makkink", "ETo"),
-    "penman_1948": ("Penman 1948 (FAO-24)", "E0"),
+    "penman_fao24": ("Penman (FAO-24, c = 1)", "ETo"),
     "aa_brutsaert_stricker": ("Brutsaert–Stricker (AA)", "ET real"),
     "cenicafe_2006": ("Cenicafé 2006", "ETo"),
 }
+
+# Referencia de la misma superficie para cada método (Juan, 2026-11-22). None = no se compara en esta fase.
+REFERENCIA = {
+    "thornthwaite": "eto_fao56", "hargreaves": "eto_fao56", "makkink": "eto_fao56", "penman_fao24": "eto_fao56",
+    "cenicafe_2006": "eto_fao56", "priestley_taylor": "eto_fao56_rs0", "aa_brutsaert_stricker": None,
+}
+NOMBRE_REFERENCIA = {"eto_fao56": "ETo FAO-56", "eto_fao56_rs0": "FAO-56 con rs = 0"}
 
 
 def metodos_diarios(diaria, altura_por_punto):
@@ -107,12 +121,16 @@ def metodos_diarios(diaria, altura_por_punto):
     salida["priestley_taylor"] = ALFA_PT * peso_radiativo * (diaria["rn_MJm2"] - G_DIARIO) / LAMBDA_MJ_KG
     salida["makkink"] = 0.61 * peso_radiativo * diaria["rs_MJm2"] / LAMBDA_MJ_KG - 0.12
 
-    # Penman (1948) en la forma de FAO-24: f(u) en mm/día/mbar con U2 en km/día; 1 kPa = 10 mbar.
+    # Penman en la forma de FAO-24 (ETo con c = 1): f(u) en mm/día/mbar con U2 en km/día; 1 kPa = 10 mbar.
     u2_km_dia = u2 * 86.4
     funcion_viento = 0.27 * (1 + u2_km_dia / 100)
-    salida["penman_1948"] = (peso_radiativo * diaria["rn_MJm2"] / LAMBDA_MJ_KG
+    salida["penman_fao24"] = (peso_radiativo * diaria["rn_MJm2"] / LAMBDA_MJ_KG
                              + (1 - peso_radiativo) * funcion_viento * deficit_kpa * 10)
-    salida["aa_brutsaert_stricker"] = 2 * salida["priestley_taylor"] - salida["penman_1948"]
+    salida["aa_brutsaert_stricker"] = 2 * salida["priestley_taylor"] - salida["penman_fao24"]
+
+    # Referencia de superficie húmeda para Priestley–Taylor: FAO-56 ec. 6 con rs = 0 (0.34 u2 = rs/ra con rs = 70).
+    numerador = 0.408 * delta * (diaria["rn_MJm2"] - G_DIARIO) + gamma * 900 / (t + 273) * u2 * deficit_kpa
+    salida["eto_fao56_rs0"] = numerador / (delta + gamma)
 
     h = diaria["punto"].map(altura_por_punto)
     salida["cenicafe_2006"] = CENICAFE_2006 * np.exp(CENICAFE_EXPONENTE * h)
@@ -127,19 +145,22 @@ def promedio_cuenca(mensual_puntos, columnas):
 
 
 def ajuste_por_mes(mensual, dispersion):
-    """Por método y mes calendario, frente a la ETo FAO-56 de cada mes (25 valores por mes calendario)."""
+    """Por método y mes calendario, frente a su referencia de la misma superficie (25 valores por mes calendario)."""
     filas = []
     mes_calendario = mensual.index.month
     for columna, (nombre, cantidad) in METODOS.items():
-        error = mensual[columna] - mensual["eto_fao56"]
+        ref = REFERENCIA[columna]
+        if ref is None:
+            continue
+        error = mensual[columna] - mensual[ref]
         for mes in range(1, 13):
             e = error[mes_calendario == mes]
-            referencia = mensual.loc[mes_calendario == mes, "eto_fao56"].mean()
+            referencia = mensual.loc[mes_calendario == mes, ref].mean()
             sesgo_pct = 100 * e.mean() / referencia
             umbral = dispersion.loc[mes, "dispersion_pct"]
             filas.append({
-                "metodo": nombre, "cantidad": cantidad, "mes": mes, "n_anios": e.size,
-                "eto_fao56_mm_mes": referencia, "metodo_mm_mes": referencia + e.mean(),
+                "metodo": nombre, "cantidad": cantidad, "referencia": NOMBRE_REFERENCIA[ref], "mes": mes,
+                "n_anios": e.size, "referencia_mm_mes": referencia, "metodo_mm_mes": referencia + e.mean(),
                 "sesgo_mm_mes": e.mean(), "sesgo_pct": sesgo_pct,
                 "mae_mm_mes": e.abs().mean(), "rmse_mm_mes": np.sqrt((e ** 2).mean()),
                 "dispersion_pruebas_pct": umbral, "supera_dispersion": abs(sesgo_pct) > umbral,
@@ -151,23 +172,26 @@ def ajuste_ciclo_anual(mensual):
     """Error de amplitud y de fase del ciclo anual medio (media de los 25 años por mes calendario).
 
     Amplitud = máximo − mínimo del ciclo medio. Fase = mes del máximo y del mínimo; el error de fase es la diferencia
-    en meses con la ETo FAO-56, tomada en el círculo de 12 meses (de −6 a +6). La ETo tiene dos máximos al año, así
+    en meses con la referencia de la misma superficie, tomada en el círculo de 12 meses (de −6 a +6). La ETo tiene
+    dos máximos al año, así
     que se usa el máximo y el mínimo absolutos en vez de un armónico.
     """
     ciclo = mensual.groupby(mensual.index.month).mean()
-    ref = ciclo["eto_fao56"]
 
     def desfase(a, b):
         return int((a - b + 6) % 12 - 6)
 
     filas = []
     for columna, (nombre, cantidad) in METODOS.items():
+        if REFERENCIA[columna] is None:
+            continue
+        ref = ciclo[REFERENCIA[columna]]
         serie = ciclo[columna]
         amplitud = serie.max() - serie.min()
         constante = columna.startswith("cenicafe")  # valor diario fijo: el ciclo sale solo de los días del mes
         filas.append({
-            "metodo": nombre, "cantidad": cantidad,
-            "amplitud_metodo_mm_mes": amplitud, "amplitud_eto_mm_mes": ref.max() - ref.min(),
+            "metodo": nombre, "cantidad": cantidad, "referencia": NOMBRE_REFERENCIA[REFERENCIA[columna]],
+            "amplitud_metodo_mm_mes": amplitud, "amplitud_referencia_mm_mes": ref.max() - ref.min(),
             "error_amplitud_mm_mes": amplitud - (ref.max() - ref.min()),
             "error_amplitud_pct": 100 * (amplitud / (ref.max() - ref.min()) - 1),
             "mes_maximo": int(serie.idxmax()), "mes_minimo": int(serie.idxmin()),
@@ -175,10 +199,13 @@ def ajuste_ciclo_anual(mensual):
             "error_fase_minimo_meses": desfase(serie.idxmin(), ref.idxmin()),
             "nota": "solo cambia por los días del mes" if constante else "",
         })
-    filas.append({"metodo": "ETo FAO-56", "cantidad": "ETo", "amplitud_metodo_mm_mes": ref.max() - ref.min(),
-                  "amplitud_eto_mm_mes": ref.max() - ref.min(), "error_amplitud_mm_mes": 0.0,
-                  "error_amplitud_pct": 0.0, "mes_maximo": int(ref.idxmax()), "mes_minimo": int(ref.idxmin()),
-                  "error_fase_maximo_meses": 0, "error_fase_minimo_meses": 0, "nota": "referencia"})
+    for ref, nombre in NOMBRE_REFERENCIA.items():
+        serie = ciclo[ref]
+        filas.append({"metodo": nombre, "cantidad": "ETo" if ref == "eto_fao56" else "ETP superficie húmeda",
+                      "referencia": nombre, "amplitud_metodo_mm_mes": serie.max() - serie.min(),
+                      "amplitud_referencia_mm_mes": serie.max() - serie.min(), "error_amplitud_mm_mes": 0.0,
+                      "error_amplitud_pct": 0.0, "mes_maximo": int(serie.idxmax()), "mes_minimo": int(serie.idxmin()),
+                      "error_fase_maximo_meses": 0, "error_fase_minimo_meses": 0, "nota": "referencia"})
     return pd.DataFrame(filas)
 
 
@@ -188,9 +215,9 @@ def main():
     alturas = puntos["z_region_dem_m"].to_dict()
 
     metodos = pd.concat([diaria[["fecha", "punto"]], metodos_diarios(diaria, alturas)], axis=1)
-    columnas = [c for c in METODOS if c != "thornthwaite"]  # Thornthwaite es mensual: se agrega abajo
+    columnas = [c for c in METODOS if c != "thornthwaite"] + ["eto_fao56_rs0"]  # Thornthwaite es mensual: abajo
     assert metodos[columnas].notna().all().all()
-    for columna in ["hargreaves", "priestley_taylor", "penman_1948", "cenicafe_2006"]:
+    for columna in ["hargreaves", "priestley_taylor", "penman_fao24", "cenicafe_2006", "eto_fao56_rs0"]:
         assert (metodos[columna] > 0).all(), f"{columna}: valores no positivos"
     dias_aa_negativa = int((metodos["aa_brutsaert_stricker"] < 0).sum())
     dias_makkink_negativa = int((metodos["makkink"] < 0).sum())
@@ -206,7 +233,7 @@ def main():
     mensual_puntos = mensual_puntos.merge(
         etp_th[["punto", "fecha", "etp_thornthwaite_mm"]].rename(columns={"etp_thornthwaite_mm": "thornthwaite"}),
         on=["punto", "fecha"], validate="one_to_one")
-    columnas = list(METODOS)
+    columnas = [*METODOS, "eto_fao56_rs0"]
     mensual = promedio_cuenca(mensual_puntos, columnas)
 
     eto = pd.read_csv(ENTRADA_ETO)
@@ -231,7 +258,8 @@ def main():
     anual = mensual.mean() * 12
     print("\nMedia anual de la cuenca, 1998–2022 (mm/año):")
     for columna, valor in anual.items():
-        print(f"  {METODOS.get(columna, ('ETo FAO-56', 'ETo'))[0]:<26} {valor:7.0f}")
+        nombre = METODOS[columna][0] if columna in METODOS else NOMBRE_REFERENCIA[columna]
+        print(f"  {nombre:<26} {valor:7.0f}")
 
 
 if __name__ == "__main__":

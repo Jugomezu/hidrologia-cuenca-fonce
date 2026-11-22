@@ -23,6 +23,7 @@ Formato de cada fila: qué se pidió, qué hizo la IA, qué decidió o revisó e
 | 2026-11-20 | Calcular los métodos elegidos | Scripts 21 y 22: Hargreaves, Priestley–Taylor, Makkink, Penman 1948, AA, Cenicafé y Thornthwaite frente a FAO-56; un día o mes a mano por método; citas con DOI o enlace | Juan eligió los 6 métodos y Cenicafé 2006 (no 1989); descartó Meyer (necesita la T del agua); Makkink con las constantes del curso; Thornthwaite con T = (Tmáx + Tmín)/2 e I fijo, programado paso a paso con Juan |
 | 2026-11-20 | Explicar las diferencias entre métodos | Explicó qué cantidad estima cada método (ETo, ETP, E0, ET real) y propuso hipótesis: falta de radiación en Thornthwaite, superficie mojada en Priestley–Taylor y Penman | Juan respondió las preguntas de cada paso de Thornthwaite; queda su verificación a mano de un mes por método |
 | 2026-11-22 | Hacer comparables los métodos | Propuso comparar cada método con una referencia de su misma superficie (FAO-56 con rs = 0 para Priestley–Taylor), notó que el Penman calculado es ETo de FAO-24 y no E0, y lo programó en el script 21 | Juan pidió que todos dieran la misma variable y eligió la opción de misma superficie, sin calibrar |
+| 2026-11-22 | Agregar el Hargreaves de la Tarea 1 | Script 23: rehízo las series de Hargreaves de la Tarea 1 con los datos de la entrega, comprobó que reproducen el CSV de la Tarea 1 y las comparó con el de la Tarea 2 y la ETo Penman–Monteith | Juan lo pidió; el script y los números quedan para su revisión |
 
 ## Punto 2
 

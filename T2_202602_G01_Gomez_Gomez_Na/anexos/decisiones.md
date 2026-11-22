@@ -420,3 +420,11 @@ sobre la ETo.
 **Penman con c = 0.8 (Juan, 22 nov).** El c que recomienda FAO-24; la aproximación solo vale con tiempo en calma (calm
 weather), y se declara. Penman queda en 1 080 mm/año, −7 % frente a la ETo. La AA sigue con Penman sin c, como en las
 notas del curso, así que no cambia (1 550).
+
+## 2026-11-22 · Punto 1 · Hargreaves de la Tarea 1 en el análisis
+
+**Decisión (Juan).** Agregar el Hargreaves de la Tarea 1 a la fase 4. Script 23: rehace con datos/punto1 las series de
+la Tarea 1 (T de ERA5-Land promediada sobre la cuenca, día UTC; T de MSWX de CAMELS-COL; Ra en el centroide, lat
+6.2649) y reproduce su CSV. En los 199 meses sin días faltantes en CAMELS-COL: Tarea 2 1 280 mm/año (+9.4 % frente a la
+ETo Penman–Monteith), Tarea 1 ERA5-Land 1 257 (+7.5 %), Tarea 1 MSWX 1 237 (+5.8 %), CAMELS-COL publicada 3 412
+(+192 %, el error ya hallado en la Tarea 1).

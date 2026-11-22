@@ -314,6 +314,22 @@ def datos_metodos():
     }
 
 
+def datos_hargreaves_tarea1():
+    """Fase 4: Hargreaves de la Tarea 1 frente al de la Tarea 2 (salida de 23_hargreaves_tarea1.py)."""
+    h = pd.read_csv(CARPETA_PRODUCTOS / "hargreaves_tarea1_mensual.csv")
+    comunes = h.dropna()
+    columnas = [c for c in h.columns if c.endswith("_mm_mes")]
+    anual = comunes[columnas].mean() * 12
+    ciclo = comunes.groupby(comunes["mes"].str[5:7].astype(int))[columnas].mean()
+    return {
+        "n_meses": len(comunes),
+        "anual": {c.removesuffix("_mm_mes"): round(float(v)) for c, v in anual.items()},
+        "sesgo": {c.removesuffix("_mm_mes"): round(float(100 * (v / anual["eto_penman_monteith_mm_mes"] - 1)), 1)
+                  for c, v in anual.items()},
+        "ciclo": {c.removesuffix("_mm_mes"): ciclo[c].round(1).tolist() for c in columnas},
+    }
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -336,6 +352,7 @@ def main():
         "cierre_f3": datos_cierre_fase3(),
         "balance": datos_balance(),
         "metodos": datos_metodos(),
+        "hargreaves_t1": datos_hargreaves_tarea1(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -651,6 +668,13 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
+  <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
+  <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio
+  Voronoi (script 21). Tarea 1: T promedio de la cuenca de Earth Engine (día UTC) o T de MSWX de CAMELS-COL, Ra en el
+  centroide. CAMELS-COL: su ETP publicada, que la Tarea 1 ya halló unas 2.75 veces más alta que la misma fórmula con sus
+  mismas temperaturas. Script 23; reproduce el CSV de la Tarea 1. Solo los meses sin días faltantes en CAMELS-COL.</p>
+  <div class="tabla" id="t-hargreaves-t1"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Hargreaves de la Tarea 1 y de la Tarea 2 frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-hargreaves-t1"></div></div>
 </section>
 
 <section>
@@ -972,6 +996,19 @@ for (const [valor, texto] of CARGA.cifras) {
     line: {color: COLOR_M[c], width: c === ref ? 3 : 1.6, dash: c === ref ? 'dot' : 'solid'}})), ejeMes(base('mm/mes')), OPCIONES);
   cicloDe('g-metodos-ciclo-eto', ['penman_fao24', 'makkink', 'hargreaves', 'cenicafe_2006', 'thornthwaite'], 'eto_fao56');
   cicloDe('g-metodos-ciclo-pt', ['priestley_taylor'], 'eto_fao56_rs0');
+
+  const H1 = CARGA.hargreaves_t1;
+  const SERIES_H1 = [['tarea2_6_puntos', 'Tarea 2 · ERA5-Land, 6 puntos', '#7C5BC7'],
+    ['tarea1_era5land', 'Tarea 1 · ERA5-Land, promedio de cuenca', '#56B4E9'],
+    ['tarea1_mswx', 'Tarea 1 · MSWX (CAMELS-COL)', '#009E73'],
+    ['camels_publicada', 'CAMELS-COL publicada', '#D55E00'],
+    ['eto_penman_monteith', 'ETo Penman–Monteith (FAO-56)', css('--tinta')]];
+  tabla('t-hargreaves-t1', ['Serie', `Media anual, ${H1.n_meses} meses (mm)`, 'Frente a la ETo Penman–Monteith (FAO-56)'],
+    SERIES_H1.map(([c, n]) => [n, H1.anual[c], c === 'eto_penman_monteith' ? 'referencia' : `${fmt(H1.sesgo[c], 1)} %`]));
+  Plotly.newPlot('g-hargreaves-t1', SERIES_H1.map(([c, n, color]) => ({type: 'scatter', mode: 'lines+markers', name: n,
+    x: xm, y: H1.ciclo[c], marker: {size: 4}, visible: c === 'camels_publicada' ? 'legendonly' : true,
+    line: {color, width: c === 'eto_penman_monteith' ? 3 : 1.6, dash: c === 'eto_penman_monteith' ? 'dot' : 'solid'}})),
+    ejeMes(base('mm/mes')), OPCIONES);
   const B = CARGA.balance;
   tabla('t-balance', ['Camino', 'Datos', 'PI (mm/año)', 'PL (mm/año)', 'Q (mm/año)', 'ET real con PI', 'ET real con PL'],
     B.resumen.map(r => [r.camino, r.n, r.PI, r.PL, r.Q, r.ETR_PI, r.ETR_PL]));

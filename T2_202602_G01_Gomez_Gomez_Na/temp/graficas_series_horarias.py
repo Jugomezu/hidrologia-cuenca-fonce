@@ -647,7 +647,7 @@ code { font: 400 .86em var(--f-dato); }
   calendario. «Meses sobre la dispersión»: cuántos de los 12 tienen |sesgo %| mayor que la dispersión entre pruebas de
   la fase 3.</p>
   <div class="tabla" id="t-metodos"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método tal como es, agrupada por lo que estima (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:520px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método tal como es: agrupada por lo que estima, color según las variables que usa; línea punteada = ETo FAO-56 (mm/año)</h3><div class="grafico" id="g-metodos-grupos" style="height:520px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo FAO-56: ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a FAO-56 con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
@@ -940,22 +940,30 @@ for (const [valor, texto] of CARGA.cifras) {
     penman_fao24: 'Penman (FAO-24)', aa_brutsaert_stricker: 'AA (ET real)', cenicafe_2006: 'Cenicafé 2006', eto_fao56_rs0: 'FAO-56 con rs = 0'};
   const COLOR_M = {eto_fao56: css('--tinta'), thornthwaite: '#8C6D31', hargreaves: '#7C5BC7', priestley_taylor: '#E69F00', makkink: '#009E73',
     penman_fao24: '#56B4E9', aa_brutsaert_stricker: '#D55E00', cenicafe_2006: '#CC79A7', eto_fao56_rs0: '#0072B2'};
-  // Los métodos tal como son, agrupados por la cantidad que estiman (Juan, 22 nov). Sin referencias añadidas.
-  // Cada etiqueta dice las variables que usa el método.
-  const GRUPOS = [
-    ['ETo', [['ETo FAO-56', 'Rn + T + humedad + viento'], ['Penman (FAO-24, c = 0.8)', 'Rn + T + humedad + viento'],
-             ['Makkink', 'Rs + T'], ['Hargreaves–Samani', 'T + Ra'], ['Cenicafé 2006', 'solo altitud']]],
-    ['ETP', [['Priestley–Taylor', 'Rn + T'], ['Thornthwaite', 'T (y latitud)']]],
-    ['ET real', [['Brutsaert–Stricker (AA)', 'Rn + T + humedad + viento']]],
+  // Los métodos tal como son (Juan, 22 nov): agrupados en el eje por la cantidad que estiman; el color dice las
+  // variables que usan. La línea punteada es la ETo FAO-56.
+  const ORDEN = [['ETo FAO-56', 'ETo'], ['Penman (FAO-24, c = 0.8)', 'ETo'], ['Makkink', 'ETo'], ['Hargreaves–Samani', 'ETo'],
+    ['Cenicafé 2006', 'ETo'], ['Priestley–Taylor', 'ETP'], ['Thornthwaite', 'ETP'], ['Brutsaert–Stricker (AA)', 'ET real']];
+  const etiqueta = m => { const q = ORDEN.find(o => o[0] === m)[1]; return `${m} · ${q}`; };
+  const VARIABLES = [
+    ['Solo altitud', ['Cenicafé 2006'], '#CC79A7'],
+    ['T (y latitud)', ['Thornthwaite'], '#8C6D31'],
+    ['T + Ra', ['Hargreaves–Samani'], '#7C5BC7'],
+    ['Rs + T', ['Makkink'], '#009E73'],
+    ['Rn + T', ['Priestley–Taylor'], '#E69F00'],
+    ['Rn + T + humedad + viento', ['ETo FAO-56', 'Penman (FAO-24, c = 0.8)', 'Brutsaert–Stricker (AA)'], '#0072B2'],
   ];
-  const COLOR_GRUPO = ['#0072B2', '#E69F00', '#D55E00'];
-  const trazas = GRUPOS.map(([grupo, metodos], i) => ({type: 'bar', name: grupo, orientation: 'h',
-    y: metodos.map(([m, v]) => `${m}<br>${v}`), x: metodos.map(([m]) => MT.anual[m]),
-    marker: {color: COLOR_GRUPO[i]}, text: metodos.map(([m]) => MT.anual[m]), textposition: 'outside',
+  const trazas = VARIABLES.map(([grupo, metodos, color]) => ({type: 'bar', name: grupo, orientation: 'h',
+    y: metodos.map(etiqueta), x: metodos.map(m => MT.anual[m]),
+    marker: {color}, text: metodos.map(m => MT.anual[m]), textposition: 'outside',
     hovertemplate: '%{y}: %{x} mm/año<extra>' + grupo + '</extra>'}));
-  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 200;
-  lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', autorange: 'reversed', title: ''});
+  const lg = base('mm/año'); lg.hovermode = 'closest'; lg.margin.l = 260;
+  lg.yaxis = Object.assign(lg.yaxis || {}, {type: 'category', categoryorder: 'array',
+    categoryarray: ORDEN.map(([m]) => etiqueta(m)), autorange: 'reversed', title: ''});
   lg.xaxis = Object.assign(lg.xaxis || {}, {type: 'linear', rangemode: 'tozero', title: 'mm/año'});
+  const separador = y => ({type: 'line', xref: 'paper', x0: -0.35, x1: 1, y0: y, y1: y, line: {color: css('--tinta'), width: 1}});
+  lg.shapes = [{type: 'line', x0: MT.eto_anual, x1: MT.eto_anual, yref: 'paper', y0: 0, y1: 1,
+    line: {color: css('--tinta'), dash: 'dot', width: 1.5}}, separador(4.5), separador(6.5)];
   Plotly.newPlot('g-metodos-grupos', trazas, lg, OPCIONES);
 
   // Comparaciones, cada una con su referencia de la misma superficie.

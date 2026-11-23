@@ -317,6 +317,21 @@ def datos_metodos():
     }
 
 
+def texto_fase4():
+    """Fase 4: explicación de las diferencias escrita por Juan (temp/textos_informe/fase4_diferencias_eto.md)."""
+    import html, re
+    lineas = (Path(__file__).with_name("textos_informe") / "fase4_diferencias_eto.md").read_text(encoding="utf-8")
+    parrafos = [b.strip() for b in lineas.split("\n\n")]
+    parrafos = [b for b in parrafos if b and not b.startswith("#") and not b.startswith("Texto de Juan")]
+    salida = []
+    for b in parrafos:
+        b = html.escape(b, quote=False)
+        b = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", b)
+        b = re.sub(r"\*(.+?)\*", r"<i>\1</i>", b)
+        salida.append(b)
+    return salida
+
+
 def datos_hargreaves_tarea1():
     """Fase 4: Hargreaves de la Tarea 1 frente al de la Tarea 2 (salida de 23_hargreaves_tarea1.py)."""
     h = pd.read_csv(CARPETA_PRODUCTOS / "hargreaves_tarea1_mensual.csv")
@@ -356,6 +371,7 @@ def main():
         "balance": datos_balance(),
         "metodos": datos_metodos(),
         "hargreaves_t1": datos_hargreaves_tarea1(),
+        "texto_f4": texto_fase4(),
         "puntos": PUNTOS,
         "variables": [
             {
@@ -671,6 +687,8 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
+  <h3>Explicación de las diferencias (Juan, 23 nov)</h3>
+  <div id="texto-f4"></div>
   <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
   <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio
   Voronoi (script 21). Tarea 1: T promedio de la cuenca de Earth Engine (día UTC) o T de MSWX de CAMELS-COL, Ra en el
@@ -1055,6 +1073,7 @@ for (const [valor, texto] of CARGA.cifras) {
   cicloDe('g-metodos-ciclo-eto', ['penman_fao24', 'makkink', 'hargreaves', 'cenicafe_2006', 'thornthwaite'], 'eto_fao56');
   cicloDe('g-metodos-ciclo-pt', ['priestley_taylor'], 'eto_fao56_rs0');
 
+  document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;
   const SERIES_H1 = [['tarea2_6_puntos', 'Tarea 2 · ERA5-Land, 6 puntos', '#7C5BC7'],
     ['tarea1_era5land', 'Tarea 1 · ERA5-Land, promedio de cuenca', '#56B4E9'],

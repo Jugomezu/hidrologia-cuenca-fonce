@@ -401,11 +401,8 @@ def main():
         "balance": datos_balance(),
         "metodos": datos_metodos(),
         "hargreaves_t1": datos_hargreaves_tarea1(),
-<<<<<<< HEAD
         "texto_f4": texto_fase4(),
-=======
         "fase6": datos_fase6(),
->>>>>>> origin/claude/project-thread-bsdfp7
         "puntos": PUNTOS,
         "variables": [
             {

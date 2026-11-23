@@ -335,6 +335,21 @@ def datos_alfa():
     return {c: t[c].round(4).tolist() for c in t.columns if c != "mes_calendario"}
 
 
+def datos_sensibilidad():
+    """Fase 5: experimento de sensibilidad (salida de 28_sensibilidad.py)."""
+    t = pd.read_csv(CARPETA_PRODUCTOS / "sensibilidad.csv", dtype={"mes": str})
+    escenarios = list(dict.fromkeys(t["escenario"]))
+    metodos = list(dict.fromkeys(t["metodo"]))
+    anual = t[t["mes"] == "anual"].pivot(index="metodo", columns="escenario", values="cambio_pct")
+    mensual = t[t["mes"] != "anual"].assign(mes=lambda x: x["mes"].astype(int))
+    return {
+        "escenarios": escenarios, "metodos": metodos,
+        "anual": anual.loc[metodos, escenarios].round(2).values.tolist(),
+        "mensual": {e: {m: g.sort_values("mes")["cambio_pct"].round(2).tolist() for m, g in ge.groupby("metodo")}
+                    for e, ge in mensual.groupby("escenario")},
+    }
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -422,6 +437,7 @@ def main():
         "texto_f4": texto_fase4(),
         "terminos": datos_terminos(),
         "alfa": datos_alfa(),
+        "sensibilidad": datos_sensibilidad(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -745,6 +761,8 @@ code { font: 400 .86em var(--f-dato); }
   <div id="texto-f4"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Términos de la ETo Penman–Monteith (FAO-56) por mes (mm/mes)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">FAO-56 ec. 6 partida en sus dos sumandos, que comparten el denominador Δ + γ(1 + 0.34 u2): radiativo = 0.408 Δ (Rn − G); aerodinámico = γ · 900/(T + 273) · u2 · (es − ea). Media 1998–2022 de cada mes calendario, cuenca por Voronoi. El número encima de cada barra es la fracción aerodinámica del mes; al pasar el cursor, su mínimo y máximo entre los 25 años. Script 26.</p><div class="grafico" id="g-terminos-f5"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · α* = ETo/Eeq por mes, con el déficit de vapor y el viento</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Eeq = Δ/(Δ+γ) · Rn/λ (evaporación de equilibrio; G = 0, λ = 2.45 MJ/kg), con los mismos Δ, γ y Rn de la ETo; es Priestley–Taylor / 1.26. Suma mensual en cada punto, cuenca por Voronoi; α* = cociente de los totales del mes, media 1998–2022 por mes calendario. La franja es el mínimo y el máximo de α* entre los 25 años. Eje derecho: déficit es − ea (kPa) y u2 (m/s), media del mes. Script 27. Para verificar a mano: punto 6, febrero de 2010 (hoja <code>metodos_mes_a_mano.xlsx</code>): Eeq 100.321, ETo 105.091 mm/mes, α* 1.0475.</p><div class="grafico" id="g-alfa"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Sensibilidad: cambio de cada método al perturbar una entrada (%, anual)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Decisiones de Juan (23 nov): Tmáx y Tmín +1 y +2 °C por igual, con ea constante (_ea) o con HR constante (_hr); u2 +10 %; Rs −10 %; ea +10 %. Rnl se recalcula con la T, el ea y la Rs nuevos; Thornthwaite conserva el I del clima base; Cenicafé no cambia (solo altitud). Cambio % = escenario / base − 1, totales de la cuenca (Voronoi), 1998–2022. Script 28.</p><div class="grafico" id="g-sens-anual" style="height:460px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Sensibilidad por mes (%)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Elige el escenario con los botones. Cada línea es un método, media 1998–2022 de cada mes calendario.</p><div class="grafico" id="g-sens-mes" style="height:480px"></div></div>
   <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
   <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio
   Voronoi (script 21). Tarea 1: T promedio de la cuenca de Earth Engine (día UTC) o T de MSWX de CAMELS-COL, Ra en el
@@ -1212,6 +1230,33 @@ for (const [valor, texto] of CARGA.cifras) {
        line: {color: '#A65E1A', width: 1.3}, hovertemplate: 'déficit: %{y:.3f} kPa<extra></extra>'},
       {type: 'scatter', mode: 'lines', x: xm, y: A.u2_ms, name: 'u2 (m/s)', yaxis: 'y2',
        line: {color: '#7C5BC7', width: 1.3}, hovertemplate: 'u2: %{y:.2f} m/s<extra></extra>'}], la, OPCIONES);
+  }
+  {
+    const S = CARGA.sensibilidad;
+    const etiqueta = {'t+1_ea': 'T +1 °C, ea cte', 't+2_ea': 'T +2 °C, ea cte', 't+1_hr': 'T +1 °C, HR cte',
+      't+2_hr': 'T +2 °C, HR cte', 'u2+10': 'u2 +10 %', 'rs-10': 'Rs −10 %', 'ea+10': 'ea +10 %'};
+    const orden = ['t+1_ea', 't+2_ea', 't+1_hr', 't+2_hr', 'u2+10', 'rs-10', 'ea+10'];
+    const idx = orden.map(e => S.escenarios.indexOf(e));
+    const z = S.anual.map(f => idx.map(i => f[i]));
+    const lh = base(''); lh.margin = Object.assign({}, lh.margin, {l: 250});
+    lh.xaxis = Object.assign(lh.xaxis || {}, {type: 'category', side: 'top'});
+    lh.yaxis = Object.assign(lh.yaxis || {}, {type: 'category', autorange: 'reversed'});
+    Plotly.newPlot('g-sens-anual', [{type: 'heatmap', x: orden.map(e => etiqueta[e]), y: S.metodos, z,
+      zmid: 0, zmin: -21, zmax: 21, colorscale: [[0, '#2166AC'], [0.5, '#F7F7F7'], [1, '#B2182B']],
+      text: z.map(f => f.map(v => (v > 0 ? '+' : '') + v.toFixed(1))), texttemplate: '%{text}',
+      colorbar: {title: '%'}, hovertemplate: '%{y}<br>%{x}: %{z:+.2f} %<extra></extra>'}], lh, OPCIONES);
+
+    const colores = ['#0072B2', '#009E73', '#A65E1A', '#7C5BC7', '#E69F00', '#56B4E9', '#CC79A7', '#D55E00', '#999999'];
+    const trazasDe = e => S.metodos.map((m, k) => ({type: 'scatter', mode: 'lines+markers', name: m, x: xm,
+      y: S.mensual[e][m], line: {color: colores[k % colores.length], width: m.startsWith('ETo') ? 3 : 1.6},
+      hovertemplate: `${m}: %{y:+.2f} %<extra></extra>`}));
+    const lm = ejeMes(base('cambio %'));
+    lm.updatemenus = [{type: 'buttons', direction: 'right', x: 0, xanchor: 'left', y: 1.22, yanchor: 'top',
+      buttons: orden.map(e => ({label: etiqueta[e], method: 'restyle',
+        args: [{y: S.metodos.map(m => S.mensual[e][m])}]}))}];
+    lm.margin = Object.assign({}, lm.margin, {t: 60, b: 110}); lm.legend = {orientation: 'h', x: 0, y: -0.12, yanchor: 'top'};
+    lm.updatemenus[0].y = 1.12;
+    Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

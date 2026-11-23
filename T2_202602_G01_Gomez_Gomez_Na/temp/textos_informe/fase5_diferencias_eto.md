@@ -18,4 +18,6 @@ En nuestro caso el componente aerodinámico de Penman–Monteith es una parte pe
 
 **Priestley–Taylor:** Priestley–Taylor no es la ET de un pasto de referencia (ETo), sino la de una superficie húmeda sin rs. Para compararla con Penman–Monteith, hacemos el ajuste calculándolo con rs = 0, en vez del que se calcula según FAO-56. Al hacer esta comparación vemos que tienen formas muy similares, con una diferencia estable entre ambos métodos. Esto sugiere que se podría calibrar fácilmente para dar resultados muy similares a los de Penman–Monteith sin rs.
 
+**Thornthwaite:** Este método estima la ETP de una superficie con cubierta vegetal y sin falta de agua, que no es la misma superficie de la ETo, así que la comparación directa es solo aproximada. Aun así, Thornthwaite queda de forma consistente muy por debajo de Penman–Monteith (entre −33 % y −43 % según el mes; −38 % en el año). Además de la diferencia de superficie, esto se debe a que el método usa la temperatura como indicador de la energía disponible. En las zonas donde se desarrolló, la temperatura sigue sobre todo a la radiación; en nuestra cuenca la temperatura es baja principalmente por la altitud, no por falta de radiación. El método ve temperaturas bajas, supone poca energía y da una ETP baja.
+
 Pendiente: el promedio de HR de las 5 estaciones (79.4 %) aún no está en un script.

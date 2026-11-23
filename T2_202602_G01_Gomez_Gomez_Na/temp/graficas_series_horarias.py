@@ -329,6 +329,12 @@ def datos_terminos():
     return {c: t[c].round(2).tolist() for c in t.columns if c != "mes_calendario"}
 
 
+def datos_alfa():
+    """Fase 5: α* = ETo/Eeq por mes calendario (salida de 27_alfa_implicito.py)."""
+    t = pd.read_csv(CARPETA_PRODUCTOS / "alfa_implicito_ciclo.csv")
+    return {c: t[c].round(4).tolist() for c in t.columns if c != "mes_calendario"}
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -415,6 +421,7 @@ def main():
         "hargreaves_t1": datos_hargreaves_tarea1(),
         "texto_f4": texto_fase4(),
         "terminos": datos_terminos(),
+        "alfa": datos_alfa(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -736,7 +743,8 @@ code { font: 400 .86em var(--f-dato); }
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
   <h3>Fase 5 · Explicación de las diferencias de los métodos de ETo (texto de Juan, 23 nov; borrador)</h3>
   <div id="texto-f4"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Términos de la ETo Penman–Monteith (FAO-56) por mes (mm/mes)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">FAO-56 ec. 6 partida en sus dos sumandos, que comparten el denominador Δ + γ(1 + 0.34 u2): radiativo = 0.408 Δ (Rn − G); aerodinámico = γ · 900/(T + 273) · u2 · (es − ea). Media 1998–2022 de cada mes calendario, cuenca por Voronoi. El número encima de cada barra es la fracción aerodinámica del mes; al pasar el cursor, su mínimo y máximo entre los 25 años. Script 26.</p><div class="grafico" id="g-terminos"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Términos de la ETo Penman–Monteith (FAO-56) por mes (mm/mes)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">FAO-56 ec. 6 partida en sus dos sumandos, que comparten el denominador Δ + γ(1 + 0.34 u2): radiativo = 0.408 Δ (Rn − G); aerodinámico = γ · 900/(T + 273) · u2 · (es − ea). Media 1998–2022 de cada mes calendario, cuenca por Voronoi. El número encima de cada barra es la fracción aerodinámica del mes; al pasar el cursor, su mínimo y máximo entre los 25 años. Script 26.</p><div class="grafico" id="g-terminos-f5"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · α* = ETo/Eeq por mes, con el déficit de vapor y el viento</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Eeq = Δ/(Δ+γ) · Rn/λ (evaporación de equilibrio; G = 0, λ = 2.45 MJ/kg), con los mismos Δ, γ y Rn de la ETo; es Priestley–Taylor / 1.26. Suma mensual en cada punto, cuenca por Voronoi; α* = cociente de los totales del mes, media 1998–2022 por mes calendario. La franja es el mínimo y el máximo de α* entre los 25 años. Eje derecho: déficit es − ea (kPa) y u2 (m/s), media del mes. Script 27. Para verificar a mano: punto 6, febrero de 2010 (hoja <code>metodos_mes_a_mano.xlsx</code>): Eeq 100.321, ETo 105.091 mm/mes, α* 1.0475.</p><div class="grafico" id="g-alfa"></div></div>
   <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
   <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio
   Voronoi (script 21). Tarea 1: T promedio de la cuenca de Earth Engine (día UTC) o T de MSWX de CAMELS-COL, Ra en el
@@ -1178,12 +1186,32 @@ for (const [valor, texto] of CARGA.cifras) {
     const TM = CARGA.terminos, fr = TM.fraccion_aerodinamica_pct;
     const rango = fr.map((v, i) => `${TM.fraccion_aerodinamica_min_pct[i].toFixed(1)} a ${TM.fraccion_aerodinamica_max_pct[i].toFixed(1)} %`);
     const lt = ejeMes(base('mm/mes')); lt.barmode = 'stack'; lt.hovermode = 'x unified';
-    Plotly.newPlot('g-terminos', [
+    Plotly.newPlot('g-terminos-f5', [
       {type: 'bar', name: 'término radiativo', x: xm, y: TM.eto_radiativa_mm_mes, marker: {color: '#0072B2'},
        customdata: TM.fraccion_radiativa_pct, hovertemplate: 'radiativo: %{y:.1f} mm/mes (%{customdata:.1f} %)<extra></extra>'},
       {type: 'bar', name: 'término aerodinámico', x: xm, y: TM.eto_aerodinamica_mm_mes, marker: {color: '#E69F00'},
        text: fr.map(v => v.toFixed(1) + ' %'), textposition: 'outside', cliponaxis: false, customdata: rango,
        hovertemplate: 'aerodinámico: %{y:.1f} mm/mes (%{text}; entre años %{customdata})<extra></extra>'}], lt, OPCIONES);
+  }
+  {
+    const A = CARGA.alfa;
+    const la = ejeMes(base('razón con Eeq')); la.hovermode = 'x unified';
+    la.yaxis2 = {title: 'kPa · m/s', overlaying: 'y', side: 'right', showgrid: false, rangemode: 'tozero'};
+    la.legend = {orientation: 'h', y: 1.15}; la.margin = Object.assign({}, la.margin, {r: 70});
+    Plotly.newPlot('g-alfa', [
+      {type: 'scatter', mode: 'lines', x: [...xm, ...xm.slice().reverse()],
+       y: [...A.alfa_estrella_max, ...A.alfa_estrella_min.slice().reverse()], fill: 'toself',
+       fillcolor: 'rgba(0,114,178,0.15)', line: {width: 0}, name: 'α* mín.–máx. entre años', hoverinfo: 'skip'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: A.alfa_estrella, name: 'α* = ETo/Eeq', line: {color: '#0072B2', width: 2.5},
+       hovertemplate: 'α*: %{y:.3f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: A.alfa_rs0, name: 'ETo(rs = 0)/Eeq', line: {color: '#009E73', dash: 'dash'},
+       hovertemplate: 'rs = 0: %{y:.3f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines', x: [1, 12], y: [1.26, 1.26], name: 'α de Priestley–Taylor (1.26)',
+       line: {color: '#E69F00', dash: 'dot'}, hoverinfo: 'skip'},
+      {type: 'scatter', mode: 'lines', x: xm, y: A.deficit_kPa, name: 'déficit es − ea (kPa)', yaxis: 'y2',
+       line: {color: '#A65E1A', width: 1.3}, hovertemplate: 'déficit: %{y:.3f} kPa<extra></extra>'},
+      {type: 'scatter', mode: 'lines', x: xm, y: A.u2_ms, name: 'u2 (m/s)', yaxis: 'y2',
+       line: {color: '#7C5BC7', width: 1.3}, hovertemplate: 'u2: %{y:.2f} m/s<extra></extra>'}], la, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

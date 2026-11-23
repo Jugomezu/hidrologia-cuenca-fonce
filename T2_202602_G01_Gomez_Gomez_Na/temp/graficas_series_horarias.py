@@ -307,7 +307,13 @@ def datos_metodos():
     anual = {nombres[c.removesuffix("_mm_mes")]: round(float(mensual[c].mean() * 12)) for c in columnas}
     resumen["anual"] = resumen["metodo"].map(anual)
     partes = pd.read_csv(ETO_CUENCA)
+    # Sesgo % de cada mes calendario y la dispersión elegida en la fase 3 (rango entre las 2 pruebas, Juan 20 nov).
+    clave = {v: k for k, v in nombres.items()}
+    sesgo = {clave[m]: g.sort_values("mes")["sesgo_pct"].round(1).tolist() for m, g in ajuste.groupby("metodo")}
+    dispersion = pd.read_csv(CARPETA_PRODUCTOS / "dispersion_pruebas.csv").sort_values("mes")["dispersion_pct"]
     return {
+        "sesgo": sesgo, "dispersion": dispersion.round(2).tolist(),
+        "dispersion_media": round(float(dispersion.mean()), 1),
         "eto_partes": {"radiativa": round(float(partes["eto_radiativa_mm_mes"].mean() * 12)),
                        "aerodinamica": round(float(partes["eto_aerodinamica_mm_mes"].mean() * 12))},
         "eto_anual": anual["ETo Penman–Monteith (FAO-56)"],
@@ -715,6 +721,7 @@ code { font: 400 .86em var(--f-dato); }
   la fase 3.</p>
   <div class="tabla" id="t-metodos"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Media anual 1998–2022 de cada método, tal como es (mm/año)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Agrupados por lo que estima cada método; el color dice qué variables usa. Al lado de cada barra, la diferencia con la ETo Penman–Monteith (FAO-56), que es la línea punteada. Su barra se parte en término radiativo (lleno) y aerodinámico (rayado). Pasa el cursor (o toca) para ver la diferencia con la ETo: verde por encima, rojo por debajo.</p><div class="grafico" id="g-metodos-grupos" style="height:600px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Sesgo de cada método frente a su referencia, mes a mes, con la dispersión de la fase 3 (%)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Sesgo % = (método − referencia)/referencia, media 1998–2022 de cada mes calendario. Referencia: ETo Penman–Monteith (FAO-56); para Priestley–Taylor, Penman–Monteith (FAO-56) con rs = 0. La franja gris es ± la dispersión elegida en la fase 3 (rango entre las 2 pruebas, cambia por mes; media <span id="disp-media"></span> pp): un punto fuera de la franja se aleja de la referencia más de lo que difieren entre sí las pruebas de la ETo. Doble clic en la leyenda para ver un solo método.</p><div class="grafico" id="g-metodos-sesgo" style="height:520px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
@@ -1134,6 +1141,26 @@ for (const [valor, texto] of CARGA.cifras) {
   const cicloDe = (id, claves, ref) => Plotly.newPlot(id, [...claves, ref].map(c => ({type: 'scatter', mode: 'lines+markers',
     name: NOMBRE_M[c], x: xm, y: MT.ciclo[c], marker: {size: 4},
     line: {color: COLOR_M[c], width: c === ref ? 3 : 1.6, dash: c === ref ? 'dot' : 'solid'}})), ejeMes(base('mm/mes')), OPCIONES);
+  {
+    // Sesgo mensual frente a la franja ± dispersión (Juan, 23 nov).
+    const d = MT.dispersion;
+    const franja = [{type: 'scatter', mode: 'lines', x: [...xm, ...xm.slice().reverse()], y: [...d, ...d.map(v => -v).reverse()],
+      fill: 'toself', fillcolor: 'rgba(128,128,128,0.22)', line: {width: 0}, name: '± dispersión fase 3', hoverinfo: 'skip'},
+      {type: 'scatter', mode: 'lines', x: xm, y: d, line: {color: 'rgba(128,128,128,0.6)', width: 1}, showlegend: false,
+       hovertemplate: 'dispersión ±%{y:.1f} %<extra></extra>'}];
+    const orden = ['makkink', 'penman_fao24', 'hargreaves', 'cenicafe_2006', 'priestley_taylor', 'thornthwaite'];
+    const lineas = orden.filter(c => MT.sesgo[c]).map(c => {
+      const y = MT.sesgo[c], fuera = y.filter((v, i) => Math.abs(v) > d[i]).length;
+      return {type: 'scatter', mode: 'lines+markers', x: xm, y, line: {color: COLOR_M[c], width: 2},
+        name: `${NOMBRE_M[c]}${c === 'priestley_taylor' ? ' (vs rs = 0)' : ''} · ${fuera}/12 fuera`,
+        marker: {size: 7, symbol: y.map((v, i) => Math.abs(v) > d[i] ? 'circle' : 'circle-open')},
+        hovertemplate: `${NOMBRE_M[c]}: %{y:+.1f} %<extra></extra>`};
+    });
+    const ls = ejeMes(base('sesgo %')); ls.hovermode = 'x unified';
+    ls.shapes = [{type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 0, y1: 0, line: {color: css('--tenue'), width: 1}}];
+    Plotly.newPlot('g-metodos-sesgo', [...franja, ...lineas], ls, OPCIONES);
+    document.getElementById('disp-media').textContent = MT.dispersion_media;
+  }
   cicloDe('g-metodos-ciclo-eto', ['penman_fao24', 'makkink', 'hargreaves', 'cenicafe_2006', 'thornthwaite'], 'eto_fao56');
   cicloDe('g-metodos-ciclo-pt', ['priestley_taylor'], 'eto_fao56_rs0');
 

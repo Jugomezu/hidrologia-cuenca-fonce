@@ -60,7 +60,8 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
 - Hargreaves, G. H. y Samani, Z. A. (1985). Reference crop evapotranspiration from temperature. *Applied Engineering in
   Agriculture, 1*(2), 96–99. https://doi.org/10.13031/2013.26773. Leído: el artículo no; la ecuación coincide con FAO-56
   ec. 52, ETo = 0.0023 (Tmedia + 17.8)(Tmáx − Tmín)^0.5 Ra, con Ra en mm/día (p. web del cap. 3, x0490e07): por eso el
-  script multiplica Ra en MJ/m²·día por 0.408.
+  script multiplica Ra en MJ/m²·día por 0.408. Que Hargreaves tiende a sobrestimar la ETo con HR alta: FAO-56, p. 64
+  (leído por Juan, 23 nov).
 - Hoyos, C. D. (s. f.). *Evapotranspiración* [notas del curso de Hidrología]. Universidad Nacional de Colombia.
   https://carlosdhoyos.github.io/cursos/hidrologia/evapotranspiracion.html. Usado: ecuaciones de Hargreaves,
   Priestley–Taylor, Makkink, Penman (forma FAO-24) y AA tal como se dan en el curso (Partes 2, 6 y 7). Leído: sí.

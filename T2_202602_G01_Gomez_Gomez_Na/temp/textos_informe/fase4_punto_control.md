@@ -7,4 +7,4 @@ El que mejor se ajusta parece ser Makkink. Esto tiene sentido porque nuestra cue
 Un método empírico puede ajustarse bien, especialmente si se calibra para la zona de estudio específicamente.
 
 3. ¿Qué alejamientos superan la dispersión de las pruebas?
-(pendiente)
+Ninguno de los métodos se mantiene completamente dentro del rango de la dispersión; sin embargo, el mejor es de nuevo Makkink, que está dentro del rango 7 meses al año. Esto significa que en estos meses los errores de este método podrían atribuirse a problemas con los datos, más que a problemas de método.

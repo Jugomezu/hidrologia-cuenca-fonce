@@ -148,3 +148,11 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
 - Thornthwaite, C. W. (1948). An approach toward a rational classification of climate. *Geographical Review, 38*(1),
   55–. https://doi.org/10.2307/210739 (Crossref solo da la página inicial). Leído: no; la ecuación (I, a y la
   corrección (L/12)(N/30)) se toma de las notas del curso (Hoyos), Parte 7. Script 22.
+
+## Fase 6 · Incertidumbre del caudal (script 24)
+
+- Di Baldassarre, G. y Montanari, A. (2009). Uncertainty in river discharge observations: a quantitative analysis.
+  *Hydrology and Earth System Sciences, 13*(6), 913–921. https://doi.org/10.5194/hess-13-913-2009 (acceso libre).
+  Leído el texto completo (2026-11-22): un aforo, ~5 % al 95 % (p. 915); error global de la curva de gasto en el Po,
+  6.2 % a 42.8 % de Q al 95 %, media 25.6 % (p. 919–920). El estudio es de un tramo aluvial europeo y no trata caudales
+  anuales; se usa como orden de magnitud.

@@ -24,6 +24,7 @@ Formato de cada fila: qué se pidió, qué hizo la IA, qué decidió o revisó e
 | 2026-11-20 | Explicar las diferencias entre métodos | Explicó qué cantidad estima cada método (ETo, ETP, E0, ET real) y propuso hipótesis: falta de radiación en Thornthwaite, superficie mojada en Priestley–Taylor y Penman | Juan respondió las preguntas de cada paso de Thornthwaite; queda su verificación a mano de un mes por método |
 | 2026-11-22 | Hacer comparables los métodos | Propuso comparar cada método con una referencia de su misma superficie (FAO-56 con rs = 0 para Priestley–Taylor), notó que el Penman calculado es ETo de FAO-24 y no E0, y lo programó en el script 21 | Juan pidió que todos dieran la misma variable y eligió la opción de misma superficie, sin calibrar |
 | 2026-11-22 | Agregar el Hargreaves de la Tarea 1 | Script 23: rehízo las series de Hargreaves de la Tarea 1 con los datos de la entrega, comprobó que reproducen el CSV de la Tarea 1 y las comparó con el de la Tarea 2 y la ETo Penman–Monteith | Juan lo pidió; el script y los números quedan para su revisión |
+| 2026-11-22 | Calcular la fase 6 (Juan ausente) | Script 24: balance P − Q por año hidrológico y calendario, σ_ET con σ_P y σ_Q, techo de energía con la Rn de ERA5-Land, cada producto y la AA frente al balance en sus mismos meses, marcas por año; sección en el documento de trabajo | Juan pidió dejarla lista; el agente tomó las decisiones de método (σ_P, σ_Q de Di Baldassarre y Montanari 2009, año desde febrero) y las dejó marcadas «para revisar» |
 
 ## Punto 2
 
@@ -31,5 +32,5 @@ Lo trabaja la compañera de Juan; su parte de la bitácora se agrega aparte.
 
 ## Lo que la IA no hizo
 
-- No eligió métodos, umbrales ni períodos: los propuso con su evidencia y el grupo decidió.
+- No eligió métodos, umbrales ni períodos: los propuso con su evidencia y el grupo decidió. Excepción: en la fase 6 (22 nov), con Juan ausente, el agente fijó σ_P, σ_Q y el año hidrológico y los dejó marcados «para revisar» en las decisiones, hasta que Juan los confirme o los cambie.
 - No sustituye la verificación: el día a mano y la lectura de las fuentes citadas los hace el grupo.

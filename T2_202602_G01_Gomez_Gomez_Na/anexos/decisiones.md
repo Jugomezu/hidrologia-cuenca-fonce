@@ -428,3 +428,32 @@ la Tarea 1 (T de ERA5-Land promediada sobre la cuenca, día UTC; T de MSWX de CA
 6.2649) y reproduce su CSV. En los 199 meses sin días faltantes en CAMELS-COL: Tarea 2 1 280 mm/año (+9.4 % frente a la
 ETo Penman–Monteith), Tarea 1 ERA5-Land 1 257 (+7.5 %), Tarea 1 MSWX 1 237 (+5.8 %), CAMELS-COL publicada 3 412
 (+192 %, el error ya hallado en la Tarea 1).
+
+## 2026-11-22 · Punto 1 · Fase 6: ET real por varios caminos (script 24) — PARA REVISAR
+
+Juan pidió dejar la fase 6 calculada mientras estaba fuera. Las decisiones de método las tomó el agente, con la opción
+más defendible; **Juan las revisa y puede cambiarlas** (cada una es una constante del script 24).
+
+**Decisiones del agente.**
+1. σ_P = |PL − PI|/√2: PI y PL como dos medidas con el mismo error, independiente (la diferencia tiene varianza 2σ²).
+2. σ_Q = 13.1 % de Q (1σ) = 25.6 %/1.96: error medio de la curva de gasto al 95 % de Di Baldassarre y Montanari (2009,
+   p. 919–920), tratado como sistemático (no baja al promediar años). Sensibilidad: 2.7 % (un aforo, 5.3 % al 95 %,
+   p. 915) y 21.8 % (42.8 %, el máximo del estudio). Es un río aluvial de Europa (Po); se declara como limitación.
+3. Año hidrológico: empieza en febrero, el mes con menos agua media en el suelo de ERA5-Land (1 249 mm). Se reporta
+   junto al año calendario que ya usaba el script 15.
+4. Techo de energía: Rn real = ssr + str de ERA5-Land mensual (1998-01 a 2022-08), promedio por área, λ = 2.45 MJ/kg.
+5. Cada producto se compara con el balance en sus mismos meses (con Q y con dato del producto), por ciclo anual medio.
+6. «Muy distinto de los productos»: fuera del rango de los productos del año o a más de 1σ_ET de su mediana.
+7. GRACE no se usa: su celda (~300 km) es mucho mayor que la cuenca (2 099 km²); queda como limitación.
+
+**Resultado (largo plazo).** P − Q = 1 206 ± 287 (PL) y 884 ± 287 (PI) mm/año. σ_ET es 24 % (PL) a 33 % (PI) de la ET;
+el 63 % de su varianza viene de la lluvia. Rn/λ = 1 754 mm/año: λET/Rn = 0.51 (PI) a 0.69 (PL), ≤ 1. ET/ETo = 0.77
+(PI) a 1.04 (PL): **con PL el balance supera a la ETo Penman–Monteith (FAO-56)**, y lo hace en 7 de 12 años
+hidrológicos. Productos frente al balance en sus mismos meses: GLEAM (−4 % frente a PL), MOD16 (−6 %) y TerraClimate
+(−15 %) quedan entre los dos balances; ERA5-Land e (+5 % sobre PL) y la AA (1 551, +29 %; ET/ETo = 1.33) por encima;
+SSEBop v6.1 (−10 % frente a PI) y v5 (−47 %) por debajo. Ningún año tiene P − Q negativo ni mayor que Rn/λ. ΔS del
+suelo con año hidrológico: desviación estándar de 49 mm, más que con año calendario (34 mm) en estos años.
+Archivos: `productos/punto1/et_*.csv`.
+
+**Para Juan.** (a) ¿Se quedan σ_P y σ_Q así? (b) ¿Año hidrológico o calendario? El hidrológico no redujo ΔS.
+(c) Con PL, P − Q > ETo: ¿error de PL, de Q, o la ETo se queda corta? Es la pregunta de la fase 7.

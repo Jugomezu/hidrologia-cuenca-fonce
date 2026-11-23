@@ -348,6 +348,36 @@ def datos_hargreaves_tarea1():
     }
 
 
+def datos_fase6():
+    """Fase 6: ET real por varios caminos, incertidumbre y techo de energía (salidas de 24_et_real_fase6.py)."""
+    frente = pd.read_csv(CARPETA_PRODUCTOS / "et_productos_vs_balance.csv")
+    incert = pd.read_csv(CARPETA_PRODUCTOS / "et_incertidumbre.csv")
+    anual = pd.read_csv(CARPETA_PRODUCTOS / "et_balance_anual.csv")
+    ciclo = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia.csv")
+    techo = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia_resumen.csv")
+    claves = ["era5land_e", "gleam_E", "mod16a2gf", "terraclimate_aet", "ssebop_v61", "ssebop_v5", "aa_brutsaert_stricker"]
+    redondear = lambda serie, d=0: [None if pd.isna(v) else round(float(v), d) for v in serie]
+    por_tipo = {}
+    for tipo, t in anual.groupby("tipo_de_anio"):
+        por_tipo[tipo] = {
+            "anios": t["anio"].astype(str).tolist(), "meses": t["meses"].iloc[0],
+            "pi": redondear(t["P_menos_Q_PI"]), "pl": redondear(t["P_menos_Q_PL"]), "sigma": redondear(t["sigma_ET"]),
+            "ds": redondear(t["dS_suelo"]), "eto": redondear(t["ETo"]), "rn": redondear(t["Rn_lambda"]),
+            "mediana": redondear(t["mediana_productos"]), "minimo": redondear(t["min_productos"]),
+            "maximo": redondear(t["max_productos"]),
+            "marcas_pi": t["marcas_PI"].fillna("").tolist(), "marcas_pl": t["marcas_PL"].fillna("").tolist(),
+            "ds_desv": round(float(t["dS_suelo"].std()), 0),
+        }
+    return {
+        "frente": frente.round(3).to_dict(orient="records"),
+        "incertidumbre": incert.round(1).to_dict(orient="records"),
+        "anual": por_tipo,
+        "techo": techo.round(3).to_dict(orient="records"),
+        "ciclo": {c: redondear(ciclo[c], 1) for c in ["Rn_lambda", "ETo", "ETR_PI", "ETR_PL"] + claves},
+        "claves": claves,
+    }
+
+
 def main():
     mensual = series_mensuales_eto()
     series = {n: leer_punto(n) for n in PUNTOS}
@@ -371,7 +401,11 @@ def main():
         "balance": datos_balance(),
         "metodos": datos_metodos(),
         "hargreaves_t1": datos_hargreaves_tarea1(),
+<<<<<<< HEAD
         "texto_f4": texto_fase4(),
+=======
+        "fase6": datos_fase6(),
+>>>>>>> origin/claude/project-thread-bsdfp7
         "puntos": PUNTOS,
         "variables": [
             {
@@ -699,6 +733,38 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <section>
+  <h2>Fase 6 · ET real por varios caminos</h2>
+  <p>Script 24 (22 nov, Juan ausente: las decisiones marcadas «para revisar» están en <code>anexos/decisiones.md</code>).
+  Tres preguntas: cuánto vale la ET real según el balance y con qué incertidumbre; cuánto se aparta cada producto del
+  balance en los mismos meses; y si alguna cifra rompe el techo de energía (Rn/λ, la radiación neta real de ERA5-Land,
+  no la del pasto) o la demanda (ETo Penman–Monteith (FAO-56)).</p>
+  <h3>Incertidumbre del balance de largo plazo</h3>
+  <p class="nota">σ_P = |PL − PI|/√2 (las dos lluvias como dos medidas con el mismo error). σ_Q = 13.1 % de Q (1σ):
+  el error medio de la curva de gasto al 95 %, 25.6 %, de Di Baldassarre y Montanari (2009,
+  <a href="https://doi.org/10.5194/hess-13-913-2009">doi:10.5194/hess-13-913-2009</a>), tratado como sistemático.
+  Sensibilidad: un aforo (5.3 % al 95 %) y el máximo del estudio (42.8 %).</p>
+  <div class="tabla" id="t-f6-incert"></div>
+  <div class="cifras" id="f6-cifras"></div>
+  <div class="tarjeta" style="margin-top:20px"><h3>Cada producto frente al balance, en los mismos meses (mm/año)</h3>
+    <p class="nota" style="margin:4px 0 0">Banda azul: P − Q con PL ± σ; banda naranja: con PI ± σ. Línea punteada:
+    ETo Penman–Monteith (FAO-56); línea continua: Rn/λ de ERA5-Land. Cada barra se compara con el balance de sus mismos
+    meses; las bandas son las del largo plazo (los meses cambian poco el balance, salvo SSEBop v6.1, que solo tiene 2012–2022).</p>
+    <div class="grafico" id="g-f6-productos" style="height:460px"></div></div>
+  <div class="tabla" id="t-f6-frente" style="margin-top:12px"></div>
+  <div class="tarjeta" style="margin-top:20px"><h3>Ciclo anual medio: techo de energía, demanda, balance y productos (mm/mes)</h3>
+    <p class="nota" style="margin:4px 0 0">P − Q mensual no es ET mensual: el agua que entra en un mes puede salir por
+    el río en otro. Se muestra solo para ver la forma del ciclo.</p>
+    <div class="grafico" id="g-f6-ciclo" style="height:440px"></div></div>
+  <div class="tarjeta" style="margin-top:20px"><h3>P − Q por año (años con los 12 meses de Q), con ± σ_ET (mm/año)</h3>
+    <div class="controles" id="c-f6-anio"></div>
+    <div class="grafico" id="g-f6-anual" style="height:440px"></div></div>
+  <h3 style="margin-top:20px">Años marcados (solo se señalan; no se explican)</h3>
+  <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
+  1σ de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
+  <div class="tabla" id="t-f6-marcas"></div>
+</section>
+
+<section>
   <h2>Fase 4 · Métodos disponibles en las notas del curso</h2>
   <p>Solo métodos de la sección «Caja de herramientas» y afines de las notas de C. D. Hoyos. Datos: ERA5-Land horario
   en 6 puntos (t2m, d2m, sp, u10, v10, ssrd), Rn FAO-56, estaciones DHIME, brillo solar. Quedan fuera las mediciones
@@ -745,6 +811,7 @@ code { font: 400 .86em var(--f-dato); }
 </section>
 
 <footer>
+  <p>Fase 6: <code>productos/punto1/et_*.csv</code> (script 24).</p>
   <p>Balance hídrico: <code>productos/punto1/balance_hidrico_*.csv</code> (script 15).</p>
   <p>ET real: <code>productos/punto1/et_real_mensual_productos.csv</code> y <code>et_real_anual_productos.csv</code>
   (script 14).</p>
@@ -1103,6 +1170,108 @@ for (const [valor, texto] of CARGA.cifras) {
   Plotly.newPlot('g-balance-anual', [
     {type: 'bar', name: 'Con PL', x: B.anios, y: B.etr_pl, marker: {color: '#0072B2'}},
     {type: 'bar', name: 'Con PI', x: B.anios, y: B.etr_pi, marker: {color: '#E69F00'}}], la, OPCIONES);
+})();
+
+// Fase 6: ET real por varios caminos.
+(() => {
+  const F6 = CARGA.fase6, MESES = ['E','F','M','A','M','J','J','A','S','O','N','D'], xm = [1,2,3,4,5,6,7,8,9,10,11,12];
+  const tabla = (id, cab, filas) => { document.getElementById(id).innerHTML =
+    '<table><tr>' + cab.map(c => `<th>${c}</th>`).join('') + '</tr>' +
+    filas.map(f => '<tr>' + f.map(v => `<td>${v}</td>`).join('') + '</tr>').join('') + '</table>'; };
+  const miles = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const pct = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(v).toFixed(1) + ' %';
+  const AZUL = '#0072B2', NARANJA = '#E69F00';
+  const COLOR_P = {era5land_e: '#0072B2', gleam_E: '#009E73', mod16a2gf: '#D55E00', terraclimate_aet: '#CC79A7',
+    ssebop_v61: '#E69F00', ssebop_v5: '#8C6D31', aa_brutsaert_stricker: '#7C5BC7'};
+  const NOMBRE_P = {era5land_e: 'ERA5-Land e', gleam_E: 'GLEAM v4.3a E', mod16a2gf: 'MOD16A2GF v061', terraclimate_aet: 'TerraClimate aet',
+    ssebop_v61: 'SSEBop v6.1', ssebop_v5: 'SSEBop v5', aa_brutsaert_stricker: 'AA (Brutsaert–Stricker)'};
+
+  const I = F6.incertidumbre, C = I.find(r => r.caso_sigma_Q === 'central');
+  tabla('t-f6-incert', ['Caso de σ_Q', 'σ_Q (% de Q)', 'σ_P (mm)', 'σ_Q (mm)', 'σ_ET (mm)', 'σ_ET / ET con PI', 'σ_ET / ET con PL', 'Parte de σ²_ET que viene de P'],
+    I.map(r => [r.caso_sigma_Q, r.sigma_Q_pct_de_Q.toFixed(1), miles(r.sigma_P), miles(r.sigma_Q), miles(r.sigma_ET),
+      Math.round(r.sigma_ET_pct_de_ETR_PI) + ' %', Math.round(r.sigma_ET_pct_de_ETR_PL) + ' %', Math.round(r.parte_de_P_en_varianza_pct) + ' %']));
+  const T = Object.fromEntries(F6.techo.map(t => [t.camino, t]));
+  const cifras = [
+    [`${miles(C.ETR_PL)} ± ${miles(C.sigma_ET)}`, 'P − Q con PL (mm/año)'],
+    [`${miles(C.ETR_PI)} ± ${miles(C.sigma_ET)}`, 'P − Q con PI (mm/año)'],
+    [miles(T['balance con PL'].Rn_lambda_mm_anio), 'Rn/λ de ERA5-Land (mm/año)'],
+    [`${T['balance con PI'].fraccion_evaporativa.toFixed(2)} – ${T['balance con PL'].fraccion_evaporativa.toFixed(2)}`, 'λET/Rn del balance (PI – PL)'],
+    [`${T['balance con PI'].ET_sobre_ETo.toFixed(2)} – ${T['balance con PL'].ET_sobre_ETo.toFixed(2)}`, 'ET/ETo del balance (PI – PL)'],
+  ];
+  const caja = document.getElementById('f6-cifras');
+  for (const [v, t] of cifras) { const d = document.createElement('div'); d.className = 'cifra'; d.innerHTML = `<b>${v}</b><span>${t}</span>`; caja.appendChild(d); }
+
+  // Barras de productos con bandas del balance
+  const FR = F6.frente, nombres = FR.map(f => f.producto);
+  const lp = base('mm/año'); lp.hovermode = 'closest'; lp.showlegend = false; lp.yaxis.rangemode = 'tozero';
+  lp.xaxis = {type: 'category', tickfont: {color: css('--tenue')}, linecolor: css('--linea')};
+  const lim = [-0.5, nombres.length - 0.5];
+  lp.shapes = [
+    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL - C.sigma_ET, y1: C.ETR_PL + C.sigma_ET, fillcolor: AZUL, opacity: 0.10, line: {width: 0}, layer: 'below'},
+    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI - C.sigma_ET, y1: C.ETR_PI + C.sigma_ET, fillcolor: NARANJA, opacity: 0.10, line: {width: 0}, layer: 'below'},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL, y1: C.ETR_PL, line: {color: AZUL, width: 2}},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI, y1: C.ETR_PI, line: {color: NARANJA, width: 2}},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: T['balance con PL'].ETo_mm_anio, y1: T['balance con PL'].ETo_mm_anio, line: {color: css('--tinta'), width: 1.5, dash: 'dot'}},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: T['balance con PL'].Rn_lambda_mm_anio, y1: T['balance con PL'].Rn_lambda_mm_anio, line: {color: '#C8553D', width: 1.5}},
+  ];
+  lp.annotations = [
+    {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PL, yshift: 9, text: 'P − Q con PL', showarrow: false, font: {color: AZUL, size: 11}},
+    {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PI, yshift: -9, text: 'P − Q con PI', showarrow: false, font: {color: NARANJA, size: 11}},
+    {xref: 'paper', x: 0, xanchor: 'left', y: T['balance con PL'].ETo_mm_anio, yshift: 9, text: 'ETo Penman–Monteith (FAO-56)', showarrow: false, font: {size: 11}},
+    {xref: 'paper', x: 0, xanchor: 'left', y: T['balance con PL'].Rn_lambda_mm_anio, yshift: 9, text: 'Rn/λ (ERA5-Land)', showarrow: false, font: {color: '#C8553D', size: 11}},
+  ];
+  const claveDe = n => Object.keys(NOMBRE_P).find(k => NOMBRE_P[k] === n);
+  Plotly.newPlot('g-f6-productos', [{type: 'bar', x: nombres, y: FR.map(f => f.producto_mm_anio),
+    marker: {color: nombres.map(n => COLOR_P[claveDe(n)] || '#888')},
+    text: FR.map(f => miles(f.producto_mm_anio)), textposition: 'outside',
+    customdata: FR.map(f => [miles(f.balance_PI_mm_anio), miles(f.balance_PL_mm_anio), pct(f.dif_vs_PI_pct), pct(f.dif_vs_PL_pct), f.meses_comunes_con_Q]),
+    hovertemplate: '<b>%{x}</b>: %{y:.0f} mm/año<br>Balance en sus mismos %{customdata[4]} meses: PI %{customdata[0]} (%{customdata[2]}), PL %{customdata[1]} (%{customdata[3]})<extra></extra>'}],
+    lp, OPCIONES);
+
+  tabla('t-f6-frente', ['Producto', 'Principio de cálculo', 'Resolución', 'Meses con Q', 'Producto (mm/año)', 'Balance PI', 'Balance PL',
+      'Frente a PI', 'Frente a PL', '¿Entre los dos balances?', 'λET/Rn', 'ET/ETo'],
+    FR.map(f => [f.producto, f.principio, f.resolucion, f.meses_comunes_con_Q, miles(f.producto_mm_anio), miles(f.balance_PI_mm_anio),
+      miles(f.balance_PL_mm_anio), pct(f.dif_vs_PI_pct), pct(f.dif_vs_PL_pct), f.entre_balances ? 'sí' : 'no',
+      f.fraccion_evaporativa.toFixed(2), f.producto_sobre_ETo.toFixed(2)]));
+  document.querySelectorAll('#t-f6-frente td:nth-child(2)').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; td.style.minWidth = '260px'; });
+
+  // Ciclo anual
+  const ejeMes = l => { l.xaxis = Object.assign(l.xaxis, {type: 'linear', tickvals: xm, ticktext: MESES}); l.hovermode = 'x unified'; return l; };
+  const Ci = F6.ciclo, lc = ejeMes(base('mm/mes')); lc.yaxis.rangemode = 'tozero';
+  const trazas = [
+    {name: 'Rn/λ (ERA5-Land)', y: Ci.Rn_lambda, line: {color: '#C8553D', width: 2.5}},
+    {name: 'ETo Penman–Monteith (FAO-56)', y: Ci.ETo, line: {color: css('--tinta'), width: 2.5, dash: 'dot'}},
+    {name: 'P − Q con PL', y: Ci.ETR_PL, line: {color: AZUL, width: 2.5, dash: 'dash'}},
+    {name: 'P − Q con PI', y: Ci.ETR_PI, line: {color: NARANJA, width: 2.5, dash: 'dash'}},
+    ...F6.claves.map(k => ({name: NOMBRE_P[k], y: Ci[k], line: {color: COLOR_P[k], width: 1.5}, visible: k === 'ssebop_v5' ? 'legendonly' : true})),
+  ].map(t => Object.assign({type: 'scatter', mode: 'lines+markers', x: xm, marker: {size: 4}}, t));
+  Plotly.newPlot('g-f6-ciclo', trazas, lc, OPCIONES);
+
+  // Por año, con selector de año hidrológico / calendario
+  const dibujarAnual = tipo => {
+    const A = F6.anual[tipo];
+    const la = base('mm/año'); la.hovermode = 'x unified'; la.barmode = 'group'; la.yaxis.rangemode = 'tozero';
+    la.xaxis = Object.assign(la.xaxis, {type: 'category'});
+    Plotly.react('g-f6-anual', [
+      {type: 'bar', name: 'P − Q con PL', x: A.anios, y: A.pl, marker: {color: AZUL}, error_y: {type: 'data', array: A.sigma, color: css('--tenue'), thickness: 1}},
+      {type: 'bar', name: 'P − Q con PI', x: A.anios, y: A.pi, marker: {color: NARANJA}, error_y: {type: 'data', array: A.sigma, color: css('--tenue'), thickness: 1}},
+      {type: 'scatter', mode: 'lines+markers', name: 'Mediana de los productos', x: A.anios, y: A.mediana, line: {color: '#009E73', width: 2}},
+      {type: 'scatter', mode: 'lines', name: 'ETo Penman–Monteith (FAO-56)', x: A.anios, y: A.eto, line: {color: css('--tinta'), width: 1.5, dash: 'dot'}},
+      {type: 'scatter', mode: 'lines', name: 'Rn/λ (ERA5-Land)', x: A.anios, y: A.rn, line: {color: '#C8553D', width: 1.5}},
+      {type: 'scatter', mode: 'lines', name: 'ΔS del suelo', x: A.anios, y: A.ds, line: {color: css('--tenue'), width: 1}, visible: 'legendonly'},
+    ], la, OPCIONES);
+    const filas = [];
+    A.anios.forEach((a, i) => { if (A.marcas_pi[i] || A.marcas_pl[i]) filas.push([a, miles(A.pi[i]), miles(A.pl[i]), miles(A.sigma[i]), miles(A.mediana[i]), A.marcas_pi[i] || '—', A.marcas_pl[i] || '—']); });
+    tabla('t-f6-marcas', ['Año (' + (tipo === 'hidrologico' ? 'hidrológico, meses ' + A.meses : 'calendario') + ')', 'P − Q PI', 'P − Q PL', 'σ_ET', 'Mediana productos', 'Marcas con PI', 'Marcas con PL'], filas);
+    document.querySelectorAll('#t-f6-marcas td:nth-child(n+6)').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; });
+  };
+  const caja2 = document.getElementById('c-f6-anio');
+  [['hidrologico', `Año hidrológico (desde el mes de menos agua en el suelo, ${F6.anual.hidrologico.meses})`], ['calendario', 'Año calendario']].forEach(([tipo, texto], k) => {
+    const b = document.createElement('button'); b.textContent = texto; b.setAttribute('aria-pressed', String(k === 0));
+    b.onclick = () => { caja2.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); dibujarAnual(tipo); };
+    caja2.appendChild(b);
+  });
+  dibujarAnual('hidrologico');
 })();
 
 // Series horarias en rejilla, con el zoom en el tiempo sincronizado.

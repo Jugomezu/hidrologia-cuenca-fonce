@@ -1,4 +1,4 @@
-# Fase 4 · Explicación de las diferencias entre métodos de ETo
+# Fase 5 · Explicación de las diferencias entre métodos de ETo
 
 Texto de Juan (23 nov 2026), con correcciones de ortografía y forma. Para el informe.
 

@@ -318,9 +318,9 @@ def datos_metodos():
 
 
 def texto_fase4():
-    """Fase 4: explicación de las diferencias escrita por Juan (temp/textos_informe/fase4_diferencias_eto.md)."""
+    """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
-    lineas = (Path(__file__).with_name("textos_informe") / "fase4_diferencias_eto.md").read_text(encoding="utf-8")
+    lineas = (Path(__file__).with_name("textos_informe") / "fase5_diferencias_eto.md").read_text(encoding="utf-8")
     parrafos = [b.strip() for b in lineas.split("\n\n")]
     parrafos = [b for b in parrafos if b and not b.startswith("#") and not b.startswith("Texto de Juan")]
     salida = []
@@ -718,7 +718,7 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 1 · Métodos de ETo y Thornthwaite frente a la ETo Penman–Monteith (FAO-56): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-eto"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Comparación 2 · Priestley–Taylor frente a Penman–Monteith (FAO-56) con rs = 0 (superficie húmeda): ciclo anual medio (mm/mes)</h3><div class="grafico" id="g-metodos-ciclo-pt"></div></div>
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
-  <h3>Explicación de las diferencias (Juan, 23 nov)</h3>
+  <h3>Fase 5 · Explicación de las diferencias de los métodos de ETo (texto de Juan, 23 nov; borrador)</h3>
   <div id="texto-f4"></div>
   <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
   <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio

@@ -16,4 +16,6 @@ En nuestro caso el componente aerodinámico de Penman–Monteith es una parte pe
 
 **Cenicafé:** Este método usa solo la altitud, entonces da un valor diario fijo de ETo que no tiene en cuenta fluctuaciones. En la gráfica mensual se ven fluctuaciones porque cambia la cantidad de días en el mes. Este método es especialmente útil en los Andes colombianos, pues fue calibrado con estaciones en esta zona, incluyendo dos en Santander, y tiene la ventaja de que no necesita ningún dato más allá de la altitud y da una aproximación decente con muy pocos datos (−12 % respecto a Penman–Monteith). La desventaja es que ignora las fluctuaciones porque es un valor constante diario.
 
+**Priestley–Taylor:** Priestley–Taylor no es la ET de un pasto de referencia (ETo), sino la de una superficie húmeda sin rs. Para compararla con Penman–Monteith, hacemos el ajuste calculándolo con rs = 0, en vez del que se calcula según FAO-56. Al hacer esta comparación vemos que tienen formas muy similares, con una diferencia estable entre ambos métodos. Esto sugiere que se podría calibrar fácilmente para dar resultados muy similares a los de Penman–Monteith sin rs.
+
 Pendiente: el promedio de HR de las 5 estaciones (79.4 %) aún no está en un script.

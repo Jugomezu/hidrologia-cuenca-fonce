@@ -323,6 +323,12 @@ def datos_metodos():
     }
 
 
+def datos_terminos():
+    """Fase 5: términos radiativo y aerodinámico de la ETo por mes calendario (salida de 26_terminos_fao56.py)."""
+    t = pd.read_csv(CARPETA_PRODUCTOS / "terminos_fao56_ciclo.csv")
+    return {c: t[c].round(2).tolist() for c in t.columns if c != "mes_calendario"}
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -408,6 +414,7 @@ def main():
         "metodos": datos_metodos(),
         "hargreaves_t1": datos_hargreaves_tarea1(),
         "texto_f4": texto_fase4(),
+        "terminos": datos_terminos(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -729,6 +736,7 @@ code { font: 400 .86em var(--f-dato); }
   <p>La AA (ET real) se compara en la fase 6, con el balance P − Q y los productos.</p>
   <h3>Fase 5 · Explicación de las diferencias de los métodos de ETo (texto de Juan, 23 nov; borrador)</h3>
   <div id="texto-f4"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Fase 5 · Términos de la ETo Penman–Monteith (FAO-56) por mes (mm/mes)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">FAO-56 ec. 6 partida en sus dos sumandos, que comparten el denominador Δ + γ(1 + 0.34 u2): radiativo = 0.408 Δ (Rn − G); aerodinámico = γ · 900/(T + 273) · u2 · (es − ea). Media 1998–2022 de cada mes calendario, cuenca por Voronoi. El número encima de cada barra es la fracción aerodinámica del mes; al pasar el cursor, su mínimo y máximo entre los 25 años. Script 26.</p><div class="grafico" id="g-terminos"></div></div>
   <h3>Hargreaves de la Tarea 1 frente al de la Tarea 2</h3>
   <p>Pedido de Juan (22 nov). Misma fórmula en todas (FAO-56 ec. 52). Tarea 2: los 6 puntos, día local, promedio
   Voronoi (script 21). Tarea 1: T promedio de la cuenca de Earth Engine (día UTC) o T de MSWX de CAMELS-COL, Ra en el
@@ -1166,6 +1174,17 @@ for (const [valor, texto] of CARGA.cifras) {
   cicloDe('g-metodos-ciclo-eto', ['penman_fao24', 'makkink', 'hargreaves', 'cenicafe_2006', 'thornthwaite'], 'eto_fao56');
   cicloDe('g-metodos-ciclo-pt', ['priestley_taylor'], 'eto_fao56_rs0');
 
+  {
+    const TM = CARGA.terminos, fr = TM.fraccion_aerodinamica_pct;
+    const rango = fr.map((v, i) => `${TM.fraccion_aerodinamica_min_pct[i].toFixed(1)} a ${TM.fraccion_aerodinamica_max_pct[i].toFixed(1)} %`);
+    const lt = ejeMes(base('mm/mes')); lt.barmode = 'stack'; lt.hovermode = 'x unified';
+    Plotly.newPlot('g-terminos', [
+      {type: 'bar', name: 'término radiativo', x: xm, y: TM.eto_radiativa_mm_mes, marker: {color: '#0072B2'},
+       customdata: TM.fraccion_radiativa_pct, hovertemplate: 'radiativo: %{y:.1f} mm/mes (%{customdata:.1f} %)<extra></extra>'},
+      {type: 'bar', name: 'término aerodinámico', x: xm, y: TM.eto_aerodinamica_mm_mes, marker: {color: '#E69F00'},
+       text: fr.map(v => v.toFixed(1) + ' %'), textposition: 'outside', cliponaxis: false, customdata: rango,
+       hovertemplate: 'aerodinámico: %{y:.1f} mm/mes (%{text}; entre años %{customdata})<extra></extra>'}], lt, OPCIONES);
+  }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;
   const SERIES_H1 = [['tarea2_6_puntos', 'Tarea 2 · ERA5-Land, 6 puntos', '#7C5BC7'],

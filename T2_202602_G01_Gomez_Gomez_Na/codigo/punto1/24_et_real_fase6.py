@@ -9,11 +9,12 @@ Junta lo que ya calculan otros scripts y agrega lo que pide el plan de la fase 6
     5. Marcas por año: P − Q negativo, P − Q mayor que Rn/λ, o P − Q fuera del rango de los productos. Solo se marcan;
        no se explican.
 
-Decisiones tomadas por el agente con Juan ausente (2026-11-22; anexos/decisiones.md, «para revisar»):
+Decisiones (anexos/decisiones.md). Propuestas por el agente con Juan ausente (2026-11-22) y revisadas por Juan el
+2026-11-23: σ_P aprobado; σ_Q al 95 % (25.6 %); año calendario como principal (el hidrológico se sigue calculando).
     - sigma_P = |PL − PI| / √2: si PI y PL tienen el mismo error, independiente, la diferencia tiene varianza 2·sigma².
-    - sigma_Q = 13.1 % de Q (1 sigma) = 25.6 % / 1.96: Di Baldassarre y Montanari (2009), error medio de la curva de
-      gasto al 95 %. Se trata como sistemático (no se reduce al promediar años). Sensibilidad: 2.7 % (5.3 % / 1.96,
-      un aforo) y 21.8 % (42.8 % / 1.96, el máximo del estudio).
+    - sigma_Q = 25.6 % de Q (Juan, 23 nov): Di Baldassarre y Montanari (2009), error medio de la curva de gasto al
+      95 %, sin pasarlo a 1 sigma. Se trata como sistemático (no se reduce al promediar años). Sensibilidad: 5.3 %
+      (un aforo) y 42.8 % (el máximo del estudio), también al 95 %.
     - Año hidrológico: empieza en el mes calendario con la menor agua media en el suelo (ERA5-Land, 0–289 cm).
     - «Muy distinto de los productos»: el P − Q del año queda fuera del rango de los productos con los 12 meses ese año
       (ERA5-Land e, GLEAM E, MOD16A2GF, TerraClimate aet, SSEBop v6.1 y v5, y la AA), o a más de 1 sigma_ET de su
@@ -56,8 +57,8 @@ LAMBDA_MJ_KG = 2.45                                    # calor latente de vapori
 
 # Incertidumbre del caudal: Di Baldassarre y Montanari (2009), HESS 13, 913–921, https://doi.org/10.5194/hess-13-913-2009
 # (p. 919–920: error global de 6.2 % a 42.8 % de Q al 95 %, media 25.6 %; p. 915: un aforo, 5.3 % al 95 %).
-Z_95 = 1.96
-SIGMA_Q_FRACCION = {"central": 0.256 / Z_95, "un aforo": 0.053 / Z_95, "máximo del estudio": 0.428 / Z_95}
+# Juan (2026-11-23): σ_Q con el valor al 95 % tal cual (25.6 %), no dividido por 1.96.
+SIGMA_Q_FRACCION = {"central": 0.256, "un aforo": 0.053, "máximo del estudio": 0.428}
 
 # Productos de ET real (nombre en la salida -> columna de entrada) y la AA del script 21.
 NOMBRES = {

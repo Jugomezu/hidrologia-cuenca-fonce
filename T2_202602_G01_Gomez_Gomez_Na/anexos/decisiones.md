@@ -459,7 +459,9 @@ Archivos: `productos/punto1/et_*.csv`.
 (c) Con PL, P − Q > ETo: ¿error de PL, de Q, o la ETo se queda corta? Es la pregunta de la fase 7.
 
 **Revisión de Juan (23 nov).** σ_P aprobado. Año calendario en vez del hidrológico (el hidrológico no redujo ΔS); la
-fase 7 (script 29) usa años calendario. σ_Q = 13.1 % aprobado por Juan (23 nov) tras la explicación gráfica (documento de trabajo, fase 6).
+fase 7 (script 29) usa años calendario. σ_Q: Juan pidió usar el valor al 95 % tal cual, 25.6 % de Q (sensibilidad 5.3 % y 42.8 %).
+Nuevo resultado de largo plazo: σ_Q = 344, σ_P = 227, σ_ET = 412 mm/año (47 % de la ET con PI, 34 % con PL); la lluvia
+explica ahora el 30 % de la varianza. Ojo: σ_P sigue a 1σ y σ_Q queda al 95 %, así que σ_ET mezcla niveles de confianza.
 
 ## 2026-11-23 · Punto 1 · Fase 5: experimento de sensibilidad (script 28)
 

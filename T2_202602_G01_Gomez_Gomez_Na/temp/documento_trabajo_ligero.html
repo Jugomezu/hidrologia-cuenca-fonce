@@ -313,7 +313,8 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tabla" id="t-f6-incert"></div>
   <div class="cifras" id="f6-cifras"></div>
   <div class="tarjeta" style="margin-top:20px"><h3>Cada producto frente al balance, en los mismos meses (mm/año)</h3>
-    <p class="nota" style="margin:4px 0 0">Banda azul: P − Q con PL ± σ; banda naranja: con PI ± σ. Línea punteada:
+    <p class="nota" style="margin:4px 0 0">Línea gruesa: P − Q con P̄. Franja oscura: ± σ_ET a 1σ (≈ 238 mm/año, σ_ET/1.96);
+    franja clara: ± σ_ET al 95 % (467). Rayas: P − Q con PL (azul) y con PI (naranja). Línea punteada:
     ETo Penman–Monteith (FAO-56); línea continua: Rn/λ de ERA5-Land. Cada barra se compara con el balance de sus mismos
     meses; las bandas son las del largo plazo (los meses cambian poco el balance, salvo SSEBop v6.1, que solo tiene 2012–2022).</p>
     <div class="grafico" id="g-f6-productos" style="height:460px"></div></div>
@@ -930,6 +931,7 @@ for (const [valor, texto] of CARGA.cifras) {
   const lim = [-0.5, nombres.length - 0.5];
   lp.shapes = [
     {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_Pm - C.sigma_ET, y1: C.ETR_Pm + C.sigma_ET, fillcolor: css('--tinta'), opacity: 0.08, line: {width: 0}, layer: 'below'},
+    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_Pm - C.sigma_ET / 1.96, y1: C.ETR_Pm + C.sigma_ET / 1.96, fillcolor: css('--tinta'), opacity: 0.14, line: {width: 0}, layer: 'below'},
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_Pm, y1: C.ETR_Pm, line: {color: css('--tinta'), width: 2.5}},
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL, y1: C.ETR_PL, line: {color: AZUL, width: 1, dash: 'dash'}},
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI, y1: C.ETR_PI, line: {color: NARANJA, width: 1, dash: 'dash'}},
@@ -937,7 +939,7 @@ for (const [valor, texto] of CARGA.cifras) {
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: T['balance con PL'].Rn_lambda_mm_anio, y1: T['balance con PL'].Rn_lambda_mm_anio, line: {color: '#C8553D', width: 1.5}},
   ];
   lp.annotations = [
-    {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_Pm, yshift: 9, text: 'P − Q con P̄ (franja: ± σ_ET al 95 %)', showarrow: false, font: {size: 11}},
+    {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_Pm, yshift: 9, text: 'P − Q con P̄ (franja oscura: ± 1σ; clara: ± 95 %)', showarrow: false, font: {size: 11}},
     {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PL, yshift: 9, text: 'P − Q con PL', showarrow: false, font: {color: AZUL, size: 11}},
     {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PI, yshift: -9, text: 'P − Q con PI', showarrow: false, font: {color: NARANJA, size: 11}},
     {xref: 'paper', x: 0, xanchor: 'left', y: T['balance con PL'].ETo_mm_anio, yshift: 9, text: 'ETo Penman–Monteith (FAO-56)', showarrow: false, font: {size: 11}},

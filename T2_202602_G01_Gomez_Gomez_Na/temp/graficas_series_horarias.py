@@ -356,6 +356,16 @@ def datos_regimen():
     return {k: c[k].round(3).tolist() for k in ["phi_Pm", "phi_PI", "phi_PL", "fraccion_meses_agua_Pm"]}
 
 
+def datos_ef():
+    """Fase 7: EF = λET/Rn frente a SMrz (salidas de 31_fraccion_evaporativa.py)."""
+    d = pd.read_csv(CARPETA_PRODUCTOS / "fraccion_evaporativa.csv")
+    u = pd.read_csv(CARPETA_PRODUCTOS / "fraccion_evaporativa_umbral.csv").set_index("ET")
+    return {"theta": d["theta"].round(4).tolist(), "mes": d["mes"].tolist(), "mc": d["mes_calendario"].tolist(),
+            "sin_gleam": d["EF_sin_gleam"].round(4).tolist(), "gleam": d["EF_gleam"].round(4).tolist(),
+            "ajuste": {k: u.loc[k, ["theta_critica", "EF_max", "pendiente_b", "r2_frente_a_plano"]].round(4).to_dict()
+                       for k in u.index}}
+
+
 def datos_budyko():
     """Fase 7: Budyko (salidas de 29_budyko.py)."""
     anual = pd.read_csv(CARPETA_PRODUCTOS / "budyko_anual.csv")
@@ -458,6 +468,7 @@ def main():
         "sensibilidad": datos_sensibilidad(),
         "budyko": datos_budyko(),
         "regimen": datos_regimen(),
+        "ef": datos_ef(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -872,6 +883,14 @@ code { font: 400 .86em var(--f-dato); }
   por agua (la ET depende del agua guardada en el suelo). Línea negra: ciclo medio 1998–2022; punteadas: PI y PL
   (sensibilidad); barras: fracción de los años en que ese mes tuvo φ &gt; 1 con P̄. Script 30.</p>
   <div class="tarjeta"><h3>Índice de aridez mensual φ = ETo/P</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
+  <h3>Fracción evaporativa frente a la humedad del suelo (script 31)</h3>
+  <p>Marco de Seneviratne et al. (2010, <a href="https://doi.org/10.1016/j.earscirev.2010.02.004">doi:10.1016/j.earscirev.2010.02.004</a>):
+  con suelo húmedo EF = λET/Rn es plana (energía); bajo una humedad crítica θ* cae (agua). Se ajusta una recta con
+  quiebre, θ* por mínimos cuadrados. θ = SMrz de GLEAM, media de la cuenca. Izquierda: ET = mediana de los productos que
+  no dependen de GLEAM; derecha: GLEAM E, circular (GLEAM reduce su ET según SMrz). Color: mes del año.
+  <b>Resultado: no aparece quiebre dentro de los datos</b>: el mejor θ* cae en el borde superior (0.452, donde se
+  amontonan los meses), así que el ajuste es una recta: EF sube poco con la humedad en todo el rango (R² 0.14 sin GLEAM).</p>
+  <div class="tarjeta"><h3>EF = λET/Rn frente a SMrz (m³/m³), 296 meses</h3><div class="grafico" id="g-ef" style="height:440px"></div></div>
 </section>
 
 <section>
@@ -1375,6 +1394,23 @@ for (const [valor, texto] of CARGA.cifras) {
        hovertemplate: 'φ (PI): %{y:.2f}<extra></extra>'},
       {type: 'scatter', mode: 'lines', x: xm, y: R.phi_PL, name: 'φ con PL', line: {color: '#0072B2', dash: 'dot'},
        hovertemplate: 'φ (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
+  }
+  {
+    const E = CARGA.ef;
+    const trazas = [];
+    [['sin_gleam', 'x', 'y', 'mediana sin GLEAM'], ['gleam', 'x2', 'y2', 'GLEAM E (circular)']].forEach(([k, xa, ya, n]) => {
+      const A = E.ajuste[k], xs = [Math.min(...E.theta), A.theta_critica, Math.max(...E.theta)];
+      trazas.push({type: 'scatter', mode: 'markers', x: E.theta, y: E[k], xaxis: xa, yaxis: ya, name: n, text: E.mes,
+        marker: {size: 6, color: E.mc, colorscale: 'Twilight', cmin: 1, cmax: 12, showscale: k === 'gleam', colorbar: {title: 'mes', len: 0.8}},
+        hovertemplate: '%{text}: θ %{x:.3f}, EF %{y:.3f}<extra></extra>'});
+      trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(v => A.EF_max + A.pendiente_b * Math.min(v - A.theta_critica, 0)),
+        xaxis: xa, yaxis: ya, line: {color: css('--tinta'), width: 2}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
+    });
+    const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; le.legend = {orientation: 'h', y: -0.2};
+    le.grid = {rows: 1, columns: 2, pattern: 'independent'};
+    le.xaxis = {title: 'SMrz (m³/m³), ET sin GLEAM', gridcolor: css('--linea')}; le.xaxis2 = {title: 'SMrz (m³/m³), ET de GLEAM', gridcolor: css('--linea')};
+    le.yaxis2 = {matches: 'y', gridcolor: css('--linea')};
+    Plotly.newPlot('g-ef', trazas, le, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

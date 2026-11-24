@@ -6,7 +6,8 @@ servida por OPeNDAP en el THREDDS de Northwest Knowledge Network, sin registro:
 
 Variables (definiciones de la documentación de TerraClimate):
     aet  evapotranspiración real (mm/mes), de un balance hídrico mensual de una capa de suelo.
-    pet  evapotranspiración de referencia (mm/mes), Penman-Monteith para pasto de referencia (FAO-56).
+    pet  evapotranspiración de referencia (mm/mes), ASCE Penman–Monteith de pasto corto (mismas constantes que
+         FAO-56: 900, 0.34, h = 0.12 m) con rs corregida por CO2 (Yang et al., 2019). Con rs fija sería la ETo de FAO-56.
 Las dos vienen como enteros con scale_factor = 0.1; xarray aplica la escala al leer.
 
 Período: 1998-01 a 2022-12, el mismo de nuestra ETo FAO-56 (decisión del 2026-11-17).

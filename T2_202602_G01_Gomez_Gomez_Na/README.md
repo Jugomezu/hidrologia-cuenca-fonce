@@ -51,9 +51,10 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Otros métodos | 22, 21, 23, 25 | Thornthwaite, los demás métodos, Hargreaves de la Tarea 1, mes a mano |
 | Diferencias entre métodos | 26, 27, 28 | Términos de la ETo, α* y sensibilidad |
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
+| HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
 
 Probado el 2026-11-23 en una copia limpia, con `productos/punto1/` vacío salvo `terraclimate_mensual_cuenca.csv`:
-los 24 scripts corren en este orden y reproducen los productos guardados (solo cambian cifras en el 4.º decimal).
+los 24 scripts (del 02 al 29) corren en este orden y reproducen los productos guardados (solo cambian cifras en el 4.º decimal).
 El script 23 compara además con la Tarea 1 si encuentra `../Analisis_De_Cuenca/`; sin esa carpeta corre igual.
 
 ## `datos/punto1/`

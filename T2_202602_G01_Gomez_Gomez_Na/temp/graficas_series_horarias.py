@@ -415,11 +415,11 @@ def datos_fase6():
     for tipo, t in anual.groupby("tipo_de_anio"):
         por_tipo[tipo] = {
             "anios": t["anio"].astype(str).tolist(), "meses": t["meses"].iloc[0],
-            "pi": redondear(t["P_menos_Q_PI"]), "pl": redondear(t["P_menos_Q_PL"]), "sigma": redondear(t["sigma_ET"]),
+            "pi": redondear(t["P_menos_Q_PI"]), "pl": redondear(t["P_menos_Q_PL"]), "pm": redondear(t["P_menos_Q_Pm"]), "sigma": redondear(t["sigma_ET"]),
             "ds": redondear(t["dS_suelo"]), "eto": redondear(t["ETo"]), "rn": redondear(t["Rn_lambda"]),
             "mediana": redondear(t["mediana_productos"]), "minimo": redondear(t["min_productos"]),
             "maximo": redondear(t["max_productos"]),
-            "marcas_pi": t["marcas_PI"].fillna("").tolist(), "marcas_pl": t["marcas_PL"].fillna("").tolist(),
+            "marcas_pm": t["marcas_Pm"].fillna("").tolist(), "marcas_pi": t["marcas_PI"].fillna("").tolist(), "marcas_pl": t["marcas_PL"].fillna("").tolist(),
             "ds_desv": round(float(t["dS_suelo"].std()), 0),
             "sigma_p": redondear(t["sigma_P"]), "sigma_q": redondear(t["sigma_Q"]),
         }
@@ -428,7 +428,7 @@ def datos_fase6():
         "incertidumbre": incert.round(1).to_dict(orient="records"),
         "anual": por_tipo,
         "techo": techo.round(3).to_dict(orient="records"),
-        "ciclo": {c: redondear(ciclo[c], 1) for c in ["Rn_lambda", "ETo", "ETR_PI", "ETR_PL"] + claves},
+        "ciclo": {c: redondear(ciclo[c], 1) for c in ["Rn_lambda", "ETo", "ETR_Pm", "ETR_PI", "ETR_PL"] + claves},
         "claves": claves,
     }
 
@@ -803,7 +803,7 @@ code { font: 400 .86em var(--f-dato); }
   balance en los mismos meses; y si alguna cifra rompe el techo de energía (Rn/λ, la radiación neta real de ERA5-Land,
   no la del pasto) o la demanda (ETo Penman–Monteith (FAO-56)).</p>
   <h3>Incertidumbre del balance de largo plazo</h3>
-  <p class="nota">σ_P = 1.96·|PL − PI|/√2 (las dos lluvias como dos medidas con el mismo error, llevado al 95 %; Juan, 23 nov). σ_Q = 25.6 % de Q (Juan,
+  <p class="nota">Lluvia del balance: P̄ = (PI + PL)/2 (Juan, 23 nov); PI y PL quedan como sensibilidad. σ_P = 1.96·|PL − PI|/2: las dos lluvias como dos medidas con el mismo error, independiente; el promedio de dos tiene σ/√2, y × 1.96 lo lleva al 95 % (Juan, 23 nov). σ_Q = 25.6 % de Q (Juan,
   23 nov): el error medio de la curva de gasto al 95 %, tal cual, de Di Baldassarre y Montanari (2009,
   <a href="https://doi.org/10.5194/hess-13-913-2009">doi:10.5194/hess-13-913-2009</a>), tratado como sistemático.
   Sensibilidad: un aforo (5.3 % al 95 %) y el máximo del estudio (42.8 %).</p>
@@ -828,7 +828,7 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tabla" id="t-f6-marcas"></div>
   <h3>Cómo se estima la incertidumbre del balance (σ_ET)</h3>
   <p>P − Q tiene dos fuentes de error. <b>σ_P</b>: PI y PL son dos estimaciones de la misma lluvia; se tratan como dos
-  medidas con el mismo error, y la diferencia de dos medidas así tiene varianza 2σ², así que a 1σ es |PL − PI|/√2; se lleva al 95 % multiplicando por 1.96 (Juan, 23 nov): σ_P = 1.96·|PL − PI|/√2
+  medidas con el mismo error, y la diferencia de dos medidas así tiene varianza 2σ², así que cada una tiene σ = |PL − PI|/√2. La mejor estimación es el promedio P̄, cuyo error es σ/√2 = |PL − PI|/2; × 1.96 lo lleva al 95 % (Juan, 23 nov): σ_P = 1.96·|PL − PI|/2
   (aprobado por Juan, 23 nov). <b>σ_Q</b>: el caudal no se mide directamente; se mide el nivel del río y se convierte con
   la curva de gasto, ajustada a unos pocos aforos. Di Baldassarre y Montanari (2009, doi:10.5194/hess-13-913-2009)
   hallaron un error medio de esa conversión de 25.6 % con 95 % de confianza; se usa ese valor tal cual (Juan, 23 nov). Se trata como
@@ -842,8 +842,8 @@ code { font: 400 .86em var(--f-dato); }
 <section>
   <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
   <p>Años calendario con los 12 meses de Q (11 años; script 24; Juan, 23 nov). φ = ETo/P con la ETo
-  Penman–Monteith (FAO-56); ε = ET/P. Cuatro maneras de poner la ET mientras Juan decide la fuente: P − Q con PI o
-  con PL, y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
+  Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño; como sensibilidad, P − Q con PI o con PL
+  y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
   ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
   Script 29.</p>
@@ -1314,7 +1314,7 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
   }
   {
-    const B = CARGA.budyko, colores = ['#0072B2', '#E69F00', '#009E73', '#CC79A7'];
+    const B = CARGA.budyko, colores = [css('--tinta'), '#7C5BC7', '#0072B2', '#E69F00', '#009E73', '#CC79A7'];
     const fmt = v => v === null ? '—' : v;
     document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>φ = ETo/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
       + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
@@ -1406,16 +1406,16 @@ for (const [valor, texto] of CARGA.cifras) {
     ssebop_v61: 'SSEBop v6.1', ssebop_v5: 'SSEBop v5', aa_brutsaert_stricker: 'AA (Brutsaert–Stricker)'};
 
   const I = F6.incertidumbre, C = I.find(r => r.caso_sigma_Q === 'central');
-  tabla('t-f6-incert', ['Caso de σ_Q', 'σ_Q (% de Q)', 'σ_P (mm)', 'σ_Q (mm)', 'σ_ET (mm)', 'σ_ET / ET con PI', 'σ_ET / ET con PL', 'Parte de σ²_ET que viene de P'],
+  tabla('t-f6-incert', ['Caso de σ_Q', 'σ_Q (% de Q)', 'σ_P (mm)', 'σ_Q (mm)', 'σ_ET (mm)', 'σ_ET / ET con P̄', 'σ_ET / ET con PI', 'σ_ET / ET con PL', 'Parte de σ²_ET que viene de P'],
     I.map(r => [r.caso_sigma_Q, r.sigma_Q_pct_de_Q.toFixed(1), miles(r.sigma_P), miles(r.sigma_Q), miles(r.sigma_ET),
-      Math.round(r.sigma_ET_pct_de_ETR_PI) + ' %', Math.round(r.sigma_ET_pct_de_ETR_PL) + ' %', Math.round(r.parte_de_P_en_varianza_pct) + ' %']));
+      Math.round(r.sigma_ET_pct_de_ETR_Pm) + ' %', Math.round(r.sigma_ET_pct_de_ETR_PI) + ' %', Math.round(r.sigma_ET_pct_de_ETR_PL) + ' %', Math.round(r.parte_de_P_en_varianza_pct) + ' %']));
   const T = Object.fromEntries(F6.techo.map(t => [t.camino, t]));
   const cifras = [
-    [`${miles(C.ETR_PL)} ± ${miles(C.sigma_ET)}`, 'P − Q con PL (mm/año)'],
-    [`${miles(C.ETR_PI)} ± ${miles(C.sigma_ET)}`, 'P − Q con PI (mm/año)'],
+    [`${miles(C.ETR_Pm)} ± ${miles(C.sigma_ET)}`, 'P − Q con P̄ = (PI + PL)/2, ± 95 % (mm/año)'],
+    [`${miles(C.ETR_PI)} – ${miles(C.ETR_PL)}`, 'P − Q con PI y con PL, sensibilidad (mm/año)'],
     [miles(T['balance con PL'].Rn_lambda_mm_anio), 'Rn/λ de ERA5-Land (mm/año)'],
-    [`${T['balance con PI'].fraccion_evaporativa.toFixed(2)} – ${T['balance con PL'].fraccion_evaporativa.toFixed(2)}`, 'λET/Rn del balance (PI – PL)'],
-    [`${T['balance con PI'].ET_sobre_ETo.toFixed(2)} – ${T['balance con PL'].ET_sobre_ETo.toFixed(2)}`, 'ET/ETo del balance (PI – PL)'],
+    [`${T['balance con Pm'].fraccion_evaporativa.toFixed(2)}`, `λET/Rn del balance con P̄ (PI ${T['balance con PI'].fraccion_evaporativa.toFixed(2)}, PL ${T['balance con PL'].fraccion_evaporativa.toFixed(2)})`],
+    [`${T['balance con Pm'].ET_sobre_ETo.toFixed(2)}`, `ET/ETo del balance con P̄ (PI ${T['balance con PI'].ET_sobre_ETo.toFixed(2)}, PL ${T['balance con PL'].ET_sobre_ETo.toFixed(2)})`],
   ];
   const caja = document.getElementById('f6-cifras');
   for (const [v, t] of cifras) { const d = document.createElement('div'); d.className = 'cifra'; d.innerHTML = `<b>${v}</b><span>${t}</span>`; caja.appendChild(d); }
@@ -1426,14 +1426,15 @@ for (const [valor, texto] of CARGA.cifras) {
   lp.xaxis = {type: 'category', tickfont: {color: css('--tenue')}, linecolor: css('--linea')};
   const lim = [-0.5, nombres.length - 0.5];
   lp.shapes = [
-    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL - C.sigma_ET, y1: C.ETR_PL + C.sigma_ET, fillcolor: AZUL, opacity: 0.10, line: {width: 0}, layer: 'below'},
-    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI - C.sigma_ET, y1: C.ETR_PI + C.sigma_ET, fillcolor: NARANJA, opacity: 0.10, line: {width: 0}, layer: 'below'},
-    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL, y1: C.ETR_PL, line: {color: AZUL, width: 2}},
-    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI, y1: C.ETR_PI, line: {color: NARANJA, width: 2}},
+    {type: 'rect', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_Pm - C.sigma_ET, y1: C.ETR_Pm + C.sigma_ET, fillcolor: css('--tinta'), opacity: 0.08, line: {width: 0}, layer: 'below'},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_Pm, y1: C.ETR_Pm, line: {color: css('--tinta'), width: 2.5}},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PL, y1: C.ETR_PL, line: {color: AZUL, width: 1, dash: 'dash'}},
+    {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: C.ETR_PI, y1: C.ETR_PI, line: {color: NARANJA, width: 1, dash: 'dash'}},
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: T['balance con PL'].ETo_mm_anio, y1: T['balance con PL'].ETo_mm_anio, line: {color: css('--tinta'), width: 1.5, dash: 'dot'}},
     {type: 'line', xref: 'x', x0: lim[0], x1: lim[1], y0: T['balance con PL'].Rn_lambda_mm_anio, y1: T['balance con PL'].Rn_lambda_mm_anio, line: {color: '#C8553D', width: 1.5}},
   ];
   lp.annotations = [
+    {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_Pm, yshift: 9, text: 'P − Q con P̄ (franja: ± σ_ET al 95 %)', showarrow: false, font: {size: 11}},
     {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PL, yshift: 9, text: 'P − Q con PL', showarrow: false, font: {color: AZUL, size: 11}},
     {xref: 'paper', x: 1, xanchor: 'right', y: C.ETR_PI, yshift: -9, text: 'P − Q con PI', showarrow: false, font: {color: NARANJA, size: 11}},
     {xref: 'paper', x: 0, xanchor: 'left', y: T['balance con PL'].ETo_mm_anio, yshift: 9, text: 'ETo Penman–Monteith (FAO-56)', showarrow: false, font: {size: 11}},
@@ -1443,13 +1444,13 @@ for (const [valor, texto] of CARGA.cifras) {
   Plotly.newPlot('g-f6-productos', [{type: 'bar', x: nombres, y: FR.map(f => f.producto_mm_anio),
     marker: {color: nombres.map(n => COLOR_P[claveDe(n)] || '#888')},
     text: FR.map(f => miles(f.producto_mm_anio)), textposition: 'outside',
-    customdata: FR.map(f => [miles(f.balance_PI_mm_anio), miles(f.balance_PL_mm_anio), pct(f.dif_vs_PI_pct), pct(f.dif_vs_PL_pct), f.meses_comunes_con_Q]),
-    hovertemplate: '<b>%{x}</b>: %{y:.0f} mm/año<br>Balance en sus mismos %{customdata[4]} meses: PI %{customdata[0]} (%{customdata[2]}), PL %{customdata[1]} (%{customdata[3]})<extra></extra>'}],
+    customdata: FR.map(f => [miles(f.balance_PI_mm_anio), miles(f.balance_PL_mm_anio), pct(f.dif_vs_PI_pct), pct(f.dif_vs_PL_pct), f.meses_comunes_con_Q, miles(f.balance_Pm_mm_anio), pct(f.dif_vs_Pm_pct)]),
+    hovertemplate: '<b>%{x}</b>: %{y:.0f} mm/año<br>Balance en sus mismos %{customdata[4]} meses: P̄ %{customdata[5]} (%{customdata[6]}); PI %{customdata[0]} (%{customdata[2]}), PL %{customdata[1]} (%{customdata[3]})<extra></extra>'}],
     lp, OPCIONES);
 
-  tabla('t-f6-frente', ['Producto', 'Principio de cálculo', 'Resolución', 'Meses con Q', 'Producto (mm/año)', 'Balance PI', 'Balance PL',
+  tabla('t-f6-frente', ['Producto', 'Principio de cálculo', 'Resolución', 'Meses con Q', 'Producto (mm/año)', 'Balance P̄', 'Frente a P̄', '¿Dentro de ± σ_ET (95 %)?', 'Balance PI', 'Balance PL',
       'Frente a PI', 'Frente a PL', '¿Entre los dos balances?', 'λET/Rn', 'ET/ETo'],
-    FR.map(f => [f.producto, f.principio, f.resolucion, f.meses_comunes_con_Q, miles(f.producto_mm_anio), miles(f.balance_PI_mm_anio),
+    FR.map(f => [f.producto, f.principio, f.resolucion, f.meses_comunes_con_Q, miles(f.producto_mm_anio), miles(f.balance_Pm_mm_anio), pct(f.dif_vs_Pm_pct), f.dentro_de_sigma_ET_de_Pm ? 'sí' : 'no', miles(f.balance_PI_mm_anio),
       miles(f.balance_PL_mm_anio), pct(f.dif_vs_PI_pct), pct(f.dif_vs_PL_pct), f.entre_balances ? 'sí' : 'no',
       f.fraccion_evaporativa.toFixed(2), f.producto_sobre_ETo.toFixed(2)]));
   document.querySelectorAll('#t-f6-frente td:nth-child(2)').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; td.style.minWidth = '260px'; });
@@ -1460,6 +1461,7 @@ for (const [valor, texto] of CARGA.cifras) {
   const trazas = [
     {name: 'Rn/λ (ERA5-Land)', y: Ci.Rn_lambda, line: {color: '#C8553D', width: 2.5}},
     {name: 'ETo Penman–Monteith (FAO-56)', y: Ci.ETo, line: {color: css('--tinta'), width: 2.5, dash: 'dot'}},
+    {name: 'P − Q con P̄', y: Ci.ETR_Pm, line: {color: css('--tinta'), width: 3}},
     {name: 'P − Q con PL', y: Ci.ETR_PL, line: {color: AZUL, width: 2.5, dash: 'dash'}},
     {name: 'P − Q con PI', y: Ci.ETR_PI, line: {color: NARANJA, width: 2.5, dash: 'dash'}},
     ...F6.claves.map(k => ({name: NOMBRE_P[k], y: Ci[k], line: {color: COLOR_P[k], width: 1.5}, visible: k === 'ssebop_v5' ? 'legendonly' : true})),
@@ -1482,7 +1484,7 @@ for (const [valor, texto] of CARGA.cifras) {
     const ls = base('mm/año'); ls.barmode = 'group'; ls.hovermode = 'x unified';
     ls.xaxis = Object.assign(ls.xaxis, {type: 'category'});
     Plotly.newPlot('g-sigmaq-anual', [
-      {type: 'bar', name: 'σ_P = 1.96·|PL − PI|/√2', x: C.anios, y: C.sigma_p, marker: {color: '#E69F00'}},
+      {type: 'bar', name: 'σ_P = 1.96·|PL − PI|/2', x: C.anios, y: C.sigma_p, marker: {color: '#E69F00'}},
       {type: 'bar', name: 'σ_Q = 25.6 % de Q', x: C.anios, y: C.sigma_q, marker: {color: '#0072B2'}},
       {type: 'scatter', mode: 'lines+markers', name: 'σ_ET = √(σ_P² + σ_Q²)', x: C.anios, y: C.sigma, line: {color: css('--tinta'), width: 2}}], ls, OPCIONES);
     const tope = Math.ceil(Math.max(...C.sigma_p, ...C.sigma_q) / 100) * 100 + 50;
@@ -1501,17 +1503,18 @@ for (const [valor, texto] of CARGA.cifras) {
     const la = base('mm/año'); la.hovermode = 'x unified'; la.barmode = 'group'; la.yaxis.rangemode = 'tozero';
     la.xaxis = Object.assign(la.xaxis, {type: 'category'});
     Plotly.react('g-f6-anual', [
-      {type: 'bar', name: 'P − Q con PL', x: A.anios, y: A.pl, marker: {color: AZUL}, error_y: {type: 'data', array: A.sigma, color: css('--tenue'), thickness: 1}},
-      {type: 'bar', name: 'P − Q con PI', x: A.anios, y: A.pi, marker: {color: NARANJA}, error_y: {type: 'data', array: A.sigma, color: css('--tenue'), thickness: 1}},
+      {type: 'bar', name: 'P − Q con P̄ (± σ_ET, 95 %)', x: A.anios, y: A.pm, marker: {color: css('--tinta')}, error_y: {type: 'data', array: A.sigma, color: css('--tenue'), thickness: 1.2}},
+      {type: 'bar', name: 'P − Q con PL', x: A.anios, y: A.pl, marker: {color: AZUL}, visible: 'legendonly'},
+      {type: 'bar', name: 'P − Q con PI', x: A.anios, y: A.pi, marker: {color: NARANJA}, visible: 'legendonly'},
       {type: 'scatter', mode: 'lines+markers', name: 'Mediana de los productos', x: A.anios, y: A.mediana, line: {color: '#009E73', width: 2}},
       {type: 'scatter', mode: 'lines', name: 'ETo Penman–Monteith (FAO-56)', x: A.anios, y: A.eto, line: {color: css('--tinta'), width: 1.5, dash: 'dot'}},
       {type: 'scatter', mode: 'lines', name: 'Rn/λ (ERA5-Land)', x: A.anios, y: A.rn, line: {color: '#C8553D', width: 1.5}},
       {type: 'scatter', mode: 'lines', name: 'ΔS del suelo', x: A.anios, y: A.ds, line: {color: css('--tenue'), width: 1}, visible: 'legendonly'},
     ], la, OPCIONES);
     const filas = [];
-    A.anios.forEach((a, i) => { if (A.marcas_pi[i] || A.marcas_pl[i]) filas.push([a, miles(A.pi[i]), miles(A.pl[i]), miles(A.sigma[i]), miles(A.mediana[i]), A.marcas_pi[i] || '—', A.marcas_pl[i] || '—']); });
-    tabla('t-f6-marcas', ['Año (' + (tipo === 'hidrologico' ? 'hidrológico, meses ' + A.meses : 'calendario') + ')', 'P − Q PI', 'P − Q PL', 'σ_ET', 'Mediana productos', 'Marcas con PI', 'Marcas con PL'], filas);
-    document.querySelectorAll('#t-f6-marcas td:nth-child(n+6)').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; });
+    A.anios.forEach((a, i) => { if (A.marcas_pm[i] || A.marcas_pi[i] || A.marcas_pl[i]) filas.push([a, miles(A.pm[i]), miles(A.pi[i]), miles(A.pl[i]), miles(A.sigma[i]), miles(A.mediana[i]), A.marcas_pm[i] || '—', A.marcas_pi[i] || '—', A.marcas_pl[i] || '—']); });
+    tabla('t-f6-marcas', ['Año (' + (tipo === 'hidrologico' ? 'hidrológico, meses ' + A.meses : 'calendario') + ')', 'P − Q P̄', 'P − Q PI', 'P − Q PL', 'σ_ET (95 %)', 'Mediana productos', 'Marcas con P̄', 'Marcas con PI', 'Marcas con PL'], filas);
+    document.querySelectorAll('#t-f6-marcas td:nth-child(n+7)').forEach(td => { td.style.whiteSpace = 'normal'; td.style.textAlign = 'left'; });
   };
   const caja2 = document.getElementById('c-f6-anio');
   [['hidrologico', `Año hidrológico (desde el mes de menos agua en el suelo, ${F6.anual.hidrologico.meses})`], ['calendario', 'Año calendario']].forEach(([tipo, texto], k) => {

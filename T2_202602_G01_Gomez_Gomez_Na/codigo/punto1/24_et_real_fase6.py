@@ -11,8 +11,10 @@ Junta lo que ya calculan otros scripts y agrega lo que pide el plan de la fase 6
 
 Decisiones (anexos/decisiones.md). Propuestas por el agente con Juan ausente (2026-11-22) y revisadas por Juan el
 2026-11-23: σ_P aprobado; σ_Q al 95 % (25.6 %); año calendario como principal (el hidrológico se sigue calculando).
-    - sigma_P = |PL − PI| / √2: si PI y PL tienen el mismo error, independiente, la diferencia tiene varianza 2·sigma².
-      Juan (23 nov): se lleva al 95 %, × 1.96, igual que sigma_Q; sigma_ET queda como intervalo del 95 %.
+    - P̄ = (PI + PL)/2 es la lluvia del balance (Juan, 23 nov): PI y PL son dos medidas de la misma lluvia con el mismo
+      error, independiente, así que la mejor estimación es su promedio. PI y PL quedan como sensibilidad.
+    - sigma_P = 1.96 · |PL − PI| / 2: cada medida tiene sigma = |PL − PI|/√2 (la diferencia tiene varianza 2·sigma²) y
+      el promedio de dos tiene sigma/√2 = |PL − PI|/2; × 1.96 para el 95 %, igual que sigma_Q (Juan, 23 nov).
     - sigma_Q = 25.6 % de Q (Juan, 23 nov): Di Baldassarre y Montanari (2009), error medio de la curva de gasto al
       95 %, sin pasarlo a 1 sigma. Se trata como sistemático (no se reduce al promediar años). Sensibilidad: 5.3 %
       (un aforo) y 42.8 % (el máximo del estudio), también al 95 %.
@@ -161,10 +163,11 @@ def balance_por_anio(mensual, mes_inicio, etiqueta):
     anual = anual[anual["meses_con_Q"] == 12].copy()
     anual.insert(0, "tipo_de_anio", etiqueta)
     anual.insert(1, "meses", f"{mes_inicio:02d} a {(mes_inicio - 2) % 12 + 1:02d}")
-    for fuente in ["PI", "PL"]:
+    anual["Pm"] = (anual["PI"] + anual["PL"]) / 2   # P̄, mejor estimación de la lluvia (Juan, 23 nov)
+    for fuente in ["PI", "PL", "Pm"]:
         anual[f"P_menos_Q_{fuente}"] = anual[fuente] - anual["Q"]
         anual[f"P_menos_Q_menos_dS_{fuente}"] = anual[f"P_menos_Q_{fuente}"] - anual["dS_suelo"]
-    anual["sigma_P"] = (anual["PL"] - anual["PI"]).abs() / np.sqrt(2) * Z_95_P
+    anual["sigma_P"] = (anual["PL"] - anual["PI"]).abs() / 2 * Z_95_P
     anual["sigma_Q"] = SIGMA_Q_FRACCION["central"] * anual["Q"]
     anual["sigma_ET"] = np.hypot(anual["sigma_P"], anual["sigma_Q"])
 
@@ -174,7 +177,7 @@ def balance_por_anio(mensual, mes_inicio, etiqueta):
     anual["min_productos"] = productos_del_anio.min(axis=1)
     anual["max_productos"] = productos_del_anio.max(axis=1)
     anual["mediana_productos"] = productos_del_anio.median(axis=1)
-    for fuente in ["PI", "PL"]:
+    for fuente in ["PI", "PL", "Pm"]:
         p_menos_q = anual[f"P_menos_Q_{fuente}"]
         marcas = []
         for anio_i in anual.index:
@@ -205,11 +208,11 @@ def productos_frente_al_balance(mensual):
         meses_por_mes = comunes.groupby(comunes.index.month).size()
         if len(meses_por_mes) < 12:
             continue
-        totales = suma_por_ciclo(comunes[[producto, "ETR_PI", "ETR_PL", "Q", "PI", "PL"]])
+        totales = suma_por_ciclo(comunes[[producto, "ETR_PI", "ETR_PL", "ETR_Pm", "Q", "PI", "PL"]])
         # fracción evaporativa con los meses que además tienen Rn de ERA5-Land
         con_rn = comunes[comunes["Rn_lambda"].notna()]
         totales_rn = suma_por_ciclo(con_rn[[producto, "ETR_PI", "ETR_PL", "Rn_lambda", "ETo"]])
-        sigma_p = abs(totales["PL"] - totales["PI"]) / np.sqrt(2) * Z_95_P
+        sigma_p = abs(totales["PL"] - totales["PI"]) / 2 * Z_95_P
         sigma_et = np.hypot(sigma_p, SIGMA_Q_FRACCION["central"] * totales["Q"])
         principio, resolucion, paso, unidades = FICHAS[producto]
         filas.append({
@@ -220,6 +223,10 @@ def productos_frente_al_balance(mensual):
             "meses_comunes_con_Q": len(comunes), "min_anios_por_mes": int(meses_por_mes.min()),
             "producto_mm_anio": totales[producto],
             "balance_PI_mm_anio": totales["ETR_PI"], "balance_PL_mm_anio": totales["ETR_PL"],
+            "balance_Pm_mm_anio": totales["ETR_Pm"],
+            "dif_vs_Pm_mm": totales[producto] - totales["ETR_Pm"],
+            "dif_vs_Pm_pct": 100 * (totales[producto] / totales["ETR_Pm"] - 1),
+            "dentro_de_sigma_ET_de_Pm": abs(totales[producto] - totales["ETR_Pm"]) <= sigma_et,
             "dif_vs_PI_mm": totales[producto] - totales["ETR_PI"],
             "dif_vs_PL_mm": totales[producto] - totales["ETR_PL"],
             "dif_vs_PI_pct": 100 * (totales[producto] / totales["ETR_PI"] - 1),
@@ -238,6 +245,8 @@ def main():
     productos = leer_mensual("et_real_mensual_productos.csv", [c for c in NOMBRES if c != "aa_brutsaert_stricker"])
     metodos = leer_mensual("metodos_mensual.csv", ["aa_brutsaert_stricker_mm_mes", "eto_fao56_mm_mes"])
     mensual = pd.concat([balance, productos], axis=1)
+    mensual["Pm"] = (mensual["PI"] + mensual["PL"]) / 2           # P̄ (Juan, 23 nov)
+    mensual["ETR_Pm"] = (mensual["ETR_PI"] + mensual["ETR_PL"]) / 2
     mensual["aa_brutsaert_stricker"] = metodos["aa_brutsaert_stricker_mm_mes"]
     mensual["ETo"] = metodos["eto_fao56_mm_mes"]
     mensual["Rn_lambda"] = radiacion_neta_mm(script_14)
@@ -252,17 +261,18 @@ def main():
 
     # --- 2. Incertidumbre del balance de largo plazo (ciclo anual medio con los meses que tienen Q, como el script 15)
     con_q = mensual[mensual["Q"].notna()]
-    largo = suma_por_ciclo(con_q[["PI", "PL", "Q", "ETR_PI", "ETR_PL"]])
-    sigma_p = abs(largo["PL"] - largo["PI"]) / np.sqrt(2) * Z_95_P
+    largo = suma_por_ciclo(con_q[["PI", "PL", "Pm", "Q", "ETR_PI", "ETR_PL", "ETR_Pm"]])
+    sigma_p = abs(largo["PL"] - largo["PI"]) / 2 * Z_95_P
     incertidumbre = []
     for caso, fraccion in SIGMA_Q_FRACCION.items():
         sigma_q = fraccion * largo["Q"]
         sigma_et = np.hypot(sigma_p, sigma_q)
         incertidumbre.append({
             "caso_sigma_Q": caso, "sigma_Q_pct_de_Q": 100 * fraccion,
-            "P_PI": largo["PI"], "P_PL": largo["PL"], "Q": largo["Q"],
-            "ETR_PI": largo["ETR_PI"], "ETR_PL": largo["ETR_PL"],
+            "P_PI": largo["PI"], "P_PL": largo["PL"], "P_media": largo["Pm"], "Q": largo["Q"],
+            "ETR_Pm": largo["ETR_Pm"], "ETR_PI": largo["ETR_PI"], "ETR_PL": largo["ETR_PL"],
             "sigma_P": sigma_p, "sigma_Q": sigma_q, "sigma_ET": sigma_et,
+            "sigma_ET_pct_de_ETR_Pm": 100 * sigma_et / largo["ETR_Pm"],
             "sigma_ET_pct_de_ETR_PI": 100 * sigma_et / largo["ETR_PI"],
             "sigma_ET_pct_de_ETR_PL": 100 * sigma_et / largo["ETR_PL"],
             "parte_de_P_en_varianza_pct": 100 * sigma_p ** 2 / sigma_et ** 2,
@@ -271,12 +281,12 @@ def main():
 
     # --- 3. Techo de energía y fracción evaporativa del balance (meses con Q y con Rn de ERA5-Land)
     con_q_rn = con_q[con_q["Rn_lambda"].notna()]
-    techo = suma_por_ciclo(con_q_rn[["ETR_PI", "ETR_PL", "Rn_lambda", "ETo"]])
+    techo = suma_por_ciclo(con_q_rn[["ETR_Pm", "ETR_PI", "ETR_PL", "Rn_lambda", "ETo"]])
     ciclo = mensual.groupby(mensual.index.month)[
-        ["Rn_lambda", "ETo", "ETR_PI", "ETR_PL", "PI", "PL", "Q"] + list(NOMBRES)].mean()
+        ["Rn_lambda", "ETo", "ETR_Pm", "ETR_PI", "ETR_PL", "Pm", "PI", "PL", "Q"] + list(NOMBRES)].mean()
     ciclo.index.name = "mes_calendario"
     # para el balance, el ciclo de P − Q solo con meses con Q (los demás meses no tienen P − Q)
-    ciclo[["ETR_PI", "ETR_PL"]] = con_q.groupby(con_q.index.month)[["ETR_PI", "ETR_PL"]].mean()
+    ciclo[["ETR_Pm", "ETR_PI", "ETR_PL"]] = con_q.groupby(con_q.index.month)[["ETR_Pm", "ETR_PI", "ETR_PL"]].mean()
 
     # --- 4. Productos frente al balance, en los mismos meses
     frente = productos_frente_al_balance(mensual)
@@ -284,14 +294,14 @@ def main():
     # --- Comprobaciones físicas del plan: λET/Rn ≤ 1 y ET ≤ ETo en el largo plazo
     print("\nTecho de energía, largo plazo (meses con Q y Rn, ciclo anual medio):")
     print(f"  Rn/λ = {techo['Rn_lambda']:.0f} mm/año; ETo = {techo['ETo']:.0f}")
-    for fuente in ["PI", "PL"]:
+    for fuente in ["Pm", "PI", "PL"]:
         fe = techo[f"ETR_{fuente}"] / techo["Rn_lambda"]
         print(f"  P − Q con {fuente} = {techo[f'ETR_{fuente}']:.0f}: λET/Rn = {fe:.2f} "
               f"({'≤ 1' if fe <= 1 else 'SUPERA 1'}); ET/ETo = {techo[f'ETR_{fuente}'] / techo['ETo']:.2f}")
     resumen_techo = pd.DataFrame([{"camino": f"balance con {f}", "ET_mm_anio": techo[f"ETR_{f}"],
                                    "Rn_lambda_mm_anio": techo["Rn_lambda"], "ETo_mm_anio": techo["ETo"],
                                    "fraccion_evaporativa": techo[f"ETR_{f}"] / techo["Rn_lambda"],
-                                   "ET_sobre_ETo": techo[f"ETR_{f}"] / techo["ETo"]} for f in ["PI", "PL"]])
+                                   "ET_sobre_ETo": techo[f"ETR_{f}"] / techo["ETo"]} for f in ["Pm", "PI", "PL"]])
 
     # --- Salidas
     salida_mensual = mensual.copy()

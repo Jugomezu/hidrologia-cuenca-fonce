@@ -3,7 +3,8 @@
 Entrada: productos/punto1/et_balance_anual.csv (script 24), años calendario con los 12 meses de Q (Juan, 2026-11-23:
 el año hidrológico desde febrero no redujo ΔS, así que se usa el calendario).
 
-Tres maneras de poner la ET anual, porque la fuente de ET es una decisión de Juan que sigue abierta:
+La ET anual principal es P − Q con P̄ = (PI + PL)/2 (Juan, 2026-11-23: ET = P − Q porque ΔS anual es pequeño; P̄ porque
+PI y PL son dos medidas de la misma lluvia). Se dejan como sensibilidad PI, PL y la mediana de los productos:
     P − Q (PI)            balance con la precipitación interpolada
     P − Q (PL)            balance con la precipitación de la Tarea 1 (PL)
     mediana de productos  columna mediana_productos del script 24: mediana del año de ERA5-Land e, GLEAM, MOD16,
@@ -68,13 +69,19 @@ def main():
     datos = pd.read_csv(ENTRADA)
     anual = datos[datos["tipo_de_anio"] == "calendario"].copy()   # Juan, 23 nov
     assert len(anual) > 0
+    anual["Pm"] = (anual["PI"] + anual["PL"]) / 2   # P̄, la lluvia principal (Juan, 23 nov)
+    fuente_p = {}
     series = {
+        "P − Q (P̄)": (anual["Pm"], anual["Pm"] - anual["Q"]),
+        "mediana de productos, P = P̄": (anual["Pm"], anual["mediana_productos"]),
         "P − Q (PI)": (anual["PI"], anual["PI"] - anual["Q"]),
         "P − Q (PL)": (anual["PL"], anual["PL"] - anual["Q"]),
         "mediana de productos, P = PI": (anual["PI"], anual["mediana_productos"]),
         "mediana de productos, P = PL": (anual["PL"], anual["mediana_productos"]),
     }
 
+    for nombre in series:
+        fuente_p[nombre] = "Pm" if "P̄" in nombre else ("PI" if "PI" in nombre else "PL")
     filas_anual, filas_resumen = [], []
     for nombre, (p, et) in series.items():
         for anio, p_t, et_t, eto_t in zip(anual["anio"], p, et, anual["ETo"]):
@@ -93,12 +100,12 @@ def main():
                               "nota": "" if not np.isnan(omega) else "ε > φ (ET > ETo): sobre el límite de energía"})
 
     # Elasticidad empírica: solo depende de P y Q.
-    for nombre_p in ["PI", "PL"]:
+    for nombre_p in ["Pm", "PI", "PL"]:
         p, q = anual[nombre_p], anual["Q"]
         cociente = (q - q.mean()) / (p - p.mean())
         empirica = float(np.median(cociente) * p.mean() / q.mean())
         for fila in filas_resumen:
-            if fila["serie"].endswith(f"({nombre_p})") or fila["serie"].endswith(f"P = {nombre_p}"):
+            if fuente_p[fila["serie"]] == nombre_p:
                 fila["elasticidad_empirica_sankarasubramanian"] = empirica
 
     # ET frente a la demanda en años secos y húmedos (mitad inferior y superior de P de cada serie).
@@ -117,7 +124,7 @@ def main():
     fig, eje = plt.subplots(figsize=(6, 5))
     x = np.linspace(0.01, 1.2, 200)
     eje.plot(x, np.minimum(x, 1), "k-", lw=1, label="límites de energía y de agua")
-    colores = ["#0072B2", "#E69F00", "#009E73", "#CC79A7"]
+    colores = ["#000000", "#7C5BC7", "#0072B2", "#E69F00", "#009E73", "#CC79A7"]
     tabla = pd.DataFrame(filas_anual)
     for (nombre, fila), color in zip(resumen.set_index("serie").iterrows(), colores):
         t = tabla[tabla["serie"] == nombre]

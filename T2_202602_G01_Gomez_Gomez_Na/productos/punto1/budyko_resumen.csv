@@ -1,4 +1,6 @@
 serie,anios,P_mm,ET_mm,ETo_mm,phi,epsilon,omega_fu,elasticidad_teorica,nota,elasticidad_empirica_sankarasubramanian,ET_sobre_ETo_anios_secos,ET_sobre_ETo_anios_humedos
+P − Q (P̄),11,2401.2591,1042.6409,1170.5,0.4875,0.4342,2.6594,1.6216,,1.6333,0.8681,0.9171
+"mediana de productos, P = P̄",11,2401.2591,1134.5636,1170.5,0.4875,0.4725,3.9173,1.8153,,1.6333,0.967,0.9726
 P − Q (PI),11,2223.3818,864.7636,1170.5,0.5265,0.3889,1.9516,1.4477,,1.3038,0.7222,0.7575
 P − Q (PL),11,2579.1364,1220.5182,1170.5,0.4538,0.4732,,,ε > φ (ET > ETo): sobre el límite de energía,1.3872,0.9719,1.1274
 "mediana de productos, P = PI",11,2223.3818,1134.5636,1170.5,0.5265,0.5103,4.1656,1.941,,1.3038,0.9667,0.973

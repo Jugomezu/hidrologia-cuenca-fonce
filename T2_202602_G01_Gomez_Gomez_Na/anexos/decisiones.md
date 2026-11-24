@@ -465,6 +465,12 @@ explica ahora el 30 % de la varianza. Para no mezclar niveles de confianza, Juan
 σ_ET = 563 mm/año (64 % de la ET con PI, 47 % con PL); la lluvia explica el 63 % de la varianza. Las marcas por año usan
 ahora ± σ_ET (95 %).
 
+**P̄ como lluvia principal (Juan, 24 nov).** Si σ_P sale de la diferencia PL − PI, PI y PL son dos medidas de la misma
+lluvia: se usa su media P̄ = (PI + PL)/2 y σ_P pasa a ser el error de esa media, σ_P = 1.96·|PL − PI|/2. Resultado:
+ET = P̄ − Q = 1 045 ± 467 mm/año (95 %; σ_P 315, σ_Q 344; la lluvia explica el 46 % de la varianza; σ_ET es el 45 % de la
+ET). Todos los productos caen dentro de ± σ_ET salvo SSEBop v5 (475) y la AA (1 551). PI y PL quedan como sensibilidad,
+también en Budyko (script 29): con P̄, φ 0.49, ε 0.43, ω 2.66, elasticidad de Q a P 1.62 teórica y 1.63 empírica.
+
 ## 2026-11-23 · Punto 1 · Fase 5: experimento de sensibilidad (script 28)
 
 **Decisión (Juan).** Se calienta Tmáx y Tmín por igual (+1 y +2 °C), así la amplitud diaria no cambia. Dos

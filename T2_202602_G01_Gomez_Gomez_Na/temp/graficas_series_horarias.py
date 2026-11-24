@@ -1408,8 +1408,8 @@ for (const [valor, texto] of CARGA.cifras) {
       trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(v => A.EF_max + A.pendiente_b * Math.min(v - A.theta_critica, 0)),
         xaxis: xa, yaxis: ya, line: {color: '#0072B2', width: 4}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
     });
-    const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; le.legend = {orientation: 'h', y: -0.2};
-    le.xaxis = {title: 'SMrz de GLEAM (m³/m³)', gridcolor: css('--linea')};
+    const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; Object.assign(le.legend, {orientation: 'h', y: -0.25, yanchor: 'top'});
+    Object.assign(le.xaxis, {type: 'linear', title: {text: 'SMrz de GLEAM (m³/m³)', font: {size: 11, color: css('--tenue')}}});
     Plotly.newPlot('g-ef', trazas, le, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
@@ -1634,6 +1634,30 @@ for (const [nombre, dias] of ventanas) {
   };
   document.getElementById('ventanas').appendChild(b);
 }
+
+// Cambio de tema (claro/oscuro) después de dibujar: Plotly guarda los colores como texto, así que se cambian los
+// valores viejos de los tokens por los nuevos en todas las gráficas.
+(() => {
+  const TOKENS = ['--tinta', '--tenue', '--linea', '--superficie'];
+  const foto = () => Object.fromEntries(TOKENS.map(k => [k, css(k)]));
+  let previo = foto();
+  const recolorear = () => {
+    const nuevo = foto(), pares = TOKENS.filter(k => previo[k] && previo[k] !== nuevo[k]).map(k => [previo[k], nuevo[k]]);
+    previo = nuevo;
+    if (!pares.length) return;
+    const marca = k => String.fromCharCode(1) + k + String.fromCharCode(1);
+    document.querySelectorAll('.js-plotly-plot').forEach(gd => {
+      let s = JSON.stringify({data: gd.data, layout: gd.layout}, (k, v) => (k[0] === '_' ? undefined : v));
+      pares.forEach(([viejo], k) => { s = s.split(viejo).join(marca(k)); });
+      pares.forEach(([, nuevo], k) => { s = s.split(marca(k)).join(nuevo); });
+      const o = JSON.parse(s);
+      try { Promise.resolve((s.includes('"pattern"') ? Plotly.newPlot : Plotly.react)(gd, o.data, o.layout, OPCIONES)).catch(e => console.warn('tema', gd.id, e)); } catch (e) { console.warn('tema', gd.id, e); }
+    });
+  };
+  new MutationObserver(recolorear).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme', 'class', 'style']});
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', recolorear); } catch (e) {}
+  setTimeout(recolorear, 1500);
+})();
 </script>
 </body>
 </html>

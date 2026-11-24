@@ -902,7 +902,7 @@ for (const [valor, texto] of CARGA.cifras) {
         marker: {size: 6, color: E.mc, colorscale: 'Twilight', cmin: 1, cmax: 12, showscale: true, colorbar: {title: 'mes', len: 0.8}},
         hovertemplate: '%{text}: θ %{x:.3f}, EF %{y:.3f}<extra></extra>'});
       trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(v => A.EF_max + A.pendiente_b * Math.min(v - A.theta_critica, 0)),
-        xaxis: xa, yaxis: ya, line: {color: css('--tinta'), width: 2}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
+        xaxis: xa, yaxis: ya, line: {color: '#0072B2', width: 4}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
     });
     const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; le.legend = {orientation: 'h', y: -0.2};
     le.xaxis = {title: 'SMrz de GLEAM (m³/m³)', gridcolor: css('--linea')};

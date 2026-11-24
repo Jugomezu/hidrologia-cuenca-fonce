@@ -4,11 +4,10 @@ Entrada: productos/punto1/et_balance_anual.csv (script 24), años calendario con
 el año hidrológico desde febrero no redujo ΔS, así que se usa el calendario).
 
 La ET anual principal es P − Q con P̄ = (PI + PL)/2 (Juan, 2026-11-23: ET = P − Q porque ΔS anual es pequeño; P̄ porque
-PI y PL son dos medidas de la misma lluvia). Se dejan como sensibilidad PI, PL y la mediana de los productos:
-    P − Q (PI)            balance con la precipitación interpolada
-    P − Q (PL)            balance con la precipitación de la Tarea 1 (PL)
+PI y PL son dos medidas de la misma lluvia). Juan (2026-11-24): solo P̄; las series con PI y PL se quitaron (siguen como
+sensibilidad en la fase 6). Comparación:
     mediana de productos  columna mediana_productos del script 24: mediana del año de ERA5-Land e, GLEAM, MOD16,
-                          TerraClimate, SSEBop v6.1 y v5 y la AA (los que tengan los 12 meses), con la P de cada serie
+                          TerraClimate, SSEBop v6.1 y v5 y la AA (los que tengan los 12 meses), con P̄
 El ΔS anual del suelo (ERA5-Land, script 24) se deja fuera: es de −90 a +82 mm, frente a P − Q de 700 a 1 500 mm.
 
 Índice de aridez φ = ETP/P; índice evaporativo ε = ET/P. ETP principal: ETo Penman–Monteith (FAO-56) de la cuenca.
@@ -86,14 +85,10 @@ def main():
         "P − Q (P̄), ETP = Rn/λ": (anual["Pm"], anual["Pm"] - anual["Q"], anual["Rn_lambda"]),
         "P − Q (P̄), ETP = Priestley–Taylor": (anual["Pm"], anual["Pm"] - anual["Q"], anual["PT"]),
         "mediana de productos, P = P̄": (anual["Pm"], anual["mediana_productos"], eto),
-        "P − Q (PI)": (anual["PI"], anual["PI"] - anual["Q"], eto),
-        "P − Q (PL)": (anual["PL"], anual["PL"] - anual["Q"], eto),
-        "mediana de productos, P = PI": (anual["PI"], anual["mediana_productos"], eto),
-        "mediana de productos, P = PL": (anual["PL"], anual["mediana_productos"], eto),
     }
 
     for nombre in series:
-        fuente_p[nombre] = "Pm" if "P̄" in nombre else ("PI" if "PI" in nombre else "PL")
+        fuente_p[nombre] = "Pm"
     filas_anual, filas_resumen = [], []
     for nombre, (p, et, etp) in series.items():
         validos = p.notna() & et.notna() & etp.notna()
@@ -113,7 +108,7 @@ def main():
                               "nota": "" if not np.isnan(omega) else "ε > φ (ET > ETP): sobre el límite de energía"})
 
     # Elasticidad empírica: solo depende de P y Q.
-    for nombre_p in ["Pm", "PI", "PL"]:
+    for nombre_p in ["Pm"]:
         p, q = anual[nombre_p], anual["Q"]
         cociente = (q - q.mean()) / (p - p.mean())
         empirica = float(np.median(cociente) * p.mean() / q.mean())
@@ -137,7 +132,7 @@ def main():
     fig, eje = plt.subplots(figsize=(6, 5))
     x = np.linspace(0.01, 1.2, 200)
     eje.plot(x, np.minimum(x, 1), "k-", lw=1, label="límites de energía y de agua")
-    colores = ["#000000", "#C8553D", "#882255", "#7C5BC7", "#0072B2", "#E69F00", "#009E73", "#CC79A7"]
+    colores = ["#000000", "#C8553D", "#882255", "#7C5BC7"]
     tabla = pd.DataFrame(filas_anual)
     for (nombre, fila), color in zip(resumen.set_index("serie").iterrows(), colores):
         t = tabla[tabla["serie"] == nombre]

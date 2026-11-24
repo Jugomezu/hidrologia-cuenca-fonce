@@ -870,8 +870,8 @@ code { font: 400 .86em var(--f-dato); }
 <section>
   <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
   <p>Años calendario con los 12 meses de Q (11 años; script 24; Juan, 23 nov). φ = ETo/P con la ETo
-  Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño; como sensibilidad, P − Q con PI o con PL
-  y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
+  Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño. Solo P̄ (Juan, 24 nov): las series
+  con PI y PL se quitaron. Comparación: la mediana de los productos de ET real con P̄ (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
   ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
   Script 29.</p>
@@ -1353,7 +1353,7 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
   }
   {
-    const B = CARGA.budyko, colores = [css('--tinta'), '#C8553D', '#882255', '#7C5BC7', '#0072B2', '#E69F00', '#009E73', '#CC79A7'];
+    const B = CARGA.budyko, colores = [css('--tinta'), '#C8553D', '#882255', '#7C5BC7'];
     const fmt = v => v === null ? '—' : v;
     document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>ETP</th><th>φ = ETP/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
       + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${Math.round(r.ETP_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')

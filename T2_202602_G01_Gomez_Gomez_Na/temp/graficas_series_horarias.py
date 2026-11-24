@@ -350,6 +350,17 @@ def datos_sensibilidad():
     }
 
 
+def datos_budyko():
+    """Fase 7: Budyko (salidas de 29_budyko.py)."""
+    anual = pd.read_csv(CARPETA_PRODUCTOS / "budyko_anual.csv")
+    resumen = pd.read_csv(CARPETA_PRODUCTOS / "budyko_resumen.csv")
+    return {
+        "anual": {s: {"phi": g["phi"].round(4).tolist(), "eps": g["epsilon"].round(4).tolist(),
+                      "anio": g["anio"].tolist()} for s, g in anual.groupby("serie", sort=False)},
+        "resumen": resumen.round(3).astype(object).where(resumen.notna(), None).to_dict(orient="records"),
+    }
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -438,6 +449,7 @@ def main():
         "terminos": datos_terminos(),
         "alfa": datos_alfa(),
         "sensibilidad": datos_sensibilidad(),
+        "budyko": datos_budyko(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -802,6 +814,18 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
   1σ de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
   <div class="tabla" id="t-f6-marcas"></div>
+</section>
+
+<section>
+  <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
+  <p>Años hidrológicos (febrero a enero) con los 12 meses de Q (12 años; script 24). φ = ETo/P con la ETo
+  Penman–Monteith (FAO-56); ε = ET/P. Cuatro maneras de poner la ET mientras Juan decide la fuente: P − Q con PI o
+  con PL, y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
+  al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
+  ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
+  Script 29.</p>
+  <div class="tabla" id="t-budyko"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Espacio de Budyko: años (puntos pequeños), media (grandes) y curva de Fu ajustada (punteada)</h3><div class="grafico" id="g-budyko" style="height:560px"></div></div>
 </section>
 
 <section>
@@ -1257,6 +1281,33 @@ for (const [valor, texto] of CARGA.cifras) {
     lm.margin = Object.assign({}, lm.margin, {t: 60, b: 110}); lm.legend = {orientation: 'h', x: 0, y: -0.12, yanchor: 'top'};
     lm.updatemenus[0].y = 1.12;
     Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
+  }
+  {
+    const B = CARGA.budyko, colores = ['#0072B2', '#E69F00', '#009E73', '#CC79A7'];
+    const fmt = v => v === null ? '—' : v;
+    document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>φ = ETo/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
+      + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
+      + '</tbody></table>';
+    const xs = Array.from({length: 121}, (_, i) => 0.01 + i * 0.01);
+    const fu = (x, w) => 1 + x - Math.pow(1 + Math.pow(x, w), 1 / w);
+    const trazas = [{type: 'scatter', mode: 'lines', x: [0, 1, 1.2], y: [0, 1, 1], name: 'límites (energía, agua)',
+      line: {color: css('--tinta'), width: 1.5}, hoverinfo: 'skip'}];
+    B.resumen.forEach((r, k) => {
+      const a = B.anual[r.serie];
+      trazas.push({type: 'scatter', mode: 'markers', x: a.phi, y: a.eps, name: r.serie + ' (años)', legendgroup: r.serie,
+        showlegend: false, marker: {color: colores[k], size: 7, opacity: 0.5}, customdata: a.anio,
+        hovertemplate: `${r.serie}<br>%{customdata}: φ %{x:.3f}, ε %{y:.3f}<extra></extra>`});
+      trazas.push({type: 'scatter', mode: 'markers', x: [r.phi], y: [r.epsilon], name: r.serie, legendgroup: r.serie,
+        marker: {color: colores[k], size: 14, line: {color: css('--tinta'), width: 1}},
+        hovertemplate: `${r.serie}, media: φ %{x:.3f}, ε %{y:.3f}<extra></extra>`});
+      if (r.omega_fu !== null) trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => fu(x, r.omega_fu)),
+        name: `Fu ω = ${r.omega_fu}`, legendgroup: r.serie, showlegend: false, line: {color: colores[k], dash: 'dash', width: 1.3},
+        hovertemplate: `Fu ω = ${r.omega_fu}: φ %{x:.2f}, ε %{y:.3f}<extra></extra>`});
+    });
+    const lb = base('ε = ET/P'); lb.hovermode = 'closest';
+    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.8], title: 'φ = ETo/P'});
+    lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0.2, 0.8]});
+    Plotly.newPlot('g-budyko', trazas, lb, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

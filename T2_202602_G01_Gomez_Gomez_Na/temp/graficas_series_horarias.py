@@ -894,7 +894,7 @@ code { font: 400 .86em var(--f-dato); }
   quiebre, θ* por mínimos cuadrados. θ = SMrz de GLEAM, media de la cuenca. Izquierda: ET = mediana de los productos que
   no dependen de GLEAM; derecha: GLEAM E, circular (GLEAM reduce su ET según SMrz). Color: mes del año.
   <b>Resultado: no aparece quiebre dentro de los datos</b>: el mejor θ* cae en el borde superior (0.452, donde se
-  amontonan los meses), así que el ajuste es una recta: EF sube poco con la humedad en todo el rango (R² 0.14 sin GLEAM).</p>
+  amontonan los meses), así que el ajuste es una recta: EF sube poco con la humedad en todo el rango (R² 0.16 sin GLEAM; mediana sin SSEBop v5, Juan 24 nov).</p>
   <div class="tarjeta"><h3>EF = λET/Rn frente a SMrz (m³/m³), 296 meses</h3><div class="grafico" id="g-ef" style="height:440px"></div></div>
 </section>
 

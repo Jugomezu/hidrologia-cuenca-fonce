@@ -12,7 +12,8 @@ de la humedad (limitado por energía); por debajo de una humedad crítica θ*, E
 Datos mensuales 1998–2022:
     θ     SMrz de GLEAM v4.3a, media de la cuenca (m³/m³)
     Rn/λ  de ERA5-Land (script 24, mm/mes)
-    ET    (a) mediana de MOD16, TerraClimate, ERA5-Land e, SSEBop v6.1 y v5, la que no depende de GLEAM
+    ET    (a) mediana de MOD16, TerraClimate, ERA5-Land e y SSEBop v6.1, la que no depende de GLEAM; sin SSEBop v5
+              (fuera de ± σ_ET del balance; Juan, 24 nov)
           (b) GLEAM E: circular, porque GLEAM reduce su ET según SMrz; solo para comparar
 
 Escribe productos/punto1/fraccion_evaporativa.csv (mes a mes), fraccion_evaporativa_umbral.csv y
@@ -39,7 +40,7 @@ ENTRADA_ET = CARPETA_PRODUCTOS / "et_productos_mensual.csv"
 SALIDA_MES = CARPETA_PRODUCTOS / "fraccion_evaporativa.csv"
 SALIDA_UMBRAL = CARPETA_PRODUCTOS / "fraccion_evaporativa_umbral.csv"
 SALIDA_PNG = CARPETA_PRODUCTOS / "fraccion_evaporativa.png"
-SIN_GLEAM = ["mod16a2gf", "terraclimate_aet", "era5land_e", "ssebop_v61", "ssebop_v5"]
+SIN_GLEAM = ["mod16a2gf", "terraclimate_aet", "era5land_e", "ssebop_v61"]   # sin SSEBop v5 (Juan, 24 nov)
 
 
 def ajustar_quiebre(theta, ef):

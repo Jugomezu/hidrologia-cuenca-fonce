@@ -350,6 +350,16 @@ def datos_sensibilidad():
     }
 
 
+def datos_regimen():
+    """Fase 7: ET/ETo y P/ETo por mes calendario, para explicar los criterios (de et_techo_energia.csv, script 24)."""
+    c = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia.csv").set_index("mes_calendario")
+    productos = ["era5land_e", "gleam_E", "mod16a2gf", "terraclimate_aet", "ssebop_v61", "ssebop_v5",
+                 "aa_brutsaert_stricker"]
+    r = lambda x: (x / c["ETo"]).round(3).tolist()
+    return {"mediana": r(c[productos].median(axis=1)), "minimo": r(c[productos].min(axis=1)),
+            "maximo": r(c[productos].max(axis=1)), "pi": r(c["PI"]), "pl": r(c["PL"])}
+
+
 def datos_budyko():
     """Fase 7: Budyko (salidas de 29_budyko.py)."""
     anual = pd.read_csv(CARPETA_PRODUCTOS / "budyko_anual.csv")
@@ -451,6 +461,7 @@ def main():
         "alfa": datos_alfa(),
         "sensibilidad": datos_sensibilidad(),
         "budyko": datos_budyko(),
+        "regimen": datos_regimen(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -837,6 +848,14 @@ code { font: 400 .86em var(--f-dato); }
   Script 29.</p>
   <div class="tabla" id="t-budyko"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Espacio de Budyko: años (puntos pequeños), media (grandes) y curva de Fu ajustada (punteada)</h3><div class="grafico" id="g-budyko" style="height:560px"></div></div>
+  <h3>Criterios para clasificar los meses (propuesta, para que Juan decida)</h3>
+  <p>Idea: si la ET real del mes llega casi a la demanda (ET/ETo cerca de 1), lo que la frena es la energía; si se
+  queda muy por debajo, falta agua. Las franjas son los umbrales propuestos: ET/ETo ≥ 0.8 limitado por energía,
+  0.5–0.8 transición, < 0.5 limitado por agua. La línea verde es la mediana de los productos de ET real (los mismos de
+  la fase 6) dividida por la ETo, con su rango entre productos; las punteadas son P/ETo (oferta de lluvia frente a
+  demanda): debajo de 1, la lluvia del mes no alcanza la demanda y la ET sale del almacenamiento. Ciclo anual medio
+  1998–2022.</p>
+  <div class="tarjeta"><h3>ET/ETo y P/ETo por mes, con las franjas de los criterios</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
 </section>
 
 <section>
@@ -1319,6 +1338,25 @@ for (const [valor, texto] of CARGA.cifras) {
     lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.8], title: 'φ = ETo/P'});
     lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0.2, 0.8]});
     Plotly.newPlot('g-budyko', trazas, lb, OPCIONES);
+  }
+  {
+    const R = CARGA.regimen;
+    const lr = ejeMes(base('razón con la ETo')); lr.hovermode = 'x unified';
+    lr.yaxis = Object.assign(lr.yaxis || {}, {range: [0, 3.4]});
+    const zona = (y0, y1, color, texto) => ({type: 'rect', xref: 'paper', x0: 0, x1: 1, y0, y1, fillcolor: color, line: {width: 0}, layer: 'below'});
+    lr.shapes = [zona(0, 0.5, 'rgba(230,159,0,0.18)'), zona(0.5, 0.8, 'rgba(128,128,128,0.15)'), zona(0.8, 3.4, 'rgba(0,114,178,0.08)'),
+      {type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 1, y1: 1, line: {color: css('--tenue'), width: 1}}];
+    lr.annotations = [[0.25, 'limitado por agua (< 0.5)'], [0.65, 'transición'], [3.25, 'limitado por energía (≥ 0.8)']].map(([y, t]) =>
+      ({xref: 'paper', x: 1, xanchor: 'right', y, showarrow: false, text: t, font: {size: 11, color: css('--tenue')}}));
+    Plotly.newPlot('g-regimen', [
+      {type: 'scatter', mode: 'lines', x: [...xm, ...xm.slice().reverse()], y: [...R.maximo, ...R.minimo.slice().reverse()],
+       fill: 'toself', fillcolor: 'rgba(0,158,115,0.15)', line: {width: 0}, name: 'rango entre productos', hoverinfo: 'skip'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.mediana, name: 'ET/ETo (mediana de productos)', line: {color: '#009E73', width: 3},
+       hovertemplate: 'ET/ETo: %{y:.2f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pi, name: 'P/ETo con PI', line: {color: '#E69F00', dash: 'dot'},
+       hovertemplate: 'P/ETo (PI): %{y:.2f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pl, name: 'P/ETo con PL', line: {color: '#0072B2', dash: 'dot'},
+       hovertemplate: 'P/ETo (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

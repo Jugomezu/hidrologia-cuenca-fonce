@@ -490,3 +490,8 @@ ea +10 %, sobre todos los métodos. Thornthwaite conserva el I del clima base (I
 febrero 0.76; el resto 0.34–0.70. Mes a mes, enero tiene φ > 1 en el 56 % de los años y febrero en el 44 %.
 **Ojo.** Budyko es de largo plazo (ΔS ≈ 0); en un mes el suelo puede cubrir la falta de lluvia. En enero ET/ETo de los
 productos sigue en 0.90: la ET no cae. φ > 1 dice que la lluvia del mes no alcanza, no que la ET esté frenada.
+
+## 2026-11-24 · Punto 1 · P̄ en todo lo que sigue
+
+**Decisión (Juan).** De aquí en adelante toda la lluvia es P̄ = (PI + PL)/2 (fases 7, 8, 9, informe y presentación).
+PI y PL quedan solo donde ya están, como sensibilidad.

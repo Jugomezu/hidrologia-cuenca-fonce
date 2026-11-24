@@ -471,6 +471,9 @@ ET = P̄ − Q = 1 045 ± 467 mm/año (95 %; σ_P 315, σ_Q 344; la lluvia expli
 ET). Todos los productos caen dentro de ± σ_ET salvo SSEBop v5 (475) y la AA (1 551). PI y PL quedan como sensibilidad,
 también en Budyko (script 29): con P̄, φ 0.49, ε 0.43, ω 2.66, elasticidad de Q a P 1.62 teórica y 1.63 empírica.
 
+**Criterio de consistencia al 95 % (Juan, 24 nov).** Un producto es consistente con el balance si cae dentro de ± σ_ET
+al 95 % (467 mm/año). La franja de 1σ (238) se muestra solo como prueba más estricta: pasan los mismos productos.
+
 ## 2026-11-23 · Punto 1 · Fase 5: experimento de sensibilidad (script 28)
 
 **Decisión (Juan).** Se calienta Tmáx y Tmín por igual (+1 y +2 °C), así la amplitud diaria no cambia. Dos

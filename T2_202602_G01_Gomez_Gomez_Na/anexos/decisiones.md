@@ -458,6 +458,9 @@ Archivos: `productos/punto1/et_*.csv`.
 **Para Juan.** (a) ¿Se quedan σ_P y σ_Q así? (b) ¿Año hidrológico o calendario? El hidrológico no redujo ΔS.
 (c) Con PL, P − Q > ETo: ¿error de PL, de Q, o la ETo se queda corta? Es la pregunta de la fase 7.
 
+**Revisión de Juan (23 nov).** σ_P aprobado. Año calendario en vez del hidrológico (el hidrológico no redujo ΔS); la
+fase 7 (script 29) usa años calendario. σ_Q: pendiente, Juan pidió una explicación gráfica (documento de trabajo, fase 6).
+
 ## 2026-11-23 · Punto 1 · Fase 5: experimento de sensibilidad (script 28)
 
 **Decisión (Juan).** Se calienta Tmáx y Tmín por igual (+1 y +2 °C), así la amplitud diaria no cambia. Dos

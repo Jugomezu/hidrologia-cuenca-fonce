@@ -411,6 +411,7 @@ def datos_fase6():
             "maximo": redondear(t["max_productos"]),
             "marcas_pi": t["marcas_PI"].fillna("").tolist(), "marcas_pl": t["marcas_PL"].fillna("").tolist(),
             "ds_desv": round(float(t["dS_suelo"].std()), 0),
+            "sigma_p": redondear(t["sigma_P"]), "sigma_q": redondear(t["sigma_Q"]),
         }
     return {
         "frente": frente.round(3).to_dict(orient="records"),
@@ -814,11 +815,21 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
   1σ de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
   <div class="tabla" id="t-f6-marcas"></div>
+  <h3>Cómo se estima la incertidumbre del balance (σ_ET)</h3>
+  <p>P − Q tiene dos fuentes de error. <b>σ_P</b>: PI y PL son dos estimaciones de la misma lluvia; se tratan como dos
+  medidas con el mismo error, y la diferencia de dos medidas así tiene varianza 2σ², así que σ_P = |PL − PI|/√2
+  (aprobado por Juan, 23 nov). <b>σ_Q</b>: el caudal no se mide directamente; se mide el nivel del río y se convierte con
+  la curva de gasto, ajustada a unos pocos aforos. Di Baldassarre y Montanari (2009, doi:10.5194/hess-13-913-2009)
+  hallaron un error medio de esa conversión de 25.6 % con 95 % de confianza; a 1σ es 25.6/1.96 = 13.1 %. Se trata como
+  sistemático (si la curva está corrida, lo está todos los años). Su estudio es del río Po: se declara como limitación.
+  σ_ET = √(σ_P² + σ_Q²).</p>
+  <div class="tarjeta"><h3>Curva de gasto: nivel → caudal, con la banda de error de Di Baldassarre y Montanari (esquema ilustrativo, no es la curva de la estación)</h3><div class="grafico" id="g-sigmaq-curva" style="height:400px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>σ_P y σ_Q de cada año calendario (mm/año): cuál pesa más en σ_ET</h3><div class="grafico" id="g-sigmaq-anual" style="height:400px"></div></div>
 </section>
 
 <section>
   <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
-  <p>Años hidrológicos (febrero a enero) con los 12 meses de Q (12 años; script 24). φ = ETo/P con la ETo
+  <p>Años calendario con los 12 meses de Q (11 años; script 24; Juan, 23 nov). φ = ETo/P con la ETo
   Penman–Monteith (FAO-56); ε = ET/P. Cuatro maneras de poner la ET mientras Juan decide la fuente: P − Q con PI o
   con PL, y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
@@ -1416,6 +1427,27 @@ for (const [valor, texto] of CARGA.cifras) {
   ].map(t => Object.assign({type: 'scatter', mode: 'lines+markers', x: xm, marker: {size: 4}}, t));
   Plotly.newPlot('g-f6-ciclo', trazas, lc, OPCIONES);
 
+  // σ_Q explicado (Juan, 23 nov): esquema de curva de gasto y σ_P frente a σ_Q por año calendario.
+  const dibujarSigmaQ = () => {
+    const h = Array.from({length: 60}, (_, i) => 0.3 + i * 0.06);
+    const q = h.map(v => 30 * Math.pow(v - 0.2, 1.6));
+    const banda = (f, nombre, color) => ({type: 'scatter', mode: 'lines', x: [...q.map(v => v * (1 + f)), ...q.map(v => v * (1 - f)).reverse()],
+      y: [...h, ...h.slice().reverse()], fill: 'toself', fillcolor: color, line: {width: 0}, name: nombre, hoverinfo: 'skip'});
+    const lq = base('nivel del río h (m)'); lq.hovermode = 'closest';
+    lq.xaxis = Object.assign(lq.xaxis || {}, {type: 'linear', title: 'caudal Q (m³/s)'});
+    Plotly.newPlot('g-sigmaq-curva', [banda(0.256, '± 25.6 % (95 %)', 'rgba(0,114,178,0.12)'),
+      banda(0.131, '± 13.1 % (1σ, el que usamos)', 'rgba(0,114,178,0.30)'),
+      {type: 'scatter', mode: 'lines', x: q, y: h, name: 'curva de gasto (esquema)', line: {color: '#0072B2', width: 2.5},
+       hovertemplate: 'h %{y:.2f} m → Q %{x:.0f} m³/s<extra></extra>'}], lq, OPCIONES);
+    const C = F6.anual.calendario;
+    const ls = base('mm/año'); ls.barmode = 'group'; ls.hovermode = 'x unified';
+    ls.xaxis = Object.assign(ls.xaxis, {type: 'category'});
+    Plotly.newPlot('g-sigmaq-anual', [
+      {type: 'bar', name: 'σ_P = |PL − PI|/√2', x: C.anios, y: C.sigma_p, marker: {color: '#E69F00'}},
+      {type: 'bar', name: 'σ_Q = 13.1 % de Q', x: C.anios, y: C.sigma_q, marker: {color: '#0072B2'}},
+      {type: 'scatter', mode: 'lines+markers', name: 'σ_ET = √(σ_P² + σ_Q²)', x: C.anios, y: C.sigma, line: {color: css('--tinta'), width: 2}}], ls, OPCIONES);
+  };
+
   // Por año, con selector de año hidrológico / calendario
   const dibujarAnual = tipo => {
     const A = F6.anual[tipo];
@@ -1440,7 +1472,9 @@ for (const [valor, texto] of CARGA.cifras) {
     b.onclick = () => { caja2.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', 'false')); b.setAttribute('aria-pressed', 'true'); dibujarAnual(tipo); };
     caja2.appendChild(b);
   });
-  dibujarAnual('hidrologico');
+  caja2.querySelectorAll('button').forEach((x, k) => x.setAttribute('aria-pressed', String(k === 1)));
+  dibujarAnual('calendario');
+  dibujarSigmaQ();
 })();
 
 // Series horarias en rejilla, con el zoom en el tiempo sincronizado.

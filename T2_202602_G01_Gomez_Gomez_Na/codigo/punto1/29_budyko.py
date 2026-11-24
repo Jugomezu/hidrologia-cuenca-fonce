@@ -1,6 +1,7 @@
 """Fase 7 (punto 1): la cuenca en el espacio de Budyko, ω de Fu y elasticidad del caudal a la precipitación.
 
-Entrada: productos/punto1/et_balance_anual.csv (script 24), años hidrológicos (febrero a enero) con los 12 meses de Q.
+Entrada: productos/punto1/et_balance_anual.csv (script 24), años calendario con los 12 meses de Q (Juan, 2026-11-23:
+el año hidrológico desde febrero no redujo ΔS, así que se usa el calendario).
 
 Tres maneras de poner la ET anual, porque la fuente de ET es una decisión de Juan que sigue abierta:
     P − Q (PI)            balance con la precipitación interpolada
@@ -65,7 +66,7 @@ def ajustar_omega(phi, eps):
 
 def main():
     datos = pd.read_csv(ENTRADA)
-    anual = datos[datos["tipo_de_anio"] == "hidrologico"].copy()
+    anual = datos[datos["tipo_de_anio"] == "calendario"].copy()   # Juan, 23 nov
     assert len(anual) > 0
     series = {
         "P − Q (PI)": (anual["PI"], anual["PI"] - anual["Q"]),
@@ -129,7 +130,7 @@ def main():
     eje.set_xlabel("φ = ETo/P")
     eje.set_ylabel("ε = ET/P")
     eje.legend(fontsize=7, loc="lower right")
-    eje.set_title("Budyko, años hidrológicos (puntos pequeños) y media (grandes)", fontsize=9)
+    eje.set_title("Budyko, años calendario (puntos pequeños) y media (grandes)", fontsize=9)
     fig.tight_layout()
     fig.savefig(SALIDA_PNG, dpi=150)
     print(f"Listo: {SALIDA_PNG}")

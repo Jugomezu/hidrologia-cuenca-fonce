@@ -353,7 +353,7 @@ def datos_sensibilidad():
 def datos_regimen():
     """Fase 7: φ = ETo/P por mes calendario (salida de 30_regimen_mensual.py)."""
     c = pd.read_csv(CARPETA_PRODUCTOS / "regimen_mensual.csv")
-    return {k: c[k].round(3).tolist() for k in ["phi_Pm", "phi_PI", "phi_PL", "fraccion_meses_agua_Pm"]}
+    return {k: c[k].round(3).tolist() for k in ["phi_Pm", "fraccion_meses_agua_Pm"]}
 
 
 def datos_ef():
@@ -885,8 +885,7 @@ code { font: 400 .86em var(--f-dato); }
   <h3>Clasificación de los meses: energía o agua</h3>
   <p>Criterio (Juan, 24 nov): el del espacio de Budyko, con el índice de aridez φ = ETP/P, aquí ETo/P con P̄.
   φ &lt; 1: la lluvia del mes cubre la demanda, limitado por energía. φ &gt; 1: la demanda supera la lluvia, limitado
-  por agua (la ET depende del agua guardada en el suelo). Línea negra: ciclo medio 1998–2022; punteadas: PI y PL
-  (sensibilidad); barras: fracción de los años en que ese mes tuvo φ &gt; 1 con P̄. Script 30.</p>
+  por agua (la ET depende del agua guardada en el suelo). Línea negra: ciclo medio 1998–2022 (solo P̄, Juan 24 nov); barras: fracción de los años en que ese mes tuvo φ &gt; 1 con P̄. Script 30.</p>
   <div class="tarjeta"><h3>Índice de aridez mensual φ = ETo/P</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
   <h3>Fracción evaporativa frente a la humedad del suelo (script 31)</h3>
   <p>Marco de Seneviratne et al. (2010, <a href="https://doi.org/10.1016/j.earscirev.2010.02.004">doi:10.1016/j.earscirev.2010.02.004</a>):
@@ -1395,10 +1394,7 @@ for (const [valor, texto] of CARGA.cifras) {
        hovertemplate: 'años con φ > 1: %{y:.0%}<extra></extra>'},
       {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
        hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines', x: xm, y: R.phi_PI, name: 'φ con PI', line: {color: '#E69F00', dash: 'dot'},
-       hovertemplate: 'φ (PI): %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines', x: xm, y: R.phi_PL, name: 'φ con PL', line: {color: '#0072B2', dash: 'dot'},
-       hovertemplate: 'φ (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
+], lr, OPCIONES);
   }
   {
     const E = CARGA.ef;

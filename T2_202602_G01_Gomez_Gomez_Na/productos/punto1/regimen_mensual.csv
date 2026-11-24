@@ -1,13 +1,13 @@
-mes,ETo_mm,Pm_mm,phi_Pm,clase_Pm,fraccion_meses_agua_Pm,n_meses_Pm,PI_mm,phi_PI,clase_PI,fraccion_meses_agua_PI,n_meses_PI,PL_mm,phi_PL,clase_PL,fraccion_meses_agua_PL,n_meses_PL
-1,100.6024,87.848,1.1452,limitado por agua,0.56,25,72.5524,1.3866,limitado por agua,0.76,25,103.1448,0.9754,limitado por energía,0.52,25
-2,96.4988,126.7056,0.7616,limitado por energía,0.44,25,113.2896,0.8518,limitado por energía,0.48,25,140.1212,0.6887,limitado por energía,0.36,25
-3,106.4852,219.2644,0.4856,limitado por energía,0.04,25,185.696,0.5734,limitado por energía,0.04,25,252.8324,0.4212,limitado por energía,0.0,25
-4,96.262,275.6104,0.3493,limitado por energía,0.0,25,246.68,0.3902,limitado por energía,0.0,25,304.5416,0.3161,limitado por energía,0.0,25
-5,94.0004,270.1792,0.3479,limitado por energía,0.0,25,261.4944,0.3595,limitado por energía,0.0,25,278.8632,0.3371,limitado por energía,0.0,25
-6,92.4976,184.0596,0.5025,limitado por energía,0.04,25,193.798,0.4773,limitado por energía,0.0,25,174.3232,0.5306,limitado por energía,0.16,25
-7,98.5324,165.9144,0.5939,limitado por energía,0.04,25,177.9048,0.5538,limitado por energía,0.0,25,153.9248,0.6401,limitado por energía,0.08,25
-8,103.668,184.236,0.5627,limitado por energía,0.0,25,182.5192,0.568,limitado por energía,0.0,25,185.9532,0.5575,limitado por energía,0.0,25
-9,101.3368,206.8176,0.49,limitado por energía,0.0,25,200.084,0.5065,limitado por energía,0.0,25,213.5516,0.4745,limitado por energía,0.04,25
-10,96.0312,283.5576,0.3387,limitado por energía,0.0,25,260.412,0.3688,limitado por energía,0.0,25,306.7024,0.3131,limitado por energía,0.0,25
-11,87.0252,238.0108,0.3656,limitado por energía,0.0,25,212.4064,0.4097,limitado por energía,0.0,25,263.6168,0.3301,limitado por energía,0.0,25
-12,93.084,133.9072,0.6951,limitado por energía,0.12,25,117.1372,0.7947,limitado por energía,0.24,25,150.6784,0.6178,limitado por energía,0.08,25
+mes,ETo_mm,Pm_mm,phi_Pm,clase_Pm,fraccion_meses_agua_Pm,n_meses_Pm
+1,100.6024,87.848,1.1452,limitado por agua,0.56,25
+2,96.4988,126.7056,0.7616,limitado por energía,0.44,25
+3,106.4852,219.2644,0.4856,limitado por energía,0.04,25
+4,96.262,275.6104,0.3493,limitado por energía,0.0,25
+5,94.0004,270.1792,0.3479,limitado por energía,0.0,25
+6,92.4976,184.0596,0.5025,limitado por energía,0.04,25
+7,98.5324,165.9144,0.5939,limitado por energía,0.04,25
+8,103.668,184.236,0.5627,limitado por energía,0.0,25
+9,101.3368,206.8176,0.49,limitado por energía,0.0,25
+10,96.0312,283.5576,0.3387,limitado por energía,0.0,25
+11,87.0252,238.0108,0.3656,limitado por energía,0.0,25
+12,93.084,133.9072,0.6951,limitado por energía,0.12,25

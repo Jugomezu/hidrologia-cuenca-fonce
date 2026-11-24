@@ -4,7 +4,7 @@ Criterio (Juan, 2026-11-24): el del espacio de Budyko, con el índice de aridez 
 Penman–Monteith (FAO-56) de la cuenca, script 04):
     φ < 1   limitado por energía (la lluvia del mes cubre la demanda)
     φ > 1   limitado por agua    (la demanda supera la lluvia; la ET depende del agua guardada)
-P principal: P̄ = (PI + PL)/2 (Juan, 2026-11-23). PI y PL como sensibilidad.
+Lluvia: P̄ = (PI + PL)/2 (Juan, 2026-11-23); solo P̄, sin PI ni PL (Juan, 2026-11-24).
 
 Dos lecturas:
     ciclo medio      φ del mes calendario con las medias 1998–2022 de ETo y P
@@ -30,7 +30,7 @@ CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 ENTRADA = CARPETA_PRODUCTOS / "et_productos_mensual.csv"
 SALIDA_CSV = CARPETA_PRODUCTOS / "regimen_mensual.csv"
 SALIDA_PNG = CARPETA_PRODUCTOS / "regimen_mensual.png"
-LLUVIAS = {"Pm": "P̄", "PI": "PI", "PL": "PL"}
+LLUVIAS = {"Pm": "P̄"}   # solo P̄ (Juan, 24 nov)
 
 
 def clase(phi):
@@ -55,14 +55,12 @@ def main():
     tabla = pd.DataFrame(filas)
     tabla.round(4).to_csv(SALIDA_CSV, index=False)
     print(f"Listo: {SALIDA_CSV}")
-    print(tabla[["mes", "phi_Pm", "clase_Pm", "fraccion_meses_agua_Pm", "phi_PI", "phi_PL"]].round(2).to_string(index=False))
+    print(tabla[["mes", "phi_Pm", "clase_Pm", "fraccion_meses_agua_Pm"]].round(2).to_string(index=False))
 
     fig, eje = plt.subplots(figsize=(7, 4))
     eje.axhspan(1, 2, color="#E69F00", alpha=0.15, label="limitado por agua (φ > 1)")
     eje.axhspan(0, 1, color="#0072B2", alpha=0.08, label="limitado por energía (φ < 1)")
     eje.plot(tabla["mes"], tabla["phi_Pm"], "k-o", lw=2, label="φ con P̄")
-    eje.plot(tabla["mes"], tabla["phi_PI"], ":", color="#E69F00", label="φ con PI")
-    eje.plot(tabla["mes"], tabla["phi_PL"], ":", color="#0072B2", label="φ con PL")
     eje.set_xticks(range(1, 13))
     eje.set_xlim(0.5, 12.5)
     eje.set_ylim(0, 1.6)

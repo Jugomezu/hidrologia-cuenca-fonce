@@ -502,3 +502,10 @@ PI y PL quedan solo donde ya están, como sensibilidad.
 (FAO-56), la validada en las fases 2–5. Sensibilidad, con P − Q (P̄): Rn/λ de ERA5-Land (techo de energía, la ETP
 original de Budyko) y Priestley–Taylor. Thornthwaite fuera (−38 % frente a la ETo). Resultado: φ 0.49 / 0.73 / 0.61,
 siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 / 1.51 (la empírica no depende de la ETP: 1.63).
+
+## 2026-11-24 · Punto 1 · Mediana de productos sin SSEBop v5 ni la AA
+
+**Decisión (Juan).** La mediana (y el rango) de los productos de ET real del script 24 se hace sin SSEBop v5 ni la AA,
+los dos que quedan fuera de ± σ_ET del balance. Efecto: la mediana solo cambia en 2002 (1 144 → 1 115 mm), porque
+los dos estaban en extremos opuestos; con el rango más estrecho, 2011 pasa a «bajo todos los productos». En Budyko la
+mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo con P̄ (Juan, 24 nov).

@@ -852,7 +852,7 @@ code { font: 400 .86em var(--f-dato); }
     <div class="grafico" id="g-f6-anual" style="height:440px"></div></div>
   <h3 style="margin-top:20px">Años marcados (solo se señalan; no se explican)</h3>
   <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
-  ± σ_ET (95 %) de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
+  ± σ_ET (95 %) de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate y SSEBop v6.1 con los 12 meses ese año; sin SSEBop v5 ni la AA, que quedan fuera de ± σ_ET del balance: Juan, 24 nov).</p>
   <div class="tabla" id="t-f6-marcas"></div>
   <h3>Cómo se estima la incertidumbre del balance (σ_ET)</h3>
   <p>P − Q tiene dos fuentes de error. <b>σ_P</b>: PI y PL son dos estimaciones de la misma lluvia; se tratan como dos
@@ -871,7 +871,7 @@ code { font: 400 .86em var(--f-dato); }
   <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
   <p>Años calendario con los 12 meses de Q (11 años; script 24; Juan, 23 nov). φ = ETo/P con la ETo
   Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño. Solo P̄ (Juan, 24 nov): las series
-  con PI y PL se quitaron. Comparación: la mediana de los productos de ET real con P̄ (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
+  con PI y PL se quitaron. Comparación: la mediana de los productos de ET real con P̄ (ERA5-Land e, GLEAM, MOD16, TerraClimate y SSEBop v6.1; sin SSEBop v5 ni la AA, Juan 24 nov; script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
   ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
   Script 29.</p>

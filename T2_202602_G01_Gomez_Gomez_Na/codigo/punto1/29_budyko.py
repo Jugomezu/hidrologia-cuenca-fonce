@@ -7,7 +7,7 @@ La ET anual principal es P − Q con P̄ = (PI + PL)/2 (Juan, 2026-11-23: ET = P
 PI y PL son dos medidas de la misma lluvia). Juan (2026-11-24): solo P̄; las series con PI y PL se quitaron (siguen como
 sensibilidad en la fase 6). Comparación:
     mediana de productos  columna mediana_productos del script 24: mediana del año de ERA5-Land e, GLEAM, MOD16,
-                          TerraClimate, SSEBop v6.1 y v5 y la AA (los que tengan los 12 meses), con P̄
+                          TerraClimate y SSEBop v6.1 (los que tengan los 12 meses), con P̄; sin SSEBop v5 ni la AA (Juan, 24 nov)
 El ΔS anual del suelo (ERA5-Land, script 24) se deja fuera: es de −90 a +82 mm, frente a P − Q de 700 a 1 500 mm.
 
 Índice de aridez φ = ETP/P; índice evaporativo ε = ET/P. ETP principal: ETo Penman–Monteith (FAO-56) de la cuenca.

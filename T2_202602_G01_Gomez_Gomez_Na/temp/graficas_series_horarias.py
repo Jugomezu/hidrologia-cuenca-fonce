@@ -875,6 +875,11 @@ code { font: 400 .86em var(--f-dato); }
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
   ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
   Script 29.</p>
+  <p><b>Qué ETP va en φ (Juan, 24 nov).</b> φ es el clima, así que no puede salir de la ET real (si no, φ = ε). Principal: ETo
+  Penman–Monteith (FAO-56), la validada en las fases 2–5. Sensibilidad con P − Q (P̄): Rn/λ de ERA5-Land (1 754 mm/año,
+  techo de energía, la ETP original de Budyko) y Priestley–Taylor (1 454). Thornthwaite fuera (−38 % frente a la ETo).
+  φ va de 0.49 (ETo) a 0.61 (Priestley–Taylor) y 0.73 (Rn/λ): la cuenca queda siempre del lado de energía (φ &lt; 1),
+  pero ω cambia (2.66, 1.99, 1.75) y la elasticidad teórica también (1.62, 1.51, 1.45).</p>
   <div class="tabla" id="t-budyko"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Espacio de Budyko: años (puntos pequeños), media (grandes) y curva de Fu ajustada (punteada)</h3><div class="grafico" id="g-budyko" style="height:560px"></div></div>
   <h3>Clasificación de los meses: energía o agua</h3>
@@ -1348,10 +1353,10 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
   }
   {
-    const B = CARGA.budyko, colores = [css('--tinta'), '#7C5BC7', '#0072B2', '#E69F00', '#009E73', '#CC79A7'];
+    const B = CARGA.budyko, colores = [css('--tinta'), '#C8553D', '#882255', '#7C5BC7', '#0072B2', '#E69F00', '#009E73', '#CC79A7'];
     const fmt = v => v === null ? '—' : v;
-    document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>φ = ETo/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
-      + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
+    document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>ETP</th><th>φ = ETP/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
+      + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${Math.round(r.ETP_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
       + '</tbody></table>';
     const xs = Array.from({length: 121}, (_, i) => 0.01 + i * 0.01);
     const fu = (x, w) => 1 + x - Math.pow(1 + Math.pow(x, w), 1 / w);
@@ -1370,7 +1375,7 @@ for (const [valor, texto] of CARGA.cifras) {
         hovertemplate: `Fu ω = ${r.omega_fu}: φ %{x:.2f}, ε %{y:.3f}<extra></extra>`});
     });
     const lb = base('ε = ET/P'); lb.hovermode = 'closest';
-    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.8], title: 'φ = ETo/P'});
+    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.95], title: 'φ = ETP/P (ETo salvo donde se indica)'});
     lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0.2, 0.8]});
     Plotly.newPlot('g-budyko', trazas, lb, OPCIONES);
   }

@@ -495,3 +495,10 @@ productos sigue en 0.90: la ET no cae. φ > 1 dice que la lluvia del mes no alca
 
 **Decisión (Juan).** De aquí en adelante toda la lluvia es P̄ = (PI + PL)/2 (fases 7, 8, 9, informe y presentación).
 PI y PL quedan solo donde ya están, como sensibilidad.
+
+## 2026-11-24 · Punto 1 · Fase 7: qué ETP va en el índice de aridez de Budyko
+
+**Decisión (Juan).** φ es el clima y no puede salir de la ET real (sería φ = ε). Principal: ETo Penman–Monteith
+(FAO-56), la validada en las fases 2–5. Sensibilidad, con P − Q (P̄): Rn/λ de ERA5-Land (techo de energía, la ETP
+original de Budyko) y Priestley–Taylor. Thornthwaite fuera (−38 % frente a la ETo). Resultado: φ 0.49 / 0.73 / 0.61,
+siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 / 1.51 (la empírica no depende de la ETP: 1.63).

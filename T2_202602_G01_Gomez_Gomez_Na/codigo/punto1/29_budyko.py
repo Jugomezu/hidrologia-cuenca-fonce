@@ -11,7 +11,11 @@ PI y PL son dos medidas de la misma lluvia). Se dejan como sensibilidad PI, PL y
                           TerraClimate, SSEBop v6.1 y v5 y la AA (los que tengan los 12 meses), con la P de cada serie
 El ΔS anual del suelo (ERA5-Land, script 24) se deja fuera: es de −90 a +82 mm, frente a P − Q de 700 a 1 500 mm.
 
-Índice de aridez φ = ETo/P (ETo Penman–Monteith FAO-56 de la cuenca); índice evaporativo ε = ET/P.
+Índice de aridez φ = ETP/P; índice evaporativo ε = ET/P. ETP principal: ETo Penman–Monteith (FAO-56) de la cuenca.
+Sensibilidad de la ETP, con P − Q (P̄) (Juan, 2026-11-24):
+    Rn/λ              radiación neta de ERA5-Land (script 24): el techo de energía, la ETP original de Budyko
+    Priestley–Taylor  α = 1.26 (script 21): ETP casi solo de energía
+Thornthwaite se deja fuera: subestima la ETo en 38 % (fase 4).
 
 Curva de Fu (1981):  F(φ) = 1 + φ − (1 + φ^ω)^(1/ω)
 ω se ajusta para que la curva pase por el punto multianual (P, Q y ETo medios del periodo). Si el punto queda por
@@ -45,6 +49,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 RAIZ_ENTREGA = Path(__file__).resolve().parents[2]
 CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 ENTRADA = CARPETA_PRODUCTOS / "et_balance_anual.csv"
+ENTRADA_METODOS = CARPETA_PRODUCTOS / "metodos_mensual.csv"
 SALIDA_ANUAL = CARPETA_PRODUCTOS / "budyko_anual.csv"
 SALIDA_RESUMEN = CARPETA_PRODUCTOS / "budyko_resumen.csv"
 SALIDA_PNG = CARPETA_PRODUCTOS / "budyko.png"
@@ -70,24 +75,32 @@ def main():
     anual = datos[datos["tipo_de_anio"] == "calendario"].copy()   # Juan, 23 nov
     assert len(anual) > 0
     anual["Pm"] = (anual["PI"] + anual["PL"]) / 2   # P̄, la lluvia principal (Juan, 23 nov)
+    metodos = pd.read_csv(ENTRADA_METODOS)
+    metodos["anio"] = metodos["mes"].str[:4].astype(int)
+    pt = metodos.groupby("anio")["priestley_taylor_mm_mes"].sum(min_count=12)
+    anual["PT"] = anual["anio"].map(pt)
+    eto = anual["ETo"]
     fuente_p = {}
-    series = {
-        "P − Q (P̄)": (anual["Pm"], anual["Pm"] - anual["Q"]),
-        "mediana de productos, P = P̄": (anual["Pm"], anual["mediana_productos"]),
-        "P − Q (PI)": (anual["PI"], anual["PI"] - anual["Q"]),
-        "P − Q (PL)": (anual["PL"], anual["PL"] - anual["Q"]),
-        "mediana de productos, P = PI": (anual["PI"], anual["mediana_productos"]),
-        "mediana de productos, P = PL": (anual["PL"], anual["mediana_productos"]),
+    series = {   # nombre: (P, ET, ETP)
+        "P − Q (P̄)": (anual["Pm"], anual["Pm"] - anual["Q"], eto),
+        "P − Q (P̄), ETP = Rn/λ": (anual["Pm"], anual["Pm"] - anual["Q"], anual["Rn_lambda"]),
+        "P − Q (P̄), ETP = Priestley–Taylor": (anual["Pm"], anual["Pm"] - anual["Q"], anual["PT"]),
+        "mediana de productos, P = P̄": (anual["Pm"], anual["mediana_productos"], eto),
+        "P − Q (PI)": (anual["PI"], anual["PI"] - anual["Q"], eto),
+        "P − Q (PL)": (anual["PL"], anual["PL"] - anual["Q"], eto),
+        "mediana de productos, P = PI": (anual["PI"], anual["mediana_productos"], eto),
+        "mediana de productos, P = PL": (anual["PL"], anual["mediana_productos"], eto),
     }
 
     for nombre in series:
         fuente_p[nombre] = "Pm" if "P̄" in nombre else ("PI" if "PI" in nombre else "PL")
     filas_anual, filas_resumen = [], []
-    for nombre, (p, et) in series.items():
-        for anio, p_t, et_t, eto_t in zip(anual["anio"], p, et, anual["ETo"]):
-            filas_anual.append({"serie": nombre, "anio": anio, "P": p_t, "ET": et_t, "ETo": eto_t,
-                                "phi": eto_t / p_t, "epsilon": et_t / p_t})
-        p_m, et_m, eto_m, q_m = p.mean(), et.mean(), anual["ETo"].mean(), anual["Q"].mean()
+    for nombre, (p, et, etp) in series.items():
+        validos = p.notna() & et.notna() & etp.notna()
+        for anio, p_t, et_t, etp_t in zip(anual["anio"][validos], p[validos], et[validos], etp[validos]):
+            filas_anual.append({"serie": nombre, "anio": anio, "P": p_t, "ET": et_t, "ETP": etp_t,
+                                "phi": etp_t / p_t, "epsilon": et_t / p_t})
+        p_m, et_m, eto_m = p[validos].mean(), et[validos].mean(), etp[validos].mean()
         phi, eps = eto_m / p_m, et_m / p_m
         omega = ajustar_omega(phi, eps)
         if np.isnan(omega):
@@ -95,9 +108,9 @@ def main():
         else:
             assert abs(fu(phi, omega) - eps) < 1e-9
             teorica = 1 + phi * fu_derivada(phi, omega) / (1 - fu(phi, omega))
-        filas_resumen.append({"serie": nombre, "anios": len(anual), "P_mm": p_m, "ET_mm": et_m, "ETo_mm": eto_m,
+        filas_resumen.append({"serie": nombre, "anios": int(validos.sum()), "P_mm": p_m, "ET_mm": et_m, "ETP_mm": eto_m,
                               "phi": phi, "epsilon": eps, "omega_fu": omega, "elasticidad_teorica": teorica,
-                              "nota": "" if not np.isnan(omega) else "ε > φ (ET > ETo): sobre el límite de energía"})
+                              "nota": "" if not np.isnan(omega) else "ε > φ (ET > ETP): sobre el límite de energía"})
 
     # Elasticidad empírica: solo depende de P y Q.
     for nombre_p in ["Pm", "PI", "PL"]:
@@ -110,7 +123,7 @@ def main():
 
     # ET frente a la demanda en años secos y húmedos (mitad inferior y superior de P de cada serie).
     for fila in filas_resumen:
-        p, et = series[fila["serie"]]
+        p, et, _ = series[fila["serie"]]
         seco = p <= p.median()
         fila["ET_sobre_ETo_anios_secos"] = float((et[seco] / anual["ETo"][seco]).mean())
         fila["ET_sobre_ETo_anios_humedos"] = float((et[~seco] / anual["ETo"][~seco]).mean())
@@ -124,7 +137,7 @@ def main():
     fig, eje = plt.subplots(figsize=(6, 5))
     x = np.linspace(0.01, 1.2, 200)
     eje.plot(x, np.minimum(x, 1), "k-", lw=1, label="límites de energía y de agua")
-    colores = ["#000000", "#7C5BC7", "#0072B2", "#E69F00", "#009E73", "#CC79A7"]
+    colores = ["#000000", "#C8553D", "#882255", "#7C5BC7", "#0072B2", "#E69F00", "#009E73", "#CC79A7"]
     tabla = pd.DataFrame(filas_anual)
     for (nombre, fila), color in zip(resumen.set_index("serie").iterrows(), colores):
         t = tabla[tabla["serie"] == nombre]
@@ -134,7 +147,7 @@ def main():
             eje.plot(x, fu(x, fila["omega_fu"]), color=color, lw=1, ls="--")
     eje.set_xlim(0, 1.2)
     eje.set_ylim(0, 1)
-    eje.set_xlabel("φ = ETo/P")
+    eje.set_xlabel("φ = ETP/P (ETo salvo donde se indica)")
     eje.set_ylabel("ε = ET/P")
     eje.legend(fontsize=7, loc="lower right")
     eje.set_title("Budyko, años calendario (puntos pequeños) y media (grandes)", fontsize=9)

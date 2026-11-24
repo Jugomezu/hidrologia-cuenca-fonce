@@ -109,6 +109,13 @@ Comprobado el 2026-11-21 en la página de cada producto, salvo donde se dice.
 - Senay, G. B. et al. SSEBop v5 (MODIS), USGS FEWS NET. https://doi.org/10.5066/F72V2F1F. El DOI resuelve al portal
   general de FEWS NET, no a una ficha del producto: autores, año y título sin confirmar. La ficha USGS del SSEBop
   operativo global es otra: Senay, Kagone y Velpuri (2020), https://doi.org/10.5066/P9OUVUUI.
+- Senay, G. B., Bohms, S., Singh, R. K., Gowda, P. H., Velpuri, N. M., Alemu, H. y Verdin, J. P. (2013). Operational
+  evapotranspiration mapping using remote sensing and weather datasets: a new parameterization for the SSEB approach.
+  *JAWRA, 49*(3), 577–591. https://doi.org/10.1111/jawr.12057. Método SSEBop (temperatura de superficie). Coautores y páginas sin confirmar con el artículo. Ficha USGS:
+  https://pubs.usgs.gov/publication/70132430.
+- Senay, G. B. et al. (2023). Improving the Operational Simplified Surface Energy Balance evapotranspiration model
+  using the Forcing and Normalizing Operation. *Remote Sensing, 15*(1), 260. https://doi.org/10.3390/rs15010260.
+  Recalibración FANO (SSEBop v6). Ficha USGS: https://pubs.usgs.gov/publication/70239356.
 - Huffman, G. J. et al. *GPM IMERG Final Precipitation L3 1 month 0.1° V07 (GPM_3IMERGM)*. NASA GES DISC.
   https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07. Heredado de la Tarea 1; solo se comprobó que la ficha existe.
 - Servicio Geológico Colombiano. (2023). *Mapa Geológico de Colombia 2023*, escala 1:1 500 000.

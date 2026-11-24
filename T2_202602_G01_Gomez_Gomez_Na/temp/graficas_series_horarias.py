@@ -816,6 +816,26 @@ code { font: 400 .86em var(--f-dato); }
     meses; las bandas son las del largo plazo (los meses cambian poco el balance, salvo SSEBop v6.1, que solo tiene 2012–2022).</p>
     <div class="grafico" id="g-f6-productos" style="height:460px"></div></div>
   <div class="tabla" id="t-f6-frente" style="margin-top:12px"></div>
+  <div class="tarjeta" style="margin-top:20px"><h3>Qué podría explicar estos resultados (hipótesis, para Juan)</h3>
+    <ul class="nota" style="margin:6px 0 0;padding-left:18px">
+    <li><b>AA (1 551), muy por encima.</b> AA = 2·Priestley–Taylor − Penman. Dos cosas medidas aquí la inflan: (1) α = 1.26
+      es alto para la cuenca: la ETo es solo 1.013·Eeq (fase 5), así que Priestley–Taylor (1 450) ya está 24 % sobre la
+      ETo (1 166). (2) La relación complementaria supone Ep ≥ Ew; con aire húmedo y poco viento el Penman sin c (1 350)
+      queda bajo Priestley–Taylor, y 2·PT − Penman sale incluso sobre PT. La cuenca está fuera del rango del método.</li>
+    <li><b>ERA5-Land e (1 274), por encima, al borde.</b> ERA5-Land da 11 a 35 % más Rs que Angstrom (fase 3): más energía,
+      más evaporación en un modelo que aquí casi no se limita por agua. Además usa su propia lluvia, no la nuestra.</li>
+    <li><b>SSEBop v5 (475) y v6.1 (847), por debajo.</b> Ambos calculan la fracción evaporativa con la temperatura de
+      superficie del satélite (Senay et al., 2013), que solo se mide con cielo despejado. En una cuenca andina nublada
+      hay pocos días útiles, y esos días tienden a ser los más calientes y secos: la fracción evaporativa baja (hipótesis,
+      no la probamos). La v6.1 cambió la calibración (FANO; Senay et al., 2023) y usa VIIRS: sube mucho frente a la v5.</li>
+    <li><b>GLEAM (1 157), MOD16 (1 121) y TerraClimate (1 029), cerca del balance.</b> La cuenca es húmeda (ET/ETo ≈ 0.90,
+      φ = 0.49 en Budyko): la ET está cerca de la demanda, y los productos que parten de una potencial razonable y la
+      reducen poco caen cerca de la ETo y del balance. Manda la energía, no el agua.</li>
+    <li><b>Para todos.</b> El balance tampoco es la verdad: σ_ET es el 45 % de la ET. Caer dentro de ± σ_ET (95 %) quiere
+      decir que no podemos descartar el producto, no que esté bien.</li>
+    </ul>
+    <p class="nota" style="margin:6px 0 0">Senay et al. (2013), <a href="https://doi.org/10.1111/jawr.12057">doi:10.1111/jawr.12057</a>;
+      Senay et al. (2023), <a href="https://doi.org/10.3390/rs15010260">doi:10.3390/rs15010260</a>.</p></div>
   <div class="tarjeta" style="margin-top:20px"><h3>Ciclo anual medio: techo de energía, demanda, balance y productos (mm/mes)</h3>
     <p class="nota" style="margin:4px 0 0">P − Q mensual no es ET mensual: el agua que entra en un mes puede salir por
     el río en otro. Se muestra solo para ver la forma del ciclo.</p>

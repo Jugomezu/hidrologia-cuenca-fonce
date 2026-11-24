@@ -12,12 +12,13 @@ Junta lo que ya calculan otros scripts y agrega lo que pide el plan de la fase 6
 Decisiones (anexos/decisiones.md). Propuestas por el agente con Juan ausente (2026-11-22) y revisadas por Juan el
 2026-11-23: σ_P aprobado; σ_Q al 95 % (25.6 %); año calendario como principal (el hidrológico se sigue calculando).
     - sigma_P = |PL − PI| / √2: si PI y PL tienen el mismo error, independiente, la diferencia tiene varianza 2·sigma².
+      Juan (23 nov): se lleva al 95 %, × 1.96, igual que sigma_Q; sigma_ET queda como intervalo del 95 %.
     - sigma_Q = 25.6 % de Q (Juan, 23 nov): Di Baldassarre y Montanari (2009), error medio de la curva de gasto al
       95 %, sin pasarlo a 1 sigma. Se trata como sistemático (no se reduce al promediar años). Sensibilidad: 5.3 %
       (un aforo) y 42.8 % (el máximo del estudio), también al 95 %.
     - Año hidrológico: empieza en el mes calendario con la menor agua media en el suelo (ERA5-Land, 0–289 cm).
     - «Muy distinto de los productos»: el P − Q del año queda fuera del rango de los productos con los 12 meses ese año
-      (ERA5-Land e, GLEAM E, MOD16A2GF, TerraClimate aet, SSEBop v6.1 y v5, y la AA), o a más de 1 sigma_ET de su
+      (ERA5-Land e, GLEAM E, MOD16A2GF, TerraClimate aet, SSEBop v6.1 y v5, y la AA), o fuera de ± sigma_ET (95 %) de su
       mediana. El rango solo casi nunca marca nada: SSEBop v5 (~470 mm) y la AA (~1 550 mm) lo abren mucho.
 
 Lee (productos/punto1/):
@@ -57,7 +58,9 @@ LAMBDA_MJ_KG = 2.45                                    # calor latente de vapori
 
 # Incertidumbre del caudal: Di Baldassarre y Montanari (2009), HESS 13, 913–921, https://doi.org/10.5194/hess-13-913-2009
 # (p. 919–920: error global de 6.2 % a 42.8 % de Q al 95 %, media 25.6 %; p. 915: un aforo, 5.3 % al 95 %).
-# Juan (2026-11-23): σ_Q con el valor al 95 % tal cual (25.6 %), no dividido por 1.96.
+# Juan (2026-11-23): σ_Q con el valor al 95 % tal cual (25.6 %), no dividido por 1.96, y σ_P también al 95 %
+# (×1.96), para que σ_ET sea un intervalo del 95 % coherente.
+Z_95_P = 1.96
 SIGMA_Q_FRACCION = {"central": 0.256, "un aforo": 0.053, "máximo del estudio": 0.428}
 
 # Productos de ET real (nombre en la salida -> columna de entrada) y la AA del script 21.
@@ -161,7 +164,7 @@ def balance_por_anio(mensual, mes_inicio, etiqueta):
     for fuente in ["PI", "PL"]:
         anual[f"P_menos_Q_{fuente}"] = anual[fuente] - anual["Q"]
         anual[f"P_menos_Q_menos_dS_{fuente}"] = anual[f"P_menos_Q_{fuente}"] - anual["dS_suelo"]
-    anual["sigma_P"] = (anual["PL"] - anual["PI"]).abs() / np.sqrt(2)
+    anual["sigma_P"] = (anual["PL"] - anual["PI"]).abs() / np.sqrt(2) * Z_95_P
     anual["sigma_Q"] = SIGMA_Q_FRACCION["central"] * anual["Q"]
     anual["sigma_ET"] = np.hypot(anual["sigma_P"], anual["sigma_Q"])
 
@@ -188,7 +191,7 @@ def balance_por_anio(mensual, mes_inicio, etiqueta):
                 fila.append("sobre todos los productos")
             distancia = p_menos_q[anio_i] - anual.at[anio_i, "mediana_productos"]
             if abs(distancia) > anual.at[anio_i, "sigma_ET"]:
-                fila.append(f"a más de 1 sigma de la mediana de los productos ({distancia:+.0f} mm)")
+                fila.append(f"fuera de ± sigma_ET (95 %) de la mediana de los productos ({distancia:+.0f} mm)")
             marcas.append("; ".join(fila))
         anual[f"marcas_{fuente}"] = marcas
     return anual.rename_axis("anio")
@@ -206,7 +209,7 @@ def productos_frente_al_balance(mensual):
         # fracción evaporativa con los meses que además tienen Rn de ERA5-Land
         con_rn = comunes[comunes["Rn_lambda"].notna()]
         totales_rn = suma_por_ciclo(con_rn[[producto, "ETR_PI", "ETR_PL", "Rn_lambda", "ETo"]])
-        sigma_p = abs(totales["PL"] - totales["PI"]) / np.sqrt(2)
+        sigma_p = abs(totales["PL"] - totales["PI"]) / np.sqrt(2) * Z_95_P
         sigma_et = np.hypot(sigma_p, SIGMA_Q_FRACCION["central"] * totales["Q"])
         principio, resolucion, paso, unidades = FICHAS[producto]
         filas.append({
@@ -250,7 +253,7 @@ def main():
     # --- 2. Incertidumbre del balance de largo plazo (ciclo anual medio con los meses que tienen Q, como el script 15)
     con_q = mensual[mensual["Q"].notna()]
     largo = suma_por_ciclo(con_q[["PI", "PL", "Q", "ETR_PI", "ETR_PL"]])
-    sigma_p = abs(largo["PL"] - largo["PI"]) / np.sqrt(2)
+    sigma_p = abs(largo["PL"] - largo["PI"]) / np.sqrt(2) * Z_95_P
     incertidumbre = []
     for caso, fraccion in SIGMA_Q_FRACCION.items():
         sigma_q = fraccion * largo["Q"]

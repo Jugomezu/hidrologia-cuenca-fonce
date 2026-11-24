@@ -803,7 +803,7 @@ code { font: 400 .86em var(--f-dato); }
   balance en los mismos meses; y si alguna cifra rompe el techo de energía (Rn/λ, la radiación neta real de ERA5-Land,
   no la del pasto) o la demanda (ETo Penman–Monteith (FAO-56)).</p>
   <h3>Incertidumbre del balance de largo plazo</h3>
-  <p class="nota">σ_P = |PL − PI|/√2 (las dos lluvias como dos medidas con el mismo error). σ_Q = 25.6 % de Q (Juan,
+  <p class="nota">σ_P = 1.96·|PL − PI|/√2 (las dos lluvias como dos medidas con el mismo error, llevado al 95 %; Juan, 23 nov). σ_Q = 25.6 % de Q (Juan,
   23 nov): el error medio de la curva de gasto al 95 %, tal cual, de Di Baldassarre y Montanari (2009,
   <a href="https://doi.org/10.5194/hess-13-913-2009">doi:10.5194/hess-13-913-2009</a>), tratado como sistemático.
   Sensibilidad: un aforo (5.3 % al 95 %) y el máximo del estudio (42.8 %).</p>
@@ -824,16 +824,16 @@ code { font: 400 .86em var(--f-dato); }
     <div class="grafico" id="g-f6-anual" style="height:440px"></div></div>
   <h3 style="margin-top:20px">Años marcados (solo se señalan; no se explican)</h3>
   <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
-  1σ de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
+  ± σ_ET (95 %) de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
   <div class="tabla" id="t-f6-marcas"></div>
   <h3>Cómo se estima la incertidumbre del balance (σ_ET)</h3>
   <p>P − Q tiene dos fuentes de error. <b>σ_P</b>: PI y PL son dos estimaciones de la misma lluvia; se tratan como dos
-  medidas con el mismo error, y la diferencia de dos medidas así tiene varianza 2σ², así que σ_P = |PL − PI|/√2
+  medidas con el mismo error, y la diferencia de dos medidas así tiene varianza 2σ², así que a 1σ es |PL − PI|/√2; se lleva al 95 % multiplicando por 1.96 (Juan, 23 nov): σ_P = 1.96·|PL − PI|/√2
   (aprobado por Juan, 23 nov). <b>σ_Q</b>: el caudal no se mide directamente; se mide el nivel del río y se convierte con
   la curva de gasto, ajustada a unos pocos aforos. Di Baldassarre y Montanari (2009, doi:10.5194/hess-13-913-2009)
   hallaron un error medio de esa conversión de 25.6 % con 95 % de confianza; se usa ese valor tal cual (Juan, 23 nov). Se trata como
   sistemático (si la curva está corrida, lo está todos los años). Su estudio es del río Po: se declara como limitación.
-  σ_ET = √(σ_P² + σ_Q²).</p>
+  σ_ET = √(σ_P² + σ_Q²), intervalo del 95 %.</p>
   <div class="tarjeta"><h3>Curva de gasto: nivel → caudal, con la banda de error de Di Baldassarre y Montanari (esquema ilustrativo, no es la curva de la estación)</h3><div class="grafico" id="g-sigmaq-curva" style="height:400px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>σ_P y σ_Q de cada año calendario (mm/año): cuál pesa más en σ_ET</h3><div class="grafico" id="g-sigmaq-anual" style="height:400px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>σ_Q frente a σ_P, cada punto un año calendario (mm/año)</h3><p style="margin:4px 0 0;font-size:14px;color:var(--tenue)">Sobre la diagonal pesa más el caudal; debajo, la lluvia.</p><div class="grafico" id="g-sigmaq-vs-p" style="height:460px;max-width:560px"></div></div>
@@ -1482,7 +1482,7 @@ for (const [valor, texto] of CARGA.cifras) {
     const ls = base('mm/año'); ls.barmode = 'group'; ls.hovermode = 'x unified';
     ls.xaxis = Object.assign(ls.xaxis, {type: 'category'});
     Plotly.newPlot('g-sigmaq-anual', [
-      {type: 'bar', name: 'σ_P = |PL − PI|/√2', x: C.anios, y: C.sigma_p, marker: {color: '#E69F00'}},
+      {type: 'bar', name: 'σ_P = 1.96·|PL − PI|/√2', x: C.anios, y: C.sigma_p, marker: {color: '#E69F00'}},
       {type: 'bar', name: 'σ_Q = 25.6 % de Q', x: C.anios, y: C.sigma_q, marker: {color: '#0072B2'}},
       {type: 'scatter', mode: 'lines+markers', name: 'σ_ET = √(σ_P² + σ_Q²)', x: C.anios, y: C.sigma, line: {color: css('--tinta'), width: 2}}], ls, OPCIONES);
     const tope = Math.ceil(Math.max(...C.sigma_p, ...C.sigma_q) / 100) * 100 + 50;

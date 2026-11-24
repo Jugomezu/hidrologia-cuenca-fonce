@@ -461,7 +461,9 @@ Archivos: `productos/punto1/et_*.csv`.
 **Revisión de Juan (23 nov).** σ_P aprobado. Año calendario en vez del hidrológico (el hidrológico no redujo ΔS); la
 fase 7 (script 29) usa años calendario. σ_Q: Juan pidió usar el valor al 95 % tal cual, 25.6 % de Q (sensibilidad 5.3 % y 42.8 %).
 Nuevo resultado de largo plazo: σ_Q = 344, σ_P = 227, σ_ET = 412 mm/año (47 % de la ET con PI, 34 % con PL); la lluvia
-explica ahora el 30 % de la varianza. Ojo: σ_P sigue a 1σ y σ_Q queda al 95 %, así que σ_ET mezcla niveles de confianza.
+explica ahora el 30 % de la varianza. Para no mezclar niveles de confianza, Juan eligió llevar también σ_P al 95 % (× 1.96): σ_P = 445, σ_Q = 344,
+σ_ET = 563 mm/año (64 % de la ET con PI, 47 % con PL); la lluvia explica el 63 % de la varianza. Las marcas por año usan
+ahora ± σ_ET (95 %).
 
 ## 2026-11-23 · Punto 1 · Fase 5: experimento de sensibilidad (script 28)
 

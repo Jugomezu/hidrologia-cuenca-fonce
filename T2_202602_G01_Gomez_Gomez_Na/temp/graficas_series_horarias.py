@@ -890,8 +890,9 @@ code { font: 400 .86em var(--f-dato); }
   <h3>Fracción evaporativa frente a la humedad del suelo (script 31)</h3>
   <p>Marco de Seneviratne et al. (2010, <a href="https://doi.org/10.1016/j.earscirev.2010.02.004">doi:10.1016/j.earscirev.2010.02.004</a>):
   con suelo húmedo EF = λET/Rn es plana (energía); bajo una humedad crítica θ* cae (agua). Se ajusta una recta con
-  quiebre, θ* por mínimos cuadrados. θ = SMrz de GLEAM, media de la cuenca. Izquierda: ET = mediana de los productos que
-  no dependen de GLEAM; derecha: GLEAM E, circular (GLEAM reduce su ET según SMrz). Color: mes del año.
+  quiebre, θ* por mínimos cuadrados. θ = SMrz de GLEAM, media de la cuenca. ET = mediana de MOD16, TerraClimate, ERA5-Land e y
+  SSEBop v6.1. La ET de GLEAM no se usa: GLEAM reduce su ET según su propio SMrz, así que sería circular (con ella el
+  ajuste sale más «limpio», R² 0.31, por la fórmula y no por la cuenca; queda en el CSV del script 31). Color: mes del año.
   <b>Resultado: no aparece quiebre dentro de los datos</b>: el mejor θ* cae en el borde superior (0.452, donde se
   amontonan los meses), así que el ajuste es una recta: EF sube poco con la humedad en todo el rango (R² 0.16 sin GLEAM; mediana sin SSEBop v5, Juan 24 nov).</p>
   <div class="tarjeta"><h3>EF = λET/Rn frente a SMrz (m³/m³), 296 meses</h3><div class="grafico" id="g-ef" style="height:440px"></div></div>
@@ -1399,18 +1400,16 @@ for (const [valor, texto] of CARGA.cifras) {
   {
     const E = CARGA.ef;
     const trazas = [];
-    [['sin_gleam', 'x', 'y', 'mediana sin GLEAM'], ['gleam', 'x2', 'y2', 'GLEAM E (circular)']].forEach(([k, xa, ya, n]) => {
+    [['sin_gleam', 'x', 'y', 'mediana sin GLEAM']].forEach(([k, xa, ya, n]) => {
       const A = E.ajuste[k], xs = [Math.min(...E.theta), A.theta_critica, Math.max(...E.theta)];
       trazas.push({type: 'scatter', mode: 'markers', x: E.theta, y: E[k], xaxis: xa, yaxis: ya, name: n, text: E.mes,
-        marker: {size: 6, color: E.mc, colorscale: 'Twilight', cmin: 1, cmax: 12, showscale: k === 'gleam', colorbar: {title: 'mes', len: 0.8}},
+        marker: {size: 6, color: E.mc, colorscale: 'Twilight', cmin: 1, cmax: 12, showscale: true, colorbar: {title: 'mes', len: 0.8}},
         hovertemplate: '%{text}: θ %{x:.3f}, EF %{y:.3f}<extra></extra>'});
       trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(v => A.EF_max + A.pendiente_b * Math.min(v - A.theta_critica, 0)),
         xaxis: xa, yaxis: ya, line: {color: css('--tinta'), width: 2}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
     });
     const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; le.legend = {orientation: 'h', y: -0.2};
-    le.grid = {rows: 1, columns: 2, pattern: 'independent'};
-    le.xaxis = {title: 'SMrz (m³/m³), ET sin GLEAM', gridcolor: css('--linea')}; le.xaxis2 = {title: 'SMrz (m³/m³), ET de GLEAM', gridcolor: css('--linea')};
-    le.yaxis2 = {matches: 'y', gridcolor: css('--linea')};
+    le.xaxis = {title: 'SMrz de GLEAM (m³/m³)', gridcolor: css('--linea')};
     Plotly.newPlot('g-ef', trazas, le, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');

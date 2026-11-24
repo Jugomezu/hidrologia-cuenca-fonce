@@ -482,3 +482,11 @@ recalcula con la T, el ea y la Rs nuevos (FAO-56 ec. 39); Rs no cambia al calent
 ea +10 %, sobre todos los métodos. Thornthwaite conserva el I del clima base (I fijo, 20 nov).
 
 **Método con solo temperatura (Juan).** Hargreaves: necesita Tmáx, Tmín y Ra, y Ra sale de la latitud y la fecha.
+
+## 2026-11-24 · Punto 1 · Fase 7: criterio de meses limitados por energía o por agua (script 30)
+
+**Decisión (Juan).** Se usa el índice de aridez de Budyko, φ = ETP/P, aquí ETo/P con P̄: φ < 1 limitado por energía,
+φ > 1 limitado por agua. Resultado (ciclo medio 1998–2022): solo enero tiene φ > 1 (1.15; con PI 1.39, con PL 0.98);
+febrero 0.76; el resto 0.34–0.70. Mes a mes, enero tiene φ > 1 en el 56 % de los años y febrero en el 44 %.
+**Ojo.** Budyko es de largo plazo (ΔS ≈ 0); en un mes el suelo puede cubrir la falta de lluvia. En enero ET/ETo de los
+productos sigue en 0.90: la ET no cae. φ > 1 dice que la lluvia del mes no alcanza, no que la ET esté frenada.

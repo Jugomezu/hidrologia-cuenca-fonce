@@ -351,13 +351,9 @@ def datos_sensibilidad():
 
 
 def datos_regimen():
-    """Fase 7: ET/ETo y P/ETo por mes calendario, para explicar los criterios (de et_techo_energia.csv, script 24)."""
-    c = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia.csv").set_index("mes_calendario")
-    productos = ["era5land_e", "gleam_E", "mod16a2gf", "terraclimate_aet", "ssebop_v61", "ssebop_v5",
-                 "aa_brutsaert_stricker"]
-    r = lambda x: (x / c["ETo"]).round(3).tolist()
-    return {"mediana": r(c[productos].median(axis=1)), "minimo": r(c[productos].min(axis=1)),
-            "maximo": r(c[productos].max(axis=1)), "pi": r(c["PI"]), "pl": r(c["PL"])}
+    """Fase 7: φ = ETo/P por mes calendario (salida de 30_regimen_mensual.py)."""
+    c = pd.read_csv(CARPETA_PRODUCTOS / "regimen_mensual.csv")
+    return {k: c[k].round(3).tolist() for k in ["phi_Pm", "phi_PI", "phi_PL", "fraccion_meses_agua_Pm"]}
 
 
 def datos_budyko():
@@ -870,14 +866,12 @@ code { font: 400 .86em var(--f-dato); }
   Script 29.</p>
   <div class="tabla" id="t-budyko"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Espacio de Budyko: años (puntos pequeños), media (grandes) y curva de Fu ajustada (punteada)</h3><div class="grafico" id="g-budyko" style="height:560px"></div></div>
-  <h3>Criterios para clasificar los meses (propuesta, para que Juan decida)</h3>
-  <p>Idea: si la ET real del mes llega casi a la demanda (ET/ETo cerca de 1), lo que la frena es la energía; si se
-  queda muy por debajo, falta agua. Las franjas son los umbrales propuestos: ET/ETo ≥ 0.8 limitado por energía,
-  0.5–0.8 transición, < 0.5 limitado por agua. La línea verde es la mediana de los productos de ET real (los mismos de
-  la fase 6) dividida por la ETo, con su rango entre productos; las punteadas son P/ETo (oferta de lluvia frente a
-  demanda): debajo de 1, la lluvia del mes no alcanza la demanda y la ET sale del almacenamiento. Ciclo anual medio
-  1998–2022.</p>
-  <div class="tarjeta"><h3>ET/ETo y P/ETo por mes, con las franjas de los criterios</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
+  <h3>Clasificación de los meses: energía o agua</h3>
+  <p>Criterio (Juan, 24 nov): el del espacio de Budyko, con el índice de aridez φ = ETP/P, aquí ETo/P con P̄.
+  φ &lt; 1: la lluvia del mes cubre la demanda, limitado por energía. φ &gt; 1: la demanda supera la lluvia, limitado
+  por agua (la ET depende del agua guardada en el suelo). Línea negra: ciclo medio 1998–2022; punteadas: PI y PL
+  (sensibilidad); barras: fracción de los años en que ese mes tuvo φ &gt; 1 con P̄. Script 30.</p>
+  <div class="tarjeta"><h3>Índice de aridez mensual φ = ETo/P</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
 </section>
 
 <section>
@@ -1363,22 +1357,24 @@ for (const [valor, texto] of CARGA.cifras) {
   }
   {
     const R = CARGA.regimen;
-    const lr = ejeMes(base('razón con la ETo')); lr.hovermode = 'x unified';
-    lr.yaxis = Object.assign(lr.yaxis || {}, {range: [0, 3.4]});
-    const zona = (y0, y1, color, texto) => ({type: 'rect', xref: 'paper', x0: 0, x1: 1, y0, y1, fillcolor: color, line: {width: 0}, layer: 'below'});
-    lr.shapes = [zona(0, 0.5, 'rgba(230,159,0,0.18)'), zona(0.5, 0.8, 'rgba(128,128,128,0.15)'), zona(0.8, 3.4, 'rgba(0,114,178,0.08)'),
+    const lr = ejeMes(base('φ = ETo/P')); lr.hovermode = 'x unified';
+    lr.yaxis = Object.assign(lr.yaxis || {}, {range: [0, 1.6]});
+    lr.yaxis2 = {overlaying: 'y', side: 'right', range: [0, 1.6], title: 'fracción de años con φ > 1', showgrid: false, tickfont: {color: css('--tenue')}};
+    lr.margin = Object.assign(lr.margin || {}, {r: 70});
+    lr.shapes = [{type: 'rect', xref: 'paper', x0: 0, x1: 1, y0: 1, y1: 1.6, fillcolor: 'rgba(230,159,0,0.15)', line: {width: 0}, layer: 'below'},
+      {type: 'rect', xref: 'paper', x0: 0, x1: 1, y0: 0, y1: 1, fillcolor: 'rgba(0,114,178,0.06)', line: {width: 0}, layer: 'below'},
       {type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 1, y1: 1, line: {color: css('--tenue'), width: 1}}];
-    lr.annotations = [[0.25, 'limitado por agua (< 0.5)'], [0.65, 'transición'], [3.25, 'limitado por energía (≥ 0.8)']].map(([y, t]) =>
-      ({xref: 'paper', x: 1, xanchor: 'right', y, showarrow: false, text: t, font: {size: 11, color: css('--tenue')}}));
+    lr.annotations = [[1.5, 'limitado por agua (φ > 1)'], [0.08, 'limitado por energía (φ < 1)']].map(([y, t]) =>
+      ({xref: 'paper', x: 0.99, xanchor: 'right', y, showarrow: false, text: t, font: {size: 11, color: css('--tenue')}}));
     Plotly.newPlot('g-regimen', [
-      {type: 'scatter', mode: 'lines', x: [...xm, ...xm.slice().reverse()], y: [...R.maximo, ...R.minimo.slice().reverse()],
-       fill: 'toself', fillcolor: 'rgba(0,158,115,0.15)', line: {width: 0}, name: 'rango entre productos', hoverinfo: 'skip'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.mediana, name: 'ET/ETo (mediana de productos)', line: {color: '#009E73', width: 3},
-       hovertemplate: 'ET/ETo: %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pi, name: 'P/ETo con PI', line: {color: '#E69F00', dash: 'dot'},
-       hovertemplate: 'P/ETo (PI): %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pl, name: 'P/ETo con PL', line: {color: '#0072B2', dash: 'dot'},
-       hovertemplate: 'P/ETo (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
+      {type: 'bar', x: xm, y: R.fraccion_meses_agua_Pm, yaxis: 'y2', name: 'años con φ > 1 (P̄)', marker: {color: 'rgba(230,159,0,0.45)'},
+       hovertemplate: 'años con φ > 1: %{y:.0%}<extra></extra>'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
+       hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines', x: xm, y: R.phi_PI, name: 'φ con PI', line: {color: '#E69F00', dash: 'dot'},
+       hovertemplate: 'φ (PI): %{y:.2f}<extra></extra>'},
+      {type: 'scatter', mode: 'lines', x: xm, y: R.phi_PL, name: 'φ con PL', line: {color: '#0072B2', dash: 'dot'},
+       hovertemplate: 'φ (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;

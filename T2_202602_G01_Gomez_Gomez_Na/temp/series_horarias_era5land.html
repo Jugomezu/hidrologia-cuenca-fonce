@@ -871,8 +871,8 @@ for (const [valor, texto] of CARGA.cifras) {
         hovertemplate: `Fu ω = ${r.omega_fu}: φ %{x:.2f}, ε %{y:.3f}<extra></extra>`});
     });
     const lb = base('ε = ET/P'); lb.hovermode = 'closest';
-    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.95], title: 'φ = ETP/P (ETo salvo donde se indica)'});
-    lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0.2, 0.8]});
+    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0, 1.2], title: 'φ = ETP/P (ETo salvo donde se indica)'});
+    lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0, 1]});
     Plotly.newPlot('g-budyko', trazas, lb, OPCIONES);
   }
   {

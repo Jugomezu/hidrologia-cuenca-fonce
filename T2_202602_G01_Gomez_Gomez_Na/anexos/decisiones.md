@@ -595,3 +595,45 @@ pero λET/Rn cae a cerca de la mitad (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30,
 de 0.70 a 0.65, así que el frío explica una parte y la superficie el resto. Son productos, no medidas.
 **Conclusión fase 9a, versión final (Juan, 25 nov, 7:16 a. m.).** La ET baja con la altura porque baja el déficit de
 vapor y porque, aunque haya mayor Rn, la fracción de Rn que va a calor latente disminuye con la altura.
+
+## 2026-11-25 · Punto 1 · Fase 9, tema f: resistencia de superficie (scripts 37 y 38)
+
+**Pedido de Juan.** Opción B: inversión de Penman–Monteith más Jarvis con LAI de MODIS, en hilo aparte y como extra por
+si cabe en el informe.
+
+**Base (script 37, sin LAI).** Se despeja la rs que hace que Penman–Monteith (ra = 208/u2 del pasto) dé la ET de GLEAM
+v4.3a y SSEBop v6.1 en la celda de cada punto, con la Rn real de ERA5-Land (hasta 2022-08). Decisiones del agente,
+pendientes de Juan: ra del pasto; medias mensuales de los términos; GLEAM como media de las 4 celdas desplazadas 0.05°.
+**Resultado.** La rs sube con la altura: GLEAM +384, SSEBop +638 s/m por km (n = 6). En los 3 puntos bajos (agropecuario
+81–90 %) la ET de GLEAM supera el techo con rs = 0 en 230–264 de 296 meses: con la Rn de ERA5-Land y la ra del pasto no
+hay rs que la reproduzca. Altura, T y cobertura van juntas entre puntos, así que sin LAI no se separan las funciones de
+Jarvis. La cuenca está limitada por energía: la rs
+cambia el reparto de la energía, no el agua disponible.
+
+**LAI (script 38).** MCD15A3H v6.1 (Terra + Aqua, compuestos de 4 días; MCD15A2H no está en el catálogo de Earth Engine) por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
+píxeles válidos y solo con el algoritmo principal. Corrido en el Ubuntu de Juan el 25 nov (proyecto GEE de Juan): 6 puntos × 1 878 compuestos. LAI medio: 1.2 y 1.7 en los puntos altos (1 y 5), 2.4 en el 6, 2.7–3.2 en los bajos; en los altos cerca de la mitad de los píxeles sale del algoritmo de respaldo (nubes).
+
+**ra por cobertura (Juan, 25 nov: «¿no podemos ajustarla con la cobertura?»).** Corrección del agente: con una ra menor
+(bosque) la rs despejada sale MENOR, no mayor (la rs entra como rs/ra). Prueba rápida, sin guardar, con ra de la ec. 4 de
+FAO-56 por cobertura (alturas supuestas: bosque 15 m, herbazal andino 1 m, agropecuario 0.5 m), viento a 10 m y
+conductancias combinadas por fracción de MapBiomas: rs mediana SSEBop 158–265 s/m abajo y 243–360 arriba (con la ra del
+pasto, 230–1 160); GLEAM sigue sin solución abajo en 161–211 meses. Pendiente de Juan: alturas por cobertura con fuente.
+
+**ra por cobertura, decidido (Juan, 25 nov, 7:43 a. m.).** Fuente: Tabla 1 de Gehrke, Sühring y Maronga (2021),
+doi:10.5194/gmd-14-5307-2021 (tipos de vegetación al estilo de ECMWF). Juan eligió: agropecuario = crops, mixed farming
+(z0 0.10 m); herbazal andino = evergreen shrubs (0.10 m); bosque = evergreen broadleaf trees (2.00 m); zoh = 0.1·zom
+como FAO-56. Supuestos del agente, aprobados por Juan (7:47 a. m.): viento de 10 m tomado 10 m sobre d; conductancias ponderadas por fracción.
+**Resultado (script 37).** rs SSEBop 153–248 s/m abajo y 234–349 arriba; GLEAM 0–6 abajo y 99–184 arriba. Pendiente
++113 (SSEBop) y +140 (GLEAM) s/m por km, contra +638 y +384 con la ra del pasto. GLEAM sigue sin solución abajo en
+134–196 de 296 meses. Herbazal como tall grass cambia poco (punto 1: 349 → 330 con SSEBop).
+
+**Jarvis con LAI (script 39, Juan aprobó el plan, 25 nov, 8:28 a. m.).** LAI = lai_todos (Juan). rc,min de la Tabla 1 de
+Gehrke et al. (2021) en paralelo por cobertura (supuesto del agente). f_total = rs·LAI/rc,min; ajuste ln f = a + g·D.
+**Resultado.** LAI ≈ 3–3.8 abajo y 1.1–1.5 arriba. Con SSEBop rs·LAI no sube con la altura (−86 s/m por km): la rs más
+alta arriba se explica por menos área foliar. GLEAM: rs·LAI +73 s/m por km (abajo solo meses con solución). f_total
+2.2–3.9 (SSEBop), 0.5–1.2 (GLEAM). g 0.14–0.52 hPa⁻¹ (SSEBop) y 0.59–1.01 (GLEAM), 5 a 34 veces el 0.03 de la tabla: no
+se interpreta como respuesta estomática, porque el déficit entra en la inversión y la rs despejada sube con D por
+construcción si la ET del producto responde poco al déficit.
+**Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).
+**Conclusión tema f (Juan, 25 nov, 8:48 a. m.).** La superficie frena más la evaporación arriba, y eso se explica por menor
+área foliar (páramo), no por cierre estomático; con estos datos no se puede estimar la respuesta al déficit.

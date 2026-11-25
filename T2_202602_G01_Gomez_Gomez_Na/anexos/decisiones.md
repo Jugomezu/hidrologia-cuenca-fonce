@@ -575,3 +575,5 @@ GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área fol
 más latente; los datos dicen lo contrario. Con la altura la Rn real de ERA5-Land sube algo (10.8 → 13.4 MJ/m²·día),
 pero λET/Rn cae a cerca de la mitad (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46). Δ/(Δ+γ) baja
 de 0.70 a 0.65, así que el frío explica una parte y la superficie el resto. Son productos, no medidas.
+**Conclusión fase 9a, versión final (Juan, 25 nov, 7:16 a. m.).** La ET baja con la altura porque baja el déficit de
+vapor y porque, aunque haya mayor Rn, la fracción de Rn que va a calor latente disminuye con la altura.

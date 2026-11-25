@@ -264,6 +264,31 @@ def tabla_budyko():
     escribir_tabla("tabla_budyko.tex", lineas)
 
 
+def cifras_texto(anual):
+    """Cifras que usan los textos del informe redactados con IA (introducción y metodología), como macros de LaTeX.
+
+    Los textos de Juan conservan sus propias cifras; estas macros evitan copiar números a mano en lo demás.
+    """
+    central = pd.read_csv(CARPETA_PRODUCTOS / "et_incertidumbre.csv").query("caso_sigma_Q == 'central'").iloc[0]
+    techo = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia_resumen.csv").set_index("camino")
+    budyko = pd.read_csv(CARPETA_PRODUCTOS / "budyko_resumen.csv").set_index("serie").loc["P − Q (P̄)"]
+    regimen = pd.read_csv(CARPETA_PRODUCTOS / "regimen_mensual.csv")
+    meses_agua = regimen.loc[regimen["phi_Pm"] > 1, "mes"].tolist()
+    assert meses_agua == [1], "el texto dice que solo enero tiene φ > 1 en el ciclo medio"
+    cifras = {
+        "cifraPm": miles_tex(central["P_media"]), "cifraPI": miles_tex(central["P_PI"]),
+        "cifraPL": miles_tex(central["P_PL"]), "cifraQ": miles_tex(central["Q"]),
+        "cifraETbalance": miles_tex(central["ETR_Pm"]), "cifraSigmaET": miles_tex(central["sigma_ET"]),
+        "cifraETo": miles_tex(anual[PM]), "cifraRnLambda": miles_tex(techo.loc["balance con Pm", "Rn_lambda_mm_anio"]),
+        "cifraPhi": f"{budyko['phi']:.2f}", "cifraEpsilon": f"{budyko['epsilon']:.2f}",
+        "cifraQsobreP": f"{central['Q'] / central['P_media']:.2f}",
+    }
+    lineas = ["% Generado por codigo/punto1/34_figuras_tablas_informe.py; no se edita a mano.",
+              "% Medias anuales 1998–2022 (mm/año) de la cuenca del Fonce en San Gil; P, Q y ET en los 262 meses con Q."]
+    lineas += [f"\\newcommand{{\\{k}}}{{{v}}}" for k, v in cifras.items()]
+    escribir_tabla("cifras.tex", lineas)
+
+
 def escribir_tabla(nombre, lineas):
     CARPETA_TABLAS.mkdir(exist_ok=True)
     salida = CARPETA_TABLAS / nombre
@@ -279,6 +304,7 @@ def main():
     figura_et_real()
     tabla_et_real()
     tabla_budyko()
+    cifras_texto(anual)
 
 
 if __name__ == "__main__":

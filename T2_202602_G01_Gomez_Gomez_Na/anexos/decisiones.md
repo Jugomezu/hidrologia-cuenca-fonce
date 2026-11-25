@@ -527,3 +527,24 @@ sirven para tendencias.
 **Conclusión (Juan, 24 nov).** ETo Penman–Monteith (FAO-56): sin tendencia (Sen +3 mm/año por década, p 0.68).
 Thornthwaite: tendencia estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año
 por década, cerca de 2 % por década; OLS con Newey-West no la confirma (p 0.086).
+
+**Atribución (Juan, 24 nov).** En veremos: con una ETo sin tendencia no vale la pena dedicarle mucho tiempo.
+
+## 2026-11-24 · Punto 1 · Fase 9a: gradiente altitudinal (script 34)
+
+**Tema (Juan pidió avanzar el a).** Gradiente altitudinal. Propuestas del agente, pendientes de Juan:
+- Recta de cada variable contra la altura del modelo (z de ERA5-Land) en los 6 puntos. Es descriptiva: n = 6.
+- Hipsometría con el DEM ALOS de 12 m (submuestreado ×4), dentro del polígono de CAMELS-COL, en bandas de 500 m.
+- Productos en malla (TerraClimate aet y pet, GLEAM E, SSEBop v6.1): cada celda lleva la altura media del DEM que cae
+  en ella y su número de píxeles como peso. SSEBop v6.1 solo 2012–2022 (su registro); los demás 1998–2022.
+- ETo por banda = recta de los 6 puntos en la altura media de la banda; se extrapola fuera de 1 654–3 007 m.
+
+**Resultado.** ETo −105 mm/año por km (−9 %/km, R² 0.97), sobre todo por la T (−5.0 °C/km) y ea; Rs y Rn casi no
+cambian (−2 y −3 %/km). Hipsometría 1 159 vs Voronoi 1 166 mm/año (−0.6 %): los 6 puntos bastan. Cenicafé implica
+−20 %/km, el doble. ET real: GLEAM −30 %/km, SSEBop v6.1 −26 %/km, TerraClimate −11 %/km; en GLEAM y SSEBop la ET/ETo
+baja con la altura, en TerraClimate no (sigue a su pet). GLEAM tiene 1 a 5 celdas por banda (resolución 0.1°).
+
+**Tema f (resistencia del dosel, Jarvis + LAI).** El agente no lo recomienda como tema principal: la cuenca está
+limitada por energía (φ 0.49, ET/ETo 0.90, EF casi plana frente a SMrz, R² 0.16), así que el estrés estomático
+estacional debe ser débil; además faltan LAI (MODIS, por GEE en el PC de Juan) y parámetros de Jarvis por cobertura.
+A lo sumo, un chequeo corto opcional. Decide Juan.

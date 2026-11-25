@@ -391,6 +391,19 @@ def datos_fase8():
             "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
 
 
+def datos_fase9():
+    """Fase 9a: gradiente altitudinal (salidas de 34_gradiente_altitudinal.py)."""
+    def reg(df):
+        return df.round(4).astype(object).where(df.notna(), None).to_dict(orient="records")
+    pu = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_puntos.csv")
+    ba = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_bandas.csv")
+    re_ = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_resumen.csv")
+    ce = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_celdas.csv")
+    celdas = {n: {"z": g["z_media_m"].round(0).tolist(), "et": g["mm_anio"].round(0).tolist(), "px": g["pixeles"].tolist()}
+              for n, g in ce.dropna(subset=["mm_anio"]).groupby("producto")}
+    return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas}
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -484,6 +497,7 @@ def main():
         "regimen": datos_regimen(),
         "ef": datos_ef(),
         "fase8": datos_fase8(),
+        "fase9": datos_fase9(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -925,6 +939,24 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Matices: θ* = 0.452 es el borde de la búsqueda, no un quiebre encontrado (SMrz de GLEAM casi no pasa de
   0.45); la pendiente es débil (EF 0.57 → 0.64, R² 0.16). Esta prueba sola no es concluyente: la conclusión se apoya
   también en Budyko (φ = 0.49), ET/ETo ≈ 0.90 y el φ mensual (solo enero &gt; 1).</p></div>
+</section>
+
+<section>
+  <h2>Fase 9a · Gradiente altitudinal</h2>
+  <p>Script 34. Recta de cada variable contra la altura del modelo en los 6 puntos de ERA5-Land (descriptiva: n = 6).
+  Hipsometría con el DEM ALOS de 12 m (submuestreado ×4) dentro del polígono de CAMELS-COL, en bandas de 500 m. Los
+  productos en malla (TerraClimate aet y pet, GLEAM E, SSEBop v6.1 solo 2012–2022) se promedian por celda; cada celda
+  lleva la altura media del DEM que cae en ella y su número de píxeles como peso. ETo por banda = recta de los 6 puntos
+  en la altura media de la banda (extrapolada fuera de 1 654–3 007 m).</p>
+  <div class="tabla" id="t-fase9"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Demanda y ET real frente a la altura (mm/año)</h3><div class="grafico" id="g-fase9-z" style="height:520px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Bandas de 500 m: fracción del área y ET/ETo</h3><div class="grafico" id="g-fase9-bandas" style="height:440px"></div></div>
+  <div class="tabla" id="t-fase9-bandas" style="margin-top:12px"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): la ETo baja 105 mm/año por km (−9 %/km, R² 0.97), sobre todo
+  por la temperatura (−5.0 °C/km) y ea; Rs y Rn casi no cambian. La ETo de la cuenca por hipsometría (1 159) y por Voronoi
+  (1 166) difieren 0.6 %: los 6 puntos representan bien la cuenca. Cenicafé implica −20 %/km, el doble. La ET real de
+  GLEAM y SSEBop baja más rápido que la ETo (−30 y −26 %/km), así que su ET/ETo cae con la altura; TerraClimate no
+  (≈ 0.9 en todas las bandas). GLEAM tiene 1 a 5 celdas por banda.</p>
 </section>
 
 <section>
@@ -1448,6 +1480,36 @@ for (const [valor, texto] of CARGA.cifras) {
       {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
        hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
 ], lr, OPCIONES);
+  }
+  {
+    const G = CARGA.fase9, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase9').innerHTML = '<table><thead><tr><th>Variable</th><th>Unidad</th><th>Pendiente por km</th><th>% por km</th><th>Corte (z = 0)</th><th>R²</th><th>n</th></tr></thead><tbody>'
+      + G.resumen.map(r => `<tr><td>${r.variable}</td><td>${r.unidad}</td><td>${f3(r.pendiente_por_km)}</td><td>${f2(r.pendiente_pct_por_km)}</td><td>${f2(r.corte)}</td><td>${f3(r.r2)}</td><td>${r.n == null ? '' : r.n}</td></tr>`).join('') + '</tbody></table>';
+    const prods = [['terraclimate_aet', 'TerraClimate aet', '#009E73'], ['gleam_E', 'GLEAM E', '#CC79A7'], ['ssebop_v61', 'SSEBop v6.1 (2012–2022)', '#E69F00'], ['terraclimate_pet', 'TerraClimate pet (demanda)', '#56B4E9']];
+    const fila = G.resumen.find(r => r.variable === 'eto_mm_anio'), zz = [1300, 4100];
+    const tr = prods.map(([k, n, c]) => ({type: 'scatter', mode: 'markers', x: G.celdas[k].et, y: G.celdas[k].z, name: n,
+      marker: {color: c, opacity: 0.5, size: G.celdas[k].px.map(p => 3 + 9 * Math.sqrt(p / Math.max(...G.celdas[k].px)))},
+      hovertemplate: `${n}: %{x:.0f} mm/año a %{y:.0f} m<extra></extra>`}));
+    tr.push({type: 'scatter', mode: 'markers', x: G.puntos.map(r => r.eto_mm_anio), y: G.puntos.map(r => r.z_modelo_m), name: 'ETo Penman–Monteith (FAO-56), 6 puntos',
+      marker: {color: '#0072B2', size: 12, line: {color: 'white', width: 1}}, hovertemplate: 'ETo: %{x:.0f} mm/año a %{y:.0f} m<extra></extra>'});
+    tr.push({type: 'scatter', mode: 'lines', x: zz.map(z => fila.corte + fila.pendiente_por_km * z / 1000), y: zz, name: `recta ETo: ${fila.pendiente_por_km.toFixed(0)} mm/año por km`,
+      line: {color: '#0072B2', dash: 'dash'}, hoverinfo: 'skip'});
+    const lz = base('altura (m)'); lz.hovermode = 'closest'; lz.showlegend = true; Object.assign(lz.legend, {orientation: 'h', y: -0.18, yanchor: 'top'});
+    lz.xaxis = Object.assign(lz.xaxis, {type: 'linear', range: [0, 2000], title: {text: 'mm/año', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-z', tr, lz, OPCIONES);
+    const B = G.bandas, et = B.map(r => `${Math.floor(r.z_media_m / 500) * 500}–${Math.floor(r.z_media_m / 500) * 500 + 500} m`);
+    const lb = base(''); lb.margin = Object.assign(lb.margin || {}, {l: 100}); lb.hovermode = 'closest'; lb.showlegend = true; Object.assign(lb.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    lb.yaxis = Object.assign(lb.yaxis, {type: 'category'});
+    lb.xaxis = Object.assign(lb.xaxis, {type: 'linear', range: [0, 0.45], title: {text: 'fracción del área', font: {size: 11, color: css('--tenue')}}});
+    lb.xaxis2 = {overlaying: 'x', side: 'top', range: [0, 1.4], showgrid: false, zeroline: false, title: {text: 'ET/ETo', font: {size: 11, color: css('--tenue')}}, tickfont: {color: css('--tenue')}};
+    lb.shapes = [{type: 'line', xref: 'x2', yref: 'paper', x0: 1, x1: 1, y0: 0, y1: 1, line: {color: css('--tenue'), width: 1, dash: 'dot'}}];
+    Plotly.newPlot('g-fase9-bandas', [
+      {type: 'bar', orientation: 'h', x: B.map(r => r.fraccion_area), y: et, name: 'fracción del área', marker: {color: '#BBBBBB'}, hovertemplate: '%{y}: %{x:.1%} del área<extra></extra>'},
+      ...prods.slice(0, 3).map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: B.map(r => r[`${k}_sobre_eto`]), y: et, xaxis: 'x2', name: n, line: {color: c},
+        hovertemplate: `${n}: ET/ETo %{x:.2f}<extra></extra>`})),
+    ], lb, OPCIONES);
+    document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
+      + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
   }
   {
     const F = CARGA.fase8, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);

@@ -617,3 +617,16 @@ alta arriba se explica por menos área foliar. GLEAM: rs·LAI +73 s/m por km (ab
 se interpreta como respuesta estomática, porque el déficit entra en la inversión y la rs despejada sube con D por
 construcción si la ET del producto responde poco al déficit.
 **Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).
+
+## 2026-11-25 · Punto 1 · Fase 10: de la ET al diseño (script 40, bono 1.6)
+
+**Serie (Juan, 25 nov).** Déficit climático máximo acumulado del año: D(t) = max(0, D(t−1) + ETo − P̄), mensual, ETo
+Penman–Monteith (FAO-56) y P̄ = (PI+PL)/2, 1998–2022. Descartadas: E0 − P̄ (negativa los 25 años), riego y humedad del
+suelo (supuestos nuevos). Advertencia del agente: el plan pide que el punto 2 esté en la misma cuenca y está en Denver;
+Juan revisa el enunciado.
+**Frecuencia.** Funciones del script 02 del punto 2, sin modificar: Gumbel, GEV y LP3 por momentos L; bootstrap de años,
+1 000 réplicas, semilla 42; T = 2, 5, 10 y 25.
+**Decisiones del agente, pendientes de Juan.** La suma no se reinicia el 1 de enero (la temporada seca cruza el año; el
+reinicio va como sensibilidad). Los 3 años con déficit 0 se tratan con distribución mixta, F = p0 + (1 − p0)·F+.
+**Resultado.** Media 42 mm, máximo 117 (2016), p0 = 0.12, sin tendencia (MK p 0.19). T = 10: 86 (Gumbel, IC 66–104),
+96 (GEV, 67–122), 88 mm (LP3, 68–107). T = 25: 110, 134 y 95 mm. Limitación: con meses el déficit queda subestimado.

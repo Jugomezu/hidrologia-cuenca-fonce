@@ -585,5 +585,5 @@ hay rs que la reproduzca. Altura, T y cobertura van juntas entre puntos, así qu
 Jarvis. Con una ra de bosque (menor) la rs despejada sería aún mayor arriba. La cuenca está limitada por energía: la rs
 cambia el reparto de la energía, no el agua disponible.
 
-**LAI (script 38).** MCD15A2H v6.1 por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
-píxeles válidos y solo con el algoritmo principal. Pendiente: correrlo en el PC de Juan (aquí la red no llega a NASA).
+**LAI (script 38).** MCD15A3H v6.1 (Terra + Aqua, compuestos de 4 días; MCD15A2H no está en el catálogo de Earth Engine) por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
+píxeles válidos y solo con el algoritmo principal. Corrido en el Ubuntu de Juan el 25 nov (proyecto GEE de Juan): 6 puntos × 1 878 compuestos. LAI medio: 1.2 y 1.7 en los puntos altos (1 y 5), 2.4 en el 6, 2.7–3.2 en los bajos; en los altos cerca de la mitad de los píxeles sale del algoritmo de respaldo (nubes).

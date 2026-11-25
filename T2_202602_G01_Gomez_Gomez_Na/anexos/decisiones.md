@@ -549,7 +549,7 @@ limitada por energía (φ 0.49, ET/ETo 0.90, EF casi plana frente a SMrz, R² 0.
 estacional debe ser débil; además faltan LAI (MODIS, por GEE en el PC de Juan) y parámetros de Jarvis por cobertura.
 A lo sumo, un chequeo corto opcional. Decide Juan.
 
-## 2026-11-24 · Punto 1 · Fase 8 con 1981–2022 (script 35)
+## 2026-11-24 · Punto 1 · Fase 8 con 1981–2022 (script 36)
 
 **Pedido de Juan.** Bajar ERA5-Land 1981–1997 (6 puntos, en su PC) y repetir la fase 8. Las demás fases siguen en
 1998–2022. Propuestas del agente: la extensión va en archivos aparte (punto_N_1981_1997.csv); Thornthwaite conserva el I

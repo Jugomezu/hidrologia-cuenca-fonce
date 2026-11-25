@@ -19,7 +19,7 @@ Escribe productos/punto1/demanda_mensual_cuenca_1981_2022.csv, tendencias_demand
 atribucion_eto_1981_2022.csv y tendencias_demanda_1981_2022.png.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
-    python codigo/punto1/35_tendencias_demanda_1981_2022.py
+    python codigo/punto1/36_tendencias_demanda_1981_2022.py
 """
 
 import importlib.util

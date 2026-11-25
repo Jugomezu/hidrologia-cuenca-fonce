@@ -1,14 +1,24 @@
 """Fase 9, tema f (punto 1): resistencia de superficie efectiva por inversión de Penman–Monteith, sin LAI.
 
-Idea: la ec. 3 de FAO-56 con resistencia de superficie rs, escrita en las unidades de la ec. 6 (ra = 208/u2, igual que
-FAO-56), es
-    ET = (A + B) / (C + D + E·rs)        con   A = 0.408·Δ·Rn,  B = γ·900/(T+273)·u2·(es − ea),
-                                               C = Δ,  D = γ,  E = γ·u2/208.
-Con la ETo de FAO-56 (rs = 70 s/m) queda la ec. 6. Si se pone la ET REAL de un producto, se despeja la rs que la
-reproduce:
+Idea: la ec. 3 de FAO-56 con resistencia de superficie rs, escrita en las unidades de la ec. 6, es
+    ET = (A + B) / (C + D + E·rs)        con   A = 0.408·Δ·Rn,  B = γ·900/(T+273)·(es − ea)·208/ra,
+                                               C = Δ,  D = γ,  E = γ/ra.
+Con la ra del pasto (ra = 208/u2) y rs = 70 s/m queda la ec. 6 (ETo). Si se pone la ET REAL de un producto, se despeja
+la rs que la reproduce:
     rs = ((A + B)/ET − C − D) / E.
-Es una rs «efectiva»: mezcla dosel, suelo e intercepción, y hereda los errores del producto. La ra es la del pasto de
-referencia (no la del bosque o el páramo), declarado.
+Es una rs «efectiva»: mezcla dosel, suelo e intercepción, y hereda los errores del producto.
+
+ra por cobertura (decisión de Juan, 25 nov). Ec. 4 de FAO-56, ra = ln((zm − d)/zom)·ln((zh − d)/zoh) / (k²·u_z), con
+    - zom = z0 de la Tabla 1 de Gehrke, Sühring y Maronga (2021, GMD 14:5307, doi:10.5194/gmd-14-5307-2021), tipos de
+      vegetación «al estilo de ECMWF»: bosque = evergreen broadleaf trees (2.00 m); mosaico agropecuario = crops, mixed
+      farming (0.10 m); herbazal o arbustal andino = evergreen shrubs (0.10 m). Sensibilidad: herbazal = tall grass
+      (0.47 m).
+    - zoh = 0.1·zom (FAO-56), no el z0,h de esa tabla.
+    - Viento: el de 10 m de ERA5-Land, tomado como medido 10 m por encima del plano de desplazamiento d (zm − d = zh − d
+      = 10 m). Así d no hace falta y la ra no se indefine en el bosque, cuyo dosel pasaría de los 10 m.
+    - En cada celda la conductancia 1/ra es el promedio de las de cada cobertura ponderado por su fracción de MapBiomas
+      2022 (superficies en paralelo); el resto de las coberturas (≤ 2 %) se trata como agropecuario.
+La rs con la ra del pasto (208/u2) queda como sensibilidad.
 
 Datos, en cada uno de los 6 puntos de ERA5-Land (centros de celda de 0.1°):
     - T, ea, sp, viento: diarios del script 03 (era5land_diario_puntos.csv); u2 con la ec. 47; Δ y es como el script 04.
@@ -23,8 +33,8 @@ y el déficit (las variables de dos funciones de Jarvis, 1976). Entre puntos, T 
 que no se separan las funciones de Jarvis; solo se ve si la rs sube con la altura y cómo varía en el año.
 
 Para leer la rs se agrega, por punto: la cobertura de MapBiomas 2022 en la celda (fracción de bosque, de herbazal o
-arbustal andino y de mosaico agropecuario) y el techo de Penman–Monteith con rs = 0 y la ra del pasto (la ET máxima
-que el despeje admite). Si la ET del producto lo supera, el mes queda «sin solución» y la rs se acota en 0.
+arbustal andino y de mosaico agropecuario) y el techo de Penman–Monteith con rs = 0 (la ET máxima
+que el despeje admite), calculado con la ra por cobertura. Si la ET del producto lo supera, el mes queda «sin solución» y la rs se acota en 0.
 
 Escribe productos/punto1/resistencia_superficie_mensual.csv, resistencia_superficie_resumen.csv y
 resistencia_superficie.png.
@@ -64,6 +74,13 @@ RS_REFERENCIA = 70.0              # s/m, pasto de referencia de FAO-56
 MEDIA_CELDA = 0.05                # medio ancho de la celda de ERA5-Land (grados)
 # Códigos de MapBiomas Colombia (colección 3; leyenda copiada en ../Analisis_De_Cuenca/scripts/03d_coberturas_mapbiomas.py)
 GRUPOS_COBERTURA = {"bosque": [3], "herbazal_andino": [81], "agropecuario": [21]}
+# Longitud de rugosidad para el momento z0 (m), Tabla 1 de Gehrke et al. (2021); el tipo elegido lo decidió Juan
+Z0_COBERTURA = {"bosque": 2.00,             # evergreen broadleaf trees
+                "herbazal_andino": 0.10,    # evergreen shrubs
+                "agropecuario": 0.10}       # crops, mixed farming
+Z0_HERBAZAL_TALL_GRASS = 0.47              # sensibilidad: herbazal andino como tall grass
+K_VON_KARMAN = 0.41
+ALTURA_VIENTO_SOBRE_D = 10.0               # m: el viento de 10 m se toma 10 m por encima del plano de desplazamiento
 
 
 def cargar(nombre, archivo):
@@ -76,20 +93,46 @@ def cargar(nombre, archivo):
 eto04 = cargar("eto_fao56", "04_eto_fao56.py")
 
 
-def terminos_mensuales(diaria):
-    """Medias mensuales de A (con Rn de referencia), B, C, D y E por punto, y forzantes."""
+def ra_fao56(z0m, viento10):
+    """Resistencia aerodinámica (s/m), ec. 4 de FAO-56 con zoh = 0.1·zom y zm − d = zh − d = 10 m."""
+    return (np.log(ALTURA_VIENTO_SOBRE_D / z0m) * np.log(ALTURA_VIENTO_SOBRE_D / (0.1 * z0m))
+            / (K_VON_KARMAN ** 2 * viento10))
+
+
+def ra_celda(fracciones, viento10, z0):
+    """ra de la celda: inverso de la conductancia media ponderada por la fracción de cada cobertura."""
+    conductancia = sum(fracciones[f"frac_{c}"] / ra_fao56(z0[c], viento10) for c in z0)
+    return 1 / conductancia
+
+
+def terminos_mensuales(diaria, coberturas):
+    """Medias mensuales de A (con Rn de referencia), B, C, D y E por punto, y forzantes.
+
+    B y E dependen de la ra; se calculan con tres ra: la del pasto (sufijo _pasto), la de la cobertura (_cob, la
+    principal) y la de la cobertura con el herbazal como tall grass (_tg, sensibilidad).
+    """
     t = (diaria["tmax_C"] + diaria["tmin_C"]) / 2
     delta = eto04.pendiente_saturacion(t)
     es = (eto04.presion_saturacion(diaria["tmax_C"]) + eto04.presion_saturacion(diaria["tmin_C"])) / 2
     gamma = 0.665e-3 * diaria["sp_kPa"]
     u2 = eto04.viento_a_2m(diaria["viento10_ms"])
     deficit = (es - diaria["ea_kPa"]).clip(lower=0)
+    # fracciones de cobertura de la celda de cada día; las «otras» (≤ 2 %) se suman al agropecuario
+    frac = coberturas.loc[diaria["punto"]].reset_index(drop=True)
+    frac["frac_agropecuario"] = frac["frac_agropecuario"] + frac["frac_otras"]
+    viento10 = diaria["viento10_ms"].reset_index(drop=True)
+    z0_tg = dict(Z0_COBERTURA, herbazal_andino=Z0_HERBAZAL_TALL_GRASS)
+    ras = {"pasto": 208 / u2.reset_index(drop=True), "cob": ra_celda(frac, viento10, Z0_COBERTURA),
+           "tg": ra_celda(frac, viento10, z0_tg)}
     d = pd.DataFrame({
         "punto": diaria["punto"], "mes": diaria["fecha"].dt.to_period("M"),
-        "A_ref": 0.408 * delta * diaria["rn_MJm2"], "B": gamma * 900 / (t + 273) * u2 * deficit,
-        "C": delta, "D": gamma, "E": gamma * u2 / 208, "delta_0408": 0.408 * delta,
+        "A_ref": 0.408 * delta * diaria["rn_MJm2"], "C": delta, "D": gamma, "delta_0408": 0.408 * delta,
         "t_C": t, "deficit_kPa": deficit, "u2_ms": u2, "rn_ref_MJm2": diaria["rn_MJm2"],
-    })
+    }).reset_index(drop=True)
+    for sufijo, ra in ras.items():
+        d[f"ra_{sufijo}_sm"] = ra
+        d[f"B_{sufijo}"] = (gamma * 900 / (t + 273) * deficit).reset_index(drop=True) * 208 / ra
+        d[f"E_{sufijo}"] = gamma.reset_index(drop=True) / ra
     return d.groupby(["punto", "mes"]).mean().reset_index()
 
 
@@ -146,17 +189,18 @@ def coberturas_celda(puntos):
     return pd.DataFrame(filas).set_index("punto")
 
 
-def despejar_rs(tabla, a_col):
-    """rs (s/m) que hace que Penman–Monteith dé la ET del producto. Negativa si la ET supera lo que permite rs = 0
-    con la ra del pasto: entonces se toma rs = 0 (cota inferior) y se cuenta el mes como «sin solución»."""
+def despejar_rs(tabla, a_col, ra="cob"):
+    """rs (s/m) que hace que Penman–Monteith dé la ET del producto con la ra indicada (pasto, cob o tg). Negativa si la
+    ET supera lo que permite rs = 0: entonces se toma rs = 0 (cota inferior) y el mes cuenta como «sin solución»."""
     et_dia = tabla["et_mm_mes"] / tabla["mes"].dt.days_in_month
-    return ((tabla[a_col] + tabla["B"]) / et_dia - tabla["C"] - tabla["D"]) / tabla["E"]
+    return ((tabla[a_col] + tabla[f"B_{ra}"]) / et_dia - tabla["C"] - tabla["D"]) / tabla[f"E_{ra}"]
 
 
 def main():
     puntos = pd.read_csv(ENTRADA_PUNTOS).set_index("punto")
     diaria = pd.read_csv(ENTRADA_DIARIA, parse_dates=["fecha"])
-    term = terminos_mensuales(diaria).merge(rn_real(puntos), on=["punto", "mes"], how="left")
+    coberturas = coberturas_celda(puntos)
+    term = terminos_mensuales(diaria, coberturas).merge(rn_real(puntos), on=["punto", "mes"], how="left")
     term = term[term["mes"] <= pd.Period(ULTIMO_MES, "M")]
     # A con la Rn real: 0.408·Δ·Rn con la Δ media del mes (la Rn real solo es mensual)
     term["A_real"] = term["delta_0408"] * term["rn_real_MJm2"]
@@ -171,15 +215,19 @@ def main():
         t["sin_solucion"] = crudo <= 0
         t["rs_sm"] = crudo.clip(lower=0)
         t["rs_sm_rn_referencia"] = despejar_rs(t, "A_ref").clip(lower=0)
-        t["et_techo_rs0_mm_dia"] = (t["A_real"] + t["B"]) / (t["C"] + t["D"])   # Penman–Monteith con rs = 0
+        pasto = despejar_rs(t, "A_real", ra="pasto")
+        t["sin_solucion_ra_pasto"] = pasto <= 0
+        t["rs_sm_ra_pasto"] = pasto.clip(lower=0)
+        t["rs_sm_herbazal_tall_grass"] = despejar_rs(t, "A_real", ra="tg").clip(lower=0)
+        t["et_techo_rs0_mm_dia"] = (t["A_real"] + t["B_cob"]) / (t["C"] + t["D"])   # Penman–Monteith con rs = 0
         tablas.append(t)
     tabla = pd.concat(tablas, ignore_index=True)
     tabla["z_modelo_m"] = tabla["punto"].map(puntos["z_modelo_m"])
 
-    # Comprobación: con la ETo de FAO-56 y la Rn de referencia, el despeje devuelve rs = 70 s/m
-    prueba = term.assign(et_mm_mes=(term["A_ref"] + term["B"]) / (term["C"] + term["D"] + term["E"] * RS_REFERENCIA)
-                         * term["mes"].dt.days_in_month)
-    assert np.allclose(despejar_rs(prueba, "A_ref"), RS_REFERENCIA)
+    # Comprobación: con la ETo de FAO-56, la Rn de referencia y la ra del pasto, el despeje devuelve rs = 70 s/m
+    prueba = term.assign(et_mm_mes=(term["A_ref"] + term["B_pasto"])
+                         / (term["C"] + term["D"] + term["E_pasto"] * RS_REFERENCIA) * term["mes"].dt.days_in_month)
+    assert np.allclose(despejar_rs(prueba, "A_ref", ra="pasto"), RS_REFERENCIA)
 
     resumen = []
     for (prod, n), g in tabla.groupby(["producto", "punto"]):
@@ -190,16 +238,23 @@ def main():
                         "rs_mediana_sm": g["rs_sm"].median(), "rs_p25_sm": g["rs_sm"].quantile(0.25),
                         "rs_p75_sm": g["rs_sm"].quantile(0.75),
                         "rs_mediana_rn_referencia_sm": g["rs_sm_rn_referencia"].median(),
+                        "ra_cobertura_mediana_sm": g["ra_cob_sm"].median(),
+                        "ra_pasto_mediana_sm": g["ra_pasto_sm"].median(),
+                        "rs_mediana_ra_pasto_sm": g["rs_sm_ra_pasto"].median(),
+                        "meses_sin_solucion_ra_pasto": int(g["sin_solucion_ra_pasto"].sum()),
+                        "rs_mediana_herbazal_tall_grass_sm": g["rs_sm_herbazal_tall_grass"].median(),
                         "et_techo_rs0_mm_anio": (g["et_techo_rs0_mm_dia"] * g["mes"].dt.days_in_month).mean() * 12,
                         "et_mm_anio": g["et_mm_mes"].mean() * 12, "t_C": g["t_C"].mean(),
                         "deficit_kPa": g["deficit_kPa"].mean()})
-    resumen = pd.DataFrame(resumen).merge(coberturas_celda(puntos), left_on="punto", right_index=True)
+    resumen = pd.DataFrame(resumen).merge(coberturas, left_on="punto", right_index=True)
     ajustes = []
     for prod, g in tabla.groupby("producto"):
         r = resumen[resumen["producto"] == prod]
         pend = np.polyfit(r["z_modelo_m"] / 1000, r["rs_mediana_sm"], 1)
+        pend_pasto = np.polyfit(r["z_modelo_m"] / 1000, r["rs_mediana_ra_pasto_sm"], 1)
         ajustes.append({"producto": prod, "rs_por_km_sm": pend[0],
-                        "r2_rs_altura": np.corrcoef(r["z_modelo_m"], r["rs_mediana_sm"])[0, 1] ** 2})
+                        "r2_rs_altura": np.corrcoef(r["z_modelo_m"], r["rs_mediana_sm"])[0, 1] ** 2,
+                        "rs_por_km_ra_pasto_sm": pend_pasto[0]})
     ajustes = pd.DataFrame(ajustes)
 
     salida = tabla.copy()
@@ -221,7 +276,9 @@ def figura(tabla, resumen):
         r = r.sort_values("z_modelo_m")
         ejes[0].errorbar(r["rs_mediana_sm"], r["z_modelo_m"],
                          xerr=[r["rs_mediana_sm"] - r["rs_p25_sm"], r["rs_p75_sm"] - r["rs_mediana_sm"]],
-                         fmt="o-", color=colores[prod], capsize=3, label=prod)
+                         fmt="o-", color=colores[prod], capsize=3, label=f"{prod}, ra por cobertura")
+        ejes[0].plot(r["rs_mediana_ra_pasto_sm"], r["z_modelo_m"], "o--", color=colores[prod], alpha=0.45,
+                     label=f"{prod}, ra del pasto (sensibilidad)")
     ejes[0].axvline(RS_REFERENCIA, color="k", ls=":", lw=1, label="pasto de referencia (70 s/m)")
     ejes[0].set_xlim(0, None)
     ejes[0].set_xlabel("rs efectiva, mediana y cuartiles (s/m)")
@@ -239,7 +296,7 @@ def figura(tabla, resumen):
     ejes[1].set_xticks(range(1, 13))
     ejes[1].set_xlabel("mes")
     ejes[1].set_ylabel("rs efectiva (s/m)")
-    ejes[1].set_title("Ciclo anual de la rs con SSEBop v6.1 (2012–2022)")
+    ejes[1].set_title("Ciclo anual de la rs con SSEBop v6.1 (2012–2022), ra por cobertura")
     ejes[1].legend(fontsize=7, ncol=2)
     fig.tight_layout()
     fig.savefig(SALIDA_FIGURA, dpi=150)

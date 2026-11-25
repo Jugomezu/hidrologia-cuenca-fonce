@@ -548,3 +548,16 @@ baja con la altura, en TerraClimate no (sigue a su pet). GLEAM tiene 1 a 5 celda
 limitada por energía (φ 0.49, ET/ETo 0.90, EF casi plana frente a SMrz, R² 0.16), así que el estrés estomático
 estacional debe ser débil; además faltan LAI (MODIS, por GEE en el PC de Juan) y parámetros de Jarvis por cobertura.
 A lo sumo, un chequeo corto opcional. Decide Juan.
+
+## 2026-11-24 · Punto 1 · Fase 8 con 1981–2022 (script 35)
+
+**Pedido de Juan.** Bajar ERA5-Land 1981–1997 (6 puntos, en su PC) y repetir la fase 8. Las demás fases siguen en
+1998–2022. Propuestas del agente: la extensión va en archivos aparte (punto_N_1981_1997.csv); Thornthwaite conserva el I
+de 1998–2022; Rso usa la altura del modelo de 1998–2022; la atribución usa las sensibilidades de 1998–2022. Con 1998–2022
+el script reproduce la fase 8.
+
+**Resultado.** ETo +9.5 mm/año por década (0.8 %/década), significativa con todas las pruebas (OLS p 0.002, MK p 0.010,
+Pettitt 1996). Thornthwaite +10.6 (p < 0.001). Atribución: T +5.4, Rs +4.6, ea −0.6, u2 −0.1; residuo +0.2. Por tramos
+ninguna es significativa: ETo 1981–1997 +8.9 (p 0.44), 1998–2022 +3.2 (p 0.68). La T sube parejo; la Rs es plana en
+1981–1997 y sube en escalón hacia 1999–2001, que puede ser un cambio del reanálisis (ERA5 asimila ATOVS desde 1998).
+Pendiente: qué periodo reporta Juan y cómo lo redacta.

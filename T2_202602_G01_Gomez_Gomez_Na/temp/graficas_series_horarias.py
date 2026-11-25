@@ -391,6 +391,18 @@ def datos_fase8():
             "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
 
 
+def datos_fase8_1981():
+    """Fase 8 con 1981–2022 (script 35)."""
+    d = pd.read_csv(CARPETA_PRODUCTOS / "demanda_mensual_cuenca_1981_2022.csv")
+    anio = d["mes"].str[:4].astype(int)
+    anual = d.groupby(anio).agg({"eto": "sum", "thornthwaite": "sum"})
+    t = pd.read_csv(CARPETA_PRODUCTOS / "tendencias_demanda_1981_2022.csv")
+    a = pd.read_csv(CARPETA_PRODUCTOS / "atribucion_eto_1981_2022.csv")
+    return {"anios": anual.index.tolist(), "eto": anual["eto"].round(1).tolist(), "th": anual["thornthwaite"].round(1).tolist(),
+            "tend": t.round(4).astype(object).where(t.notna(), None).to_dict(orient="records"),
+            "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
+
+
 def datos_fase9():
     """Fase 9a: gradiente altitudinal (salidas de 34_gradiente_altitudinal.py)."""
     def reg(df):
@@ -498,6 +510,7 @@ def main():
         "ef": datos_ef(),
         "fase8": datos_fase8(),
         "fase9": datos_fase9(),
+        "fase8b": datos_fase8_1981(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -980,6 +993,19 @@ code { font: 400 .86em var(--f-dato); }
   estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año por década, cerca de 2 %
   por década; OLS con Newey-West no la confirma (p 0.086).</p></div>
   <p class="nota">Pendiente: punto de control (¿qué compensa la temperatura?) y verificar a mano una contribución.</p>
+  <h3>Con todo el registro: 1981–2022 (script 35, pedido de Juan, 24 nov)</h3>
+  <p>ERA5-Land 1981–1997 bajado en el PC de Juan (mismas celdas y variables). Mismo camino de cálculo; Thornthwaite con
+  el I de 1998–2022 y la atribución con las sensibilidades de 1998–2022. Con 1998–2022 el script reproduce la fase 8
+  (diferencia máxima 0.0005 mm/mes).</p>
+  <div class="tabla" id="t-fase8b"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo y Thornthwaite anuales 1981–2022 (mm/año), con la recta de Sen</h3><div class="grafico" id="g-fase8b-series" style="height:480px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Atribución 1981–2022 (mm/año por década)</h3><div class="grafico" id="g-fase8b-atr" style="height:400px"></div></div>
+  <p class="nota">Lectura del agente, para Juan: con 42 años la ETo sube +9.5 mm/año por década (0.8 %/década), significativa
+  con todas las pruebas; Thornthwaite +10.6. Por tramos ninguna es significativa (1981–1997: ETo +8.9 mm/año por década,
+  p 0.44; 1998–2022: +3.2, p 0.68): la pendiente de 1981–1997 es parecida a la de 42 años, pero 17 años no bastan. La T
+  sube de forma pareja (0.16 °C/década en 1981–1997, 0.14 en 42 años). La Rs no: plana dentro de 1981–1997 y un escalón
+  hacia 1999–2001 (Pettitt 1999), y aporta casi la mitad de la tendencia de la ETo. Ese escalón puede ser un cambio del
+  reanálisis (ERA5 empieza a asimilar ATOVS en 1998); no hay Rs observada antes de 1998 para comprobarlo.</p>
 </section>
 
 <section>
@@ -1510,6 +1536,30 @@ for (const [valor, texto] of CARGA.cifras) {
     ], lb, OPCIONES);
     document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
       + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const F = CARGA.fase8b, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase8b').innerHTML = '<table><thead><tr><th>Serie</th><th>Media</th><th>OLS por década</th><th>%/década</th><th>p OLS (NW)</th><th>q OLS</th><th>Sen por década</th><th>p MK (perm.)</th><th>q MK</th><th>p Hamed–Rao</th><th>Pettitt (p)</th></tr></thead><tbody>'
+      + F.tend.map(r => `<tr><td>${r.variable} (${r.unidad})</td><td>${f2(r.media)}</td><td>${f3(r.ols_por_decada)}</td><td>${f2(r.ols_pct_por_decada)}</td><td>${f3(r.p_ols_newey_west)}</td><td>${f3(r.q_ols)}</td><td>${f3(r.sen_por_decada)}</td><td>${f3(r.p_mk_permutacion)}</td><td>${f3(r.q_mk)}</td><td>${f3(r.p_mk_hamed_rao)}</td><td>${r.pettitt_ultimo_anio_tramo1} (${f3(r.p_pettitt)})</td></tr>`).join('') + '</tbody></table>';
+    const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    ls.xaxis = Object.assign(ls.xaxis, {type: 'linear', range: [1980.5, 2022.5], dtick: 4, title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
+    const series = [['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']];
+    const xs = [F.anios[0], F.anios[F.anios.length - 1]], xmed = (xs[0] + xs[1]) / 2;
+    Plotly.newPlot('g-fase8b-series', [
+      ...series.map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: F.anios, y: F[k], name: n, line: {color: c}, hovertemplate: `${n}: %{y:.0f} mm/año<extra></extra>`})),
+      ...series.map(([k, n, c]) => {
+        const fila = F.tend.find(r => r.variable === n), m = fila.sen_por_decada * 12 / 10;
+        const o = [...F[k]].sort((a, b) => a - b), med = (o[o.length / 2 - 1] + o[o.length / 2]) / 2;
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => med + m * (x - xmed)), line: {color: c, dash: 'dot', width: 2},
+          name: `Sen ${n}: ${(fila.sen_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_mk_permutacion.toFixed(3)})`, hoverinfo: 'skip'};
+      }),
+    ], Object.assign(ls, {shapes: [{type: 'line', x0: 1997.5, x1: 1997.5, yref: 'paper', y0: 0, y1: 1, line: {color: css('--tenue'), dash: 'dot', width: 1}}]}), OPCIONES);
+    const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
+    const corto = {'T media': 'T', 'Tendencia directa de la ETo': 'Directa', 'Residuo (directa − suma)': 'Residuo'};
+    Plotly.newPlot('g-fase8b-atr', [{type: 'bar', x: A.map(r => corto[r.forzante] || r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
+      marker: {color: ['#E69F00', '#009E73', '#7C5BC7', '#8C564B', '#0072B2', '#999999']}, hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}],
+      Object.assign(base('mm/año por década'), {showlegend: false, hovermode: 'closest'}, {xaxis: Object.assign(base('').xaxis, {type: 'category'})},
+        {yaxis: Object.assign(base('mm/año por década').yaxis, {zeroline: true, zerolinecolor: css('--tenue'), zerolinewidth: 1.5})}), OPCIONES);
   }
   {
     const F = CARGA.fase8, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);

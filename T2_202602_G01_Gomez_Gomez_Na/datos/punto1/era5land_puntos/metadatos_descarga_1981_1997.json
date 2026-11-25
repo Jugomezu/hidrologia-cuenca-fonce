@@ -1,0 +1,93 @@
+{
+  "fuente": "Copernicus Climate Data Store",
+  "producto": "reanalysis-era5-land-timeseries",
+  "variables": [
+    "2m_temperature",
+    "2m_dewpoint_temperature",
+    "surface_pressure",
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+    "surface_solar_radiation_downwards"
+  ],
+  "periodo": [
+    "1981-01-01",
+    "1997-12-31"
+  ],
+  "resolucion_temporal": "horaria",
+  "seleccion_del_punto": "celda de la malla de ERA5-Land más cercana a lon, lat (la hace el CDS)",
+  "fecha_de_descarga": "2026-11-24",
+  "archivos": [
+    {
+      "punto": 1,
+      "lon": -73.1,
+      "lat": 6.0,
+      "peso": 0.124,
+      "archivo": "punto_1_1981_1997.csv",
+      "sha256": "658243be08e9b9c4ac5a8c51471ce91c485a3d37a29aaa1430e4c05c2647c63e",
+      "celda_entregada": {
+        "lat": 6.000000000000831,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 2,
+      "lon": -73.1,
+      "lat": 6.2,
+      "peso": 0.173,
+      "archivo": "punto_2_1981_1997.csv",
+      "sha256": "ffdcba2ff6a30ee1db1366e2cc476effbc43fefa9ec798fb3c2f0aeff85fbf19",
+      "celda_entregada": {
+        "lat": 6.200000000000831,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 3,
+      "lon": -73.1,
+      "lat": 6.3,
+      "peso": 0.12,
+      "archivo": "punto_3_1981_1997.csv",
+      "sha256": "2e734deedbffc7dc5500f601e49e346cf109dd6359557b74be44c66bb284690a",
+      "celda_entregada": {
+        "lat": 6.30000000000083,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 4,
+      "lon": -73.1,
+      "lat": 6.4,
+      "peso": 0.146,
+      "archivo": "punto_4_1981_1997.csv",
+      "sha256": "a90cb14c6c028124e5731801ec474f1ba437bd3bc3c9cb865d89e04c9225ad05",
+      "celda_entregada": {
+        "lat": 6.40000000000083,
+        "lon": -73.10000000000326
+      }
+    },
+    {
+      "punto": 5,
+      "lon": -73.0,
+      "lat": 6.1,
+      "peso": 0.186,
+      "archivo": "punto_5_1981_1997.csv",
+      "sha256": "4b580e9a65d014e21e7af27632fd869c16a2245227dcdb09df7b2949c46bdcc3",
+      "celda_entregada": {
+        "lat": 6.100000000000831,
+        "lon": -73.00000000000324
+      }
+    },
+    {
+      "punto": 6,
+      "lon": -73.0,
+      "lat": 6.4,
+      "peso": 0.252,
+      "archivo": "punto_6_1981_1997.csv",
+      "sha256": "797141c112cc614c236260c789e927c2ebf2093e4f67d59c98c31a4c965e786d",
+      "celda_entregada": {
+        "lat": 6.40000000000083,
+        "lon": -73.00000000000324
+      }
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+\begin{thebibliography}{24}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Abatzoglou et~al.(2018)Abatzoglou, Dobrowski, Parks, and
+  Hegewisch]{abatzoglou2018}
+John~T. Abatzoglou, Solomon~Z. Dobrowski, Sean~A. Parks, and Katherine~C.
+  Hegewisch.
+\newblock {TerraClimate}, a high-resolution global dataset of monthly climate
+  and climatic water balance from 1958--2015.
+\newblock \emph{Scientific Data}, 5:\penalty0 170191, 2018.
+\newblock \doi{10.1038/sdata.2017.191}.
+
+\bibitem[Allen et~al.(1998)Allen, Pereira, Raes, and Smith]{allen1998}
+Richard~G. Allen, Luis~S. Pereira, Dirk Raes, and Martin Smith.
+\newblock \emph{Crop evapotranspiration: Guidelines for computing crop water
+  requirements}.
+\newblock FAO Irrigation and Drainage Paper 56. FAO, Roma, 1998.
+\newblock URL \url{https://www.fao.org/3/x0490e/x0490e00.htm}.
+
+\bibitem[Brutsaert and Stricker(1979)]{brutsaert1979}
+Wilfried Brutsaert and Han Stricker.
+\newblock An advection-aridity approach to estimate actual regional
+  evapotranspiration.
+\newblock \emph{Water Resources Research}, 15\penalty0 (2):\penalty0 443--450,
+  1979.
+\newblock \doi{10.1029/WR015i002p00443}.
+
+\bibitem[Di~Baldassarre and Montanari(2009)]{dibaldassarre2009}
+Giuliano Di~Baldassarre and Alberto Montanari.
+\newblock Uncertainty in river discharge observations: a quantitative analysis.
+\newblock \emph{Hydrology and Earth System Sciences}, 13\penalty0 (6):\penalty0
+  913--921, 2009.
+\newblock \doi{10.5194/hess-13-913-2009}.
+
+\bibitem[Doorenbos and Pruitt(1977)]{doorenbos1977}
+J.~Doorenbos and W.~O. Pruitt.
+\newblock \emph{Guidelines for predicting crop water requirements}.
+\newblock FAO Irrigation and Drainage Paper 24. FAO, ed. revisada edition,
+  1977.
+\newblock URL \url{https://www.fao.org/4/f2430e/f2430e.pdf}.
+
+\bibitem[{ECMWF}(2024)]{ecmwf2024}
+{ECMWF}.
+\newblock Issue affecting {ERA5-Land} monthly averaged reanalysis for the
+  period {September} 2022 to {February} 2024.
+\newblock Foro de ECMWF, 2024.
+\newblock URL
+  \url{https://forum.ecmwf.int/t/issue-affecting-era5-land-monthly-averaged-reanalysis-for-the-period-september-2022-to-february-2024/2370}.
+
+\bibitem[Hargreaves and Samani(1985)]{hargreaves1985}
+George~H. Hargreaves and Zohrab~A. Samani.
+\newblock Reference crop evapotranspiration from temperature.
+\newblock \emph{Applied Engineering in Agriculture}, 1\penalty0 (2):\penalty0
+  96--99, 1985.
+\newblock \doi{10.13031/2013.26773}.
+
+\bibitem[Hoyos()]{hoyos_et}
+Carlos~D. Hoyos.
+\newblock Evapotranspiración [notas del curso de hidrología].
+\newblock Universidad Nacional de Colombia.
+\newblock URL
+  \url{https://carlosdhoyos.github.io/cursos/hidrologia/evapotranspiracion.html}.
+
+\bibitem[Huffman et~al.()]{huffman_imerg}
+G.~J. Huffman et~al.
+\newblock {GPM IMERG} final precipitation {L3} 1 month 0.1° {V07}
+  ({GPM\_3IMERGM}).
+
+\bibitem[{Instituto de Hidrología, Meteorología y Estudios
+  Ambientales}(2024)]{ideam_gdim003}
+{Instituto de Hidrología, Meteorología y Estudios Ambientales}.
+\newblock \emph{Manual del observador meteorológico (GDI-M003, versión 03)}.
+\newblock IDEAM, 2024.
+\newblock URL
+  \url{https://www.ideam.gov.co/sites/default/files/mapa-de-procesos/gdi-m003_manual_del_observador_meteorologico_0.pdf}.
+
+\bibitem[Jaramillo~Robledo(2006)]{jaramillo2006}
+Álvaro Jaramillo~Robledo.
+\newblock Evapotranspiración de referencia en la región {Andina} de
+  {Colombia}.
+\newblock \emph{Cenicafé}, 57\penalty0 (4):\penalty0 288--298, 2006.
+\newblock URL \url{https://cenicafe.org/es/publications/arc057(04)288-298.pdf}.
+
+\bibitem[Jimenez et~al.(2026)Jimenez, Meneses, Bernardes~Solha, Avila~Diaz,
+  Quesada, Brentan, and Rodrigues]{camelscol}
+D.~A. Jimenez, J.~E. Meneses, P.~H. Bernardes~Solha, A.~Avila~Diaz, B.~Quesada,
+  B.~M. Brentan, and A.~F. Rodrigues.
+\newblock {CAMELS-COL}: A large-sample hydrometeorological dataset for
+  {Colombia} (v3), 2026.
+
+\bibitem[Makkink(1957)]{makkink1957}
+G.~F. Makkink.
+\newblock Testing the {Penman} formula by means of lysimeters.
+\newblock \emph{Journal of the Institution of Water Engineers}, 11:\penalty0
+  277--288, 1957.
+\newblock Ecuación tomada de las notas del curso (Hoyos).
+
+\bibitem[Miralles et~al.(2025)Miralles, Bonte, Koppa, et~al.]{miralles2025}
+Diego~G. Miralles, Olivier Bonte, Akash Koppa, et~al.
+\newblock {GLEAM4}: global land evaporation and soil moisture dataset at 0.1°
+  resolution from 1980 to near present.
+\newblock \emph{Scientific Data}, 12, 2025.
+\newblock \doi{10.1038/s41597-025-04610-y}.
+
+\bibitem[Muñoz-Sabater et~al.(2021)Muñoz-Sabater, Dutra, Agustí-Panareda,
+  et~al.]{munoz2021}
+Joaquín Muñoz-Sabater, Emanuel Dutra, Anna Agustí-Panareda, et~al.
+\newblock {ERA5-Land}: a state-of-the-art global reanalysis dataset for land
+  applications.
+\newblock \emph{Earth System Science Data}, 13\penalty0 (9):\penalty0
+  4349--4383, 2021.
+\newblock \doi{10.5194/essd-13-4349-2021}.
+
+\bibitem[Penman(1948)]{penman1948}
+H.~L. Penman.
+\newblock Natural evaporation from open water, bare soil and grass.
+\newblock \emph{Proceedings of the Royal Society of London. Series A},
+  193\penalty0 (1032):\penalty0 120--145, 1948.
+\newblock \doi{10.1098/rspa.1948.0037}.
+
+\bibitem[Priestley and Taylor(1972)]{priestley1972}
+C.~H.~B. Priestley and R.~J. Taylor.
+\newblock On the assessment of surface heat flux and evaporation using
+  large-scale parameters.
+\newblock \emph{Monthly Weather Review}, 100\penalty0 (2):\penalty0 81--92,
+  1972.
+\newblock \doi{10.1175/1520-0493(1972)100<0081:OTAOSH>2.3.CO;2}.
+
+\bibitem[Running et~al.(2021)Running, Mu, Zhao, and Moreno]{running2021}
+S.~Running, Q.~Mu, M.~Zhao, and A.~Moreno.
+\newblock {MODIS/Terra} net evapotranspiration gap-filled 8-day {L4} global
+  500m {SIN} grid {V061}, 2021.
+
+\bibitem[Sankarasubramanian et~al.(2001)Sankarasubramanian, Vogel, and
+  Limbrunner]{sankarasubramanian2001}
+A.~Sankarasubramanian, Richard~M. Vogel, and James~F. Limbrunner.
+\newblock Climate elasticity of streamflow in the {United States}.
+\newblock \emph{Water Resources Research}, 37\penalty0 (6):\penalty0
+  1771--1781, 2001.
+\newblock \doi{10.1029/2000WR900330}.
+
+\bibitem[Senay et~al.(2013)Senay, Bohms, Singh, Gowda, Velpuri, Alemu, and
+  Verdin]{senay2013}
+Gabriel~B. Senay, Stefanie Bohms, Ramesh~K. Singh, Prasanna~H. Gowda, Naga~M.
+  Velpuri, Henok Alemu, and James~P. Verdin.
+\newblock Operational evapotranspiration mapping using remote sensing and
+  weather datasets: a new parameterization for the {SSEB} approach.
+\newblock \emph{Journal of the American Water Resources Association},
+  49\penalty0 (3):\penalty0 577--591, 2013.
+\newblock \doi{10.1111/jawr.12057}.
+
+\bibitem[Senay et~al.(2023)]{senay2023}
+Gabriel~B. Senay et~al.
+\newblock Improving the operational simplified surface energy balance
+  evapotranspiration model using the forcing and normalizing operation.
+\newblock \emph{Remote Sensing}, 15\penalty0 (1):\penalty0 260, 2023.
+\newblock \doi{10.3390/rs15010260}.
+
+\bibitem[Seneviratne et~al.(2010)Seneviratne, Corti, Davin,
+  et~al.]{seneviratne2010}
+Sonia~I. Seneviratne, Thierry Corti, Edouard~L. Davin, et~al.
+\newblock Investigating soil moisture--climate interactions in a changing
+  climate: A review.
+\newblock \emph{Earth-Science Reviews}, 99\penalty0 (3--4):\penalty0 125--161,
+  2010.
+\newblock \doi{10.1016/j.earscirev.2010.02.004}.
+
+\bibitem[Thornthwaite(1948)]{thornthwaite1948}
+C.~W. Thornthwaite.
+\newblock An approach toward a rational classification of climate.
+\newblock \emph{Geographical Review}, 38\penalty0 (1):\penalty0 55--94, 1948.
+\newblock \doi{10.2307/210739}.
+
+\bibitem[Yang et~al.(2019)Yang, Roderick, Zhang, McVicar, and
+  Donohue]{yang2019}
+Yuting Yang, Michael~L. Roderick, Shulei Zhang, Tim~R. McVicar, and Randall~J.
+  Donohue.
+\newblock Hydrologic implications of vegetation response to elevated {CO2} in
+  climate projections.
+\newblock \emph{Nature Climate Change}, 9\penalty0 (1):\penalty0 44--48, 2019.
+\newblock \doi{10.1038/s41558-018-0361-0}.
+
+\end{thebibliography}

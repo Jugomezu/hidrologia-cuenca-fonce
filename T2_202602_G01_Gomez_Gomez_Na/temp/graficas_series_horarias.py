@@ -1009,8 +1009,8 @@ code { font: 400 .86em var(--f-dato); }
   Penman–Monteith con rs = 0 en la mayoría de los meses: no hay rs que la reproduzca con la Rn de ERA5-Land y la ra del
   pasto (GLEAM usa su propia radiación e incluye intercepción). Altura, temperatura y cobertura van juntas entre puntos
   (los altos tienen 58–60 % de bosque y herbazal andino), así que no se separan las funciones de Jarvis. Dentro de cada
-  punto la correlación mensual de rs con el déficit no es consistente entre productos. Con una ra menor (bosque, más
-  rugoso) la rs despejada saldría aún mayor arriba: el sentido del resultado no depende de la ra. Cuenca limitada por
+  punto la correlación mensual de rs con el déficit no es consistente entre productos. Con una ra por cobertura (bosque más
+  rugoso) la rs sale menor y sube mucho menos con la altura (prueba rápida: SSEBop 158–360 s/m). Cuenca limitada por
   energía: la rs cambia el reparto, no la cantidad de agua disponible.</p>
 </section>
 

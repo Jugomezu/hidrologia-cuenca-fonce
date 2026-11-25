@@ -192,7 +192,7 @@ def benjamini_hochberg(p):
 
 
 def anomalias(serie):
-    """Anomalía mensual: el valor menos la media 1998–2022 de su mes del calendario."""
+    """Anomalía mensual: el valor menos la media de su mes del calendario en el periodo de la serie."""
     return serie - serie.groupby(serie.index.month).transform("mean")
 
 
@@ -207,8 +207,8 @@ def tendencias(tabla):
         p_hr, factor_hr = mk_hamed_rao(t_decimal(anom.index), anom.to_numpy())
         anual = anom.groupby(anom.index.year).mean()
         k, p_pettitt = pettitt(anual.to_numpy())
-        sin_inicio = ols_estacional(serie[serie.index.year >= 1998 + AÑOS_EXTREMO])
-        sin_final = ols_estacional(serie[serie.index.year <= 2022 - AÑOS_EXTREMO])
+        sin_inicio = ols_estacional(serie[serie.index.year >= serie.index.year.min() + AÑOS_EXTREMO])
+        sin_final = ols_estacional(serie[serie.index.year <= serie.index.year.max() - AÑOS_EXTREMO])
         filas.append({
             "variable": NOMBRES[v], "clave": v, "unidad": UNIDADES[v], "media": media,
             "ols_por_decada": ols, "ols_ic95_inf": ols_inf, "ols_ic95_sup": ols_sup, "p_ols_newey_west": p_ols,
@@ -270,13 +270,13 @@ def atribucion(tabla_t):
 
 
 # ---------------------------------------------------------------- figura
-def figura(tabla, tabla_t, atr):
+def figura(tabla, tabla_t, atr, salida=SALIDA_FIGURA):
     fig, ejes = plt.subplots(1, 2, figsize=(12, 4.5))
     # totales anuales con eje desde 0 y solo la recta de Sen (Juan, 24 nov: sin OLS ni anomalías)
     anual = tabla[["eto", "thornthwaite"]].groupby(tabla.index.year).sum()
     tt = tabla_t.set_index("clave")
     colores = {"eto": "#1f77b4", "thornthwaite": "#d62728"}
-    x = np.array([1998, 2022])
+    x = np.array([anual.index.min(), anual.index.max()])
     for v in ("eto", "thornthwaite"):
         ejes[0].plot(anual.index, anual[v], "o-", color=colores[v], ms=3, label=NOMBRES[v])
         pendiente_sen = tt.loc[v, "sen_por_decada"] * 12 / 10            # mm/año por año
@@ -286,7 +286,7 @@ def figura(tabla, tabla_t, atr):
     ejes[0].set_ylim(0, None)
     ejes[0].set_xlabel("Año")
     ejes[0].set_ylabel("mm/año")
-    ejes[0].set_title("Demanda anual de la cuenca, 1998–2022")
+    ejes[0].set_title(f"Demanda anual de la cuenca, {x[0]}–{x[1]}")
     ejes[0].legend(fontsize=8, loc="lower left")
     barras = atr.iloc[[0, 1, 2, 3, 6, 5]]
     etiquetas = ["T", "ea", "u2", "Rs", "Residuo", "Directa"]
@@ -296,7 +296,7 @@ def figura(tabla, tabla_t, atr):
     ejes[1].set_ylabel("mm/año por década")
     ejes[1].set_title("Atribución de la tendencia de la ETo Penman–Monteith (FAO-56)")
     fig.tight_layout()
-    fig.savefig(SALIDA_FIGURA, dpi=150)
+    fig.savefig(salida, dpi=150)
 
 
 def main():

@@ -424,7 +424,11 @@ code { font: 400 .86em var(--f-dato); }
   como ausentes), media de los días con dato frente a la ETo de la celda de ERA5-Land de Mogotes, razón tanque/ETo
   (sería el factor de unidades), Kp implícito si fueran centésimas de mm (FAO-56 cuadro 5: 0.35–0.85) y correlación.</p>
   <div class="tabla" id="t-tanque"></div>
-  <p class="nota">Pendiente: interpretación de Juan y punto de control (¿qué compensa la temperatura?).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (24 nov)</h3>
+  <p>La ETo Penman–Monteith (FAO-56) no tiene tendencia (Sen +3 mm/año por década, p 0.68). En Thornthwaite la tendencia es
+  estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año por década, cerca de 2 %
+  por década; OLS con Newey-West no la confirma (p 0.086).</p></div>
+  <p class="nota">Pendiente: punto de control (¿qué compensa la temperatura?) y verificar a mano una contribución.</p>
 </section>
 
 <section>

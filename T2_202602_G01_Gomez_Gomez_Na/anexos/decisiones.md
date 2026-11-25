@@ -524,5 +524,6 @@ tanque no sigue a la ETo (r diaria 0.04). Solo 2018-09 a 2021 se parece algo (r 
 sirven para tendencias.
 
 **Gráfica de demanda anual (Juan, 24 nov).** Totales anuales con eje desde 0 y solo la recta de Sen (sin OLS ni anomalías).
-Juan concluye que la tendencia es despreciable: en la ETo no es significativa; en Thornthwaite, Mann-Kendall da p 0.015
-pero el cambio es pequeño (+16 mm/año por década, ~2 % por década) y OLS con Newey-West no es significativo.
+**Conclusión (Juan, 24 nov).** ETo Penman–Monteith (FAO-56): sin tendencia (Sen +3 mm/año por década, p 0.68).
+Thornthwaite: tendencia estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año
+por década, cerca de 2 % por década; OLS con Newey-West no la confirma (p 0.086).

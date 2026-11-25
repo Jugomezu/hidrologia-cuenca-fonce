@@ -276,15 +276,22 @@ def figura(tabla, resumen):
         r = r.sort_values("z_modelo_m")
         ejes[0].errorbar(r["rs_mediana_sm"], r["z_modelo_m"],
                          xerr=[r["rs_mediana_sm"] - r["rs_p25_sm"], r["rs_p75_sm"] - r["rs_mediana_sm"]],
-                         fmt="o-", color=colores[prod], capsize=3, label=f"{prod}, ra por cobertura")
-        ejes[0].plot(r["rs_mediana_ra_pasto_sm"], r["z_modelo_m"], "o--", color=colores[prod], alpha=0.45,
+                         fmt="o", color=colores[prod], capsize=3, label=f"{prod}, ra por cobertura")
+        ejes[0].plot(r["rs_mediana_ra_pasto_sm"], r["z_modelo_m"], "o", color=colores[prod], alpha=0.45,
                      label=f"{prod}, ra del pasto (sensibilidad)")
+        # rectas rs = corte + pendiente·z (mínimos cuadrados con las 6 medianas; descriptivas, n = 6)
+        z = np.linspace(r["z_modelo_m"].min(), r["z_modelo_m"].max(), 2)
+        for col, estilo, alfa, texto in (("rs_mediana_sm", "-", 1.0, "ra por cobertura"),
+                                         ("rs_mediana_ra_pasto_sm", "--", 0.45, "ra del pasto")):
+            pendiente, corte = np.polyfit(r["z_modelo_m"] / 1000, r[col], 1)
+            ejes[0].plot(corte + pendiente * z / 1000, z, estilo, color=colores[prod], alpha=alfa, lw=1,
+                         label=f"recta {prod}, {texto}: {pendiente:+.0f} s/m por km")
     ejes[0].axvline(RS_REFERENCIA, color="k", ls=":", lw=1, label="pasto de referencia (70 s/m)")
     ejes[0].set_xlim(0, None)
     ejes[0].set_xlabel("rs efectiva, mediana y cuartiles (s/m)")
     ejes[0].set_ylabel("altura del modelo (m)")
     ejes[0].set_title("Resistencia de superficie frente a la altura")
-    ejes[0].legend(fontsize=8)
+    ejes[0].legend(fontsize=6.5)
     # ciclo anual de la rs de SSEBop por punto (mediana por mes del calendario)
     s = tabla[tabla["producto"] == "SSEBop v6.1"]
     ciclo = s.groupby(["punto", s["mes"].dt.month])["rs_sm"].median().unstack(0)

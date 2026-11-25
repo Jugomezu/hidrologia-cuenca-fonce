@@ -608,3 +608,12 @@ como FAO-56. Supuestos del agente, aprobados por Juan (7:47 a. m.): viento de 10
 **Resultado (script 37).** rs SSEBop 153–248 s/m abajo y 234–349 arriba; GLEAM 0–6 abajo y 99–184 arriba. Pendiente
 +113 (SSEBop) y +140 (GLEAM) s/m por km, contra +638 y +384 con la ra del pasto. GLEAM sigue sin solución abajo en
 134–196 de 296 meses. Herbazal como tall grass cambia poco (punto 1: 349 → 330 con SSEBop).
+
+**Jarvis con LAI (script 39, Juan aprobó el plan, 25 nov, 8:28 a. m.).** LAI = lai_todos (Juan). rc,min de la Tabla 1 de
+Gehrke et al. (2021) en paralelo por cobertura (supuesto del agente). f_total = rs·LAI/rc,min; ajuste ln f = a + g·D.
+**Resultado.** LAI ≈ 3–3.8 abajo y 1.1–1.5 arriba. Con SSEBop rs·LAI no sube con la altura (−86 s/m por km): la rs más
+alta arriba se explica por menos área foliar. GLEAM: rs·LAI +73 s/m por km (abajo solo meses con solución). f_total
+2.2–3.9 (SSEBop), 0.5–1.2 (GLEAM). g 0.14–0.52 hPa⁻¹ (SSEBop) y 0.59–1.01 (GLEAM), 5 a 34 veces el 0.03 de la tabla: no
+se interpreta como respuesta estomática, porque el déficit entra en la inversión y la rs despejada sube con D por
+construcción si la ET del producto responde poco al déficit.
+**Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).

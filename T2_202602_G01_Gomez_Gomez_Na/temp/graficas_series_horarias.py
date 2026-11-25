@@ -377,6 +377,20 @@ def datos_budyko():
     }
 
 
+def datos_fase8():
+    """Fase 8: tendencias de la demanda y atribución (salidas de 32_tendencias_demanda.py)."""
+    eto = pd.read_csv(CARPETA_PRODUCTOS / "eto_mensual_cuenca.csv")
+    met = pd.read_csv(CARPETA_PRODUCTOS / "metodos_mensual.csv")
+    anio = eto["mes"].str[:4].astype(int)
+    anual = pd.DataFrame({"eto": eto["eto_mm_mes"], "th": met["thornthwaite_mm_mes"]}).groupby(anio).sum()
+    t = pd.read_csv(CARPETA_PRODUCTOS / "tendencias_demanda.csv")
+    a = pd.read_csv(CARPETA_PRODUCTOS / "atribucion_eto.csv")
+    q = pd.read_csv(CARPETA_PRODUCTOS / "tanque_mogotes_diagnostico.csv")
+    return {"tanque": q.round(3).astype(object).where(q.notna(), None).to_dict(orient="records"),"anios": anual.index.tolist(), "eto": anual["eto"].round(1).tolist(), "th": anual["th"].round(1).tolist(),
+            "tend": t.round(4).astype(object).where(t.notna(), None).to_dict(orient="records"),
+            "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -469,6 +483,7 @@ def main():
         "budyko": datos_budyko(),
         "regimen": datos_regimen(),
         "ef": datos_ef(),
+        "fase8": datos_fase8(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -910,6 +925,25 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Matices: θ* = 0.452 es el borde de la búsqueda, no un quiebre encontrado (SMrz de GLEAM casi no pasa de
   0.45); la pendiente es débil (EF 0.57 → 0.64, R² 0.16). Esta prueba sola no es concluyente: la conclusión se apoya
   también en Budyko (φ = 0.49), ET/ETo ≈ 0.90 y el φ mensual (solo enero &gt; 1).</p></div>
+</section>
+
+<section>
+  <h2>Fase 8 · Cambios en la demanda, 1998–2022</h2>
+  <p>Script 32. Promedio de la cuenca (Voronoi). Métodos de la Tarea 1: OLS con una constante por mes y error de
+  Newey-West (12 rezagos); Mann-Kendall estacional con Sen, p permutando años completos; Mann-Kendall con Hamed–Rao en
+  anomalías; Pettitt en la anomalía anual; FDR de Benjamini–Hochberg sobre las 6 series (α = 0.05). Extremos: OLS sin los
+  3 primeros y sin los 3 últimos años. Periodo 1998–2022 (el de la ETo; la Tarea 1 usó 1981–2022). Tanque DHIME fuera
+  (unidades imposibles). Atribución: sensibilidad del script 28 (% de ETo por +1 °C con ea constante, por % de ea, u2 y
+  Rs) × tendencia OLS de cada forzante; residuo = directa − suma.</p>
+  <div class="tabla" id="t-fase8"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo Penman–Monteith (FAO-56) y Thornthwaite anuales (mm/año)</h3><div class="grafico" id="g-fase8-series" style="height:420px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Atribución de la tendencia de la ETo (mm/año por década)</h3><div class="grafico" id="g-fase8-atr" style="height:400px"></div></div>
+  <h3>Tanque evaporímetro de Mogotes-AUT (24025090): ¿se puede salvar? (script 33)</h3>
+  <p>Único tanque de la zona en DHIME («Evaporación total diaria», «mm», Preliminar). Por tramos: días en 0 (se leen
+  como ausentes), media de los días con dato frente a la ETo de la celda de ERA5-Land de Mogotes, razón tanque/ETo
+  (sería el factor de unidades), Kp implícito si fueran centésimas de mm (FAO-56 cuadro 5: 0.35–0.85) y correlación.</p>
+  <div class="tabla" id="t-tanque"></div>
+  <p class="nota">Pendiente: interpretación de Juan y punto de control (¿qué compensa la temperatura?).</p>
 </section>
 
 <section>
@@ -1410,6 +1444,24 @@ for (const [valor, texto] of CARGA.cifras) {
       {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
        hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
 ], lr, OPCIONES);
+  }
+  {
+    const F = CARGA.fase8, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase8').innerHTML = '<table><thead><tr><th>Serie</th><th>Media</th><th>OLS por década</th><th>%/década</th><th>p OLS (NW)</th><th>q OLS</th><th>Sen por década [IC 95 %]</th><th>p MK (perm.)</th><th>q MK</th><th>p Hamed–Rao</th><th>Pettitt (p)</th><th>OLS sin 3 primeros / sin 3 últimos</th></tr></thead><tbody>'
+      + F.tend.map(r => `<tr><td>${r.variable} (${r.unidad})</td><td>${f2(r.media)}</td><td>${f3(r.ols_por_decada)}</td><td>${f2(r.ols_pct_por_decada)}</td><td>${f3(r.p_ols_newey_west)}</td><td>${f3(r.q_ols)}</td><td>${f3(r.sen_por_decada)} [${f3(r.sen_ic95_inf)}, ${f3(r.sen_ic95_sup)}]</td><td>${f3(r.p_mk_permutacion)}</td><td>${f3(r.q_mk)}</td><td>${f3(r.p_mk_hamed_rao)}</td><td>${r.pettitt_ultimo_anio_tramo1} (${f3(r.p_pettitt)})</td><td>${f3(r.ols_sin_primeros_anios)} / ${f3(r.ols_sin_ultimos_anios)}</td></tr>`).join('')
+      + '</tbody></table>';
+    document.getElementById('t-tanque').innerHTML = '<table><thead><tr><th>Tramo</th><th>Días</th><th>Fracción en 0</th><th>Días con dato</th><th>Máximo</th><th>Media tanque</th><th>ETo (mm/d)</th><th>Tanque/ETo</th><th>Kp si centésimas</th><th>r diaria</th><th>r mensual</th></tr></thead><tbody>'
+      + F.tanque.map(r => `<tr><td>${r.tramo}</td><td>${r.dias}</td><td>${f2(r.fraccion_dias_en_0)}</td><td>${r.dias_con_dato}</td><td>${r.maximo}</td><td>${f2(r.media_tanque)}</td><td>${f2(r.media_eto_mm_d)}</td><td>${f2(r.razon_tanque_eto)}</td><td>${f2(r.kp_implicito_factor_100)}</td><td>${f2(r.r_diaria)}</td><td>${f2(r.r_mensual)}</td></tr>`).join('')
+      + '</tbody></table>';
+    const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    Plotly.newPlot('g-fase8-series', [
+      {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.eto, name: 'ETo Penman–Monteith (FAO-56)', line: {color: '#0072B2'}},
+      {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.th, name: 'Thornthwaite', line: {color: '#C8553D'}},
+    ], ls, OPCIONES);
+    const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
+    Plotly.newPlot('g-fase8-atr', [{type: 'bar', x: A.map(r => r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
+      marker: {color: ['#E69F00', '#009E73', '#7C5BC7', '#8C564B', '#0072B2', '#999999']},
+      hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}], base('mm/año por década'), OPCIONES);
   }
   {
     const E = CARGA.ef;

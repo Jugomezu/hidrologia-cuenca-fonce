@@ -509,3 +509,16 @@ siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 
 los dos que quedan fuera de ± σ_ET del balance. Efecto: la mediana solo cambia en 2002 (1 144 → 1 115 mm), porque
 los dos estaban en extremos opuestos; con el rango más estrecho, 2011 pasa a «bajo todos los productos». En Budyko la
 mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo con P̄ (Juan, 24 nov).
+
+## 2026-11-24 · Punto 1 · Fase 8: tendencias de la demanda (scripts 32 y 33)
+
+**Decisión (Juan).** Periodo 1998–2022, el de la ETo; la Tarea 1 usó 1981–2022 (se declara). Si Juan descarga después
+ERA5-Land 1981–1997 de los 6 puntos, se vuelve a correr con todo el registro. Métodos y autocorrelación iguales a la
+Tarea 1: OLS con constante por mes y Newey-West (12 rezagos), Mann-Kendall estacional con Sen y p por permutación de
+años, Hamed–Rao en anomalías, Pettitt en la anomalía anual, FDR de Benjamini–Hochberg. Sensibilidades numéricas
+(script 28). Propuestas del agente: T de la atribución con ea constante (ea entra aparte) y prueba de extremos quitando 3 años.
+
+**Tanque (Juan pidió revisarlo).** Mogotes-AUT es el único tanque de la zona. No entra: no tiene un factor de unidades
+coherente. La razón tanque/ETo cambia de 27 a 53 y a 217 entre tramos, 2011 y 2022 son todo ceros, y en 2012–2018 el
+tanque no sigue a la ETo (r diaria 0.04). Solo 2018-09 a 2021 se parece algo (r mensual 0.41), pero son 3 años: no
+sirven para tendencias.

@@ -167,7 +167,15 @@ lee de la recta de los 6 puntos. El reparto de la energía usa la $R_n$ real de 
 fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto. Como referencia teórica se usa $\Delta/(\Delta+\gamma)$,
 la fracción que va a calor latente en la evaporación de equilibrio \citep{priestley1972}.
 
-\pendiente{Fase 9: por qué se eligió este tema y se descartan los otros cinco.}
+\paragraph{Resistencia de superficie.} En la celda de cada punto se despeja la $r_s$ que hace que la ec.~6 de
+\citet{allen1998}, con la $R_n$ real de ERA5-Land (hasta 2022-08), dé la ET de GLEAM v4.3a y de SSEBop v6.1, con medias
+mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas, con la longitud de rugosidad
+de la Tabla~1 de \citet{gehrke2021}: agropecuario 0.10~m, herbazal andino 0.10~m y bosque 2.00~m, con $z_{oh} =
+0.1\,z_{om}$ y las conductancias ponderadas por fracción. La $r_a$ del pasto queda como sensibilidad. El LAI es el de
+MCD15A3H v6.1 \citep{myneni2021} en la celda de cada punto (2002--2022). Con el $r_{c,\min}$ de la misma tabla se forma
+$f = r_s\,\mathrm{LAI}/r_{c,\min}$ al estilo de Jarvis y se ajusta $\ln f = a + g\,D$ contra el déficit de vapor.
+
+\pendiente{Fase 9: por qué se eligieron los temas a y f y se descartan los otros cuatro.}
 
 \subsection{Punto 2}
 \pendiente{Metodología del punto 2 (compañera).}
@@ -405,6 +413,35 @@ estomático con frío y nubes. La $R_n$ que sube es la real de ERA5-Land; la del
 
 \pendiente{Juan: citar las Figs.~\ref{fig:gradiente} y \ref{fig:gradiente_energia}, con las cifras de los gradientes
 (\ETo{} $-9$~\%/km; GLEAM $-30$, SSEBop v6.1 $-26$ y TerraClimate $-11$~\%/km) y una explicación alternativa.}
+
+\paragraph{Resistencia de superficie.}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth]{resistencia_superficie.png}
+  \caption{Izquierda: $r_s$ efectiva despejada de GLEAM v4.3a y de SSEBop v6.1 frente a la altura (mediana y
+  cuartiles de los meses), con la $r_a$ por cobertura y, como sensibilidad, con la del pasto. Derecha: ciclo anual de
+  la $r_s$ con SSEBop v6.1 en cada punto.}
+  \label{fig:rs}
+\end{figure}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth]{jarvis_lai.png}
+  \caption{Izquierda: $r_s$ y $r_s\cdot\mathrm{LAI}$ frente a la altura. Centro: LAI de MCD15A3H en la celda de cada
+  punto. Derecha: $f = r_s\,\mathrm{LAI}/r_{c,\min}$ con SSEBop v6.1 frente al déficit de vapor, con su ajuste por
+  punto.}
+  \label{fig:jarvis}
+\end{figure}
+
+% Texto de Juan: temp/textos_informe/fase9f_conclusion.md (tal cual, pasado a LaTeX).
+La superficie frena más la evaporación arriba, y eso se explica por menor área foliar (páramo), no por cierre
+estomático; con estos datos no se puede estimar la respuesta al déficit.
+
+\borradorIA{Cifras y limitaciones para que Juan decida cuáles incluye. La $r_s$ sube $+113$ (SSEBop) y $+140$ (GLEAM)
+s/m por km con la $r_a$ por cobertura (con la del pasto, $+638$ y $+384$); $r_s\cdot\mathrm{LAI}$ con SSEBop no sube
+($-86$~s/m por km). El $g$ ajustado sale de 5 a 34 veces el de la tabla: es un artefacto de la inversión (el déficit
+entra en ella), no una respuesta estomática. GLEAM no tiene solución en los puntos bajos en 134 a 196 de 296 meses. El
+LAI de los puntos altos es dudoso por nubes (cerca de la mitad de los píxeles salen del algoritmo de respaldo). La
+cuenca está limitada por energía: la $r_s$ cambia el reparto de la energía, no el agua disponible.}
+
+\pendiente{Juan: citar las Figs.~\ref{fig:rs} y \ref{fig:jarvis} en el texto.}
 
 \subsection{Punto 2}
 \pendiente{Resultados y recomendación de diseño con su incertidumbre (compañera).}

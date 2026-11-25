@@ -168,4 +168,4 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   Development, 14*, 5307–5329. https://doi.org/10.5194/gmd-14-5307-2021 (acceso libre). Tabla 1 (p. 5310): z0 y rc,min
   de 18 tipos de vegetación «al estilo de la clasificación de ECMWF»; usada en los scripts 37 y 39 (tema f).
 - Myneni, R., Knyazikhin, Y. y Park, T. (2021). MODIS/Terra+Aqua Leaf Area Index/FPAR 4-Day L4 Global 500m SIN Grid
-  V061 (MCD15A3H). NASA LP DAAC. https://doi.org/10.5067/MODIS/MCD15A3H.061 — LAI del script 38 (vía Google Earth Engine).
+  V061 (MCD15A3H). NASA LP DAAC. https://doi.org/10.5067/MODIS/MCD15A3H.061 — LAI del script 38 (vía Google Earth Engine). DOI, título, autores y año comprobados el 2026-11-25 en la página de NASA Earthdata a la que resuelve.

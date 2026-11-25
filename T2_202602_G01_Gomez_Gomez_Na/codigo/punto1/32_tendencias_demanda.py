@@ -282,11 +282,16 @@ def figura(tabla, tabla_t, atr):
         ejes[0].plot(x, anual[v].median() + pendiente_anual * (x - np.median(anual.index)), "--", color=colores[v],
                      label=f"Sen: {tt.loc[v, 'sen_por_decada'] * 12:+.0f} mm/año por década "
                            f"(p = {tt.loc[v, 'p_mk_permutacion']:.3f})")
+        # recta OLS (pendiente con constante por mes y Newey-West), por la media de los 25 años
+        pendiente_ols = tt.loc[v, "ols_por_decada"] * 12 / 10                # mm/año por año
+        ejes[0].plot(x, anual[v].mean() + pendiente_ols * (x - np.mean(anual.index)), ":", color=colores[v], lw=2,
+                     label=f"OLS: {tt.loc[v, 'ols_por_decada'] * 12:+.0f} mm/año por década "
+                           f"(p = {tt.loc[v, 'p_ols_newey_west']:.3f})")
     ejes[0].set_ylim(0, None)
     ejes[0].set_xlabel("Año")
     ejes[0].set_ylabel("mm/año")
     ejes[0].set_title("Demanda anual de la cuenca, 1998–2022")
-    ejes[0].legend(fontsize=8, loc="lower left")
+    ejes[0].legend(fontsize=7.5, loc="lower left")
     barras = atr.iloc[[0, 1, 2, 3, 6, 5]]
     etiquetas = ["T", "ea", "u2", "Rs", "Residuo", "Directa"]
     ejes[1].bar(etiquetas, barras["contribucion_mm_anio_por_decada"],

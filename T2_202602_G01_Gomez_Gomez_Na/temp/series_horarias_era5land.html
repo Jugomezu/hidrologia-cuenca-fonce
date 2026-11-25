@@ -939,6 +939,14 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot('g-fase8-series', [
       {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.eto, name: 'ETo Penman–Monteith (FAO-56)', line: {color: '#0072B2'}},
       {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.th, name: 'Thornthwaite', line: {color: '#C8553D'}},
+      // recta OLS: pendiente del script 32 (mm/mes por década × 12 / 10 = mm/año por año), pasa por la media de los 25 años
+      ...[['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']].map(([k, n, c]) => {
+        const fila = F.tend.find(r => r.variable === n), m = fila.ols_por_decada * 12 / 10;
+        const media = F[k].reduce((a, b) => a + b, 0) / F[k].length, xm = F.anios.reduce((a, b) => a + b, 0) / F.anios.length;
+        const xs = [F.anios[0], F.anios[F.anios.length - 1]];
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => media + m * (x - xm)), line: {color: c, dash: 'dash', width: 2},
+          name: `OLS ${n}: ${(fila.ols_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_ols_newey_west.toFixed(3)})`, hoverinfo: 'skip'};
+      }),
     ], ls, OPCIONES);
     const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
     const corto = {'T media': 'T', 'Tendencia directa de la ETo': 'Directa', 'Residuo (directa − suma)': 'Residuo'};

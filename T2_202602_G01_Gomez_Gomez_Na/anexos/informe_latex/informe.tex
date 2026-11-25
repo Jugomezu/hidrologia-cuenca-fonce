@@ -100,7 +100,7 @@ la Tarea 1 que se pone a prueba. Altitud de la cuenca: dar el rango con su fuent
 \subsection{Punto 1: evapotranspiración en la cuenca del Fonce}
 
 \borradorIA{Armado desde \texttt{anexos/borrador\_metodologia.md} y \texttt{anexos/decisiones.md}. Juan lo revisa y
-lo pasa a su voz. Falta la fase 9 (tema del paisaje).}
+lo pasa a su voz.}
 
 \paragraph{Datos y periodo.} Se trabajó en 1998--2022 (25 años), el periodo de IMERG en la Tarea 1. Las tendencias de
 la demanda usan además el registro completo de ERA5-Land, 1981--2022, como en la Tarea 1. La cuenca es el polígono de CAMELS-COL hasta San Gil
@@ -159,7 +159,15 @@ permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OL
 Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
 descubrimientos \citep{benjamini1995}; $\alpha = 0.05$.
 
-\pendiente{Fase 9 (tema del paisaje): datos y método.}
+\paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
+comparan con la altura del modelo mediante una recta de mínimos cuadrados; con $n = 6$ es solo descriptiva. La
+hipsometría sale del DEM ALOS de 12~m dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
+en malla (GLEAM, SSEBop v6.1 y TerraClimate) lleva la altura media del DEM que cae en ella. La \ETo{} de cada banda se
+lee de la recta de los 6 puntos. El reparto de la energía usa la $R_n$ real de ERA5-Land en la celda de cada punto y la
+fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto. Como referencia teórica se usa $\Delta/(\Delta+\gamma)$,
+la fracción que va a calor latente en la evaporación de equilibrio \citep{priestley1972}.
+
+\pendiente{Fase 9: por qué se eligió este tema y se descartan los otros cinco.}
 
 \subsection{Punto 2}
 \pendiente{Metodología del punto 2 (compañera).}
@@ -372,7 +380,31 @@ el cambio de lo que asimila ERA5 hacia 1998 (el hilo de la fase 8 sugiere Hersba
 tendencia de Rs es un artefacto, decir qué queda de la de la \ETo.}
 
 \subsubsection{El paisaje de la cuenca}
-\pendiente{Fase 9: tema elegido y por qué se descartan los otros cinco.}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth]{gradiente_altitudinal.png}
+  \caption{\ETo{} y ET real de los productos frente a la altura, e hipsometría de la cuenca con ET/\ETo{} por banda
+  de 500~m.}
+  \label{fig:gradiente}
+\end{figure}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth]{gradiente_altitudinal_energia.png}
+  \caption{Izquierda: fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto en los 6 puntos, frente a la
+  altura del modelo, con $\Delta/(\Delta+\gamma)$ (superficie húmeda, teórica). Derecha: reparto de la $R_n$ real de
+  ERA5-Land entre calor latente y calor sensible (más $G$), con la mediana de los tres productos.}
+  \label{fig:gradiente_energia}
+\end{figure}
+
+% Texto de Juan: temp/textos_informe/fase9a_conclusion.md (tal cual, pasado a LaTeX).
+La ET baja con la altura porque baja el déficit de vapor y porque, aunque haya mayor Rn, la fracción de Rn que se va a
+calor latente (evaporar) disminuye con la altura.
+
+\borradorIA{Matices para que Juan decida si los incluye: son productos, no medidas, y GLEAM tiene de 1 a 5 celdas por
+banda. $\Delta/(\Delta+\gamma)$ solo baja de 0.70 a 0.65, así que el frío explica una parte pequeña de la caída de
+$\lambda\mathrm{ET}/R_n$ (GLEAM de 0.84 a 0.43); el resto viene de la superficie: páramo, menos área foliar, cierre
+estomático con frío y nubes. La $R_n$ que sube es la real de ERA5-Land; la del pasto de referencia baja 3~\%/km.}
+
+\pendiente{Juan: citar las Figs.~\ref{fig:gradiente} y \ref{fig:gradiente_energia}, con las cifras de los gradientes
+(\ETo{} $-9$~\%/km; GLEAM $-30$, SSEBop v6.1 $-26$ y TerraClimate $-11$~\%/km) y una explicación alternativa.}
 
 \subsection{Punto 2}
 \pendiente{Resultados y recomendación de diseño con su incertidumbre (compañera).}

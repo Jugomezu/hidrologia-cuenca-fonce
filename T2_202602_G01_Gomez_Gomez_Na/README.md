@@ -52,7 +52,7 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Diferencias entre métodos | 26, 27, 28 | Términos de la ETo, α* y sensibilidad |
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
 | HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
-| Figuras y tablas del informe | 34 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–31 |
+| Figuras y tablas del informe | 35 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–32 |
 
 Probado el 2026-11-23 en una copia limpia, con `productos/punto1/` vacío salvo `terraclimate_mensual_cuenca.csv`:
 los 24 scripts (del 02 al 29) corren en este orden y reproducen los productos guardados (solo cambian cifras en el 4.º decimal).
@@ -60,7 +60,7 @@ El script 23 compara además con la Tarea 1 si encuentra `../Analisis_De_Cuenca/
 
 ## Informe
 
-`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después del script 34, desde esa carpeta:
+`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después del script 35, desde esa carpeta:
 `latexmk -pdf informe.tex`, y se copia `informe.pdf` a la raíz como `T2_202602_G01_informe.pdf`.
 
 ## `datos/punto1/`

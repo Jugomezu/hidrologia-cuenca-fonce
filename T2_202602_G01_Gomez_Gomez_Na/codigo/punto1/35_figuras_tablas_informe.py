@@ -20,7 +20,7 @@ Escribe:
     productos/punto1/tablas_informe/*.tex         tablas que el informe incluye con \\input
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
-    python codigo/punto1/34_figuras_tablas_informe.py
+    python codigo/punto1/35_figuras_tablas_informe.py
 """
 
 from pathlib import Path
@@ -154,7 +154,7 @@ def tabla_metodos(anual):
         sesgo=("sesgo_pct", "mean"), minimo=("sesgo_pct", "min"), maximo=("sesgo_pct", "max"),
         rmse=("rmse_mm_mes", "mean"), dentro=("supera_dispersion", lambda s: int((~s.astype(bool)).sum()))).reset_index()
     lineas = [
-        "% Generado por codigo/punto1/34_figuras_tablas_informe.py; no se edita a mano.",
+        "% Generado por codigo/punto1/35_figuras_tablas_informe.py; no se edita a mano.",
         "\\begin{tabular}{llrrrr}", "\\toprule",
         "Método & Se compara con & mm/año & Sesgo \\% (rango mensual) & RMSE (mm/mes) & Meses dentro \\\\",
         " & & & & & de la dispersión \\\\", "\\midrule",
@@ -229,7 +229,7 @@ def figura_et_real():
 def tabla_et_real():
     frente = pd.read_csv(CARPETA_PRODUCTOS / "et_productos_vs_balance.csv")
     lineas = [
-        "% Generado por codigo/punto1/34_figuras_tablas_informe.py; no se edita a mano.",
+        "% Generado por codigo/punto1/35_figuras_tablas_informe.py; no se edita a mano.",
         "\\begin{tabular}{llrrrr}", "\\toprule",
         "Producto & Resolución & Meses & Producto & Balance $\\bar{P} - Q$ & ¿Dentro de \\\\",
         " & & con Q & (mm/año) & mismos meses (mm/año) & $\\pm\\sigma_\\mathrm{ET}$? \\\\", "\\midrule",
@@ -252,7 +252,7 @@ def tabla_budyko():
     }
     assert set(b["serie"]) == set(etiquetas), "budyko_resumen.csv cambió de series"
     lineas = [
-        "% Generado por codigo/punto1/34_figuras_tablas_informe.py; no se edita a mano.",
+        "% Generado por codigo/punto1/35_figuras_tablas_informe.py; no se edita a mano.",
         "\\begin{tabular}{llrrrrr}", "\\toprule",
         "ET & ETP & $\\varphi$ & $\\varepsilon$ & $\\omega$ de Fu & \\multicolumn{2}{c}{Elasticidad de Q a P} \\\\",
         "\\cmidrule(lr){6-7}", " & & & & & teórica & empírica \\\\", "\\midrule",
@@ -283,7 +283,7 @@ def cifras_texto(anual):
         "cifraPhi": f"{budyko['phi']:.2f}", "cifraEpsilon": f"{budyko['epsilon']:.2f}",
         "cifraQsobreP": f"{central['Q'] / central['P_media']:.2f}",
     }
-    lineas = ["% Generado por codigo/punto1/34_figuras_tablas_informe.py; no se edita a mano.",
+    lineas = ["% Generado por codigo/punto1/35_figuras_tablas_informe.py; no se edita a mano.",
               "% Medias anuales 1998–2022 (mm/año) de la cuenca del Fonce en San Gil; P, Q y ET en los 262 meses con Q."]
     lineas += [f"\\newcommand{{\\{k}}}{{{v}}}" for k, v in cifras.items()]
     escribir_tabla("cifras.tex", lineas)

@@ -1,0 +1,14 @@
+variable,unidad,pendiente_por_km,pendiente_pct_por_km,corte,r2,n
+eto_mm_anio,mm/año,-105.49379,-9.04348,1398.1887,0.96679,6.0
+t_C,°C,-5.01063,-32.97005,26.20113,0.98949,6.0
+ea_kPa,kPa,-0.49972,-35.05851,2.52279,0.99823,6.0
+u2_ms,m/s,0.03157,5.00861,0.56096,0.15534,6.0
+rs_MJm2,MJ/m²·d,-0.40592,-2.14331,19.83033,0.9006,6.0
+rn_MJm2_d,MJ/m²·d,-0.39064,-3.44807,12.18718,0.96588,6.0
+eto_cuenca_hipsometria,mm/año,,,1159.264,,
+eto_cuenca_voronoi,mm/año,,,1166.0248,,
+cenicafe_implicito,%/km,,-20.0,,,
+terraclimate_aet_celdas,mm/año,-110.31191,-10.72772,1269.7197,0.57853,193.0
+gleam_E_celdas,mm/año,-342.87479,-29.64309,1969.97284,0.88536,30.0
+ssebop_v61_celdas,mm/año,-222.55896,-26.29778,1352.48367,0.8171,1977.0
+terraclimate_pet_celdas,mm/año,-119.36766,-11.44591,1305.20272,0.64321,193.0

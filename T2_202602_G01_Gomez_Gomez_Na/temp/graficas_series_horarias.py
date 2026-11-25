@@ -417,6 +417,18 @@ def datos_fase9():
     return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas, "energia": reg(en)}
 
 
+def datos_fase9f():
+    """Fase 9, tema f: resistencia de superficie efectiva por inversión de Penman–Monteith (37_resistencia_superficie.py)."""
+    r = pd.read_csv(CARPETA_PRODUCTOS / "resistencia_superficie_resumen.csv")
+    return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
+
+
+def datos_fase9f_jarvis():
+    """Fase 9, tema f: rs frente a Jarvis con el LAI de MODIS (39_jarvis_lai.py)."""
+    r = pd.read_csv(CARPETA_PRODUCTOS / "jarvis_lai_resumen.csv")
+    return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -511,6 +523,8 @@ def main():
         "ef": datos_ef(),
         "fase8": datos_fase8(),
         "fase9": datos_fase9(),
+        "fase9f": datos_fase9f(),
+        "fase9fj": datos_fase9f_jarvis(),
         "fase8b": datos_fase8_1981(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
@@ -986,6 +1000,45 @@ code { font: 400 .86em var(--f-dato); }
   Juan): la ETo baja por la temperatura (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn
   (−3 %/km); GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con
   frío, nubes). TerraClimate no lo ve porque sigue a su pet.</p></div>
+</section>
+
+<section>
+  <h2>Fase 9f · Resistencia de superficie (tema f, opcional)</h2>
+  <p>Script 37. Se despeja la rs que hace que Penman–Monteith (FAO-56, ec. 3 en las unidades de la ec. 6) dé la ET de
+  GLEAM v4.3a (1998-01 a 2022-08) y de SSEBop v6.1 (2012–2022) en la celda de cada punto, con la Rn real de ERA5-Land
+  (ssr + str) y la T, el déficit y el viento del punto; medias mensuales de los términos. <b>ra por cobertura</b> (Juan,
+  25 nov): ec. 4 de FAO-56 con z0 de la Tabla 1 de Gehrke et al. (2021, doi:10.5194/gmd-14-5307-2021): bosque =
+  evergreen broadleaf trees (2.00 m), agropecuario = crops, mixed farming (0.10 m), herbazal andino = evergreen shrubs
+  (0.10 m); zoh = 0.1·zom; viento de 10 m tomado 10 m sobre d; conductancias ponderadas por la fracción de MapBiomas.
+  Sensibilidades: ra del pasto (208/u2) y herbazal como tall grass (0.47 m). Con la ETo y la ra del pasto el despeje
+  devuelve 70 s/m (comprobado). Es una rs «efectiva»: mezcla dosel, suelo e intercepción. LAI ya descargado (script 38,
+  MCD15A3H); el Jarvis va en el siguiente paso.</p>
+  <div class="tarjeta"><h3>rs efectiva frente a la altura (mediana y cuartiles, s/m)</h3><div class="grafico" id="g-fase9f" style="height:520px"></div></div>
+  <div class="tabla" id="t-fase9f" style="margin-top:12px"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): con la ra por cobertura la rs sube con la altura en los dos
+  productos, pero mucho menos que con la ra del pasto: GLEAM +140 y SSEBop +113 s/m por km (con la ra del pasto, +384 y
+  +638). SSEBop: 153–248 s/m abajo y 234–349 arriba. En los puntos bajos la ET de GLEAM sigue superando el techo con
+  rs = 0 en 134–196 de 296 meses. Altura, temperatura y cobertura van juntas entre puntos, así que sin LAI no se separan
+  las funciones de Jarvis. Cuenca limitada por energía: la rs cambia el reparto, no la cantidad de agua disponible.</p>
+</section>
+
+<section>
+  <h2>Fase 9f · Jarvis con el LAI de MODIS</h2>
+  <p>Script 39. Jarvis como en ECMWF: rs = rc,min/LAI · f(radiación) · f(suelo) · f(déficit), cada f ≥ 1. Con la rs del
+  script 37 (ra por cobertura) y el LAI de MCD15A3H (todos los píxeles válidos, media mensual), f_total = rs·LAI/rc,min.
+  rc,min de la celda: Tabla 1 de Gehrke et al. (2021), bosque 175, herbazal andino (evergreen shrubs) 225, agropecuario
+  (crops) 180 s/m, en paralelo por fracción de MapBiomas. Se ajusta ln f_total = a + g·D (D en hPa) en cada punto y se
+  compara g con el gD de la tabla (0.03 hPa⁻¹ en árboles). Solo meses con solución.</p>
+  <div class="tabla" id="t-fase9fj"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): el LAI baja con la altura (≈ 3–3.8 abajo, 1.1–1.5 arriba). Con
+  SSEBop, rs·LAI no sube con la altura (−86 s/m por km): la rs más alta de arriba se explica por menos área foliar.
+  Con GLEAM, rs·LAI sube algo (+73 s/m por km), pero en los puntos bajos solo quedan los meses con solución. f_total:
+  2.2–3.9 con SSEBop y 0.5–1.2 con GLEAM. g sale 0.14–0.52 hPa⁻¹ (SSEBop) y 0.59–1.01 (GLEAM), de 5 a 34 veces el 0.03 de la
+  tabla; no es interpretable como respuesta de los estomas: el déficit entra en la inversión (término aerodinámico), así
+  que con una ET poco sensible al déficit la rs despejada sube con D por construcción.</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (25 nov, 8:48 a. m.)</h3>
+  <p>La superficie frena más la evaporación arriba, y eso se explica por menor área foliar (páramo), no por cierre
+  estomático; con estos datos no se puede estimar la respuesta al déficit.</p></div>
 </section>
 
 <section>
@@ -1574,6 +1627,35 @@ for (const [valor, texto] of CARGA.cifras) {
     ], lr9, OPCIONES);
     document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
       + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const R = CARGA.fase9f, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2);
+    const colores = {'GLEAM v4.3a': '#CC79A7', 'SSEBop v6.1': '#E69F00'};
+    const tr = Object.keys(colores).map(p => { const r = R.filter(x => x.producto === p).sort((a, b) => a.z_modelo_m - b.z_modelo_m);
+      return {type: 'scatter', mode: 'markers', x: r.map(x => x.rs_mediana_sm), y: r.map(x => x.z_modelo_m), name: p + ', ra por cobertura',
+        line: {color: colores[p]}, error_x: {type: 'data', symmetric: false, array: r.map(x => x.rs_p75_sm - x.rs_mediana_sm),
+        arrayminus: r.map(x => x.rs_mediana_sm - x.rs_p25_sm), color: colores[p]},
+        hovertemplate: `${p}: rs %{x:.0f} s/m a %{y:.0f} m<extra></extra>`}; });
+    const recta = (r, col) => { const n = r.length, mx = r.reduce((s, x) => s + x.z_modelo_m, 0) / n, my = r.reduce((s, x) => s + x[col], 0) / n;
+      const b = r.reduce((s, x) => s + (x.z_modelo_m - mx) * (x[col] - my), 0) / r.reduce((s, x) => s + (x.z_modelo_m - mx) ** 2, 0);
+      const zs = [Math.min(...r.map(x => x.z_modelo_m)), Math.max(...r.map(x => x.z_modelo_m))]; return {b: 1000 * b, x: zs.map(z => my + b * (z - mx)), y: zs}; };
+    Object.keys(colores).forEach(p => { const r = R.filter(x => x.producto === p);
+      [['rs_mediana_sm', 'ra por cobertura', 'solid', 1], ['rs_mediana_ra_pasto_sm', 'ra del pasto', 'dash', 0.5]].forEach(([c, t, d, o]) => { const q = recta(r, c);
+        tr.push({type: 'scatter', mode: 'lines', x: q.x, y: q.y, name: `recta ${p}, ${t}: ${q.b >= 0 ? '+' : ''}${q.b.toFixed(0)} s/m por km`, line: {color: colores[p], dash: d, width: 1.5}, opacity: o, hoverinfo: 'skip'}); }); });
+    Object.keys(colores).forEach(p => { const r = R.filter(x => x.producto === p).sort((a, b) => a.z_modelo_m - b.z_modelo_m);
+      tr.push({type: 'scatter', mode: 'markers', x: r.map(x => x.rs_mediana_ra_pasto_sm), y: r.map(x => x.z_modelo_m), name: p + ', ra del pasto (sensibilidad)',
+        line: {color: colores[p], dash: 'dash'}, opacity: 0.5, hovertemplate: `${p} (ra pasto): %{x:.0f} s/m<extra></extra>`}); });
+    const l = base('altura del modelo (m)'); l.hovermode = 'closest'; l.showlegend = true; Object.assign(l.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    l.xaxis = Object.assign(l.xaxis, {type: 'linear', range: [0, 1500], title: {text: 'rs efectiva (s/m)', font: {size: 11, color: css('--tenue')}}});
+    l.shapes = [{type: 'line', xref: 'x', yref: 'paper', x0: 70, x1: 70, y0: 0, y1: 1, line: {color: css('--tenue'), width: 1, dash: 'dot'}}];
+    Plotly.newPlot('g-fase9f', tr, l, OPCIONES);
+    document.getElementById('t-fase9f').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Bosque / herbazal andino / agropecuario</th><th>ra cobertura (pasto), s/m</th><th>ET (mm/año)</th><th>Techo rs = 0 (mm/año)</th><th>Meses sin solución</th><th>rs mediana (s/m)</th><th>rs con ra del pasto</th><th>corr(rs, déficit)</th><th>corr(rs, T)</th></tr></thead><tbody>'
+      + R.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${f2(r.frac_bosque)} / ${f2(r.frac_herbazal_andino)} / ${f2(r.frac_agropecuario)}</td><td>${f0(r.ra_cobertura_mediana_sm)} (${f0(r.ra_pasto_mediana_sm)})</td><td>${f0(r.et_mm_anio)}</td><td>${f0(r.et_techo_rs0_mm_anio)}</td><td>${r.meses_sin_solucion} de ${r.meses}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f0(r.rs_mediana_ra_pasto_sm)}</td><td>${f2(r.corr_rs_deficit_mensual)}</td><td>${f2(r.corr_rs_t_mensual)}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const J = CARGA.fase9fj, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase9fj').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Meses</th><th>LAI</th><th>rs (s/m)</th><th>rs·LAI (s/m)</th><th>rc,min celda</th><th>f_total</th><th>D medio (hPa)</th><th>g (1/hPa) [IC 95 %]</th><th>R²</th></tr></thead><tbody>'
+      + J.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${r.meses}</td><td>${f2(r.lai_mediana)}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f0(r.rs_por_lai_mediana_sm)}</td><td>${f0(r.rc_min_celda_sm)}</td><td>${f2(r.f_total_mediana)}</td><td>${f2(r.deficit_medio_hPa)}</td><td>${f3(r.g_deficit_por_hPa)} [${f3(r.g_ic95_inferior)}, ${f3(r.g_ic95_superior)}]</td><td>${f2(r.r2_ln_f_vs_deficit)}</td></tr>`).join('') + '</tbody></table>';
   }
   {
     const F = CARGA.fase8b, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);

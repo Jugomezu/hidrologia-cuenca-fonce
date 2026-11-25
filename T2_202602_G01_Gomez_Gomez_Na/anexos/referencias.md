@@ -163,3 +163,9 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   Leído el texto completo (2026-11-22): un aforo, ~5 % al 95 % (p. 915); error global de la curva de gasto en el Po,
   6.2 % a 42.8 % de Q al 95 %, media 25.6 % (p. 919–920). El estudio es de un tramo aluvial europeo y no trata caudales
   anuales; se usa como orden de magnitud.
+- Gehrke, K. F., Sühring, M. y Maronga, B. (2021). Modeling of land–surface interactions in the PALM model system 6.0:
+  land surface model description, first evaluation, and sensitivity to model parameters. *Geoscientific Model
+  Development, 14*, 5307–5329. https://doi.org/10.5194/gmd-14-5307-2021 (acceso libre). Tabla 1 (p. 5310): z0 y rc,min
+  de 18 tipos de vegetación «al estilo de la clasificación de ECMWF»; usada en los scripts 37 y 39 (tema f).
+- Myneni, R., Knyazikhin, Y. y Park, T. (2021). MODIS/Terra+Aqua Leaf Area Index/FPAR 4-Day L4 Global 500m SIN Grid
+  V061 (MCD15A3H). NASA LP DAAC. https://doi.org/10.5067/MODIS/MCD15A3H.061 — LAI del script 38 (vía Google Earth Engine).

@@ -936,7 +936,7 @@ code { font: 400 .86em var(--f-dato); }
   (unidades imposibles). Atribución: sensibilidad del script 28 (% de ETo por +1 °C con ea constante, por % de ea, u2 y
   Rs) × tendencia OLS de cada forzante; residuo = directa − suma.</p>
   <div class="tabla" id="t-fase8"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>ETo Penman–Monteith (FAO-56) y Thornthwaite anuales (mm/año)</h3><div class="grafico" id="g-fase8-series" style="height:420px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo Penman–Monteith (FAO-56) y Thornthwaite anuales (mm/año)</h3><div class="grafico" id="g-fase8-series" style="height:540px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Atribución de la tendencia de la ETo (mm/año por década)</h3><div class="grafico" id="g-fase8-atr" style="height:400px"></div></div>
   <h3>Tanque evaporímetro de Mogotes-AUT (24025090): ¿se puede salvar? (script 33)</h3>
   <p>Único tanque de la zona en DHIME («Evaporación total diaria», «mm», Preliminar). Por tramos: días en 0 (se leen
@@ -1465,6 +1465,14 @@ for (const [valor, texto] of CARGA.cifras) {
         const xs = [F.anios[0], F.anios[F.anios.length - 1]];
         return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => media + m * (x - xm)), line: {color: c, dash: 'dash', width: 2},
           name: `OLS ${n}: ${(fila.ols_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_ols_newey_west.toFixed(3)})`, hoverinfo: 'skip'};
+      }),
+      // recta de Sen (Mann-Kendall estacional): pendiente del script 32, por la mediana de los 25 años (como la figura fija)
+      ...[['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']].map(([k, n, c]) => {
+        const fila = F.tend.find(r => r.variable === n), m = fila.sen_por_decada * 12 / 10;
+        const orden = [...F[k]].sort((a, b) => a - b), mediana = orden[(orden.length - 1) / 2];
+        const xm = F.anios[(F.anios.length - 1) / 2], xs = [F.anios[0], F.anios[F.anios.length - 1]];
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => mediana + m * (x - xm)), line: {color: c, dash: 'dot', width: 2},
+          name: `Sen (Mann-Kendall) ${n}: ${(fila.sen_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_mk_permutacion.toFixed(3)})`, hoverinfo: 'skip'};
       }),
     ], ls, OPCIONES);
     const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));

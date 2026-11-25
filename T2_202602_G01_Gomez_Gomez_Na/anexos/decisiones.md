@@ -617,6 +617,8 @@ alta arriba se explica por menos área foliar. GLEAM: rs·LAI +73 s/m por km (ab
 se interpreta como respuesta estomática, porque el déficit entra en la inversión y la rs despejada sube con D por
 construcción si la ET del producto responde poco al déficit.
 **Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).
+**Conclusión tema f (Juan, 25 nov, 8:48 a. m.).** La superficie frena más la evaporación arriba, y eso se explica por menor
+área foliar (páramo), no por cierre estomático; con estos datos no se puede estimar la respuesta al déficit.
 
 ## 2026-11-25 · Punto 1 · Fase 10: de la ET al diseño (script 40, bono 1.6)
 

@@ -561,3 +561,7 @@ Pettitt 1996). Thornthwaite +10.6 (p < 0.001). Atribución: T +5.4, Rs +4.6, ea 
 ninguna es significativa: ETo 1981–1997 +8.9 (p 0.44), 1998–2022 +3.2 (p 0.68). La T sube parejo; la Rs es plana en
 1981–1997 y sube en escalón hacia 1999–2001, que puede ser un cambio del reanálisis (ERA5 asimila ATOVS desde 1998).
 Pendiente: qué periodo reporta Juan y cómo lo redacta.
+**Conclusión (Juan, 24 nov, 9:31 p. m.).** Se reporta 1981–2022. Para la Rs: su tendencia puede venir solo de defectos de
+los datos del reanálisis (escalón hacia 1999–2001, cuando ERA5 cambia lo que asimila), más que de una tendencia real.
+Así, la parte de la tendencia de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;
+la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.

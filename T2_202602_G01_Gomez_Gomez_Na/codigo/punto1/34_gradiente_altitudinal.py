@@ -15,11 +15,17 @@ Pasos:
    independiente: TerraClimate pet. Media anual del periodo de cada producto.
 4. Por banda: ETo de la recta del paso 1 evaluada en la altura media de la banda (extrapolada fuera de 1 580–3 259 m,
    se marca), productos promediados por área, ET/ETo.
+6. Reparto de la energía en los 6 puntos (pedido de Juan, 25 nov): Rn real de la superficie (ssr + str de ERA5-Land
+   mensual en la celda del punto, hasta 2022-08 por el error de ECMWF) y fracción evaporativa λET/Rn de cada producto
+   (ET promediada dentro de la celda de 0.1° del punto, mismos meses); el resto, 1 − λET/Rn, es calor sensible más G
+   (≈ 0 en el mes). Referencia teórica: Δ/(Δ+γ), la fracción de Rn que va a calor latente en evaporación de equilibrio
+   (superficie húmeda, sin advección; Priestley y Taylor, 1972), media de los días.
 5. Comprobación: ETo de la cuenca por hipsometría (Σ ETo(z_banda)·fracción) frente a la ETo por Voronoi (script 04).
    Cenicafé (Jaramillo, 2006) implica −0.02 % por m (−20 % por km): se compara con el gradiente relativo de la ETo.
 
 Escribe productos/punto1/gradiente_altitudinal_puntos.csv, gradiente_altitudinal_bandas.csv,
-gradiente_altitudinal_celdas.csv, gradiente_altitudinal_resumen.csv y gradiente_altitudinal.png.
+gradiente_altitudinal_celdas.csv, gradiente_altitudinal_resumen.csv, gradiente_altitudinal_energia.csv,
+gradiente_altitudinal.png y gradiente_altitudinal_energia.png.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/34_gradiente_altitudinal.py
@@ -59,6 +65,10 @@ PRODUCTOS_MALLA = {   # nombre -> (archivo, variable, años)
     "terraclimate_pet": (DATOS / "terraclimate" / "terraclimate_pet_fonce_1998_2022.nc", "pet", (1998, 2022)),
 }
 ET_REAL = ["terraclimate_aet", "gleam_E", "ssebop_v61"]
+ARCHIVO_RN = DATOS / "era5land_mensual_balance" / "era5land_mensual_balance_1998_2022_fonce.nc"
+ULTIMO_MES_RN = "2022-08"    # ERA5-Land mensual dañado de sep a dic de 2022 (ECMWF)
+LAMBDA_MJ_KG = 2.45          # FAO-56
+NOMBRES_ET = {"terraclimate_aet": "TerraClimate aet", "gleam_E": "GLEAM E", "ssebop_v61": "SSEBop v6.1 (2012–2022)"}
 
 
 # ---------------------------------------------------------------- 1. los seis puntos
@@ -198,10 +208,80 @@ def main():
     celdas.round(4).to_csv(PRODUCTOS / "gradiente_altitudinal_celdas.csv", index=False)
     resumen.round(5).to_csv(PRODUCTOS / "gradiente_altitudinal_resumen.csv", index=False)
     figura(tabla_p, celdas, bandas, m_eto, b_eto)
+    energia = energia_por_punto()
+    energia.round(4).to_csv(PRODUCTOS / "gradiente_altitudinal_energia.csv", index=False)
+    figura_energia(energia)
     pd.set_option("display.width", 220)
+    print(energia.round(3).to_string())
     print(tabla_p.round(3).to_string())
     print(resumen.round(3).to_string())
     print(bandas.round(3).to_string())
+
+
+# ---------------------------------------------------------------- 6. reparto de la energía
+def energia_por_punto():
+    """Rn real, λET/Rn de cada producto y Δ/(Δ+γ) en cada uno de los 6 puntos."""
+    pts = pd.read_csv(ELEVACION_PUNTOS).set_index("punto")
+    rn = xr.open_dataset(ARCHIVO_RN)
+    rn = ((rn["ssr"] + rn["str"]) / 1e6).sel(valid_time=slice("1998-01", ULTIMO_MES_RN))   # MJ/m²·día
+    d = pd.read_csv(PRODUCTOS / "era5land_diario_puntos.csv", parse_dates=["fecha"])
+    t = (d["tmax_C"] + d["tmin_C"]) / 2
+    es_t = 0.6108 * np.exp(17.27 * t / (t + 237.3))
+    delta = 4098 * es_t / (t + 237.3) ** 2                                    # FAO-56 ec. 13
+    gamma = 0.665e-3 * d["sp_kPa"]                                           # ec. 8
+    d["fraccion_equilibrio"] = delta / (delta + gamma)
+    filas = []
+    for n, p in pts.iterrows():
+        serie_rn = rn.sel(latitude=p["lat"], longitude=p["lon"], method="nearest").to_series()
+        serie_rn.index = serie_rn.index.to_period("M")
+        fila = {"punto": n, "z_modelo_m": p["z_modelo_m"],
+                "fraccion_equilibrio": d.loc[d["punto"] == n, "fraccion_equilibrio"].mean()}
+        fila["bowen_equilibrio"] = (1 - fila["fraccion_equilibrio"]) / fila["fraccion_equilibrio"]
+        fila["rn_real_MJm2_d"] = serie_rn.mean()
+        for nombre in ET_REAL:
+            archivo, var, _ = PRODUCTOS_MALLA[nombre]
+            ds = xr.open_dataset(archivo)[var]
+            lat, lon = [c for c in ds.dims if c.startswith("lat")][0], [c for c in ds.dims if c.startswith("lon")][0]
+            sel = ds.where((abs(ds[lat] - p["lat"]) <= 0.05 + 1e-6) & (abs(ds[lon] - p["lon"]) <= 0.05 + 1e-6), drop=True)
+            et = sel.mean([lat, lon]).to_series()
+            et.index = pd.to_datetime(et.index).to_period("M")
+            comunes = et.dropna().index.intersection(serie_rn.index)
+            et_dia = et[comunes] / comunes.days_in_month
+            fila[f"ef_{nombre}"] = LAMBDA_MJ_KG * et_dia.mean() / serie_rn[comunes].mean()
+            fila[f"celdas_{nombre}"] = sel.sizes[lat] * sel.sizes[lon]
+            fila[f"meses_{nombre}"] = len(comunes)
+        filas.append(fila)
+    return pd.DataFrame(filas).sort_values("z_modelo_m")
+
+
+def figura_energia(e):
+    fig, ejes = plt.subplots(1, 2, figsize=(11, 4.6))
+    colores = {"terraclimate_aet": "#009E73", "gleam_E": "#CC79A7", "ssebop_v61": "#E69F00"}
+    ax = ejes[0]
+    for n in ET_REAL:
+        ax.plot(e[f"ef_{n}"], e["z_modelo_m"], "o-", color=colores[n], label=f"λET/Rn, {NOMBRES_ET[n]}")
+    ax.plot(e["fraccion_equilibrio"], e["z_modelo_m"], "k--", label="Δ/(Δ+γ): superficie húmeda (teórica)")
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("fracción de Rn que va a calor latente")
+    ax.set_ylabel("altura del modelo (m)")
+    ax.set_title("Fracción evaporativa en los 6 puntos")
+    ax.legend(fontsize=7.5, loc="lower left")
+    # reparto en MJ/m²·día con la mediana de los tres productos: latente y sensible (+ G)
+    ax = ejes[1]
+    ef = e[[f"ef_{n}" for n in ET_REAL]].median(axis=1)
+    y = np.arange(len(e))
+    latente = ef * e["rn_real_MJm2_d"]
+    ax.barh(y, latente, color="#0072B2", label="calor latente λET")
+    ax.barh(y, e["rn_real_MJm2_d"] - latente, left=latente, color="#D55E00", label="calor sensible (+ G)")
+    for i, (l, r) in enumerate(zip(latente, e["rn_real_MJm2_d"])):
+        ax.text(r + 0.2, i, f"Rn {r:.1f}", va="center", fontsize=8)
+    ax.set_yticks(y, [f"punto {n}\n{z:.0f} m" for n, z in zip(e["punto"], e["z_modelo_m"])], fontsize=8)
+    ax.set_xlim(0, 16)
+    ax.set_xlabel("MJ/m²·día (mediana de los tres productos)")
+    ax.set_title("Reparto de la radiación neta real")
+    ax.legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=2, frameon=False)
+    fig.tight_layout()
+    fig.savefig(PRODUCTOS / "gradiente_altitudinal_energia.png", dpi=150)
 
 
 # ---------------------------------------------------------------- figura

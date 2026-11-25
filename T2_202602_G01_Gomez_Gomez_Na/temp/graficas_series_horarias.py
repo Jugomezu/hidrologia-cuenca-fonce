@@ -413,7 +413,8 @@ def datos_fase9():
     ce = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_celdas.csv")
     celdas = {n: {"z": g["z_media_m"].round(0).tolist(), "et": g["mm_anio"].round(0).tolist(), "px": g["pixeles"].tolist()}
               for n, g in ce.dropna(subset=["mm_anio"]).groupby("producto")}
-    return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas}
+    en = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_energia.csv")
+    return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas, "energia": reg(en)}
 
 
 def texto_fase4():
@@ -965,11 +966,26 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:16px"><h3>Demanda y ET real frente a la altura (mm/año)</h3><div class="grafico" id="g-fase9-z" style="height:520px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Bandas de 500 m: fracción del área y ET/ETo</h3><div class="grafico" id="g-fase9-bandas" style="height:440px"></div></div>
   <div class="tabla" id="t-fase9-bandas" style="margin-top:12px"></div>
+  <h3>Reparto de la energía con la altura (pedido de Juan, 25 nov)</h3>
+  <p>Rn real de la superficie (ssr + str de ERA5-Land, hasta 2022-08) en la celda de cada punto y fracción evaporativa
+  λET/Rn de cada producto (ET dentro de la celda de 0.1°, mismos meses). Lo que no va a calor latente es calor sensible
+  (+ G, ≈ 0 en el mes). Línea negra: Δ/(Δ+γ), la fracción de Rn que va a calor latente en evaporación de equilibrio
+  (superficie húmeda).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Fracción de Rn que va a calor latente</h3><div class="grafico" id="g-fase9-ef" style="height:440px"></div></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Reparto de la Rn real (MJ/m²·día, mediana de los tres productos)</h3><div class="grafico" id="g-fase9-reparto" style="height:400px"></div></div>
+  <p class="nota">Con la altura llega algo más de Rn (10.8 → 13.4 MJ/m²·día), pero λET/Rn cae a cerca de la mitad
+  (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46): arriba hay más calor sensible y menos latente.
+  Δ/(Δ+γ) baja de 0.70 a 0.65: el frío explica una parte; el resto, la superficie (páramo, bosque, tema f).</p>
   <p class="nota">Lectura preliminar (agente, para Juan): la ETo baja 105 mm/año por km (−9 %/km, R² 0.97), sobre todo
   por la temperatura (−5.0 °C/km) y ea; Rs y Rn casi no cambian. La ETo de la cuenca por hipsometría (1 159) y por Voronoi
   (1 166) difieren 0.6 %: los 6 puntos representan bien la cuenca. Cenicafé implica −20 %/km, el doble. La ET real de
   GLEAM y SSEBop baja más rápido que la ETo (−30 y −26 %/km), así que su ET/ETo cae con la altura; TerraClimate no
   (≈ 0.9 en todas las bandas). GLEAM tiene 1 a 5 celdas por banda.</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (24 nov, 9:35 p. m.)</h3>
+  <p>En todos los productos de ET real la ET disminuye con la altura. Explicación (agente, pendiente de redacción de
+  Juan): la ETo baja por la temperatura (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn
+  (−3 %/km); GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con
+  frío, nubes). TerraClimate no lo ve porque sigue a su pet.</p></div>
 </section>
 
 <section>
@@ -1538,6 +1554,24 @@ for (const [valor, texto] of CARGA.cifras) {
       ...prods.slice(0, 3).map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: B.map(r => r[`${k}_sobre_eto`]), y: et, xaxis: 'x2', name: n, line: {color: c},
         hovertemplate: `${n}: ET/ETo %{x:.2f}<extra></extra>`})),
     ], lb, OPCIONES);
+    const En = [...G.energia].sort((a, b) => a.z_modelo_m - b.z_modelo_m), zz9 = En.map(r => r.z_modelo_m);
+    const le9 = base('altura del modelo (m)'); le9.hovermode = 'closest'; le9.showlegend = true; Object.assign(le9.legend, {orientation: 'h', y: -0.22, yanchor: 'top'});
+    le9.xaxis = Object.assign(le9.xaxis, {type: 'linear', range: [0, 1], title: {text: 'λET/Rn', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-ef', [
+      ...prods.slice(0, 3).map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: En.map(r => r['ef_' + k]), y: zz9, name: 'λET/Rn ' + n, line: {color: c},
+        hovertemplate: `${n}: %{x:.2f} a %{y:.0f} m<extra></extra>`})),
+      {type: 'scatter', mode: 'lines', x: En.map(r => r.fraccion_equilibrio), y: zz9, name: 'Δ/(Δ+γ), superficie húmeda', line: {color: css('--tinta'), dash: 'dash'},
+        hovertemplate: 'Δ/(Δ+γ): %{x:.3f}<extra></extra>'},
+    ], le9, OPCIONES);
+    const med = En.map(r => { const v = [r.ef_terraclimate_aet, r.ef_gleam_E, r.ef_ssebop_v61].sort((a, b) => a - b); return v[1]; });
+    const et9 = En.map(r => `punto ${r.punto} (${r.z_modelo_m.toFixed(0)} m)`);
+    const lr9 = base(''); lr9.barmode = 'stack'; lr9.hovermode = 'closest'; lr9.showlegend = true; lr9.margin = Object.assign(lr9.margin || {}, {l: 130});
+    Object.assign(lr9.legend, {orientation: 'h', y: -0.2, yanchor: 'top'}); lr9.yaxis = Object.assign(lr9.yaxis, {type: 'category'});
+    lr9.xaxis = Object.assign(lr9.xaxis, {type: 'linear', range: [0, 15], title: {text: 'MJ/m²·día', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-reparto', [
+      {type: 'bar', orientation: 'h', y: et9, x: En.map((r, i) => med[i] * r.rn_real_MJm2_d), name: 'calor latente λET', marker: {color: '#0072B2'}, hovertemplate: 'latente: %{x:.1f}<extra></extra>'},
+      {type: 'bar', orientation: 'h', y: et9, x: En.map((r, i) => (1 - med[i]) * r.rn_real_MJm2_d), name: 'calor sensible (+ G)', marker: {color: '#D55E00'}, hovertemplate: 'sensible: %{x:.1f}<extra></extra>'},
+    ], lr9, OPCIONES);
     document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
       + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
   }

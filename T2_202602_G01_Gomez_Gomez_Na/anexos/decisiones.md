@@ -583,3 +583,15 @@ Pendiente: qué periodo reporta Juan y cómo lo redacta.
 los datos del reanálisis (escalón hacia 1999–2001, cuando ERA5 cambia lo que asimila), más que de una tendencia real.
 Así, la parte de la tendencia de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;
 la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.
+
+**Conclusión fase 9a (Juan, 24 nov, 9:35 p. m.).** En todos los productos de ET real la ET disminuye con la altura
+(GLEAM −30, SSEBop v6.1 −26, TerraClimate −11 %/km). Explicación propuesta por el agente (pendiente de que Juan la
+redacte): la ETo baja por la T (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn (−3 %/km);
+GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con frío, nubes).
+
+**Reparto de la energía (Juan pidió mostrarlo, 25 nov; script 34).** Juan propuso que arriba hay menos calor sensible y
+más latente; los datos dicen lo contrario. Con la altura la Rn real de ERA5-Land sube algo (10.8 → 13.4 MJ/m²·día),
+pero λET/Rn cae a cerca de la mitad (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46). Δ/(Δ+γ) baja
+de 0.70 a 0.65, así que el frío explica una parte y la superficie el resto. Son productos, no medidas.
+**Conclusión fase 9a, versión final (Juan, 25 nov, 7:16 a. m.).** La ET baja con la altura porque baja el déficit de
+vapor y porque, aunque haya mayor Rn, la fracción de Rn que va a calor latente disminuye con la altura.

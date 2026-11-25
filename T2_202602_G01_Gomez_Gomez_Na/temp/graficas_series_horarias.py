@@ -936,7 +936,7 @@ code { font: 400 .86em var(--f-dato); }
   (unidades imposibles). Atribución: sensibilidad del script 28 (% de ETo por +1 °C con ea constante, por % de ea, u2 y
   Rs) × tendencia OLS de cada forzante; residuo = directa − suma.</p>
   <div class="tabla" id="t-fase8"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>ETo Penman–Monteith (FAO-56) y Thornthwaite anuales (mm/año)</h3><div class="grafico" id="g-fase8-series" style="height:540px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Anomalías anuales de la ETo Penman–Monteith (FAO-56) y de Thornthwaite (año − media 1998–2022, mm/año), con las rectas OLS y de Sen</h3><div class="grafico" id="g-fase8-series" style="height:540px"></div></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Atribución de la tendencia de la ETo (mm/año por década)</h3><div class="grafico" id="g-fase8-atr" style="height:400px"></div></div>
   <h3>Tanque evaporímetro de Mogotes-AUT (24025090): ¿se puede salvar? (script 33)</h3>
   <p>Único tanque de la zona en DHIME («Evaporación total diaria», «mm», Preliminar). Por tramos: días en 0 (se leen
@@ -1453,25 +1453,29 @@ for (const [valor, texto] of CARGA.cifras) {
     document.getElementById('t-tanque').innerHTML = '<table><thead><tr><th>Tramo</th><th>Días</th><th>Fracción en 0</th><th>Días con dato</th><th>Máximo</th><th>Media tanque</th><th>ETo (mm/d)</th><th>Tanque/ETo</th><th>Kp si centésimas</th><th>r diaria</th><th>r mensual</th></tr></thead><tbody>'
       + F.tanque.map(r => `<tr><td>${r.tramo}</td><td>${r.dias}</td><td>${f2(r.fraccion_dias_en_0)}</td><td>${r.dias_con_dato}</td><td>${r.maximo}</td><td>${f2(r.media_tanque)}</td><td>${f2(r.media_eto_mm_d)}</td><td>${f2(r.razon_tanque_eto)}</td><td>${f2(r.kp_implicito_factor_100)}</td><td>${f2(r.r_diaria)}</td><td>${f2(r.r_mensual)}</td></tr>`).join('')
       + '</tbody></table>';
-    const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    // anomalías anuales (Juan, 24 nov): cada año menos su media 1998–2022; eje simétrico alrededor de 0 (no se corta)
+    const media = k => F[k].reduce((a, b) => a + b, 0) / F[k].length;
+    const anom = {eto: F.eto.map(v => v - media('eto')), th: F.th.map(v => v - media('th'))};
+    const lim = Math.ceil(Math.max(...[...anom.eto, ...anom.th].map(Math.abs)) / 20) * 20;
+    const ls = base('anomalía (mm/año)'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [-lim, lim], zeroline: true, zerolinecolor: css('--tenue'), zerolinewidth: 1.5});
     ls.xaxis = Object.assign(ls.xaxis, {type: 'linear', range: [1997.5, 2022.5], dtick: 2, title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
+    const xs = [F.anios[0], F.anios[F.anios.length - 1]], xmedia = F.anios.reduce((a, b) => a + b, 0) / F.anios.length;
+    const xmediana = F.anios[(F.anios.length - 1) / 2];
+    const series = [['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']];
     Plotly.newPlot('g-fase8-series', [
-      {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.eto, name: 'ETo Penman–Monteith (FAO-56)', line: {color: '#0072B2'}},
-      {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.th, name: 'Thornthwaite', line: {color: '#C8553D'}},
-      // recta OLS: pendiente del script 32 (mm/mes por década × 12 / 10 = mm/año por año), pasa por la media de los 25 años
-      ...[['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']].map(([k, n, c]) => {
+      ...series.map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: F.anios, y: anom[k], name: n, line: {color: c},
+        hovertemplate: `${n}: %{y:+.1f} mm/año<extra></extra>`})),
+      // recta OLS: pendiente del script 32 (mm/mes por década × 12 / 10 = mm/año por año); pasa por (año medio, 0)
+      ...series.map(([k, n, c]) => {
         const fila = F.tend.find(r => r.variable === n), m = fila.ols_por_decada * 12 / 10;
-        const media = F[k].reduce((a, b) => a + b, 0) / F[k].length, xm = F.anios.reduce((a, b) => a + b, 0) / F.anios.length;
-        const xs = [F.anios[0], F.anios[F.anios.length - 1]];
-        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => media + m * (x - xm)), line: {color: c, dash: 'dash', width: 2},
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => m * (x - xmedia)), line: {color: c, dash: 'dash', width: 2},
           name: `OLS ${n}: ${(fila.ols_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_ols_newey_west.toFixed(3)})`, hoverinfo: 'skip'};
       }),
-      // recta de Sen (Mann-Kendall estacional): pendiente del script 32, por la mediana de los 25 años (como la figura fija)
-      ...[['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']].map(([k, n, c]) => {
+      // recta de Sen (Mann-Kendall estacional): pendiente del script 32, por la mediana de las anomalías (como la figura fija)
+      ...series.map(([k, n, c]) => {
         const fila = F.tend.find(r => r.variable === n), m = fila.sen_por_decada * 12 / 10;
-        const orden = [...F[k]].sort((a, b) => a - b), mediana = orden[(orden.length - 1) / 2];
-        const xm = F.anios[(F.anios.length - 1) / 2], xs = [F.anios[0], F.anios[F.anios.length - 1]];
-        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => mediana + m * (x - xm)), line: {color: c, dash: 'dot', width: 2},
+        const orden = [...anom[k]].sort((a, b) => a - b), mediana = orden[(orden.length - 1) / 2];
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => mediana + m * (x - xmediana)), line: {color: c, dash: 'dot', width: 2},
           name: `Sen (Mann-Kendall) ${n}: ${(fila.sen_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_mk_permutacion.toFixed(3)})`, hoverinfo: 'skip'};
       }),
     ], ls, OPCIONES);

@@ -416,6 +416,12 @@ def datos_fase9():
     return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas}
 
 
+def datos_fase9f():
+    """Fase 9, tema f: resistencia de superficie efectiva por inversión de Penman–Monteith (37_resistencia_superficie.py)."""
+    r = pd.read_csv(CARPETA_PRODUCTOS / "resistencia_superficie_resumen.csv")
+    return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -510,6 +516,7 @@ def main():
         "ef": datos_ef(),
         "fase8": datos_fase8(),
         "fase9": datos_fase9(),
+        "fase9f": datos_fase9f(),
         "fase8b": datos_fase8_1981(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
@@ -975,6 +982,25 @@ code { font: 400 .86em var(--f-dato); }
   Juan): la ETo baja por la temperatura (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn
   (−3 %/km); GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con
   frío, nubes). TerraClimate no lo ve porque sigue a su pet.</p></div>
+</section>
+
+<section>
+  <h2>Fase 9f · Resistencia de superficie (tema f, opcional)</h2>
+  <p>Script 37. Se despeja la rs que hace que Penman–Monteith (FAO-56, ec. 3 en las unidades de la ec. 6, ra = 208/u2 del
+  pasto) dé la ET de GLEAM v4.3a (1998-01 a 2022-08) y de SSEBop v6.1 (2012–2022) en la celda de cada punto, con la Rn real
+  de ERA5-Land (ssr + str) y la T, el déficit y el u2 del punto; medias mensuales de los términos. Con la ETo devuelve
+  70 s/m (comprobado en el script). Es una rs «efectiva»: mezcla dosel, suelo e intercepción y hereda los errores del
+  producto. Sin LAI todavía (script 38, MODIS MCD15A2H por GEE, pendiente de correr en el PC de Juan).</p>
+  <div class="tarjeta"><h3>rs efectiva frente a la altura (mediana y cuartiles, s/m)</h3><div class="grafico" id="g-fase9f" style="height:440px"></div></div>
+  <div class="tabla" id="t-fase9f" style="margin-top:12px"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): la rs sube con la altura en los dos productos (GLEAM +384,
+  SSEBop +638 s/m por km; n = 6). En los 3 puntos bajos (agropecuario 81–90 %) la ET de GLEAM supera el techo de
+  Penman–Monteith con rs = 0 en la mayoría de los meses: no hay rs que la reproduzca con la Rn de ERA5-Land y la ra del
+  pasto (GLEAM usa su propia radiación e incluye intercepción). Altura, temperatura y cobertura van juntas entre puntos
+  (los altos tienen 58–60 % de bosque y herbazal andino), así que no se separan las funciones de Jarvis. Dentro de cada
+  punto la correlación mensual de rs con el déficit no es consistente entre productos. Con una ra menor (bosque, más
+  rugoso) la rs despejada saldría aún mayor arriba: el sentido del resultado no depende de la ra. Cuenca limitada por
+  energía: la rs cambia el reparto, no la cantidad de agua disponible.</p>
 </section>
 
 <section>
@@ -1545,6 +1571,21 @@ for (const [valor, texto] of CARGA.cifras) {
     ], lb, OPCIONES);
     document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
       + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const R = CARGA.fase9f, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2);
+    const colores = {'GLEAM v4.3a': '#CC79A7', 'SSEBop v6.1': '#E69F00'};
+    const tr = Object.keys(colores).map(p => { const r = R.filter(x => x.producto === p).sort((a, b) => a.z_modelo_m - b.z_modelo_m);
+      return {type: 'scatter', mode: 'lines+markers', x: r.map(x => x.rs_mediana_sm), y: r.map(x => x.z_modelo_m), name: p,
+        line: {color: colores[p]}, error_x: {type: 'data', symmetric: false, array: r.map(x => x.rs_p75_sm - x.rs_mediana_sm),
+        arrayminus: r.map(x => x.rs_mediana_sm - x.rs_p25_sm), color: colores[p]},
+        hovertemplate: `${p}: rs %{x:.0f} s/m a %{y:.0f} m<extra></extra>`}; });
+    const l = base('altura del modelo (m)'); l.hovermode = 'closest'; l.showlegend = true; Object.assign(l.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    l.xaxis = Object.assign(l.xaxis, {type: 'linear', range: [0, 1500], title: {text: 'rs efectiva (s/m)', font: {size: 11, color: css('--tenue')}}});
+    l.shapes = [{type: 'line', xref: 'x', yref: 'paper', x0: 70, x1: 70, y0: 0, y1: 1, line: {color: css('--tenue'), width: 1, dash: 'dot'}}];
+    Plotly.newPlot('g-fase9f', tr, l, OPCIONES);
+    document.getElementById('t-fase9f').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Bosque / herbazal andino / agropecuario</th><th>ET (mm/año)</th><th>Techo rs = 0 (mm/año)</th><th>Meses sin solución</th><th>rs mediana (s/m)</th><th>corr(rs, déficit)</th><th>corr(rs, T)</th></tr></thead><tbody>'
+      + R.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${f2(r.frac_bosque)} / ${f2(r.frac_herbazal_andino)} / ${f2(r.frac_agropecuario)}</td><td>${f0(r.et_mm_anio)}</td><td>${f0(r.et_techo_rs0_mm_anio)}</td><td>${r.meses_sin_solucion} de ${r.meses}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f2(r.corr_rs_deficit_mensual)}</td><td>${f2(r.corr_rs_t_mensual)}</td></tr>`).join('') + '</tbody></table>';
   }
   {
     const F = CARGA.fase8b, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);

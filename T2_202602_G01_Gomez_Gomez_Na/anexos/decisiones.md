@@ -570,3 +570,20 @@ la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.
 (GLEAM −30, SSEBop v6.1 −26, TerraClimate −11 %/km). Explicación propuesta por el agente (pendiente de que Juan la
 redacte): la ETo baja por la T (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn (−3 %/km);
 GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con frío, nubes).
+
+## 2026-11-25 · Punto 1 · Fase 9, tema f: resistencia de superficie (scripts 37 y 38)
+
+**Pedido de Juan.** Opción B: inversión de Penman–Monteith más Jarvis con LAI de MODIS, en hilo aparte y como extra por
+si cabe en el informe.
+
+**Base (script 37, sin LAI).** Se despeja la rs que hace que Penman–Monteith (ra = 208/u2 del pasto) dé la ET de GLEAM
+v4.3a y SSEBop v6.1 en la celda de cada punto, con la Rn real de ERA5-Land (hasta 2022-08). Decisiones del agente,
+pendientes de Juan: ra del pasto; medias mensuales de los términos; GLEAM como media de las 4 celdas desplazadas 0.05°.
+**Resultado.** La rs sube con la altura: GLEAM +384, SSEBop +638 s/m por km (n = 6). En los 3 puntos bajos (agropecuario
+81–90 %) la ET de GLEAM supera el techo con rs = 0 en 230–264 de 296 meses: con la Rn de ERA5-Land y la ra del pasto no
+hay rs que la reproduzca. Altura, T y cobertura van juntas entre puntos, así que sin LAI no se separan las funciones de
+Jarvis. Con una ra de bosque (menor) la rs despejada sería aún mayor arriba. La cuenca está limitada por energía: la rs
+cambia el reparto de la energía, no el agua disponible.
+
+**LAI (script 38).** MCD15A2H v6.1 por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
+píxeles válidos y solo con el algoritmo principal. Pendiente: correrlo en el PC de Juan (aquí la red no llega a NASA).

@@ -565,3 +565,8 @@ Pendiente: qué periodo reporta Juan y cómo lo redacta.
 los datos del reanálisis (escalón hacia 1999–2001, cuando ERA5 cambia lo que asimila), más que de una tendencia real.
 Así, la parte de la tendencia de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;
 la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.
+
+**Conclusión fase 9a (Juan, 24 nov, 9:35 p. m.).** En todos los productos de ET real la ET disminuye con la altura
+(GLEAM −30, SSEBop v6.1 −26, TerraClimate −11 %/km). Explicación propuesta por el agente (pendiente de que Juan la
+redacte): la ETo baja por la T (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn (−3 %/km);
+GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con frío, nubes).

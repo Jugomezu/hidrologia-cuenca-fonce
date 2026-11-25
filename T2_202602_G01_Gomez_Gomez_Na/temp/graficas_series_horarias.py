@@ -1454,14 +1454,19 @@ for (const [valor, texto] of CARGA.cifras) {
       + F.tanque.map(r => `<tr><td>${r.tramo}</td><td>${r.dias}</td><td>${f2(r.fraccion_dias_en_0)}</td><td>${r.dias_con_dato}</td><td>${r.maximo}</td><td>${f2(r.media_tanque)}</td><td>${f2(r.media_eto_mm_d)}</td><td>${f2(r.razon_tanque_eto)}</td><td>${f2(r.kp_implicito_factor_100)}</td><td>${f2(r.r_diaria)}</td><td>${f2(r.r_mensual)}</td></tr>`).join('')
       + '</tbody></table>';
     const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    ls.xaxis = Object.assign(ls.xaxis, {type: 'linear', range: [1997.5, 2022.5], dtick: 2, title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
     Plotly.newPlot('g-fase8-series', [
       {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.eto, name: 'ETo Penman–Monteith (FAO-56)', line: {color: '#0072B2'}},
       {type: 'scatter', mode: 'lines+markers', x: F.anios, y: F.th, name: 'Thornthwaite', line: {color: '#C8553D'}},
     ], ls, OPCIONES);
     const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
-    Plotly.newPlot('g-fase8-atr', [{type: 'bar', x: A.map(r => r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
+    const corto = {'T media': 'T', 'Tendencia directa de la ETo': 'Directa', 'Residuo (directa − suma)': 'Residuo'};
+    Plotly.newPlot('g-fase8-atr', [{type: 'bar', x: A.map(r => corto[r.forzante] || r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
       marker: {color: ['#E69F00', '#009E73', '#7C5BC7', '#8C564B', '#0072B2', '#999999']},
-      hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}], base('mm/año por década'), OPCIONES);
+      hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}],
+      Object.assign(base('mm/año por década'), {showlegend: false, hovermode: 'closest'},
+        {xaxis: Object.assign(base('').xaxis, {type: 'category'})},
+        {yaxis: Object.assign(base('mm/año por década').yaxis, {zeroline: true, zerolinecolor: css('--tenue'), zerolinewidth: 1.5})}), OPCIONES);
   }
   {
     const E = CARGA.ef;

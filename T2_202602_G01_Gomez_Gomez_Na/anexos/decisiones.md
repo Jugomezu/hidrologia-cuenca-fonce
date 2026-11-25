@@ -522,3 +522,7 @@ años, Hamed–Rao en anomalías, Pettitt en la anomalía anual, FDR de Benjamin
 coherente. La razón tanque/ETo cambia de 27 a 53 y a 217 entre tramos, 2011 y 2022 son todo ceros, y en 2012–2018 el
 tanque no sigue a la ETo (r diaria 0.04). Solo 2018-09 a 2021 se parece algo (r mensual 0.41), pero son 3 años: no
 sirven para tendencias.
+
+**Gráfica de demanda anual (Juan, 24 nov).** Totales anuales con eje desde 0 y solo la recta de Sen (sin OLS ni anomalías).
+Juan concluye que la tendencia es despreciable: en la ETo no es significativa; en Thornthwaite, Mann-Kendall da p 0.015
+pero el cambio es pequeño (+16 mm/año por década, ~2 % por década) y OLS con Newey-West no es significativo.

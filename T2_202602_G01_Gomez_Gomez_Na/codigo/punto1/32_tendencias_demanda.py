@@ -271,31 +271,23 @@ def atribucion(tabla_t):
 
 # ---------------------------------------------------------------- figura
 def figura(tabla, tabla_t, atr):
-    fig, ejes = plt.subplots(1, 2, figsize=(12, 5.5))
-    # anomalías anuales (Juan, 24 nov): cada año menos su media 1998–2022, eje simétrico alrededor de 0
+    fig, ejes = plt.subplots(1, 2, figsize=(12, 4.5))
+    # totales anuales con eje desde 0 y solo la recta de Sen (Juan, 24 nov: sin OLS ni anomalías)
     anual = tabla[["eto", "thornthwaite"]].groupby(tabla.index.year).sum()
-    anomalia = anual - anual.mean()
     tt = tabla_t.set_index("clave")
     colores = {"eto": "#1f77b4", "thornthwaite": "#d62728"}
     x = np.array([1998, 2022])
     for v in ("eto", "thornthwaite"):
-        ejes[0].plot(anomalia.index, anomalia[v], "o-", color=colores[v], ms=3, label=NOMBRES[v])
+        ejes[0].plot(anual.index, anual[v], "o-", color=colores[v], ms=3, label=NOMBRES[v])
         pendiente_sen = tt.loc[v, "sen_por_decada"] * 12 / 10            # mm/año por año
-        ejes[0].plot(x, anomalia[v].median() + pendiente_sen * (x - np.median(anomalia.index)), "--", color=colores[v],
+        ejes[0].plot(x, anual[v].median() + pendiente_sen * (x - np.median(anual.index)), "--", color=colores[v],
                      label=f"Sen: {tt.loc[v, 'sen_por_decada'] * 12:+.0f} mm/año por década "
                            f"(p = {tt.loc[v, 'p_mk_permutacion']:.3f})")
-        # recta OLS (pendiente con constante por mes y Newey-West), pasa por (año medio, 0)
-        pendiente_ols = tt.loc[v, "ols_por_decada"] * 12 / 10
-        ejes[0].plot(x, pendiente_ols * (x - np.mean(anomalia.index)), ":", color=colores[v], lw=2,
-                     label=f"OLS: {tt.loc[v, 'ols_por_decada'] * 12:+.0f} mm/año por década "
-                           f"(p = {tt.loc[v, 'p_ols_newey_west']:.3f})")
-    limite = np.ceil(anomalia.abs().max().max() / 20) * 20
-    ejes[0].set_ylim(-limite, limite)
-    ejes[0].axhline(0, color="k", lw=0.8)
+    ejes[0].set_ylim(0, None)
     ejes[0].set_xlabel("Año")
-    ejes[0].set_ylabel("Anomalía (mm/año)")
-    ejes[0].set_title("Demanda anual de la cuenca: anomalías, 1998–2022")
-    ejes[0].legend(fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2)
+    ejes[0].set_ylabel("mm/año")
+    ejes[0].set_title("Demanda anual de la cuenca, 1998–2022")
+    ejes[0].legend(fontsize=8, loc="lower left")
     barras = atr.iloc[[0, 1, 2, 3, 6, 5]]
     etiquetas = ["T", "ea", "u2", "Rs", "Residuo", "Directa"]
     ejes[1].bar(etiquetas, barras["contribucion_mm_anio_por_decada"],

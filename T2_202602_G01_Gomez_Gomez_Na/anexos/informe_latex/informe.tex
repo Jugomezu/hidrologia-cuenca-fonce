@@ -102,8 +102,8 @@ la Tarea 1 que se pone a prueba. Altitud de la cuenca: dar el rango con su fuent
 \borradorIA{Armado desde \texttt{anexos/borrador\_metodologia.md} y \texttt{anexos/decisiones.md}. Juan lo revisa y
 lo pasa a su voz. Falta la fase 9 (tema del paisaje).}
 
-\paragraph{Datos y periodo.} Se trabajó en 1998--2022 (25 años), el periodo de IMERG en la Tarea 1; las tendencias
-de la Tarea 1 empiezan en 1981 y las de este trabajo no. La cuenca es el polígono de CAMELS-COL hasta San Gil
+\paragraph{Datos y periodo.} Se trabajó en 1998--2022 (25 años), el periodo de IMERG en la Tarea 1. Las tendencias de
+la demanda usan además el registro completo de ERA5-Land, 1981--2022, como en la Tarea 1. La cuenca es el polígono de CAMELS-COL hasta San Gil
 \citep{camelscol}. Los forzantes de la \ETo{} son series horarias de ERA5-Land \citep{munoz2021}, del producto de
 series de tiempo, en 6 centros de celda de 0.1° con al menos el 90~\% de su área dentro de la cuenca, uno por
 franja de altura de igual área (1\,580 a 3\,259~m). El valor de cuenca es el promedio ponderado por Voronoi. Los días
@@ -153,7 +153,7 @@ curva de Fu en la forma de \citet{zhang2004} y elasticidad de Q a P \citep{sanka
 mensual; y fracción evaporativa $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de GLEAM
 \citep{seneviratne2010}.
 
-\paragraph{Cambios en la demanda.} Tendencias 1998--2022 de la \ETo, Thornthwaite, T, $e_a$, $u_2$ y Rs con los
+\paragraph{Cambios en la demanda.} Tendencias 1981--2022 (y 1998--2022 como contraste) de la \ETo, Thornthwaite, T, $e_a$, $u_2$ y Rs con los
 métodos de la Tarea 1: Mann-Kendall estacional \citep{hirsch1982} con pendiente de Sen \citep{sen1968} (p por
 permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OLS con una constante por mes y error de
 Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
@@ -351,22 +351,25 @@ el borde de la búsqueda; R$^2$ 0.16; la prueba sola no es concluyente) y una ex
 
 \subsubsection{Cambios en la demanda}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{tendencias_demanda.png}
-  \caption{\ETo{} \PM{} y Thornthwaite anuales con la recta de Sen, 1998--2022, y atribución de la tendencia de la
+  \includegraphics[width=\textwidth]{tendencias_demanda_1981_2022.png}
+  \caption{\ETo{} \PM{} y Thornthwaite anuales con la recta de Sen, 1981--2022, y atribución de la tendencia de la
   \ETo{} a cada forzante.}
   \label{fig:tendencias}
 \end{figure}
-\pendiente{En revisión: la conclusión de abajo es la de 1998--2022. Con el registro 1981--2022 (script 36,
-productos \texttt{*\_1981\_2022}) la \ETo{} sí muestra tendencia. Juan decide qué periodo y qué conclusión van aquí;
-la figura y el periodo de la metodología se cambian según eso.}
-
-% Texto de Juan: temp/textos_informe/fase8_conclusion.md (tal cual, pasado a LaTeX).
+% Texto de Juan: temp/textos_informe/fase8_conclusion.md (tal cual, pasado a LaTeX). Primero 1998–2022 y después
+% 1981–2022, que es el periodo que se reporta (Juan, 24 nov, 9:31 p. m.).
 La \ETo{} Penman--Monteith (FAO-56) no tiene tendencia en 1998--2022 (Sen $+3$~mm/año por década, $p = 0.68$).
 En Thornthwaite la tendencia es estadísticamente detectable con Mann-Kendall ($p = 0.015$), pero pequeña en magnitud:
 $+16$~mm/año por década, cerca de 2~\% por década; OLS con Newey-West no la confirma ($p = 0.086$).
 
-\pendiente{Juan: citar la Fig.~\ref{fig:tendencias}; por qué Thornthwaite sube y la \ETo{} no (qué compensa a la
-temperatura) y cómo se distingue un cambio de clima de un artefacto del reanálisis.}
+Se reporta 1981--2022. La \ETo{} sube $+9.5$~mm/año por década (0.8~\%/década), significativa con todas las pruebas.
+Para la Rs, su tendencia puede venir solo de defectos de los datos del reanálisis (escalón hacia 1999--2001), más que
+de una tendencia real.
+
+\pendiente{Juan: citar la Fig.~\ref{fig:tendencias}; Thornthwaite en 1981--2022 ($+11$~mm/año por década); la
+atribución (T y Rs aportan casi todo); que ninguno de los dos subperiodos es significativo por sí solo; y una cita para
+el cambio de lo que asimila ERA5 hacia 1998 (el hilo de la fase 8 sugiere Hersbach et al., 2020, sin comprobar). Si la
+tendencia de Rs es un artefacto, decir qué queda de la de la \ETo.}
 
 \subsubsection{El paisaje de la cuenca}
 \pendiente{Fase 9: tema elegido y por qué se descartan los otros cinco.}

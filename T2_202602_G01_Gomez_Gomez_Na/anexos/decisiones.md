@@ -571,6 +571,7 @@ la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.
 redacte): la ETo baja por la T (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn (−3 %/km);
 GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con frío, nubes).
 
+<<<<<<< HEAD
 ## 2026-11-25 · Punto 1 · Fase 9, tema f: resistencia de superficie (scripts 37 y 38)
 
 **Pedido de Juan.** Opción B: inversión de Penman–Monteith más Jarvis con LAI de MODIS, en hilo aparte y como extra por
@@ -587,3 +588,11 @@ cambia el reparto de la energía, no el agua disponible.
 
 **LAI (script 38).** MCD15A3H v6.1 (Terra + Aqua, compuestos de 4 días; MCD15A2H no está en el catálogo de Earth Engine) por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
 píxeles válidos y solo con el algoritmo principal. Corrido en el Ubuntu de Juan el 25 nov (proyecto GEE de Juan): 6 puntos × 1 878 compuestos. LAI medio: 1.2 y 1.7 en los puntos altos (1 y 5), 2.4 en el 6, 2.7–3.2 en los bajos; en los altos cerca de la mitad de los píxeles sale del algoritmo de respaldo (nubes).
+=======
+**Reparto de la energía (Juan pidió mostrarlo, 25 nov; script 34).** Juan propuso que arriba hay menos calor sensible y
+más latente; los datos dicen lo contrario. Con la altura la Rn real de ERA5-Land sube algo (10.8 → 13.4 MJ/m²·día),
+pero λET/Rn cae a cerca de la mitad (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46). Δ/(Δ+γ) baja
+de 0.70 a 0.65, así que el frío explica una parte y la superficie el resto. Son productos, no medidas.
+**Conclusión fase 9a, versión final (Juan, 25 nov, 7:16 a. m.).** La ET baja con la altura porque baja el déficit de
+vapor y porque, aunque haya mayor Rn, la fracción de Rn que va a calor latente disminuye con la altura.
+>>>>>>> 7e69aefaf007e8b42f3fb1f98e62653b3e31d73a

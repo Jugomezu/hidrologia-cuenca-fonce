@@ -604,7 +604,7 @@ pasto, 230–1 160); GLEAM sigue sin solución abajo en 161–211 meses. Pendien
 **ra por cobertura, decidido (Juan, 25 nov, 7:43 a. m.).** Fuente: Tabla 1 de Gehrke, Sühring y Maronga (2021),
 doi:10.5194/gmd-14-5307-2021 (tipos de vegetación al estilo de ECMWF). Juan eligió: agropecuario = crops, mixed farming
 (z0 0.10 m); herbazal andino = evergreen shrubs (0.10 m); bosque = evergreen broadleaf trees (2.00 m); zoh = 0.1·zom
-como FAO-56. Supuestos del agente: viento de 10 m tomado 10 m sobre d; conductancias ponderadas por fracción.
+como FAO-56. Supuestos del agente, aprobados por Juan (7:47 a. m.): viento de 10 m tomado 10 m sobre d; conductancias ponderadas por fracción.
 **Resultado (script 37).** rs SSEBop 153–248 s/m abajo y 234–349 arriba; GLEAM 0–6 abajo y 99–184 arriba. Pendiente
 +113 (SSEBop) y +140 (GLEAM) s/m por km, contra +638 y +384 con la ra del pasto. GLEAM sigue sin solución abajo en
 134–196 de 296 meses. Herbazal como tall grass cambia poco (punto 1: 349 → 330 con SSEBop).

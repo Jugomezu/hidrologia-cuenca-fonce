@@ -55,7 +55,9 @@ DESIGN_DURATION_H = 2.0
 RETURN_PERIODS = (10, 25, 50, 100)
 AMC_NAMES = ("AMC-I", "AMC-II", "AMC-III")
 IA_FRACTIONS = (0.20, 0.05)
-CF_BY_T = {10: 1.00, 25: 1.05, 50: 1.10, 100: 1.15}
+# Factor de frecuencia de C: 1 en todos los T (decisión de Juan, 26 nov). Así el racional de esta sección usa el
+# mismo C = 0.495 del Problema A y no aparecen dos caudales de T = 50 para la misma cuenca.
+CF_BY_T = {10: 1.00, 25: 1.00, 50: 1.00, 100: 1.00}
 
 
 def tc_estimates():
@@ -301,7 +303,7 @@ def main():
     # the fitted hourly/subhourly master table (at tc).
     i_tc = {T: intensity_from_params(tc_design / 60, T, pars) for T in RETURN_PERIODS}
     ci_tc = {T: idf_row_at(idf_table, tc_design, T) for T in RETURN_PERIODS}
-    cf_note = "Supuesto de proyecto, no factor universal: T10=1.00, T25=1.05, T50=1.10, T100=1.15."
+    cf_note = "Sin factor de frecuencia (C_f = 1): mismo C del Problema A."
 
     storms = {(T, 2.0) for T in RETURN_PERIODS}
     storms.update((50, d) for d in (1.0, 3.0, 6.0))

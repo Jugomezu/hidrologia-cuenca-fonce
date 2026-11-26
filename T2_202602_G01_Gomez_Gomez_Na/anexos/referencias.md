@@ -66,10 +66,12 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
   https://carlosdhoyos.github.io/cursos/hidrologia/evapotranspiracion.html. Usado: ecuaciones de Hargreaves,
   Priestley–Taylor, Makkink, Penman (forma FAO-24) y AA tal como se dan en el curso (Partes 2, 6 y 7). Leído: sí.
 - Jaramillo Robledo, A. (2006). Evapotranspiración de referencia en la región Andina de Colombia. *Cenicafé, 57*(4),
-  288–298. Leído: sí, completo. https://cenicafe.org/es/publications/arc057(04)288-298.pdf (también en
+  288–298. Leído: sí, completo. Tabla 1: 34 estaciones, dos en Santander (Palonegro, Lebrija; Campo Capote,
+  Vélez), lo que respalda el texto de Juan (comprobado el 2026-11-26). https://cenicafe.org/es/publications/arc057(04)288-298.pdf (también en
   https://www.scribd.com/document/519656789/arc057-04-288-298). Usado: ETo = 4.37·exp(−0.0002 h), ec. 1, p. 292.
   No tiene DOI.
-- Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
+- (No se cita en el informe desde el 2026-11-26, decisión de Juan: no tiene DOI ni enlace; la ecuación se atribuye a
+  las notas de Hoyos.) Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
   Engineers, 11*, 277–288. Sin DOI ni enlace en línea encontrado: la ecuación se toma de las notas del curso (Hoyos),
   Parte 7. Leído: no (el original no está en línea). Lo que sí se leyó: FAO-24 (Doorenbos y Pruitt, 1977), p. 8,
   dice «The Radiation Method is essentially an adaptation of the Makkink formula (1957)» y su método de radiación,
@@ -98,16 +100,17 @@ Comprobado el 2026-11-21 en la página de cada producto, salvo donde se dice.
   A. F. (2026). *CAMELS-COL: A large-sample hydrometeorological dataset for Colombia* (v3) [conjunto de datos]. Zenodo.
   https://doi.org/10.5281/zenodo.18794895. Licencia CC BY 4.0. Artículo en discusión: https://doi.org/10.5194/essd-2025-200.
 - Miralles, D. G., Bonte, O., Koppa, A., et al. (2025). GLEAM4: global land evaporation and soil moisture dataset at
-  0.1° resolution from 1980 to near present. *Scientific Data, 12*. https://doi.org/10.1038/s41597-025-04610-y.
-  Número de artículo sin confirmar.
+  0.1° resolution from 1980 to near present. *Scientific Data, 12*(1), 416. https://doi.org/10.1038/s41597-025-04610-y.
+  Número de artículo comprobado en Crossref el 2026-11-26.
 - Running, S., Mu, Q., Zhao, M. y Moreno, A. (2021). *MODIS/Terra Net Evapotranspiration Gap-Filled 8-Day L4 Global
   500m SIN Grid V061* [conjunto de datos]. NASA LP DAAC. https://doi.org/10.5067/MODIS/MOD16A2GF.061. El DOI está en
   la ficha de Earth Engine; autores y año no aparecen ahí (salen de la forma de cita de LP DAAC, no leída).
-- Senay, G. B. et al. SSEBop v6.1 (VIIRS, desde 2012), USGS FEWS NET. https://doi.org/10.5066/P9QJWQ6K. La búsqueda
-  asocia este DOI a «SSEBop Evapotranspiration Data from 2012 to Present» (USGS), pero la página no abrió: autores y
-  año (2023) sin confirmar.
-- Senay, G. B. et al. SSEBop v5 (MODIS), USGS FEWS NET. https://doi.org/10.5066/F72V2F1F. El DOI resuelve al portal
-  general de FEWS NET, no a una ficha del producto: autores, año y título sin confirmar. La ficha USGS del SSEBop
+- Senay, G., Kagone, S., Parrish, G. E., Budde, M. E. y Rowland, J. (2023). *SSEBop Evapotranspiration Data from 2012
+  to Present: Dekadal (10-day), Monthly, Seasonal, and Annual Time Scales* [conjunto de datos]. U.S. Geological Survey.
+  https://doi.org/10.5066/P9QJWQ6K. SSEBop v6.1 (VIIRS). Autores, año y título comprobados en DataCite el 2026-11-26.
+- Senay, G. B., Kagone, S. K., Friedrichs, M., Velpuri, N. M., Rowland, J. y Verdin, J. (2017). *SSEBop
+  Evapotranspiration Data* [conjunto de datos]. U.S. Geological Survey. https://doi.org/10.5066/F72V2F1F. SSEBop v5
+  (MODIS). Comprobado en DataCite el 2026-11-26; el DOI lleva al portal general de FEWS NET. La ficha USGS del SSEBop
   operativo global es otra: Senay, Kagone y Velpuri (2020), https://doi.org/10.5066/P9OUVUUI.
 - Senay, G. B., Bohms, S., Singh, R. K., Gowda, P. H., Velpuri, N. M., Alemu, H. y Verdin, J. P. (2013). Operational
   evapotranspiration mapping using remote sensing and weather datasets: a new parameterization for the SSEB approach.
@@ -116,8 +119,10 @@ Comprobado el 2026-11-21 en la página de cada producto, salvo donde se dice.
 - Senay, G. B. et al. (2023). Improving the Operational Simplified Surface Energy Balance evapotranspiration model
   using the Forcing and Normalizing Operation. *Remote Sensing, 15*(1), 260. https://doi.org/10.3390/rs15010260.
   Recalibración FANO (SSEBop v6). Ficha USGS: https://pubs.usgs.gov/publication/70239356.
-- Huffman, G. J. et al. *GPM IMERG Final Precipitation L3 1 month 0.1° V07 (GPM_3IMERGM)*. NASA GES DISC.
-  https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07. Heredado de la Tarea 1; solo se comprobó que la ficha existe.
+- Huffman, G. J., Stocker, E. F., Bolvin, D. T., Nelkin, E. J. y Tan, J. (2023). *GPM IMERG Final Precipitation L3 1
+  month 0.1 degree x 0.1 degree V07 (GPM_3IMERGM)* [conjunto de datos]. NASA GES DISC.
+  https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07. Heredado de la Tarea 1; autores y año comprobados en DataCite el
+  2026-11-26.
 - Servicio Geológico Colombiano. (2023). *Mapa Geológico de Colombia 2023*, escala 1:1 500 000.
   https://www2.sgc.gov.co/MGC/Paginas/mgc_1_5M2023.aspx. Heredado de la Tarea 1.
 
@@ -167,5 +172,43 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   land surface model description, first evaluation, and sensitivity to model parameters. *Geoscientific Model
   Development, 14*, 5307–5329. https://doi.org/10.5194/gmd-14-5307-2021 (acceso libre). Tabla 1 (p. 5310): z0 y rc,min
   de 18 tipos de vegetación «al estilo de la clasificación de ECMWF»; usada en los scripts 37 y 39 (tema f).
+  Comprobado en el PDF el 2026-11-26: evergreen broadleaf trees z0 2.00 m, rc,min 175; crops, mixed farming 0.10 m,
+  180; evergreen shrubs 0.10 m, 225; tall grass 0.47 m. Coinciden con los scripts 37 y 39. Número 8 del volumen 14.
 - Myneni, R., Knyazikhin, Y. y Park, T. (2021). MODIS/Terra+Aqua Leaf Area Index/FPAR 4-Day L4 Global 500m SIN Grid
   V061 (MCD15A3H). NASA LP DAAC. https://doi.org/10.5067/MODIS/MCD15A3H.061 — LAI del script 38 (vía Google Earth Engine). DOI, título, autores y año comprobados el 2026-11-25 en la página de NASA Earthdata a la que resuelve.
+
+## Fuentes de datos que el informe nombraba sin cita (auditoría del 2026-11-26)
+
+- Instituto de Hidrología, Meteorología y Estudios Ambientales [IDEAM]. (2026). *Consulta y descarga de datos
+  hidrometeorológicos (DHIME)*. https://atencionciudadano.ideam.gov.co. Sin DOI. Sus términos obligan a citar al IDEAM
+  (../../Analisis_De_Cuenca/DATOS_FUENTES.md).
+- Fundación Gaia Amazonas. (2025). *Proyecto MapBiomas Colombia Colección 3.0 – Mapeo anual de cobertura y uso del
+  suelo*. https://colombia.mapbiomas.org. Sin DOI; forma de cita que pide MapBiomas, copiada en DATOS_FUENTES.md de la
+  Tarea 1.
+- ASF DAAC. (2014). *ALOS PALSAR High Resolution Radiometric Terrain Corrected Product*. NASA Alaska Satellite Facility
+  DAAC. Incluye material © JAXA/METI. https://doi.org/10.5067/Z97HFCNKR6VA. DOI y forma de cita de la página del
+  proyecto en NASA Earthdata (2026-11-26). El mosaico de la Tarea 1 no registró el producto exacto: se cita el de
+  12.5 m, que es el que distribuye ASF.
+
+## Segunda revisión: contenido (26 nov, tarde)
+
+- Beck et al. (2022), MSWX, https://doi.org/10.1175/BAMS-D-21-0145.1. Leído (página de AMS): MSWX-Past es «ERA5 bias
+  corrected and downscaled» a climatologías de estaciones (CHELSA, CRU TS). No es independiente de ERA5. El informe
+  decía que sí; se corrigió (el script 42 ya lo advertía).
+- Funk et al. (2015), CHIRPS, https://doi.org/10.1038/sdata.2015.66. Leído: satélite IR + estaciones, desde 1981,
+  50°S–50°N. Usa CFSv2 (no ERA5) solo para repartir pentadas en días y llenar huecos: independiente de ERA5.
+- Senay et al. (2023), Remote Sensing 15(1) 260 (FANO): habla de «SSEBop FANO (v0.2.6)», no de la v6.1 VIIRS que
+  usamos. Se quitó del informe; ahora se citan los conjuntos de datos de USGS (DataCite) y el método de Senay et al. (2013).
+- Doorenbos y Pruitt (1977), FAO-24, p. 15: el 0.8 es el «crop coefficient» del Penman original (Eo) con tiempo en
+  calma, no el factor c de la forma de FAO-24 (c sale de la tabla 16, p. 28, según HRmáx, Rs, Uday y Uday/Unight).
+  Pendiente de Juan.
+- Comprobado en la fuente: FAO-56 ec. 4, 6, 35, 38–40, 47 (0.748), 52 y la frase de HR alta (la p. 64 no se ve en la
+  versión web); recuadro 4 (zoh = 0.1 zom); Sankarasubramanian (2001), definición y estimador no paramétrico;
+  Hirsch (1982), prueba y pendiente estacional de Kendall; Abatzoglou (2018), PM de pasto y anomalías; Yang (2019),
+  rs según CO2 (solo resumen); Muñoz-Sabater (2021), horario y 9 km; MOD16A2GF (8 días, 500 m).
+- Solo por fuentes secundarias (original de pago): Brutsaert y Stricker (1979), ET = 2 ETw − ETp (Hobbins et al. 1999;
+  Szilagyi et al. 2009); Zhang et al. (2004) como forma de la ecuación de Fu (Zhou et al. 2008).
+- No leído (de pago o no abrió): Priestley y Taylor (1972) más allá del resumen (α = 1.26 se toma de las notas de
+  Hoyos); Seneviratne et al. (2010); Miralles et al. (2025); Sen (1968), Hamed y Rao (1998), Newey y West (1987),
+  Pettitt (1979) y Benjamini y Hochberg (1995). Para estos el informe solo dice el nombre del método, que está en el
+  título de cada artículo.

@@ -117,9 +117,9 @@ franja de altura de igual área (1\,580 a 3\,259~m). El valor de cuenca es el pr
 se arman en hora local (UTC$-5$). La lluvia y el caudal vienen de la Tarea 1: PI (IMERG ponderado por área de celda;
 \citealp{huffman_imerg}), PL (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en
 lámina. La lluvia principal es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad. De DHIME
-(IDEAM) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
+(IDEAM; \citealp{ideam_dhime}) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
 productos de ET real son GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop v6.1 y v5
-\citep{senay2013,senay2023}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
+\citep{senay2023datos,senay2017datos}, con el método de \citet{senay2013}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
 cuenca por el área de intersección de cada celda. El ERA5-Land mensual está dañado en sep--dic de 2022
 \citep{ecmwf2024}: lo que lo usa se corta en 2022-08; la \ETo{} no está afectada. No hay torre de flujo en la región,
 y el tanque evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
@@ -139,7 +139,7 @@ La dispersión entre pruebas, por mes, es $|$sesgo~\% frente a TerraClimate $-$ 
 estaciones$|$.
 
 \paragraph{Métodos de otras familias.} Thornthwaite \citep{thornthwaite1948}, Hargreaves \citep{hargreaves1985},
-Priestley--Taylor \citep[$\alpha = 1.26$;][]{priestley1972}, Makkink \citep{makkink1957}, Cenicafé
+Priestley--Taylor \citep[$\alpha = 1.26$;][]{priestley1972}, Makkink (en la forma de las notas del curso, \citealp{hoyos_et}), Cenicafé
 \citep{jaramillo2006}, Penman en la forma de FAO-24 con $c = 0.8$ \citep{penman1948,doorenbos1977} y la relación
 complementaria de \citet{brutsaert1979}, con las ecuaciones de las notas del curso \citep{hoyos_et}. Mismos forzantes,
 periodo y paso diario que la \ETo. Cada método se compara, sin calibrar, con una referencia de su misma superficie:
@@ -153,7 +153,8 @@ HR constante), $u_2$ $+10$~\%, Rs $-10$~\% y $e_a$ $+10$~\%.
 $\approx 0$ en el largo plazo). Incertidumbre al 95~\%: $\sigma_P = 1.96\,|\mathrm{PL}-\mathrm{PI}|/2$, $\sigma_Q =
 25.6$~\% de Q \citep{dibaldassarre2009} y $\sigma_\mathrm{ET} = \sqrt{\sigma_P^2 + \sigma_Q^2}$. Techo de energía
 $R_n/\lambda$ con la $R_n$ real de ERA5-Land. Un producto es consistente con el balance si cae dentro de
-$\pm\sigma_\mathrm{ET}$.
+$\pm\sigma_\mathrm{ET}$. SSEBop v5 y la AA quedan fuera de ese rango, así que nos sirven poco: se muestran en la
+Tabla~\ref{tab:et_productos}, pero no entran en la mediana de productos que usan Budyko y la fracción evaporativa.
 
 \paragraph{Régimen.} Espacio de Budyko con $\bar{P}$ ($\varphi = \mathrm{ET_o}/P$, $\varepsilon = \mathrm{ET}/P$),
 curva de Fu en la forma de \citet{zhang2004} y elasticidad de Q a P \citep{sankarasubramanian2001}; $\varphi$
@@ -165,15 +166,16 @@ métodos de la Tarea 1: Mann-Kendall estacional \citep{hirsch1982} con pendiente
 permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OLS con una constante por mes y error de
 Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
 descubrimientos \citep{benjamini1995}; $\alpha = 0.05$. Antes de las tendencias, la serie 1981--2022 pasa el
-control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a series
-independientes de ERA5 (lluvia de CHIRPS, \citealp{funk2015}; T y Rs de Hargreaves--Samani con MSWX,
-\citealp{beck2022}). La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
+control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a otras
+fuentes: la lluvia de CHIRPS (satélite y estaciones; \citealp{funk2015}), independiente de ERA5, y la T y la Rs de
+Hargreaves--Samani con MSWX, que no es del todo independiente: es ERA5 corregido con climatologías de estaciones
+\citep{beck2022}. La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
 frente a la lluvia de CHIRPS (Anexo~\ref{anx:escalon_rs}); se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
 tendencias. La serie sin corregir queda como sensibilidad.
 
 \paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
 comparan con la altura del modelo mediante una recta de mínimos cuadrados; con $n = 6$ es solo descriptiva. La
-hipsometría sale del DEM ALOS de 12~m dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
+hipsometría sale del DEM ALOS PALSAR de 12.5~m \citep{asf_alos} dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
 en malla (GLEAM, SSEBop v6.1 y TerraClimate) lleva la altura media del DEM que cae en ella. La \ETo{} de cada banda se
 lee de la recta de los 6 puntos. El reparto de la energía usa la $R_n$ real de ERA5-Land en la celda de cada punto y la
 fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto. Como referencia teórica se usa $\Delta/(\Delta+\gamma)$,
@@ -181,7 +183,7 @@ la fracción que va a calor latente en la evaporación de equilibrio \citep{prie
 
 \paragraph{Resistencia de superficie.} En la celda de cada punto se despeja la $r_s$ que hace que la ec.~6 de
 \citet{allen1998}, con la $R_n$ real de ERA5-Land (hasta 2022-08), dé la ET de GLEAM v4.3a y de SSEBop v6.1, con medias
-mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas, con la longitud de rugosidad
+mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas 2022 \citep{mapbiomas_col3}, con la longitud de rugosidad
 de la Tabla~1 de \citet{gehrke2021}: agropecuario 0.10~m, herbazal andino 0.10~m y bosque 2.00~m, con $z_{oh} =
 0.1\,z_{om}$ y las conductancias ponderadas por fracción. La $r_a$ del pasto queda como sensibilidad. El LAI es el de
 MCD15A3H v6.1 \citep{myneni2021} en la celda de cada punto (2002--2022). Con el $r_{c,\min}$ de la misma tabla se forma
@@ -248,8 +250,8 @@ El que mejor se ajusta parece ser Makkink. Esto tiene sentido porque nuestra cue
 estas son condiciones favorables para ese método.
 
 Ninguno de los métodos se mantiene completamente dentro del rango de la dispersión; sin embargo, el mejor es de nuevo
-Makkink, que está dentro del rango 7 meses al año. Esto significa que en estos meses los errores de este método
-podrían atribuirse a problemas con los datos, más que a problemas de método.
+Makkink, que está dentro del rango 7 meses al año. Esto significa que en estos meses la diferencia de Makkink
+no se distingue de la incertidumbre de la referencia.
 
 % Texto de Juan: temp/textos_informe/fase5_diferencias_eto.md (tal cual, pasado a LaTeX).
 En esta sección se compararán los métodos de \ETo{} (evapotranspiración de referencia) anual de los métodos elegidos.
@@ -338,7 +340,8 @@ un script.}
   \label{fig:et_real}
 \end{figure}
 \begin{table}[htbp]\centering\small
-  \caption{Productos de ET real frente al balance $\bar{P} - Q$ en sus mismos meses ($\sigma_\mathrm{ET}$ al 95~\%).}
+  \caption{Productos de ET real frente al balance $\bar{P} - Q$ en sus mismos meses ($\sigma_\mathrm{ET}$ al 95~\%). Los que quedan fuera (SSEBop v5 y la AA)
+    no entran en la mediana de productos.}
   \label{tab:et_productos}
   \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_et_productos.tex}}
 \end{table}

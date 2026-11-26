@@ -1,3 +1,4 @@
+% En las entradas tipo misc, plainnat no imprime doi ni publisher: por eso llevan además url (al DOI) y howpublished.
 % Referencias del informe. Cada entrada sale de anexos/referencias.md (auditoría de citas del 2026-11-21).
 % Regla del proyecto: toda cita con DOI o un enlace donde se pueda leer.
 
@@ -62,7 +63,9 @@
   title     = {{CAMELS-COL}: A large-sample hydrometeorological dataset for {Colombia} (v3)},
   publisher = {Zenodo},
   year      = {2026},
-  doi       = {10.5281/zenodo.18794895}
+  doi       = {10.5281/zenodo.18794895},
+  url          = {https://doi.org/10.5281/zenodo.18794895},
+  howpublished = {Zenodo}
 }
 
 @article{abatzoglou2018,
@@ -70,6 +73,7 @@
   title   = {{TerraClimate}, a high-resolution global dataset of monthly climate and climatic water balance from 1958--2015},
   journal = {Scientific Data},
   volume  = {5},
+  number  = {1},
   pages   = {170191},
   year    = {2018},
   doi     = {10.1038/sdata.2017.191}
@@ -91,6 +95,8 @@
   title   = {{GLEAM4}: global land evaporation and soil moisture dataset at 0.1° resolution from 1980 to near present},
   journal = {Scientific Data},
   volume  = {12},
+  number  = {1},
+  pages   = {416},
   year    = {2025},
   doi     = {10.1038/s41597-025-04610-y}
 }
@@ -100,7 +106,9 @@
   title     = {{MODIS/Terra} Net Evapotranspiration Gap-Filled 8-Day {L4} Global 500m {SIN} Grid {V061}},
   publisher = {NASA LP DAAC},
   year      = {2021},
-  doi       = {10.5067/MODIS/MOD16A2GF.061}
+  doi       = {10.5067/MODIS/MOD16A2GF.061},
+  url          = {https://doi.org/10.5067/MODIS/MOD16A2GF.061},
+  howpublished = {NASA LP DAAC}
 }
 
 @article{senay2013,
@@ -114,23 +122,14 @@
   doi     = {10.1111/jawr.12057}
 }
 
-@article{senay2023,
-  author  = {Senay, Gabriel B. and others},
-  title   = {Improving the Operational Simplified Surface Energy Balance evapotranspiration model using the Forcing and Normalizing Operation},
-  journal = {Remote Sensing},
-  volume  = {15},
-  number  = {1},
-  pages   = {260},
-  year    = {2023},
-  doi     = {10.3390/rs15010260}
-}
-
 @misc{huffman_imerg,
-  author    = {Huffman, G. J. and others},
-  title     = {{GPM IMERG} Final Precipitation {L3} 1 month 0.1° {V07} ({GPM\_3IMERGM})},
+  author    = {Huffman, G. J. and Stocker, E. F. and Bolvin, D. T. and Nelkin, E. J. and Tan, J.},
+  title     = {{GPM IMERG} Final Precipitation {L3} 1 month 0.1 degree x 0.1 degree {V07} ({GPM\_3IMERGM})},
   publisher = {NASA GES DISC},
-  year      = {s.\,f.},
-  doi       = {10.5067/GPM/IMERG/3B-MONTH/07}
+  year      = {2023},
+  doi       = {10.5067/GPM/IMERG/3B-MONTH/07},
+  url          = {https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07},
+  howpublished = {NASA GES DISC}
 }
 
 @article{hargreaves1985,
@@ -175,16 +174,6 @@
   pages   = {288--298},
   year    = {2006},
   url     = {https://cenicafe.org/es/publications/arc057(04)288-298.pdf}
-}
-
-@article{makkink1957,
-  author  = {Makkink, G. F.},
-  title   = {Testing the {Penman} formula by means of lysimeters},
-  journal = {Journal of the Institution of Water Engineers},
-  volume  = {11},
-  pages   = {277--288},
-  year    = {1957},
-  note    = {Ecuación tomada de las notas del curso (Hoyos)}
 }
 
 @article{penman1948,
@@ -329,6 +318,7 @@
              first evaluation, and sensitivity to model parameters},
   journal = {Geoscientific Model Development},
   volume  = {14},
+  number  = {8},
   pages   = {5307--5329},
   year    = {2021},
   doi     = {10.5194/gmd-14-5307-2021}
@@ -339,7 +329,9 @@
   title     = {{MODIS/Terra+Aqua} Leaf Area Index/{FPAR} 4-Day {L4} Global 500m {SIN} Grid {V061} ({MCD15A3H})},
   publisher = {NASA LP DAAC},
   year      = {2021},
-  doi       = {10.5067/MODIS/MCD15A3H.061}
+  doi       = {10.5067/MODIS/MCD15A3H.061},
+  url          = {https://doi.org/10.5067/MODIS/MCD15A3H.061},
+  howpublished = {NASA LP DAAC}
 }
 
 % Control de calidad de la fase 8 (script 42). Comprobados en la API de Crossref el 2026-11-26.
@@ -363,6 +355,61 @@
   pages   = {E710--E732},
   year    = {2022},
   doi     = {10.1175/BAMS-D-21-0145.1}
+}
+
+
+% Fuentes de datos que el texto nombraba sin cita (auditoría de citas del 2026-11-26). DHIME y MapBiomas no tienen
+% DOI: se citan con su portal (forma de cita de MapBiomas de ../../../Analisis_De_Cuenca/DATOS_FUENTES.md). ALOS:
+% DOI y forma de cita de la página del proyecto ALOS PALSAR RTC en NASA Earthdata (leída el 2026-11-26); el producto
+% exacto del mosaico de la Tarea 1 no se registró.
+@misc{ideam_dhime,
+  author       = {{Instituto de Hidrología, Meteorología y Estudios Ambientales}},
+  title        = {Consulta y descarga de datos hidrometeorológicos ({DHIME})},
+  organization = {IDEAM},
+  year         = {2026},
+  note         = {Datos en estado preliminar. Consultado en 2026},
+  url          = {https://atencionciudadano.ideam.gov.co}
+}
+
+@misc{mapbiomas_col3,
+  author       = {{Fundación Gaia Amazonas}},
+  title        = {Proyecto {MapBiomas Colombia} Colección 3.0 -- Mapeo anual de cobertura y uso del suelo},
+  year         = {2025},
+  note         = {Cobertura 2022. Consultado el 2026-10-09},
+  url          = {https://colombia.mapbiomas.org}
+}
+
+@misc{asf_alos,
+  author    = {{ASF DAAC}},
+  title     = {{ALOS PALSAR} High Resolution Radiometric Terrain Corrected Product},
+  publisher = {NASA Alaska Satellite Facility Distributed Active Archive Center},
+  year      = {2014},
+  note      = {Incluye material {\copyright}~JAXA/METI},
+  doi       = {10.5067/Z97HFCNKR6VA},
+  url          = {https://doi.org/10.5067/Z97HFCNKR6VA},
+  howpublished = {NASA Alaska Satellite Facility Distributed Active Archive Center}
+}
+
+% SSEBop: se citan los conjuntos de datos (DataCite, 2026-11-26). Senay et al. (2023, Remote Sensing 15(1) 260) se
+% quitó: describe FANO como «v0.2.6» y no dice que sea la base de la v6.1 (VIIRS) que usamos.
+@misc{senay2023datos,
+  author       = {Senay, Gabriel and Kagone, Stefanie and Parrish, Gabriel E. and Budde, Michael E. and Rowland, James},
+  title        = {{SSEBop} Evapotranspiration Data from 2012 to Present: Dekadal (10-day), Monthly, Seasonal, and Annual Time Scales},
+  publisher    = {U.S. Geological Survey},
+  howpublished = {U.S. Geological Survey},
+  year         = {2023},
+  doi          = {10.5066/P9QJWQ6K},
+  url          = {https://doi.org/10.5066/P9QJWQ6K}
+}
+
+@misc{senay2017datos,
+  author       = {Senay, Gabriel B. and Kagone, Stefanie K. and Friedrichs, MacKenzie and Velpuri, Naga M. and Rowland, James and Verdin, James},
+  title        = {{SSEBop} Evapotranspiration Data},
+  publisher    = {U.S. Geological Survey},
+  howpublished = {U.S. Geological Survey},
+  year         = {2017},
+  doi          = {10.5066/F72V2F1F},
+  url          = {https://doi.org/10.5066/F72V2F1F}
 }
 
 @article{poveda2004,

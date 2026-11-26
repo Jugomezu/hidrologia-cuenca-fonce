@@ -659,6 +659,20 @@ que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en par
 p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
 Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).
 
+## Cita de Makkink (auditoría de citas, 26 nov)
+
+**Decisión (Juan, 26 nov, 5:00 p. m.).** Se quita Makkink (1957) de la lista de referencias; el informe dice que la
+ecuación se toma de las notas del curso (Hoyos). Recomendación del agente: la misma.
+**Razón.** Makkink (1957) no tiene DOI ni enlace (regla de citas). La ecuación y sus constantes (0.61 y −0.12) salen de
+las notas, y las notas tienen enlace. No se pudo confirmar en qué artículo de 1957 está la fórmula.
+
+## Penman con c = 0.8 (auditoría de citas, 26 nov)
+
+**Hallazgo.** En FAO-24, p. 15, el 0.8 es el coeficiente del Penman original (Eo) con tiempo en calma; el c de la
+forma de FAO-24 sale de su tabla 16 (p. 28). Recomendación del agente: mantener c = 0.8 y aclarar de dónde sale.
+**Decisión (Juan, 26 nov, 5:24 p. m.).** Se deja como está: c = 0.8 y el texto sin cambios («Yo interpreté que
+sugería 0.8»).
+
 ## 2026-11-26 · Punto 2 · Una sola cuenca en todo el diseño; tc = 60 min
 
 **Decisión (Juan).** El tc del Problema A se queda en 60 min. No se llama «conservador» (un tc mayor da menos

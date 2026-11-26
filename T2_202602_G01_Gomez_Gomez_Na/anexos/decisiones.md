@@ -636,3 +636,7 @@ reinicio va como sensibilidad). Los 3 años con déficit 0 se tratan con distrib
 **Ceros y distribución (Juan, 26 nov).** Distribución mixta con p0 = 3/25 y **Gumbel** como principal; GEV y LP3 como
 sensibilidad. Razón: 2 parámetros con 25 años, mejor PPCC (0.992); GEV falla en 143 de 1 000 réplicas; LP3 tiene techo
 (≈ 99 mm) por debajo de los 117 mm de 2016. **Resultado: T = 10 años, 86 mm (IC 95 % 66–104); T = 25, 110 mm (83–132).**
+**Enunciado (Juan, 26 nov).** El bono 1.6 exige que el punto 2 use la misma cuenca o una con información equivalente; el
+punto 2 es Denver, así que la fase 10 va como anexo, sin reclamar el bono. Se probó rehacer la serie como la define el
+enunciado (Σ(ETo − P̄) de enero, el único mes con φ > 1), pero Juan decidió no seguir (es un extra opcional). Queda la
+serie del script 40.

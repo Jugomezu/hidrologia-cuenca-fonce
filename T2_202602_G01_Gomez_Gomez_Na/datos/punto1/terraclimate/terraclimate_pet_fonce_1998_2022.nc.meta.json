@@ -4,7 +4,7 @@
   "version": "v1.1",
   "doi": "10.5281/zenodo.23961197",
   "variable": "pet",
-  "descripcion": "evapotranspiración de referencia (Reference Evapotranspiration), Penman-Monteith de pasto de referencia (FAO-56)",
+  "descripcion": "evapotranspiración de referencia (Reference Evapotranspiration), ASCE Penman–Monteith de pasto corto (mismas constantes que FAO-56) con rs corregida por CO2 (Yang et al., 2019)",
   "nombre_largo": "water_potential_evaporation_amount",
   "unidades": "mm/mes (atributo 'units' = 'mm', total del mes)",
   "codificacion": "int16 con scale_factor = 0.1, add_offset = 0, _FillValue = -32768; xarray aplica la escala al leer",

@@ -273,6 +273,46 @@ def widget_data_script():
     return f'<script type="application/json" id="hydro-data">{raw}</script>'
 
 
+
+def bonus_context():
+    """Cifras de las bonificaciones leídas de sus CSV (no escritas a mano)."""
+    cost = read_csv("bono_251_costo_esperado.csv")
+    sensitivity = read_csv("bono_251_sensibilidad.csv")
+    climate = read_csv("bono_253_cambio_climatico.csv")
+    hashimoto = read_csv("bono_254_hashimoto_crv.csv")
+    best = min(cost, key=lambda r: as_float(r, "CTAE_C0_per_year")) if cost else {}
+    base = next((r for r in climate if as_float(r, "delta_temperature_C") == 0.0), {})
+    d_design = as_float(base, "D_commercial_mm")
+    summaries = {as_float(r, "diameter_mm"): r for r in hashimoto
+                 if r.get("record_type") == "metricas_Hashimoto_1982"}
+    events = [r for r in hashimoto if r.get("record_type") == "evento_superacion"]
+    events_design = [r for r in events if as_float(r, "diameter_mm") == d_design]
+    sens_T = [as_float(r, "T_d_y") for r in sensitivity]
+    return {
+        "T_opt": as_float(best, "T_d_y"),
+        "T_sens_min": min(sens_T) if sens_T else float("nan"),
+        "T_sens_max": max(sens_T) if sens_T else float("nan"),
+        "tc": as_float(base, "tc_design_min"),
+        "i_base": as_float(base, "i_tc_base_T50_mmh"),
+        "Q50": as_float(base, "Qp_future_m3s"),
+        "D": d_design,
+        "i_crit": as_float(base, "i_critical_current_pipe_mmh"),
+        "T_eff_idf": as_float(base, "T_effective_IDF_y"),
+        "Qc": as_float(summaries.get(d_design, {}), "Qc_m3s"),
+        "events_design": events_design,
+        "n_events_total": len(events),
+    }
+
+
+def hashimoto_sentence(ctx):
+    """Frase condicional sobre las superaciones históricas de la obra adoptada."""
+    if ctx["events_design"]:
+        peak = max(ctx["events_design"], key=lambda r: as_float(r, "peak_Q_m3s"))
+        return (f"Para la tubería de {ctx['D']:.0f} mm, el evento de {peak.get('start_utc', '')[:10]} alcanza "
+                f"{as_float(peak, 'peak_Q_m3s'):.3f} m³/s, por encima de Qc={ctx['Qc']:.3f} m³/s.")
+    return (f"Con la tubería de {ctx['D']:.0f} mm (Qc={ctx['Qc']:.3f} m³/s) ningún evento horario del registro "
+            f"supera la capacidad; las {ctx['n_events_total']} superaciones guardadas son de diámetros menores.")
+
 def write_bonus_markdown():
     """Actualiza el suplemento técnico Markdown con los CSV generados."""
     cost = read_csv("bono_251_costo_esperado.csv")
@@ -298,7 +338,8 @@ def write_bonus_markdown():
         body = ["| " + " | ".join(clean(row.get(h, "")) for h in headers) + " |" for row in rows]
         return "\n".join([header, line, *body])
 
-    selected_cost = [r for r in cost if as_float(r, "T_d_y") in (2, 50, 227, 500)]
+    ctx = bonus_context()
+    selected_cost = [r for r in cost if as_float(r, "T_d_y") in (2, 50, ctx["T_opt"], 500)]
     content = f'''# Informe hidrológico · Punto 2
 
 ## 2.5 · Bonificaciones de Diseño y Riesgo
@@ -309,7 +350,7 @@ Los cálculos complementarios se procesaron con los archivos locales de la estac
 
 Se calcula la intensidad con la IDF y el caudal racional `Q(T)=C·i(tc,T)·A/3.6`. El costo de obra es `Cobra=C0·(Qd/Q2)^0.6`, anualizado mediante el factor de recuperación de capital `FRC=r(1+r)^n/((1+r)^n−1)`. El daño para `Q>Qd` es `Dmax·[1−exp(−(Q−Qd)/(0.5Qd))]`; su integral en probabilidad anual de excedencia entrega el DAE, y `CTAE=Canual+DAE`.
 
-Con `n=25`, `r=6%` y `Dmax=20C0`, el mínimo es **Tóptimo=227 años**. La integración numérica emplea 5,000 puntos medios entre 0 y `1/Td`.
+Con `n=25`, `r=6%` y `Dmax=20C0`, el mínimo es **Tóptimo={ctx["T_opt"]:.0f} años**. La integración numérica emplea 5,000 puntos medios entre 0 y `1/Td`.
 
 {md_table(["T_d_y", "Canual_C0_per_year", "DAE_C0_per_year", "CTAE_C0_per_year"], selected_cost)}
 
@@ -327,7 +368,7 @@ El umbral aplicado fue 9.40 mm/h antes de Weiss (10.72 mm/h después); se obtuvi
 
 ### 2.5.3 · Cambio climático y no estacionariedad
 
-Se aplicó el escalamiento de intensidad `1+0.07·ΔT` (Westra et al., 2014). La GEV no estacionaria usa `μ(t)=μ0+μ1t`, se evalúa en `t_final+25` y calcula la supervivencia sobre el mismo umbral crítico de la obra `i*=3.6Qc/(CA)=44.04 mm/h`. La fila base `ΔT=0` recupera `i(25.09 min,50)=40.96 mm/h`, `Q50=6.426 m³/s` y `Dcom=1500 mm`.
+Se aplicó el escalamiento de intensidad `1+0.07·ΔT` (Westra et al., 2014). La GEV no estacionaria usa `μ(t)=μ0+μ1t`, se evalúa en `t_final+25` y calcula la supervivencia sobre el mismo umbral crítico de la obra `i*=3.6Qc/(CA)={ctx['i_crit']:.2f} mm/h`. La fila base `ΔT=0` recupera `i({ctx['tc']:.0f} min,50)={ctx['i_base']:.2f} mm/h`, `Q50={ctx['Q50']:.3f} m³/s` y `Dcom={ctx['D']:.0f} mm`, los mismos del Problema A.
 
 {md_table(["delta_temperature_C", "i_tc_future_mmh", "Qp_future_m3s", "D_commercial_mm", "T_effective_IDF_y", "risk_25y_IDF", "GEV_future_evaluation_year_t_final_plus_25", "T_effective_GEV_nonstationary_y", "risk_25y_GEV"], climate)}
 
@@ -343,7 +384,7 @@ Eventos de excedencia históricos guardados:
 
 {md_table(["diameter_mm", "start_utc", "end_utc", "duration_hours", "peak_Q_m3s", "peak_excess_m3s"], events)}
 
-Para la tubería de 1500 mm, el evento del 26 de julio de 1965 alcanza aproximadamente 7.226 m³/s, por encima de `Qc=6.909 m³/s`. La evaluación se limita a resolución horaria y al modelo racional equivalente; no sustituye un tránsito hidráulico.
+{hashimoto_sentence(ctx)} La evaluación se limita a resolución horaria y al modelo racional equivalente; no sustituye un tránsito hidráulico.
 
 ![Figura 2.5 · Resumen gráfico de bonificaciones](fig_25_bonificaciones.png)
 '''
@@ -558,7 +599,7 @@ def section_24():
       <div class="interpretation"><strong>Interpretación hidrológica:</strong> para la tormenta de 180 min, el patrón con pico al final necesita {as_float(next((r for r in b_rows if r.get('pattern') == 'pico_al_final_creciente'), {}), 'Vreq_m3'):.0f} m³, frente a {as_float(next((r for r in b_rows if r.get('pattern') == 'pico_al_inicio_decreciente'), {}), 'Vreq_m3'):.0f} m³ con pico inicial. Al concentrar la lluvia intensa hacia el final, llega más volumen antes de que el tanque y el orificio hayan evacuado agua.</div>
 
       <h3>Respaldo metodológico · Hietogramas NRCS-UH y AMC</h3>
-      <p class="lede">Se conserva el ejercicio NRCS de bloques alternos del escenario representativo previo (A=1.85 km², C=0.52, C<sub>N,II</sub>=78 y t<sub>c</sub>=35 min). Estos resultados documentan el método y no se mezclan con los metadatos de la cuenca DEM de 1.0269 km².</p>
+      <p class="lede">Hietogramas de bloques alternos e hidrogramas NRCS-UH de la misma microcuenca DEM y con los mismos parámetros del Problema A (A={as_float(design, 'area_km2'):.4f} km², C={as_float(design, 'C_weighted'):.3f}, C<sub>N,II</sub>={as_float(design, 'CN_II_reference'):.0f} y t<sub>c</sub>={as_float(design, 'tc_design_min'):.0f} min). El caudal racional de esta sección multiplica C por el factor de frecuencia C<sub>f</sub> del escenario NRCS (supuesto de proyecto); por eso, para T=50, supera al del Problema A.</p>
       {image_card("fig4_hietograma_lluvia_efectiva.png", "Hietograma NRCS de lluvia efectiva", "Bloques alternos, abstracciones y exceso para T=50 años, D=2 h, AMC-II.")}
       {image_card("fig4_hidrogramas_diseno.png", "Hidrogramas NRCS-UH", "Q(t) para T=10–100 años con AMC-II y sensibilidad AMC-I/II/III para T=50 años.")}
       {image_card("fig4_caudales_pico_incertidumbre.png", "Caudales pico e incertidumbre NRCS", "Comparación Racional/NRCS-UH, intervalos bootstrap y efecto de duración.")}
@@ -598,7 +639,7 @@ def section_25():
         <li>La cuenca derivada de Copernicus GLO-30 es una candidata topográfica; validar con topografía bare-earth, red pluvial levantada y modelación de drenaje de Denver.</li>
         <li>La IDF subhoraria es extrapolada desde datos horarios; validar con pluviógrafos/radar y una ley de escala regional antes de dimensionar microdrenaje.</li>
         <li>La comparación NOAA es puntual. No hay todavía una serie de celda ERA5-Land/IMERG en los productos locales para estimar una razón malla/punto homogénea.</li>
-        <li>El escenario NRCS AMC-I/II/III conserva valor metodológico y corresponde a una cuenca representativa diferente de la delimitación DEM usada por los Problemas A y B.</li>
+        <li>El escenario NRCS AMC-I/II/III usa la misma cuenca DEM y los mismos C, CN y t<sub>c</sub> que el Problema A (el Problema B cambia C y t<sub>c</sub> a propósito, por la urbanización).</li>
         <li>Verificar criterios municipales, pérdidas locales, sumergencia, remanso, bloqueo por sedimentos, seguridad estructural y rutas de excedencia superficial antes de construcción.</li>
       </ul>
       <div class="callout"><strong>Uso recomendado:</strong> reporte de análisis y predimensionamiento. No reemplaza los planos, la revisión normativa ni el modelo hidráulico/hidrológico de detalle.</div>
@@ -624,7 +665,8 @@ def section_26():
     hashimoto = read_csv("bono_254_hashimoto_crv.csv")
     hash_summary = [r for r in hashimoto if r.get("record_type") == "metricas_Hashimoto_1982"]
     events = [r for r in hashimoto if r.get("record_type") == "evento_superacion"]
-    selected_cost = [r for r in cost if as_float(r, "T_d_y") in (2, 50, 227, 500)]
+    ctx = bonus_context()
+    selected_cost = [r for r in cost if as_float(r, "T_d_y") in (2, 50, ctx["T_opt"], 500)]
     cost_headers = ["T_d_y", "Canual_C0_per_year", "DAE_C0_per_year", "CTAE_C0_per_year"]
     sens_headers = ["Dmax_multiplier_C0", "rate_sensitivity", "T_d_y", "CTAE_C0_per_year"]
     pot_headers = ["return_period_AMS_y", "return_period_event_T_E_y", "POT_quantile_mm_h", "AMS_LP3_LMOM_quantile_mm_h", "AMS_empirical_quantile_mm_h"]
@@ -636,21 +678,21 @@ def section_26():
       <p class="lede">Cuatro análisis complementarios cuantifican el compromiso entre costo de protección, extremos por excedencias, calentamiento futuro y desempeño histórico de la alcantarilla. Los costos se expresan en unidades de C<sub>0</sub> normalizadas porque los archivos fuente no especifican un costo monetario base.</p>
       <div class="fig-grid">{image_card("fig_25_bonificaciones.png", "Síntesis gráfica de las bonificaciones", "Paneles A–D: costo-riesgo, POT/AMS, calentamiento y confiabilidad histórica.")}</div>
       <h3>2.5.1 · Costo esperado de protección</h3>
-      <p>Se evalúan T<sub>d</sub>=2–500 años con Q<sub>d</sub>=Q(1/T<sub>d</sub>), costo anualizado FRC·C<sub>obra</sub> y daño anual esperado integrado entre p=0 y 1/T<sub>d</sub>. El mínimo guardado es T<sub>óptimo</sub>=227 años para D<sub>max</sub>=20C<sub>0</sub> y r=6%.</p>
+      <p>Se evalúan T<sub>d</sub>=2–500 años con Q<sub>d</sub>=Q(1/T<sub>d</sub>), costo anualizado FRC·C<sub>obra</sub> y daño anual esperado integrado entre p=0 y 1/T<sub>d</sub>. El mínimo guardado es T<sub>óptimo</sub>={ctx["T_opt"]:.0f} años para D<sub>max</sub>=20C<sub>0</sub> y r=6%.</p>
       {table(cost_headers, selected_cost, "compact")}{table(sens_headers, sensitivity, "compact")}
-      <div class="interpretation"><strong>Interpretación hidrológica:</strong> el óptimo balancea la reducción del daño con el costo de una obra mayor; cambia de 96 a 500 años en la sensibilidad factorial de D<sub>max</sub> y r. La cifra es normalizada y no representa un presupuesto monetario.</div>
+      <div class="interpretation"><strong>Interpretación hidrológica:</strong> el óptimo balancea la reducción del daño con el costo de una obra mayor; cambia de {ctx["T_sens_min"]:.0f} a {ctx["T_sens_max"]:.0f} años en la sensibilidad factorial de D<sub>max</sub> y r. La cifra es normalizada y no representa un presupuesto monetario.</div>
       <h3>2.5.2 · POT/GPD y relación de Langbein</h3>
       <p>La serie horaria se declusterizó con separación mínima de seis horas secas. El umbral seleccionado genera alrededor de dos eventos por año válido; se ajustó GPD a los excesos con convención scipy c=+ξ y se transformó el retorno de evento a retorno AMS mediante Langbein.</p>
       {table(pot_headers, pot, "compact")}
       <div class="interpretation"><strong>Interpretación hidrológica:</strong> POT utiliza varios eventos por año, mientras AMS retiene un máximo anual. Langbein hace comparables los retornos; las diferencias también reflejan el umbral y el ajuste GPD.</div>
       <h3>2.5.3 · Cambio climático y GEV no estacionaria</h3>
-      <p>La curva IDF se escala con 7% por °C. La GEV evalúa μ(t)=μ<sub>0</sub>+μ<sub>1</sub>t en t<sub>final</sub>+25 años contra el umbral fijo i*=44.04 mm/h. La fila ΔT=0 recupera Q<sub>50</sub>=6.426 m³/s y D<sub>com</sub>=1500 mm.</p>
+      <p>La curva IDF se escala con 7% por °C. La GEV evalúa μ(t)=μ<sub>0</sub>+μ<sub>1</sub>t en t<sub>final</sub>+25 años contra el umbral fijo i*={ctx["i_crit"]:.2f} mm/h. La fila ΔT=0 recupera i(t<sub>c</sub>={ctx["tc"]:.0f} min)={ctx["i_base"]:.2f} mm/h, Q<sub>50</sub>={ctx["Q50"]:.3f} m³/s y D<sub>com</sub>={ctx["D"]:.0f} mm, los mismos del Problema A.</p>
       {table(climate_headers, climate, "compact")}
       <div class="interpretation"><strong>Interpretación hidrológica:</strong> el escalamiento climático reduce el retorno efectivo de la obra y eleva Q<sub>p</sub>. La GEV futura puede diferir de la curva IDF por la tendencia ajustada y la limitada muestra anual.</div>
       <h3>2.5.4 · Confiabilidad, resiliencia y vulnerabilidad</h3>
       <p>Hashimoto se calculó con caudal horario, Weiss=1.14 y capacidades a tubo lleno de Manning. α es la fracción de horas sin falla; γ es la tasa de recuperación por hora fallida; ν resume el exceso sobre capacidad.</p>
       {table(hash_headers, hash_summary, "compact")}<h4>Eventos históricos que superan la capacidad</h4>{table(event_headers, events, "compact")}
-      <div class="interpretation"><strong>Interpretación hidrológica:</strong> el evento del 26-jul-1965 alcanza aproximadamente 7.226 m³/s y supera la capacidad de 1500 mm; 1800 mm no presenta superaciones en el registro horario. Las métricas están limitadas por la resolución horaria.</div>
+      <div class="interpretation"><strong>Interpretación hidrológica:</strong> {hashimoto_sentence(ctx)} Las métricas están limitadas por la resolución horaria.</div>
       {bonus_widget_markup()}
     </section>'''
 
@@ -841,9 +883,10 @@ BONUS_INTERACTIVE_JS = r'''<script>
       const total=annual+damage;
       if(!optimum||total<optimum.total)optimum={T:row.T,annual,damage,total};
     });
-    const factor=1+.07*dt, intensity=40.96*factor, q=6.426112*factor;
+    const base0=((data.bonus&&data.bonus.climate)||[]).find(r=>Number(r.delta_temperature_C)===0)||{};
+    const factor=1+.07*dt, intensity=Number(base0.i_tc_base_T50_mmh)*factor, q=Number(base0.Qp_future_m3s)*factor;
     const m=Number((data.idf_params||{}).m)||.32660717;
-    const teff=62.418/(factor**(1/m));
+    const teff=Number(base0.T_effective_IDF_y)/(factor**(1/m));
     byId("bonus-dmax-label").textContent=fmt(dm,0)+" C₀";
     byId("bonus-rate-label").textContent=fmt(r*100,0)+"%";
     byId("bonus-dt-label").textContent=fmt(dt,1)+" °C";

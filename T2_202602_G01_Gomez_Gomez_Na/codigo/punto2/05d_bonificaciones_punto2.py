@@ -25,6 +25,7 @@ MAXIMA_PATH = PRODUCTS / "maximos_anuales_intensidad.csv"
 IDF_PARAMS_PATH = PRODUCTS / "parametros_idf.csv"
 IDF_QUANTILES_PATH = PRODUCTS / "cuantiles_y_bootstrap.csv"
 PROBLEM_A_MC_PATH = PRODUCTS / "problemaA_montecarlo.csv"
+PROBLEM_A_PATH = PRODUCTS / "problemaA_alcantarilla.csv"
 
 OUT_251 = PRODUCTS / "bono_251_costo_esperado.csv"
 OUT_251_SENS = PRODUCTS / "bono_251_sensibilidad.csv"
@@ -32,22 +33,28 @@ OUT_252 = PRODUCTS / "bono_252_pot_langbein.csv"
 OUT_253 = PRODUCTS / "bono_253_cambio_climatico.csv"
 OUT_254 = PRODUCTS / "bono_254_hashimoto_crv.csv"
 
-# Parámetros de diseño indicados expresamente para esta bonificación.
-AREA_KM2 = 1.0269
-TC_MIN = 25.09
-C_RUNOFF = 0.55
-S0 = 0.00953
-MANNING_N = 0.013
-D_COM_CURRENT_M = 1.500
-QC_CURRENT_M3S = 6.909
-DESIGN_RETURN_Y = 50.0
-LIFE_Y = 25
+# Parámetros de la cuenca y de la obra: se leen del diseño nominal del
+# Problema A (05b), que a su vez toma área, longitud y pendiente del DEM (05a).
+# Así las bonificaciones usan exactamente la misma cuenca, tc, C e intensidad.
+def _diseno_problema_a() -> pd.Series:
+    if not PROBLEM_A_PATH.is_file():
+        raise FileNotFoundError(f"Falta {PROBLEM_A_PATH.relative_to(ROOT)}; corra antes 05b.")
+    tabla = pd.read_csv(PROBLEM_A_PATH, encoding="utf-8-sig", low_memory=False)
+    return tabla[tabla["record_type"].eq("diseño_nominal")].iloc[0]
+
+
+_DISENO_A = _diseno_problema_a()
+AREA_KM2 = float(_DISENO_A["area_km2"])
+TC_MIN = float(_DISENO_A["tc_design_min"])
+C_RUNOFF = float(_DISENO_A["C_weighted"])
+S0 = float(_DISENO_A["slope_S0"])
+MANNING_N = float(_DISENO_A["manning_n"])
+D_COM_CURRENT_M = float(_DISENO_A["D_commercial_mm"]) / 1000.0
+QC_CURRENT_M3S = float(_DISENO_A["Qc_full_m3s"])
+I_DISENO_A_MMH = float(_DISENO_A["idf_intensity_point_mmh"])
+DESIGN_RETURN_Y = float(_DISENO_A["T_design_y"])
+LIFE_Y = int(_DISENO_A["life_years"])
 WEISS_1H = 1.14
-# Ancla de diseño indicada para el caso tc=25.09 min, T=50. Se usa una sola
-# vez para calibrar la curva temporal de Talbot-Wenzel; no se vuelve a aplicar
-# Weiss porque esta intensidad IDF ya está referida a la serie corregida.
-IDF_ANCHOR_INTENSITY_MMH = 40.96
-IDF_ANCHOR_RETURN_Y = 50.0
 COMMERCIAL_MM = np.array([600, 750, 900, 1050, 1200, 1350, 1500, 1800], dtype=float)
 C0_NORMALIZED = 1.0
 SEED = 42
@@ -69,18 +76,13 @@ def idf_parameters() -> dict[str, float]:
 
 
 def idf_i(duration_min: float, return_y: float, params: dict[str, float]) -> float:
-    """Talbot–Wenzel calibrada al ancla de diseño de 25.09 min y T=50.
+    """Intensidad Talbot–Wenzel (mm/h) de parametros_idf.csv, sin reescalar.
 
-    La duración se convierte explícitamente de minutos a horas. Se conserva
-    la dependencia T^m y la forma en duración de 05b, con una única
-    normalización para reproducir i(25.09 min, 50)=40.96 mm/h.
+    La duración se convierte explícitamente de minutos a horas. Es la misma
+    curva que usa el Problema A (05b).
     """
     d_h = duration_min / 60.0
-    raw = params["a"] * return_y**params["m"] / (d_h + params["b_h"])**params["c"]
-    raw_anchor = params["a"] * IDF_ANCHOR_RETURN_Y**params["m"] / (
-        TC_MIN / 60.0 + params["b_h"]
-    )**params["c"]
-    return raw * IDF_ANCHOR_INTENSITY_MMH / raw_anchor
+    return params["a"] * return_y**params["m"] / (d_h + params["b_h"])**params["c"]
 
 
 def rational_q(intensity_mmh: float, C: float = C_RUNOFF) -> float:
@@ -300,8 +302,10 @@ def part_253(params: dict[str, float], valid_years: list[int]) -> pd.DataFrame:
         if not mc_summary.empty else np.nan
     mc_t = 1.0 / mc_p if np.isfinite(mc_p) and mc_p > 0 else np.nan
     mc_risk = 1.0 - (1.0 - mc_p)**LIFE_Y if np.isfinite(mc_p) else np.nan
-    if not np.isclose(i_base_tc, IDF_ANCHOR_INTENSITY_MMH, atol=1e-10, rtol=0):
-        raise ArithmeticError("La IDF calibrada no reproduce el ancla i(tc=25.09 min,T=50)=40.96 mm/h.")
+    # Comprobación de consistencia: la intensidad base debe ser la del Problema A.
+    if not np.isclose(i_base_tc, I_DISENO_A_MMH, rtol=1e-4):
+        raise ArithmeticError(f"i(tc, T={DESIGN_RETURN_Y:g}) = {i_base_tc:.3f} mm/h no coincide con el "
+                              f"Problema A ({I_DISENO_A_MMH:.3f} mm/h).")
     q50_check = rational_q(i_base_tc)
     rows = []
     for delta in deltas:
@@ -310,12 +314,12 @@ def part_253(params: dict[str, float], valid_years: list[int]) -> pd.DataFrame:
         qp = rational_q(ip_tc)
         dreq = required_diameter(qp)
         dcom_mm, dcom_label = commercial_diameter(dreq)
-        # Inversa de la misma curva IDF calibrada usada arriba: i(T)=i50*(T/50)^m.
-        tef_idf = IDF_ANCHOR_RETURN_Y * (i_critical / ip_tc) ** (1.0 / params["m"])
+        # Inversa de la misma curva IDF usada arriba: i(T)=i50*(T/50)^m.
+        tef_idf = DESIGN_RETURN_Y * (i_critical / ip_tc) ** (1.0 / params["m"])
         p_idf = min(1.0, max(0.0, 1.0 / tef_idf))
         risk_idf = 1 - (1 - p_idf)**LIFE_Y
         # Proyecta la GEV hasta t_final+25 y aplica el factor climático a la
-        # distribución. El umbral de la obra se mantiene fijo en i*=44.04 mm/h.
+        # distribución. El umbral de la obra i* se mantiene fijo.
         mu_future = (gev["mu0_mmh"] + gev["mu1_mmh_per_year"] *
                      (future_year - gev["time_center_year"])) * factor
         scale_future = gev["scale_mmh"] * factor
@@ -358,8 +362,8 @@ def part_254(hourly: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
     data = hourly[["timestamp", "precip_mm", "precip_state"]].copy()
     data["precip_mm"] = pd.to_numeric(data["precip_mm"], errors="coerce")
     data = data.sort_values("timestamp").reset_index(drop=True)
-    # tc=25.09 min is subhourly, but the source is hourly: a one-hour window
-    # is the shortest observable interval; apply the requested Weiss factor.
+    # La ventana es tc redondeado hacia arriba a horas enteras (la serie es
+    # horaria); con tc = 60 min es una hora. Se aplica el factor de Weiss.
     window_hours = max(1, int(math.ceil(TC_MIN / 60.0)))
     valid_rain = data["precip_mm"].where(np.isfinite(data["precip_mm"]) & (data["precip_mm"] >= 0))
     intensity = valid_rain.rolling(window_hours, min_periods=window_hours).mean() * WEISS_1H
@@ -371,7 +375,7 @@ def part_254(hourly: pd.DataFrame) -> tuple[pd.DataFrame, list[dict]]:
     rows, events_for_print = [], []
     for diameter_mm in (1200.0, 1500.0, 1800.0):
         diameter_m = diameter_mm / 1000.0
-        qc = QC_CURRENT_M3S if diameter_mm == 1500 else pipe_capacity(diameter_m)
+        qc = QC_CURRENT_M3S if np.isclose(diameter_mm, D_COM_CURRENT_M * 1000) else pipe_capacity(diameter_m)
         failed = qv > qc
         alpha = float(1.0 - failed.mean()) if len(failed) else np.nan
         if len(failed) > 1:
@@ -548,8 +552,9 @@ def main() -> None:
     base, sensitivity, optimum = part_251(params)
     print("\n2.5.1 · Costo esperado")
     q50_anchor = rational_q(idf_i(TC_MIN, DESIGN_RETURN_Y, params))
-    print(f"  Ancla compartida con 2.5.3: i(25.09 min, T=50)={IDF_ANCHOR_INTENSITY_MMH:.2f} mm/h; "
-          f"Q50={q50_anchor:.3f} m³/s (sin Weiss adicional).")
+    print(f"  Diseño del Problema A: A={AREA_KM2:.4f} km², tc={TC_MIN:.1f} min, C={C_RUNOFF:.3f}; "
+          f"i(tc, T={DESIGN_RETURN_Y:g})={idf_i(TC_MIN, DESIGN_RETURN_Y, params):.2f} mm/h; "
+          f"Q50={q50_anchor:.3f} m³/s.")
     print(f"  Q2={optimum['Q2_m3s']:.4f} m³/s; T óptimo={optimum['T_d_y']:.0f} años")
     print(f"  C_obra={optimum['Cobra_C0_units']:.4f} C0; C_anual={optimum['Canual_C0_per_year']:.4f} C0/año; "
           f"DAE={optimum['DAE_C0_per_year']:.4f} C0/año; CTAE={optimum['CTAE_C0_per_year']:.4f} C0/año")

@@ -509,3 +509,16 @@ siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 
 los dos que quedan fuera de ± σ_ET del balance. Efecto: la mediana solo cambia en 2002 (1 144 → 1 115 mm), porque
 los dos estaban en extremos opuestos; con el rango más estrecho, 2011 pasa a «bajo todos los productos». En Budyko la
 mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo con P̄ (Juan, 24 nov).
+
+## 2026-11-26 · Punto 2 · Una sola cuenca en todo el diseño; tc = 60 min
+
+**Decisión (Juan).** El tc del Problema A se queda en 60 min. No se llama «conservador» (un tc mayor da menos
+intensidad); se justifica porque Kerby-Hathaway (69.8), Témez (82.4) y NRCS (175.0) quedan por encima y Kirpich (45.5)
+es el valor bajo: solo cuenta el tránsito por el cauce y omite el flujo laminar inicial.
+**Decisión (Juan).** Todo el diseño usa la misma cuenca: área, longitud y pendiente del DEM (1.0269 km², 2 312 m,
+0.0095) y C = 0.495, CN = 78, tc = 60 min del Problema A. Antes, 04 usaba una cuenca supuesta (1.85 km², tc 35, C 0.52)
+y 05d fijaba a mano tc = 25.09 min, C = 0.55 e i = 40.96 mm/h. 04 pasa a 05e y lee la cuenca de 05a/05b; 05d la lee
+de `problemaA_alcantarilla.csv`. Problemas A y B no cambian. Efecto: con C = 0.495, ningún evento horario del registro
+supera la tubería de 1 500 mm (antes, el del 26-jul-1965); i* de la GEV pasa de 44.04 a 48.93 mm/h; los hidrogramas
+NRCS bajan (Qp T=50, D=2 h, AMC-II: 9.61 → 3.70 m³/s). Queda el factor C_f del escenario NRCS (1.10 en T=50), que
+hace que su Q racional (7.07) supere al del Problema A (6.43): decisión pendiente de Juan.

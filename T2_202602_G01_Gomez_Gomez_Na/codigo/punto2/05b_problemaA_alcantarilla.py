@@ -88,8 +88,11 @@ def tc_methods(meta: dict, cn: float) -> tuple[dict[str, float], dict]:
         "Kerby-Hathaway (lámina + cauce)": kerby_hathaway,
         "NRCS-SCS Lag": nrcs_tc,
     }
-    # 60 min es una adopción redondeada dentro del rango urbano rápido
-    # (Kirpich/Kerby compuesto), conservadora respecto a Kirpich solo.
+    # 60 min: redondeo hacia abajo de Kerby-Hathaway; Témez y NRCS dan más.
+    # Kirpich queda como valor bajo porque solo representa el tránsito por el
+    # cauce y omite el flujo laminar inicial que Kerby-Hathaway sí suma. Ojo:
+    # en el método racional un tc mayor da MENOR intensidad, así que 60 min no
+    # es conservador frente a Kirpich (se reporta su efecto en la sensibilidad).
     adopted = 60.0
     context = {
         "Kirpich_min": kirpich, "Temez_min": temez,
@@ -100,7 +103,12 @@ def tc_methods(meta: dict, cn: float) -> tuple[dict[str, float], dict]:
         "Kerby_Hathaway_combined_min": kerby_hathaway,
         "NRCS_SCS_Lag_min": nrcs_tc,
         "tc_design_min": adopted,
-        "tc_selection_note": "60 min: redondeo de diseño urbano entre estimaciones rápidas; NRCS Lag es un control de cuenca rural más lento.",
+        "tc_selection_note": (
+            f"60 min: Kerby-Hathaway ({kerby_hathaway:.1f}), Témez ({temez:.1f}) y NRCS-SCS Lag "
+            f"({nrcs_tc:.1f}) quedan por encima; Kirpich ({kirpich:.1f}) es el valor bajo porque solo "
+            "representa el tránsito por el cauce y omite el flujo laminar inicial. No es una elección "
+            "conservadora: un tc menor daría mayor intensidad (ver sensibilidad)."
+        ),
     }
     return methods, context
 

@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Diseño preliminar de una microcuenca urbana representativa de Denver.
+"""Hietogramas de bloques alternos e hidrogramas NRCS de la microcuenca del DEM.
 
-Requiere numpy, pandas y matplotlib. Consume productos IDF locales; no abre ni
-descarga el PSV original. Las rutas se resuelven relativas a este proyecto.
+Requiere numpy, pandas y matplotlib. Usa la misma cuenca y los mismos
+parámetros que el Problema A: área, longitud y desnivel de 05a (DEM) y C, CN y
+tc de 05b. Por eso se corre después de 05a y 05b. Antes era 04 y usaba una
+cuenca representativa supuesta (1.85 km², tc 35 min, C 0.52), anterior al DEM.
+Las rutas se resuelven relativas a este proyecto.
 """
 from pathlib import Path
+import json
 import math
 import warnings
 
@@ -13,6 +17,8 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 PRODUCTS = ROOT / "productos" / "punto2"
+META_DEM = ROOT / "datos" / "punto2" / "metadatos_microcuenca.json"
+PROBLEM_A = PRODUCTS / "problemaA_alcantarilla.csv"
 PARAMS_IDF = PRODUCTS / "parametros_idf.csv"
 IDF_TABLE = PRODUCTS / "tabla_idf_completa.csv"
 OUT_HIET = PRODUCTS / "hietogramas_bloques_alternos.csv"
@@ -24,16 +30,27 @@ FIG_HIET = PRODUCTS / "fig4_hietograma_lluvia_efectiva.png"
 FIG_HYDRO = PRODUCTS / "fig4_hidrogramas_diseno.png"
 FIG_QP = PRODUCTS / "fig4_caudales_pico_incertidumbre.png"
 
-# Geometría y parámetros de cuenca representativa (hipótesis de diseño, no
-# delineación topográfica certificada de un predio específico).
-AREA_KM2 = 1.85
-L_M = 2100.0
-DELTA_H_M = 37.8
-SLOPE = DELTA_H_M / L_M
-CN_II = 78.0
-C_BASE = 0.52
+
+def _leer_cuenca():
+    """Geometría del DEM (05a) y diseño nominal del Problema A (05b)."""
+    for ruta in (META_DEM, PROBLEM_A):
+        if not ruta.is_file():
+            raise FileNotFoundError(f"Falta {ruta.relative_to(ROOT)}; corra antes 05a y 05b.")
+    meta = json.loads(META_DEM.read_text(encoding="utf-8"))
+    tabla = pd.read_csv(PROBLEM_A, encoding="utf-8-sig", low_memory=False)
+    diseno = tabla[tabla["record_type"].eq("diseño_nominal")].iloc[0]
+    return meta, diseno
+
+
+_META, _DISENO_A = _leer_cuenca()
+AREA_KM2 = float(_META["area_km2"])
+L_M = float(_META["main_channel_length_m"])
+DELTA_H_M = float(_META["elevation_max_m"]) - float(_META["outlet_elevation_m"])
+SLOPE = float(_META["relief_slope_S0_m_per_m"])
+CN_II = float(_DISENO_A["CN_II_reference"])
+C_BASE = float(_DISENO_A["C_weighted"])
+TC_DESIGN_MIN = float(_DISENO_A["tc_design_min"])
 DELTA_T_MIN = 5.0
-TC_DESIGN_MIN = 35.0
 DESIGN_DURATION_H = 2.0
 RETURN_PERIODS = (10, 25, 50, 100)
 AMC_NAMES = ("AMC-I", "AMC-II", "AMC-III")
@@ -42,21 +59,17 @@ CF_BY_T = {10: 1.00, 25: 1.05, 50: 1.10, 100: 1.15}
 
 
 def tc_estimates():
-    # Kirpich (L m, S m/m, result min); Temez (L km, slope percent, result h).
-    kirpich_min = 0.01947 * L_M ** 0.77 * SLOPE ** (-0.385)
-    temez_h = 0.30 * (2.1 / (1.8 ** 0.25)) ** 0.76
-    temez_min = 60 * temez_h
-    # NRCS/SCS lag screening formula: L(ft), Sret(in), Y(%) -> t_lag(h);
-    # tc = t_lag/0.6. This rural lag check is not adopted as urban tc.
-    cn_s = 25400 / CN_II - 254
-    s_in = cn_s / 25.4
-    length_ft = L_M * 3.280839895
-    lag_h = length_ft ** 0.8 * (s_in + 1) ** 0.7 / (1900 * math.sqrt(SLOPE * 100))
-    nrcs_tc_min = (lag_h / 0.6) * 60
+    """Las mismas estimaciones de tc del Problema A (05b), sin recalcularlas aparte."""
+    d = _DISENO_A
     return [
-        {"metodo": "Kirpich", "tc_min": kirpich_min, "interpretacion": "Respuesta rápida de cauce definido; ecuación empírica."},
-        {"metodo": "Témez", "tc_min": temez_min, "interpretacion": "Estimación empírica adicional con pendiente en porcentaje."},
-        {"metodo": "NRCS-SCS Lag", "tc_min": nrcs_tc_min, "interpretacion": "Comprobación de lag; tiende a ser conservadora en esta cuenca urbana."},
+        {"metodo": "Kirpich (cauce completo)", "tc_min": float(d["Kirpich_min"]),
+         "interpretacion": "Solo tránsito por el cauce; valor bajo frente a los demás."},
+        {"metodo": "Témez", "tc_min": float(d["Temez_min"]),
+         "interpretacion": "Estimación empírica con L en km y S en m/m."},
+        {"metodo": "Kerby-Hathaway (lámina + cauce)", "tc_min": float(d["Kerby_Hathaway_combined_min"]),
+         "interpretacion": "Suma el flujo laminar inicial (Kerby) y el cauce (Kirpich)."},
+        {"metodo": "NRCS-SCS Lag", "tc_min": float(d["NRCS_SCS_Lag_min"]),
+         "interpretacion": "Comprobación de lag de cuenca rural; la más lenta."},
     ]
 
 
@@ -258,17 +271,16 @@ def main():
 
     estimates = tc_estimates()
     tc_df = pd.DataFrame(estimates)
-    # Adopt the rounded-up fast-response estimates Kirpich/Témez for the urban
-    # basin; NRCS Lag is retained as an intentionally conservative rural check.
+    # tc adoptado = el del Problema A (05b), con su misma justificación.
     tc_df["adopted_design"] = False
     tc_design = TC_DESIGN_MIN
     dt_check = DELTA_T_MIN <= tc_design / 5
     tc_df = pd.concat([tc_df, pd.DataFrame([{"metodo": "Diseño adoptado", "tc_min": tc_design,
-                                             "interpretacion": "35 min: redondeo conservador por encima de Kirpich/Témez; el NRCS lag se conserva como comprobación rural de mayor duración.",
+                                             "interpretacion": str(_DISENO_A["tc_selection_note"]),
                                              "adopted_design": True}])], ignore_index=True)
     tc_df.to_csv(OUT_TC, index=False, float_format="%.6f", encoding="utf-8")
     pd.DataFrame([
-        {"parametro": "Área", "valor": AREA_KM2, "unidad": "km² (185 ha)"},
+        {"parametro": "Área", "valor": AREA_KM2, "unidad": "km² (DEM, 05a)"},
         {"parametro": "Longitud del cauce principal", "valor": L_M, "unidad": "m"},
         {"parametro": "Diferencia de cotas", "valor": DELTA_H_M, "unidad": "m"},
         {"parametro": "Pendiente S0", "valor": SLOPE, "unidad": "m/m"},
@@ -286,7 +298,7 @@ def main():
     print("CN por condición antecedente:", cn_amc)
     tc_row = idf_row_at(idf_table, tc_design, 10)
     # tc intensity from Talbot-Wenzel central estimate; CI log-interpolated from
-    # the fitted hourly/subhourly master table (at 35 min).
+    # the fitted hourly/subhourly master table (at tc).
     i_tc = {T: intensity_from_params(tc_design / 60, T, pars) for T in RETURN_PERIODS}
     ci_tc = {T: idf_row_at(idf_table, tc_design, T) for T in RETURN_PERIODS}
     cf_note = "Supuesto de proyecto, no factor universal: T10=1.00, T25=1.05, T50=1.10, T100=1.15."
@@ -375,9 +387,9 @@ def main():
     make_figures(hdf, rdf, hydrographs, tc_df)
 
     # Diagnostic water balance and scenario summary.
-    print("Cuenca: A=1.85 km² (185 ha), L=2,100 m, ΔH=37.8 m, S0=0.018 m/m; C=0.52; CNII=78.")
-    print("Criterio tc: 35 min, redondeo por encima de las estimaciones rápidas Kirpich/Témez; NRCS-SCS Lag se reporta como control conservador.")
-    print(f"Δt=5 min <= tc/5={TC_DESIGN_MIN/5:.1f} min; sí.")
+    print(f"Cuenca DEM: A={AREA_KM2:.4f} km², L={L_M:.1f} m, ΔH={DELTA_H_M:.2f} m, S0={SLOPE:.5f} m/m; "
+          f"C={C_BASE:.3f}; CNII={CN_II:g}; tc={TC_DESIGN_MIN:g} min (mismos del Problema A).")
+    print(f"Δt={DELTA_T_MIN:g} min <= tc/5={TC_DESIGN_MIN/5:.1f} min.")
     print("Número de hietogramas de diseño y sensibilidad:", len(storms))
     print("Errores de balance volumétrico UH (%), rango:", float(rdf.volume_error_pct.min()), float(rdf.volume_error_pct.max()))
     print("Duración que maximiza Qp en T=50, AMC-II, Ia=0.2S:")

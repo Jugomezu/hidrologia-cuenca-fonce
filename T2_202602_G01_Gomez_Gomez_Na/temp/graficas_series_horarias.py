@@ -1066,6 +1066,9 @@ code { font: 400 .86em var(--f-dato); }
   (Gumbel, IC 66–104), 96 (GEV, 67–122), 88 (LP3, 68–107); las tres coinciden dentro del IC. T = 25: 110, 134 y 95 mm, y
   ahí se separan: la GEV sube rápido y la LP3 se aplana. La LP3 se aplana porque tiene techo: en log el sesgo es −2.0 (A) y −2.2 (con +1 mm), y una Pearson III con sesgo negativo tiene un máximo, 99 y 101 mm, por debajo de los 117 mm de 2016. En la GEV, 143 de 1 000 réplicas no tienen ajuste por momentos L.
   Reiniciar en enero solo cambia 2016 (117 → 90) y 2019 (68 → 27).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Decisión de Juan (26 nov)</h3>
+  <p>Sin reinicio de la suma; distribución mixta (p0 = 0.12) con Gumbel. El déficit climático que se supera en promedio una
+  vez cada 10 años es 86 mm (IC 95 % 66–104); cada 25 años, 110 mm (83–132). GEV y LP3 quedan como sensibilidad.</p></div>
 </section>
 
 <section>

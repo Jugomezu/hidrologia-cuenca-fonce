@@ -9,11 +9,13 @@ Decisiones de este script:
     - (Juan, 2026-11-26) La suma no se reinicia en ninguna fecha fija; solo vuelve a 0 cuando la lluvia acumulada cubre el
       déficit. La suma no se reinicia el 1 de enero: la temporada seca dic–mar cruza el cambio de año y reiniciar la partiría.
       Como sensibilidad se calcula también la versión que reinicia en enero (columna deficit_reinicio_enero_mm).
-    - (propuesta del agente, pendiente de Juan) Hay años sin ningún mes con ETo > P̄ (déficit 0). Las distribuciones del punto 2 no admiten ceros (LP3 usa log10),
+    - (Juan, 2026-11-26) Hay años sin ningún mes con ETo > P̄ (déficit 0). Las distribuciones del punto 2 no admiten ceros (LP3 usa log10),
       así que se usa la distribución mixta (probabilidad total):
           F(x) = p0 + (1 − p0)·F+(x),   p0 = fracción de años con déficit 0,  F+ ajustada a los años con déficit > 0.
       El cuantil de periodo de retorno T sale de F+(x) = (1 − 1/T − p0)/(1 − p0); si 1 − 1/T ≤ p0, el cuantil es 0.
-    - (propuesta del agente, pendiente de Juan) Ajuste por momentos L (el método que eligió el punto 2) para Gumbel, GEV y LP3. IC 95 % por bootstrap de los
+    - (Juan, 2026-11-26) Distribución principal: Gumbel (2 parámetros, mejor PPCC); GEV y LP3 quedan como sensibilidad.
+      La LP3 tiene techo (Pearson III con asimetría negativa en log, ≈ 99 mm), por debajo de los 117 mm de 2016.
+    - Ajuste por momentos L (el método que eligió el punto 2) para Gumbel, GEV y LP3. IC 95 % por bootstrap de los
       25 años (se remuestrean años, con sus ceros, y se recalculan p0 y F+), 1 000 réplicas, semilla 42, como el punto 2.
     - T = 2, 5, 10 y 25 años. Con 25 años de datos, T mayores son extrapolación.
 
@@ -53,6 +55,7 @@ SALIDA_PNG = CARPETA_PRODUCTOS / "deficit_climatico_frecuencia.png"
 
 ANIO_INICIO, ANIO_FIN = 1998, 2022
 DISTRIBUCIONES = ("Gumbel", "GEV", "LP3")
+DISTRIBUCION_PRINCIPAL = "Gumbel"   # Juan, 2026-11-26
 METODO = "LMOM"                 # momentos L, como el punto 2
 PERIODOS_RETORNO = (2, 5, 10, 25)
 REPLICAS_BOOTSTRAP = 1000
@@ -138,7 +141,7 @@ def main():
         for j, periodo in enumerate(PERIODOS_RETORNO):
             validas = replicas[:, j][np.isfinite(replicas[:, j])]
             bajo, alto = np.percentile(validas, [2.5, 97.5])
-            filas.append({"distribucion": distribucion, "metodo": METODO, "periodo_retorno_anios": periodo,
+            filas.append({"distribucion": distribucion, "principal": distribucion == DISTRIBUCION_PRINCIPAL, "metodo": METODO, "periodo_retorno_anios": periodo,
                           "deficit_mm": cuantiles[j], "ic95_bajo_mm": bajo, "ic95_alto_mm": alto,
                           "p0": p0, "n_anios": len(valores), "n_positivos": len(positivos),
                           "replicas_validas": len(validas), "KS": ks, "AD": ad, "PPCC": ppcc,

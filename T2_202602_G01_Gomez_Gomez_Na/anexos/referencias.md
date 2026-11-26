@@ -66,7 +66,8 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
   https://carlosdhoyos.github.io/cursos/hidrologia/evapotranspiracion.html. Usado: ecuaciones de Hargreaves,
   Priestley–Taylor, Makkink, Penman (forma FAO-24) y AA tal como se dan en el curso (Partes 2, 6 y 7). Leído: sí.
 - Jaramillo Robledo, A. (2006). Evapotranspiración de referencia en la región Andina de Colombia. *Cenicafé, 57*(4),
-  288–298. Leído: sí, completo. https://cenicafe.org/es/publications/arc057(04)288-298.pdf (también en
+  288–298. Leído: sí, completo. Tabla 1: 34 estaciones, dos en Santander (Palonegro, Lebrija; Campo Capote,
+  Vélez), lo que respalda el texto de Juan (comprobado el 2026-11-26). https://cenicafe.org/es/publications/arc057(04)288-298.pdf (también en
   https://www.scribd.com/document/519656789/arc057-04-288-298). Usado: ETo = 4.37·exp(−0.0002 h), ec. 1, p. 292.
   No tiene DOI.
 - Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
@@ -98,16 +99,17 @@ Comprobado el 2026-11-21 en la página de cada producto, salvo donde se dice.
   A. F. (2026). *CAMELS-COL: A large-sample hydrometeorological dataset for Colombia* (v3) [conjunto de datos]. Zenodo.
   https://doi.org/10.5281/zenodo.18794895. Licencia CC BY 4.0. Artículo en discusión: https://doi.org/10.5194/essd-2025-200.
 - Miralles, D. G., Bonte, O., Koppa, A., et al. (2025). GLEAM4: global land evaporation and soil moisture dataset at
-  0.1° resolution from 1980 to near present. *Scientific Data, 12*. https://doi.org/10.1038/s41597-025-04610-y.
-  Número de artículo sin confirmar.
+  0.1° resolution from 1980 to near present. *Scientific Data, 12*(1), 416. https://doi.org/10.1038/s41597-025-04610-y.
+  Número de artículo comprobado en Crossref el 2026-11-26.
 - Running, S., Mu, Q., Zhao, M. y Moreno, A. (2021). *MODIS/Terra Net Evapotranspiration Gap-Filled 8-Day L4 Global
   500m SIN Grid V061* [conjunto de datos]. NASA LP DAAC. https://doi.org/10.5067/MODIS/MOD16A2GF.061. El DOI está en
   la ficha de Earth Engine; autores y año no aparecen ahí (salen de la forma de cita de LP DAAC, no leída).
-- Senay, G. B. et al. SSEBop v6.1 (VIIRS, desde 2012), USGS FEWS NET. https://doi.org/10.5066/P9QJWQ6K. La búsqueda
-  asocia este DOI a «SSEBop Evapotranspiration Data from 2012 to Present» (USGS), pero la página no abrió: autores y
-  año (2023) sin confirmar.
-- Senay, G. B. et al. SSEBop v5 (MODIS), USGS FEWS NET. https://doi.org/10.5066/F72V2F1F. El DOI resuelve al portal
-  general de FEWS NET, no a una ficha del producto: autores, año y título sin confirmar. La ficha USGS del SSEBop
+- Senay, G., Kagone, S., Parrish, G. E., Budde, M. E. y Rowland, J. (2023). *SSEBop Evapotranspiration Data from 2012
+  to Present: Dekadal (10-day), Monthly, Seasonal, and Annual Time Scales* [conjunto de datos]. U.S. Geological Survey.
+  https://doi.org/10.5066/P9QJWQ6K. SSEBop v6.1 (VIIRS). Autores, año y título comprobados en DataCite el 2026-11-26.
+- Senay, G. B., Kagone, S. K., Friedrichs, M., Velpuri, N. M., Rowland, J. y Verdin, J. (2017). *SSEBop
+  Evapotranspiration Data* [conjunto de datos]. U.S. Geological Survey. https://doi.org/10.5066/F72V2F1F. SSEBop v5
+  (MODIS). Comprobado en DataCite el 2026-11-26; el DOI lleva al portal general de FEWS NET. La ficha USGS del SSEBop
   operativo global es otra: Senay, Kagone y Velpuri (2020), https://doi.org/10.5066/P9OUVUUI.
 - Senay, G. B., Bohms, S., Singh, R. K., Gowda, P. H., Velpuri, N. M., Alemu, H. y Verdin, J. P. (2013). Operational
   evapotranspiration mapping using remote sensing and weather datasets: a new parameterization for the SSEB approach.
@@ -116,8 +118,10 @@ Comprobado el 2026-11-21 en la página de cada producto, salvo donde se dice.
 - Senay, G. B. et al. (2023). Improving the Operational Simplified Surface Energy Balance evapotranspiration model
   using the Forcing and Normalizing Operation. *Remote Sensing, 15*(1), 260. https://doi.org/10.3390/rs15010260.
   Recalibración FANO (SSEBop v6). Ficha USGS: https://pubs.usgs.gov/publication/70239356.
-- Huffman, G. J. et al. *GPM IMERG Final Precipitation L3 1 month 0.1° V07 (GPM_3IMERGM)*. NASA GES DISC.
-  https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07. Heredado de la Tarea 1; solo se comprobó que la ficha existe.
+- Huffman, G. J., Stocker, E. F., Bolvin, D. T., Nelkin, E. J. y Tan, J. (2023). *GPM IMERG Final Precipitation L3 1
+  month 0.1 degree x 0.1 degree V07 (GPM_3IMERGM)* [conjunto de datos]. NASA GES DISC.
+  https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07. Heredado de la Tarea 1; autores y año comprobados en DataCite el
+  2026-11-26.
 - Servicio Geológico Colombiano. (2023). *Mapa Geológico de Colombia 2023*, escala 1:1 500 000.
   https://www2.sgc.gov.co/MGC/Paginas/mgc_1_5M2023.aspx. Heredado de la Tarea 1.
 
@@ -167,5 +171,20 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   land surface model description, first evaluation, and sensitivity to model parameters. *Geoscientific Model
   Development, 14*, 5307–5329. https://doi.org/10.5194/gmd-14-5307-2021 (acceso libre). Tabla 1 (p. 5310): z0 y rc,min
   de 18 tipos de vegetación «al estilo de la clasificación de ECMWF»; usada en los scripts 37 y 39 (tema f).
+  Comprobado en el PDF el 2026-11-26: evergreen broadleaf trees z0 2.00 m, rc,min 175; crops, mixed farming 0.10 m,
+  180; evergreen shrubs 0.10 m, 225; tall grass 0.47 m. Coinciden con los scripts 37 y 39. Número 8 del volumen 14.
 - Myneni, R., Knyazikhin, Y. y Park, T. (2021). MODIS/Terra+Aqua Leaf Area Index/FPAR 4-Day L4 Global 500m SIN Grid
   V061 (MCD15A3H). NASA LP DAAC. https://doi.org/10.5067/MODIS/MCD15A3H.061 — LAI del script 38 (vía Google Earth Engine). DOI, título, autores y año comprobados el 2026-11-25 en la página de NASA Earthdata a la que resuelve.
+
+## Fuentes de datos que el informe nombraba sin cita (auditoría del 2026-11-26)
+
+- Instituto de Hidrología, Meteorología y Estudios Ambientales [IDEAM]. (2026). *Consulta y descarga de datos
+  hidrometeorológicos (DHIME)*. https://atencionciudadano.ideam.gov.co. Sin DOI. Sus términos obligan a citar al IDEAM
+  (../../Analisis_De_Cuenca/DATOS_FUENTES.md).
+- Fundación Gaia Amazonas. (2025). *Proyecto MapBiomas Colombia Colección 3.0 – Mapeo anual de cobertura y uso del
+  suelo*. https://colombia.mapbiomas.org. Sin DOI; forma de cita que pide MapBiomas, copiada en DATOS_FUENTES.md de la
+  Tarea 1.
+- ASF DAAC. (2014). *ALOS PALSAR High Resolution Radiometric Terrain Corrected Product*. NASA Alaska Satellite Facility
+  DAAC. Incluye material © JAXA/METI. https://doi.org/10.5067/Z97HFCNKR6VA. DOI y forma de cita de la página del
+  proyecto en NASA Earthdata (2026-11-26). El mosaico de la Tarea 1 no registró el producto exacto: se cita el de
+  12.5 m, que es el que distribuye ASF.

@@ -110,7 +110,7 @@ franja de altura de igual área (1\,580 a 3\,259~m). El valor de cuenca es el pr
 se arman en hora local (UTC$-5$). La lluvia y el caudal vienen de la Tarea 1: PI (IMERG ponderado por área de celda;
 \citealp{huffman_imerg}), PL (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en
 lámina. La lluvia principal es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad. De DHIME
-(IDEAM) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
+(IDEAM; \citealp{ideam_dhime}) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
 productos de ET real son GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop v6.1 y v5
 \citep{senay2013,senay2023}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
 cuenca por el área de intersección de cada celda. El ERA5-Land mensual está dañado en sep--dic de 2022
@@ -166,7 +166,7 @@ tendencias. La serie sin corregir queda como sensibilidad.
 
 \paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
 comparan con la altura del modelo mediante una recta de mínimos cuadrados; con $n = 6$ es solo descriptiva. La
-hipsometría sale del DEM ALOS de 12~m dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
+hipsometría sale del DEM ALOS PALSAR de 12.5~m \citep{asf_alos} dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
 en malla (GLEAM, SSEBop v6.1 y TerraClimate) lleva la altura media del DEM que cae en ella. La \ETo{} de cada banda se
 lee de la recta de los 6 puntos. El reparto de la energía usa la $R_n$ real de ERA5-Land en la celda de cada punto y la
 fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto. Como referencia teórica se usa $\Delta/(\Delta+\gamma)$,
@@ -174,7 +174,7 @@ la fracción que va a calor latente en la evaporación de equilibrio \citep{prie
 
 \paragraph{Resistencia de superficie.} En la celda de cada punto se despeja la $r_s$ que hace que la ec.~6 de
 \citet{allen1998}, con la $R_n$ real de ERA5-Land (hasta 2022-08), dé la ET de GLEAM v4.3a y de SSEBop v6.1, con medias
-mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas, con la longitud de rugosidad
+mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas 2022 \citep{mapbiomas_col3}, con la longitud de rugosidad
 de la Tabla~1 de \citet{gehrke2021}: agropecuario 0.10~m, herbazal andino 0.10~m y bosque 2.00~m, con $z_{oh} =
 0.1\,z_{om}$ y las conductancias ponderadas por fracción. La $r_a$ del pasto queda como sensibilidad. El LAI es el de
 MCD15A3H v6.1 \citep{myneni2021} en la celda de cada punto (2002--2022). Con el $r_{c,\min}$ de la misma tabla se forma

@@ -112,7 +112,7 @@ se arman en hora local (UTC$-5$). La lluvia y el caudal vienen de la Tarea 1: PI
 lámina. La lluvia principal es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad. De DHIME
 (IDEAM; \citealp{ideam_dhime}) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
 productos de ET real son GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop v6.1 y v5
-\citep{senay2013,senay2023}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
+\citep{senay2023datos,senay2017datos}, con el método de \citet{senay2013}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
 cuenca por el área de intersección de cada celda. El ERA5-Land mensual está dañado en sep--dic de 2022
 \citep{ecmwf2024}: lo que lo usa se corta en 2022-08; la \ETo{} no está afectada. No hay torre de flujo en la región,
 y el tanque evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
@@ -158,9 +158,10 @@ métodos de la Tarea 1: Mann-Kendall estacional \citep{hirsch1982} con pendiente
 permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OLS con una constante por mes y error de
 Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
 descubrimientos \citep{benjamini1995}; $\alpha = 0.05$. Antes de las tendencias, la serie 1981--2022 pasa el
-control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a series
-independientes de ERA5 (lluvia de CHIRPS, \citealp{funk2015}; T y Rs de Hargreaves--Samani con MSWX,
-\citealp{beck2022}). La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
+control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a otras
+fuentes: la lluvia de CHIRPS (satélite y estaciones; \citealp{funk2015}), independiente de ERA5, y la T y la Rs de
+Hargreaves--Samani con MSWX, que no es del todo independiente: es ERA5 corregido con climatologías de estaciones
+\citep{beck2022}. La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
 frente a la lluvia de CHIRPS; se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
 tendencias. La serie sin corregir queda como sensibilidad.
 
@@ -395,7 +396,7 @@ significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/
 
 \begin{figure}[htbp]\centering
   \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{control_calidad_homogeneidad_1981_2022.png}
-  \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a fuentes independientes, con el corte de
+  \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a otras fuentes, con el corte de
   Pettitt: T menos la de MSWX, Rs sobre la de Hargreaves--Samani con MSWX, y residuo de la Rs frente a la lluvia de
   CHIRPS. La línea punteada marca 1998.}
   \label{fig:homogeneidad}

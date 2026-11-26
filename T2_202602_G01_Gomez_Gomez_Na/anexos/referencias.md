@@ -189,3 +189,26 @@ Solo se comprobó que existen y dónde leerlos; no se citan en el informe por ah
   DAAC. Incluye material © JAXA/METI. https://doi.org/10.5067/Z97HFCNKR6VA. DOI y forma de cita de la página del
   proyecto en NASA Earthdata (2026-11-26). El mosaico de la Tarea 1 no registró el producto exacto: se cita el de
   12.5 m, que es el que distribuye ASF.
+
+## Segunda revisión: contenido (26 nov, tarde)
+
+- Beck et al. (2022), MSWX, https://doi.org/10.1175/BAMS-D-21-0145.1. Leído (página de AMS): MSWX-Past es «ERA5 bias
+  corrected and downscaled» a climatologías de estaciones (CHELSA, CRU TS). No es independiente de ERA5. El informe
+  decía que sí; se corrigió (el script 42 ya lo advertía).
+- Funk et al. (2015), CHIRPS, https://doi.org/10.1038/sdata.2015.66. Leído: satélite IR + estaciones, desde 1981,
+  50°S–50°N. Usa CFSv2 (no ERA5) solo para repartir pentadas en días y llenar huecos: independiente de ERA5.
+- Senay et al. (2023), Remote Sensing 15(1) 260 (FANO): habla de «SSEBop FANO (v0.2.6)», no de la v6.1 VIIRS que
+  usamos. Se quitó del informe; ahora se citan los conjuntos de datos de USGS (DataCite) y el método de Senay et al. (2013).
+- Doorenbos y Pruitt (1977), FAO-24, p. 15: el 0.8 es el «crop coefficient» del Penman original (Eo) con tiempo en
+  calma, no el factor c de la forma de FAO-24 (c sale de la tabla 16, p. 28, según HRmáx, Rs, Uday y Uday/Unight).
+  Pendiente de Juan.
+- Comprobado en la fuente: FAO-56 ec. 4, 6, 35, 38–40, 47 (0.748), 52 y la frase de HR alta (la p. 64 no se ve en la
+  versión web); recuadro 4 (zoh = 0.1 zom); Sankarasubramanian (2001), definición y estimador no paramétrico;
+  Hirsch (1982), prueba y pendiente estacional de Kendall; Abatzoglou (2018), PM de pasto y anomalías; Yang (2019),
+  rs según CO2 (solo resumen); Muñoz-Sabater (2021), horario y 9 km; MOD16A2GF (8 días, 500 m).
+- Solo por fuentes secundarias (original de pago): Brutsaert y Stricker (1979), ET = 2 ETw − ETp (Hobbins et al. 1999;
+  Szilagyi et al. 2009); Zhang et al. (2004) como forma de la ecuación de Fu (Zhou et al. 2008).
+- No leído (de pago o no abrió): Priestley y Taylor (1972) más allá del resumen (α = 1.26 se toma de las notas de
+  Hoyos); Seneviratne et al. (2010); Miralles et al. (2025); Sen (1968), Hamed y Rao (1998), Newey y West (1987),
+  Pettitt (1979) y Benjamini y Hochberg (1995). Para estos el informe solo dice el nombre del método, que está en el
+  título de cada artículo.

@@ -21,6 +21,12 @@ Requisito: una cuenta del CDS con su clave en ~/.cdsapirc (nunca dentro del repo
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/01_descarga_era5land_puntos.py
+    python codigo/punto1/01_descarga_era5land_puntos.py --extension_1981   (fase 8: 1981-01-01 a 1997-12-31 UTC)
+
+La extensión 1981–1997 (pedido de Juan, 24 nov, solo para las tendencias de la fase 8) se guarda aparte, en
+punto_N_1981_1997.csv y metadatos_descarga_1981_1997.json, para no cambiar los archivos de 1998–2022 que usan las demás
+fases. Termina a las 23:00 UTC del 1997-12-31; las horas siguientes (hasta las 04:00 UTC del 1998-01-01, que son las
+últimas 5 horas locales de 1997) están al principio de punto_N.csv, así que las dos partes empalman sin hueco.
 
 Salida: datos/punto1/era5land_puntos/punto_N.csv (una por punto; el CDS entrega un ZIP con un CSV por grupo
 de variables y aquí se unen por hora, sin cambiar ningún valor) y
@@ -28,6 +34,7 @@ datos/punto1/era5land_puntos/metadatos_descarga.json (petición, fecha de descar
 Si el CSV de un punto ya existe, no se vuelve a descargar; si ya está el ZIP crudo (punto_N.descarga), se reutiliza.
 """
 
+import argparse
 import datetime
 import hashlib
 import json
@@ -79,9 +86,9 @@ def sha256_de(archivo):
     return resumen.hexdigest()
 
 
-def descargar_punto(cliente, punto):
+def descargar_punto(cliente, punto, sufijo=""):
     """Descarga la serie de un punto en CSV. Devuelve la ruta del CSV final."""
-    destino = CARPETA_SALIDA / f"punto_{punto['punto']}.csv"
+    destino = CARPETA_SALIDA / f"punto_{punto['punto']}{sufijo}.csv"
     if destino.exists():
         print(f"Punto {punto['punto']}: ya existe {destino.name}, no se descarga de nuevo.")
         return destino
@@ -92,7 +99,7 @@ def descargar_punto(cliente, punto):
         "date": [f"{FECHA_INICIO}/{FECHA_FIN}"],
         "data_format": "csv",
     }
-    temporal = CARPETA_SALIDA / f"punto_{punto['punto']}.descarga"
+    temporal = CARPETA_SALIDA / f"punto_{punto['punto']}{sufijo}.descarga"
     if temporal.exists() and zipfile.is_zipfile(temporal):
         print(f"Punto {punto['punto']}: se reutiliza la descarga cruda {temporal.name}.")
     else:
@@ -123,12 +130,19 @@ def descargar_punto(cliente, punto):
 
 
 def main():
+    global FECHA_INICIO, FECHA_FIN, ARCHIVO_METADATOS
+    argumentos = argparse.ArgumentParser()
+    argumentos.add_argument("--extension_1981", action="store_true", help="descarga 1981-01-01 a 1997-12-31 aparte")
+    sufijo = ""
+    if argumentos.parse_args().extension_1981:
+        FECHA_INICIO, FECHA_FIN, sufijo = "1981-01-01", "1997-12-31", "_1981_1997"
+        ARCHIVO_METADATOS = CARPETA_SALIDA / "metadatos_descarga_1981_1997.json"
     CARPETA_SALIDA.mkdir(parents=True, exist_ok=True)
     cliente = cdsapi.Client()
 
     archivos = []
     for punto in PUNTOS:
-        ruta = descargar_punto(cliente, punto)
+        ruta = descargar_punto(cliente, punto, sufijo)
         celda = pd.read_csv(ruta, usecols=["latitude", "longitude"], nrows=1).iloc[0]
         archivos.append({**punto, "archivo": ruta.name, "sha256": sha256_de(ruta),
                          "celda_entregada": {"lat": float(celda.latitude), "lon": float(celda.longitude)}})

@@ -1,0 +1,8 @@
+forzante,sensibilidad,unidad_sensibilidad,tendencia_forzante_por_decada,unidad_tendencia,p_tendencia_forzante,contribucion_pct_por_decada,contribucion_mm_anio_por_decada
+T media,3.2431,% por °C (ea constante),0.16126,°C/década,0.09544,0.52297,6.09793
+ea,-0.12746,% por % de ea,0.58776,%/década,0.28416,-0.07492,-0.87354
+u2,0.01227,% por % de u2,-0.4785,%/década,0.48218,-0.00587,-0.06846
+Rs,0.75616,% por % de Rs,-0.18581,%/década,0.72219,-0.1405,-1.63827
+Suma de contribuciones,,,,,,0.30168,3.51766
+Tendencia directa de la ETo,,,,,0.65071,0.26659,3.10846
+Residuo (directa − suma),,,,,,-0.03509,-0.40919

@@ -1,0 +1,16 @@
+{
+  "archivo": "mcd15a3h_lai_puntos_2002_2022.csv",
+  "fuente": "MCD15A3H, NASA LP DAAC (Myneni et al., 2021), vía Google Earth Engine",
+  "version": "v061 (colección MODIS/061/MCD15A3H)",
+  "variable": "lai_todos: LAI medio de los píxeles válidos de la celda; lai_principal: solo píxeles del algoritmo principal (SCF_QC 0–1); pct_pixeles_*: % de píxeles de la celda en cada caso",
+  "unidades": "m²/m² (banda Lai × 0.1); compuestos de 4 días",
+  "periodo": "2002-07-04 a 2022-12-31 (1878 compuestos; fechas leídas de la colección)",
+  "resolucion": "500 m (sinusoidal MODIS)",
+  "recorte_espacial": "celda de 0.1° de ERA5-Land de cada uno de los 6 puntos (centro ± 0.05°)",
+  "url": "https://developers.google.com/earth-engine/datasets/catalog/MODIS_061_MCD15A3H",
+  "doi": "10.5067/MODIS/MCD15A3H.061",
+  "fecha_descarga": "2026-11-25",
+  "procesamiento": "códigos de relleno (> 100) descartados; factor 0.1; media espacial en Earth Engine",
+  "script": "codigo/punto1/38_lai_modis_puntos_gee.py",
+  "sha256": "89981e77da0a17e555a27f12e96d269d526686abe4254ca31b6e8621d37ffbf9"
+}

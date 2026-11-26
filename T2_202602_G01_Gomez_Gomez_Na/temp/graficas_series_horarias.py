@@ -377,6 +377,58 @@ def datos_budyko():
     }
 
 
+def datos_fase8():
+    """Fase 8: tendencias de la demanda y atribución (salidas de 32_tendencias_demanda.py)."""
+    eto = pd.read_csv(CARPETA_PRODUCTOS / "eto_mensual_cuenca.csv")
+    met = pd.read_csv(CARPETA_PRODUCTOS / "metodos_mensual.csv")
+    anio = eto["mes"].str[:4].astype(int)
+    anual = pd.DataFrame({"eto": eto["eto_mm_mes"], "th": met["thornthwaite_mm_mes"]}).groupby(anio).sum()
+    t = pd.read_csv(CARPETA_PRODUCTOS / "tendencias_demanda.csv")
+    a = pd.read_csv(CARPETA_PRODUCTOS / "atribucion_eto.csv")
+    q = pd.read_csv(CARPETA_PRODUCTOS / "tanque_mogotes_diagnostico.csv")
+    return {"tanque": q.round(3).astype(object).where(q.notna(), None).to_dict(orient="records"),"anios": anual.index.tolist(), "eto": anual["eto"].round(1).tolist(), "th": anual["th"].round(1).tolist(),
+            "tend": t.round(4).astype(object).where(t.notna(), None).to_dict(orient="records"),
+            "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
+
+
+def datos_fase8_1981():
+    """Fase 8 con 1981–2022 (script 36)."""
+    d = pd.read_csv(CARPETA_PRODUCTOS / "demanda_mensual_cuenca_1981_2022.csv")
+    anio = d["mes"].str[:4].astype(int)
+    anual = d.groupby(anio).agg({"eto": "sum", "thornthwaite": "sum"})
+    t = pd.read_csv(CARPETA_PRODUCTOS / "tendencias_demanda_1981_2022.csv")
+    a = pd.read_csv(CARPETA_PRODUCTOS / "atribucion_eto_1981_2022.csv")
+    return {"anios": anual.index.tolist(), "eto": anual["eto"].round(1).tolist(), "th": anual["thornthwaite"].round(1).tolist(),
+            "tend": t.round(4).astype(object).where(t.notna(), None).to_dict(orient="records"),
+            "atr": a.round(4).astype(object).where(a.notna(), None).to_dict(orient="records")}
+
+
+def datos_fase9():
+    """Fase 9a: gradiente altitudinal (salidas de 34_gradiente_altitudinal.py)."""
+    def reg(df):
+        return df.round(4).astype(object).where(df.notna(), None).to_dict(orient="records")
+    pu = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_puntos.csv")
+    ba = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_bandas.csv")
+    re_ = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_resumen.csv")
+    ce = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_celdas.csv")
+    celdas = {n: {"z": g["z_media_m"].round(0).tolist(), "et": g["mm_anio"].round(0).tolist(), "px": g["pixeles"].tolist()}
+              for n, g in ce.dropna(subset=["mm_anio"]).groupby("producto")}
+    en = pd.read_csv(CARPETA_PRODUCTOS / "gradiente_altitudinal_energia.csv")
+    return {"puntos": reg(pu), "bandas": reg(ba), "resumen": reg(re_), "celdas": celdas, "energia": reg(en)}
+
+
+def datos_fase9f():
+    """Fase 9, tema f: resistencia de superficie efectiva por inversión de Penman–Monteith (37_resistencia_superficie.py)."""
+    r = pd.read_csv(CARPETA_PRODUCTOS / "resistencia_superficie_resumen.csv")
+    return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
+
+
+def datos_fase9f_jarvis():
+    """Fase 9, tema f: rs frente a Jarvis con el LAI de MODIS (39_jarvis_lai.py)."""
+    r = pd.read_csv(CARPETA_PRODUCTOS / "jarvis_lai_resumen.csv")
+    return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -469,6 +521,11 @@ def main():
         "budyko": datos_budyko(),
         "regimen": datos_regimen(),
         "ef": datos_ef(),
+        "fase8": datos_fase8(),
+        "fase9": datos_fase9(),
+        "fase9f": datos_fase9f(),
+        "fase9fj": datos_fase9f_jarvis(),
+        "fase8b": datos_fase8_1981(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -910,6 +967,131 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Matices: θ* = 0.452 es el borde de la búsqueda, no un quiebre encontrado (SMrz de GLEAM casi no pasa de
   0.45); la pendiente es débil (EF 0.57 → 0.64, R² 0.16). Esta prueba sola no es concluyente: la conclusión se apoya
   también en Budyko (φ = 0.49), ET/ETo ≈ 0.90 y el φ mensual (solo enero &gt; 1).</p></div>
+</section>
+
+<section>
+  <h2>Fase 9a · Gradiente altitudinal</h2>
+  <p>Script 34. Recta de cada variable contra la altura del modelo en los 6 puntos de ERA5-Land (descriptiva: n = 6).
+  Hipsometría con el DEM ALOS de 12 m (submuestreado ×4) dentro del polígono de CAMELS-COL, en bandas de 500 m. Los
+  productos en malla (TerraClimate aet y pet, GLEAM E, SSEBop v6.1 solo 2012–2022) se promedian por celda; cada celda
+  lleva la altura media del DEM que cae en ella y su número de píxeles como peso. ETo por banda = recta de los 6 puntos
+  en la altura media de la banda (extrapolada fuera de 1 654–3 007 m).</p>
+  <div class="tabla" id="t-fase9"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Demanda y ET real frente a la altura (mm/año)</h3><div class="grafico" id="g-fase9-z" style="height:520px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Bandas de 500 m: fracción del área y ET/ETo</h3><div class="grafico" id="g-fase9-bandas" style="height:440px"></div></div>
+  <div class="tabla" id="t-fase9-bandas" style="margin-top:12px"></div>
+  <h3>Reparto de la energía con la altura (pedido de Juan, 25 nov)</h3>
+  <p>Rn real de la superficie (ssr + str de ERA5-Land, hasta 2022-08) en la celda de cada punto y fracción evaporativa
+  λET/Rn de cada producto (ET dentro de la celda de 0.1°, mismos meses). Lo que no va a calor latente es calor sensible
+  (+ G, ≈ 0 en el mes). Línea negra: Δ/(Δ+γ), la fracción de Rn que va a calor latente en evaporación de equilibrio
+  (superficie húmeda).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Fracción de Rn que va a calor latente</h3><div class="grafico" id="g-fase9-ef" style="height:440px"></div></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Reparto de la Rn real (MJ/m²·día, mediana de los tres productos)</h3><div class="grafico" id="g-fase9-reparto" style="height:400px"></div></div>
+  <p class="nota">Con la altura llega algo más de Rn (10.8 → 13.4 MJ/m²·día), pero λET/Rn cae a cerca de la mitad
+  (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46): arriba hay más calor sensible y menos latente.
+  Δ/(Δ+γ) baja de 0.70 a 0.65: el frío explica una parte; el resto, la superficie (páramo, bosque, tema f).</p>
+  <p class="nota">Lectura preliminar (agente, para Juan): la ETo baja 105 mm/año por km (−9 %/km, R² 0.97), sobre todo
+  por la temperatura (−5.0 °C/km) y ea; Rs y Rn casi no cambian. La ETo de la cuenca por hipsometría (1 159) y por Voronoi
+  (1 166) difieren 0.6 %: los 6 puntos representan bien la cuenca. Cenicafé implica −20 %/km, el doble. La ET real de
+  GLEAM y SSEBop baja más rápido que la ETo (−30 y −26 %/km), así que su ET/ETo cae con la altura; TerraClimate no
+  (≈ 0.9 en todas las bandas). GLEAM tiene 1 a 5 celdas por banda.</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (24 nov, 9:35 p. m.)</h3>
+  <p>En todos los productos de ET real la ET disminuye con la altura. Explicación (agente, pendiente de redacción de
+  Juan): la ETo baja por la temperatura (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn
+  (−3 %/km); GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con
+  frío, nubes). TerraClimate no lo ve porque sigue a su pet.</p></div>
+</section>
+
+<section>
+  <h2>Fase 9f · Resistencia de superficie (tema f, opcional)</h2>
+  <p>Script 37. Se despeja la rs que hace que Penman–Monteith (FAO-56, ec. 3 en las unidades de la ec. 6) dé la ET de
+  GLEAM v4.3a (1998-01 a 2022-08) y de SSEBop v6.1 (2012–2022) en la celda de cada punto, con la Rn real de ERA5-Land
+  (ssr + str) y la T, el déficit y el viento del punto; medias mensuales de los términos. <b>ra por cobertura</b> (Juan,
+  25 nov): ec. 4 de FAO-56 con z0 de la Tabla 1 de Gehrke et al. (2021, doi:10.5194/gmd-14-5307-2021): bosque =
+  evergreen broadleaf trees (2.00 m), agropecuario = crops, mixed farming (0.10 m), herbazal andino = evergreen shrubs
+  (0.10 m); zoh = 0.1·zom; viento de 10 m tomado 10 m sobre d; conductancias ponderadas por la fracción de MapBiomas.
+  Sensibilidades: ra del pasto (208/u2) y herbazal como tall grass (0.47 m). Con la ETo y la ra del pasto el despeje
+  devuelve 70 s/m (comprobado). Es una rs «efectiva»: mezcla dosel, suelo e intercepción. LAI ya descargado (script 38,
+  MCD15A3H); el Jarvis va en el siguiente paso.</p>
+  <div class="tarjeta"><h3>rs efectiva frente a la altura (mediana y cuartiles, s/m)</h3><div class="grafico" id="g-fase9f" style="height:520px"></div></div>
+  <div class="tabla" id="t-fase9f" style="margin-top:12px"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): con la ra por cobertura la rs sube con la altura en los dos
+  productos, pero mucho menos que con la ra del pasto: GLEAM +140 y SSEBop +113 s/m por km (con la ra del pasto, +384 y
+  +638). SSEBop: 153–248 s/m abajo y 234–349 arriba. En los puntos bajos la ET de GLEAM sigue superando el techo con
+  rs = 0 en 134–196 de 296 meses. Altura, temperatura y cobertura van juntas entre puntos, así que sin LAI no se separan
+  las funciones de Jarvis. Cuenca limitada por energía: la rs cambia el reparto, no la cantidad de agua disponible.</p>
+</section>
+
+<section>
+  <h2>Fase 9f · Jarvis con el LAI de MODIS</h2>
+  <p>Script 39. Jarvis como en ECMWF: rs = rc,min/LAI · f(radiación) · f(suelo) · f(déficit), cada f ≥ 1. Con la rs del
+  script 37 (ra por cobertura) y el LAI de MCD15A3H (todos los píxeles válidos, media mensual), f_total = rs·LAI/rc,min.
+  rc,min de la celda: Tabla 1 de Gehrke et al. (2021), bosque 175, herbazal andino (evergreen shrubs) 225, agropecuario
+  (crops) 180 s/m, en paralelo por fracción de MapBiomas. Se ajusta ln f_total = a + g·D (D en hPa) en cada punto y se
+  compara g con el gD de la tabla (0.03 hPa⁻¹ en árboles). Solo meses con solución.</p>
+  <div class="tabla" id="t-fase9fj"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): el LAI baja con la altura (≈ 3–3.8 abajo, 1.1–1.5 arriba). Con
+  SSEBop, rs·LAI no sube con la altura (−86 s/m por km): la rs más alta de arriba se explica por menos área foliar.
+  Con GLEAM, rs·LAI sube algo (+73 s/m por km), pero en los puntos bajos solo quedan los meses con solución. f_total:
+  2.2–3.9 con SSEBop y 0.5–1.2 con GLEAM. g sale 0.14–0.52 hPa⁻¹ (SSEBop) y 0.59–1.01 (GLEAM), de 5 a 34 veces el 0.03 de la
+  tabla; no es interpretable como respuesta de los estomas: el déficit entra en la inversión (término aerodinámico), así
+  que con una ET poco sensible al déficit la rs despejada sube con D por construcción.</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (25 nov, 8:48 a. m.)</h3>
+  <p>La superficie frena más la evaporación arriba, y eso se explica por menor área foliar (páramo), no por cierre
+  estomático; con estos datos no se puede estimar la respuesta al déficit.</p></div>
+</section>
+
+<section>
+  <h2>Fase 8 · Cambios en la demanda, 1998–2022</h2>
+  <p>Script 32. Promedio de la cuenca (Voronoi). Métodos de la Tarea 1: OLS con una constante por mes y error de
+  Newey-West (12 rezagos); Mann-Kendall estacional con Sen, p permutando años completos; Mann-Kendall con Hamed–Rao en
+  anomalías; Pettitt en la anomalía anual; FDR de Benjamini–Hochberg sobre las 6 series (α = 0.05). Extremos: OLS sin los
+  3 primeros y sin los 3 últimos años. Periodo 1998–2022 (el de la ETo; la Tarea 1 usó 1981–2022). Tanque DHIME fuera
+  (unidades imposibles). Atribución: sensibilidad del script 28 (% de ETo por +1 °C con ea constante, por % de ea, u2 y
+  Rs) × tendencia OLS de cada forzante; residuo = directa − suma.</p>
+  <div class="tabla" id="t-fase8"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo Penman–Monteith (FAO-56) y Thornthwaite anuales (mm/año), con la recta de Sen</h3><div class="grafico" id="g-fase8-series" style="height:480px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Atribución de la tendencia de la ETo (mm/año por década)</h3><div class="grafico" id="g-fase8-atr" style="height:400px"></div></div>
+  <h3>Tanque evaporímetro de Mogotes-AUT (24025090): ¿se puede salvar? (script 33)</h3>
+  <p>Único tanque de la zona en DHIME («Evaporación total diaria», «mm», Preliminar). Por tramos: días en 0 (se leen
+  como ausentes), media de los días con dato frente a la ETo de la celda de ERA5-Land de Mogotes, razón tanque/ETo
+  (sería el factor de unidades), Kp implícito si fueran centésimas de mm (FAO-56 cuadro 5: 0.35–0.85) y correlación.</p>
+  <div class="tabla" id="t-tanque"></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (24 nov)</h3>
+  <p>La ETo Penman–Monteith (FAO-56) no tiene tendencia (Sen +3 mm/año por década, p 0.68). En Thornthwaite la tendencia es
+  estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año por década, cerca de 2 %
+  por década; OLS con Newey-West no la confirma (p 0.086).</p></div>
+  <p class="nota">Pendiente: punto de control (¿qué compensa la temperatura?) y verificar a mano una contribución.</p>
+  <h3>Con todo el registro: 1981–2022 (script 36, pedido de Juan, 24 nov)</h3>
+  <p>ERA5-Land 1981–1997 bajado en el PC de Juan (mismas celdas y variables). Mismo camino de cálculo; Thornthwaite con
+  el I de 1998–2022 y la atribución con las sensibilidades de 1998–2022. Con 1998–2022 el script reproduce la fase 8
+  (diferencia máxima 0.0005 mm/mes).</p>
+  <div class="tabla" id="t-fase8b"></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo y Thornthwaite anuales 1981–2022 con la Rs corregida (mm/año), con la recta de Sen</h3><div class="grafico" id="g-fase8b-series" style="height:480px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Atribución 1981–2022 con la Rs corregida (mm/año por década)</h3><div class="grafico" id="g-fase8b-atr" style="height:400px"></div></div>
+  <p class="nota">Antes de corregir la Rs (queda como sensibilidad). Lectura del agente, para Juan: con 42 años la ETo sube +9.5 mm/año por década (0.8 %/década), significativa
+  con todas las pruebas; Thornthwaite +10.6. Por tramos ninguna es significativa (1981–1997: ETo +8.9 mm/año por década,
+  p 0.44; 1998–2022: +3.2, p 0.68): la pendiente de 1981–1997 es parecida a la de 42 años, pero 17 años no bastan. La T
+  sube de forma pareja (0.16 °C/década en 1981–1997, 0.14 en 42 años). La Rs no: plana dentro de 1981–1997 y un escalón
+  hacia 1999–2001 (Pettitt 1999), y aporta casi la mitad de la tendencia de la ETo. Ese escalón puede ser un cambio del
+  reanálisis (ERA5 empieza a asimilar ATOVS en 1998); no hay Rs observada antes de 1998 para comprobarlo.</p>
+  <h3>Control de calidad de 1981–2022 (script 42, como en la Tarea 1; Juan, 26 nov)</h3>
+  <p>Sin horas faltantes ni repetidas, sin valores imposibles ni rachas, Rs ≤ Ra. Atípicos mensuales pocos (se listan).
+  Homogeneidad con Pettitt: T de ERA5-Land ~0.3 °C bajo MSWX desde mediados de los 90; Rs frente a la lluvia de CHIRPS
+  +0.32 MJ/m²·día después de 2000 (p 0.013); Rs frente a Hargreaves–Samani con MSWX, sin salto en 1999–2001. Si se
+  corrige ese escalón de Rs, la ETo 1981–2022 sube +4.2 mm/año por década y deja de ser significativa (p 0.15).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Decisión de Juan (26 nov, 1:09 p. m.): se corrige el escalón de Rs</h3>
+  <p>A la Rs diaria de antes de 2001 se le suma +0.317 MJ/m²·día y se recalculan Rn y la ETo (script 36). Solo en la fase 8;
+  las demás fases siguen con la Rs original. La tabla y las gráficas de arriba ya son con la Rs corregida; sin corregir queda
+  como sensibilidad (archivos <code>*_sin_corregir_rs</code>).</p>
+  <p class="nota">Resultado: ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, Mann-Kendall
+  p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p &lt; 0.001) y T +0.14 °C/década, sin cambio. La Rs ya no tiene tendencia
+  (p 0.75). Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. La T empuja la ETo hacia
+  arriba, pero no lo bastante para que la tendencia sea detectable en 42 años.</p></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan con 1981–2022 (24 nov, 9:31 p. m.)</h3>
+  <p>Se reporta 1981–2022. Para la Rs: su tendencia puede venir solo de defectos de los datos del reanálisis, más que de
+  una tendencia real. La parte de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;
+  la de la T (+5.4) es consistente con el calentamiento de la Tarea 1.</p></div>
 </section>
 
 <section>
@@ -1410,6 +1592,140 @@ for (const [valor, texto] of CARGA.cifras) {
       {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
        hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
 ], lr, OPCIONES);
+  }
+  {
+    const G = CARGA.fase9, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase9').innerHTML = '<table><thead><tr><th>Variable</th><th>Unidad</th><th>Pendiente por km</th><th>% por km</th><th>Corte (z = 0)</th><th>R²</th><th>n</th></tr></thead><tbody>'
+      + G.resumen.map(r => `<tr><td>${r.variable}</td><td>${r.unidad}</td><td>${f3(r.pendiente_por_km)}</td><td>${f2(r.pendiente_pct_por_km)}</td><td>${f2(r.corte)}</td><td>${f3(r.r2)}</td><td>${r.n == null ? '' : r.n}</td></tr>`).join('') + '</tbody></table>';
+    const prods = [['terraclimate_aet', 'TerraClimate aet', '#009E73'], ['gleam_E', 'GLEAM E', '#CC79A7'], ['ssebop_v61', 'SSEBop v6.1 (2012–2022)', '#E69F00'], ['terraclimate_pet', 'TerraClimate pet (demanda)', '#56B4E9']];
+    const fila = G.resumen.find(r => r.variable === 'eto_mm_anio'), zz = [1300, 4100];
+    const tr = prods.map(([k, n, c]) => ({type: 'scatter', mode: 'markers', x: G.celdas[k].et, y: G.celdas[k].z, name: n,
+      marker: {color: c, opacity: 0.5, size: G.celdas[k].px.map(p => 3 + 9 * Math.sqrt(p / Math.max(...G.celdas[k].px)))},
+      hovertemplate: `${n}: %{x:.0f} mm/año a %{y:.0f} m<extra></extra>`}));
+    tr.push({type: 'scatter', mode: 'markers', x: G.puntos.map(r => r.eto_mm_anio), y: G.puntos.map(r => r.z_modelo_m), name: 'ETo Penman–Monteith (FAO-56), 6 puntos',
+      marker: {color: '#0072B2', size: 12, line: {color: 'white', width: 1}}, hovertemplate: 'ETo: %{x:.0f} mm/año a %{y:.0f} m<extra></extra>'});
+    tr.push({type: 'scatter', mode: 'lines', x: zz.map(z => fila.corte + fila.pendiente_por_km * z / 1000), y: zz, name: `recta ETo: ${fila.pendiente_por_km.toFixed(0)} mm/año por km`,
+      line: {color: '#0072B2', dash: 'dash'}, hoverinfo: 'skip'});
+    const lz = base('altura (m)'); lz.hovermode = 'closest'; lz.showlegend = true; Object.assign(lz.legend, {orientation: 'h', y: -0.18, yanchor: 'top'});
+    lz.xaxis = Object.assign(lz.xaxis, {type: 'linear', range: [0, 2000], title: {text: 'mm/año', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-z', tr, lz, OPCIONES);
+    const B = G.bandas, et = B.map(r => `${Math.floor(r.z_media_m / 500) * 500}–${Math.floor(r.z_media_m / 500) * 500 + 500} m`);
+    const lb = base(''); lb.margin = Object.assign(lb.margin || {}, {l: 100}); lb.hovermode = 'closest'; lb.showlegend = true; Object.assign(lb.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    lb.yaxis = Object.assign(lb.yaxis, {type: 'category'});
+    lb.xaxis = Object.assign(lb.xaxis, {type: 'linear', range: [0, 0.45], title: {text: 'fracción del área', font: {size: 11, color: css('--tenue')}}});
+    lb.xaxis2 = {overlaying: 'x', side: 'top', range: [0, 1.4], showgrid: false, zeroline: false, title: {text: 'ET/ETo', font: {size: 11, color: css('--tenue')}}, tickfont: {color: css('--tenue')}};
+    lb.shapes = [{type: 'line', xref: 'x2', yref: 'paper', x0: 1, x1: 1, y0: 0, y1: 1, line: {color: css('--tenue'), width: 1, dash: 'dot'}}];
+    Plotly.newPlot('g-fase9-bandas', [
+      {type: 'bar', orientation: 'h', x: B.map(r => r.fraccion_area), y: et, name: 'fracción del área', marker: {color: '#BBBBBB'}, hovertemplate: '%{y}: %{x:.1%} del área<extra></extra>'},
+      ...prods.slice(0, 3).map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: B.map(r => r[`${k}_sobre_eto`]), y: et, xaxis: 'x2', name: n, line: {color: c},
+        hovertemplate: `${n}: ET/ETo %{x:.2f}<extra></extra>`})),
+    ], lb, OPCIONES);
+    const En = [...G.energia].sort((a, b) => a.z_modelo_m - b.z_modelo_m), zz9 = En.map(r => r.z_modelo_m);
+    const le9 = base('altura del modelo (m)'); le9.hovermode = 'closest'; le9.showlegend = true; Object.assign(le9.legend, {orientation: 'h', y: -0.22, yanchor: 'top'});
+    le9.xaxis = Object.assign(le9.xaxis, {type: 'linear', range: [0, 1], title: {text: 'λET/Rn', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-ef', [
+      ...prods.slice(0, 3).map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: En.map(r => r['ef_' + k]), y: zz9, name: 'λET/Rn ' + n, line: {color: c},
+        hovertemplate: `${n}: %{x:.2f} a %{y:.0f} m<extra></extra>`})),
+      {type: 'scatter', mode: 'lines', x: En.map(r => r.fraccion_equilibrio), y: zz9, name: 'Δ/(Δ+γ), superficie húmeda', line: {color: css('--tinta'), dash: 'dash'},
+        hovertemplate: 'Δ/(Δ+γ): %{x:.3f}<extra></extra>'},
+    ], le9, OPCIONES);
+    const med = En.map(r => { const v = [r.ef_terraclimate_aet, r.ef_gleam_E, r.ef_ssebop_v61].sort((a, b) => a - b); return v[1]; });
+    const et9 = En.map(r => `punto ${r.punto} (${r.z_modelo_m.toFixed(0)} m)`);
+    const lr9 = base(''); lr9.barmode = 'stack'; lr9.hovermode = 'closest'; lr9.showlegend = true; lr9.margin = Object.assign(lr9.margin || {}, {l: 130});
+    Object.assign(lr9.legend, {orientation: 'h', y: -0.2, yanchor: 'top'}); lr9.yaxis = Object.assign(lr9.yaxis, {type: 'category'});
+    lr9.xaxis = Object.assign(lr9.xaxis, {type: 'linear', range: [0, 15], title: {text: 'MJ/m²·día', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase9-reparto', [
+      {type: 'bar', orientation: 'h', y: et9, x: En.map((r, i) => med[i] * r.rn_real_MJm2_d), name: 'calor latente λET', marker: {color: '#0072B2'}, hovertemplate: 'latente: %{x:.1f}<extra></extra>'},
+      {type: 'bar', orientation: 'h', y: et9, x: En.map((r, i) => (1 - med[i]) * r.rn_real_MJm2_d), name: 'calor sensible (+ G)', marker: {color: '#D55E00'}, hovertemplate: 'sensible: %{x:.1f}<extra></extra>'},
+    ], lr9, OPCIONES);
+    document.getElementById('t-fase9-bandas').innerHTML = '<table><thead><tr><th>Banda</th><th>z media</th><th>Área</th><th>ETo</th><th>TerraClimate aet</th><th>GLEAM E</th><th>SSEBop v6.1</th><th>Celdas (TC / GLEAM / SSEBop)</th></tr></thead><tbody>'
+      + B.map((r, i) => `<tr><td>${et[i]}</td><td>${f0(r.z_media_m)}</td><td>${(100 * r.fraccion_area).toFixed(1)} %</td><td>${f0(r.eto_mm_anio)}${r.eto_extrapolada ? ' (extrap.)' : ''}</td><td>${f0(r.terraclimate_aet)}</td><td>${f0(r.gleam_E)}</td><td>${f0(r.ssebop_v61)}</td><td>${r.celdas_terraclimate_aet} / ${r.celdas_gleam_E} / ${r.celdas_ssebop_v61}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const R = CARGA.fase9f, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2);
+    const colores = {'GLEAM v4.3a': '#CC79A7', 'SSEBop v6.1': '#E69F00'};
+    const tr = Object.keys(colores).map(p => { const r = R.filter(x => x.producto === p).sort((a, b) => a.z_modelo_m - b.z_modelo_m);
+      return {type: 'scatter', mode: 'markers', x: r.map(x => x.rs_mediana_sm), y: r.map(x => x.z_modelo_m), name: p + ', ra por cobertura',
+        line: {color: colores[p]}, error_x: {type: 'data', symmetric: false, array: r.map(x => x.rs_p75_sm - x.rs_mediana_sm),
+        arrayminus: r.map(x => x.rs_mediana_sm - x.rs_p25_sm), color: colores[p]},
+        hovertemplate: `${p}: rs %{x:.0f} s/m a %{y:.0f} m<extra></extra>`}; });
+    const recta = (r, col) => { const n = r.length, mx = r.reduce((s, x) => s + x.z_modelo_m, 0) / n, my = r.reduce((s, x) => s + x[col], 0) / n;
+      const b = r.reduce((s, x) => s + (x.z_modelo_m - mx) * (x[col] - my), 0) / r.reduce((s, x) => s + (x.z_modelo_m - mx) ** 2, 0);
+      const zs = [Math.min(...r.map(x => x.z_modelo_m)), Math.max(...r.map(x => x.z_modelo_m))]; return {b: 1000 * b, x: zs.map(z => my + b * (z - mx)), y: zs}; };
+    Object.keys(colores).forEach(p => { const r = R.filter(x => x.producto === p);
+      [['rs_mediana_sm', 'ra por cobertura', 'solid', 1], ['rs_mediana_ra_pasto_sm', 'ra del pasto', 'dash', 0.5]].forEach(([c, t, d, o]) => { const q = recta(r, c);
+        tr.push({type: 'scatter', mode: 'lines', x: q.x, y: q.y, name: `recta ${p}, ${t}: ${q.b >= 0 ? '+' : ''}${q.b.toFixed(0)} s/m por km`, line: {color: colores[p], dash: d, width: 1.5}, opacity: o, hoverinfo: 'skip'}); }); });
+    Object.keys(colores).forEach(p => { const r = R.filter(x => x.producto === p).sort((a, b) => a.z_modelo_m - b.z_modelo_m);
+      tr.push({type: 'scatter', mode: 'markers', x: r.map(x => x.rs_mediana_ra_pasto_sm), y: r.map(x => x.z_modelo_m), name: p + ', ra del pasto (sensibilidad)',
+        line: {color: colores[p], dash: 'dash'}, opacity: 0.5, hovertemplate: `${p} (ra pasto): %{x:.0f} s/m<extra></extra>`}); });
+    const l = base('altura del modelo (m)'); l.hovermode = 'closest'; l.showlegend = true; Object.assign(l.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    l.xaxis = Object.assign(l.xaxis, {type: 'linear', range: [0, 1500], title: {text: 'rs efectiva (s/m)', font: {size: 11, color: css('--tenue')}}});
+    l.shapes = [{type: 'line', xref: 'x', yref: 'paper', x0: 70, x1: 70, y0: 0, y1: 1, line: {color: css('--tenue'), width: 1, dash: 'dot'}}];
+    Plotly.newPlot('g-fase9f', tr, l, OPCIONES);
+    document.getElementById('t-fase9f').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Bosque / herbazal andino / agropecuario</th><th>ra cobertura (pasto), s/m</th><th>ET (mm/año)</th><th>Techo rs = 0 (mm/año)</th><th>Meses sin solución</th><th>rs mediana (s/m)</th><th>rs con ra del pasto</th><th>corr(rs, déficit)</th><th>corr(rs, T)</th></tr></thead><tbody>'
+      + R.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${f2(r.frac_bosque)} / ${f2(r.frac_herbazal_andino)} / ${f2(r.frac_agropecuario)}</td><td>${f0(r.ra_cobertura_mediana_sm)} (${f0(r.ra_pasto_mediana_sm)})</td><td>${f0(r.et_mm_anio)}</td><td>${f0(r.et_techo_rs0_mm_anio)}</td><td>${r.meses_sin_solucion} de ${r.meses}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f0(r.rs_mediana_ra_pasto_sm)}</td><td>${f2(r.corr_rs_deficit_mensual)}</td><td>${f2(r.corr_rs_t_mensual)}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const J = CARGA.fase9fj, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase9fj').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Meses</th><th>LAI</th><th>rs (s/m)</th><th>rs·LAI (s/m)</th><th>rc,min celda</th><th>f_total</th><th>D medio (hPa)</th><th>g (1/hPa) [IC 95 %]</th><th>R²</th></tr></thead><tbody>'
+      + J.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${r.meses}</td><td>${f2(r.lai_mediana)}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f0(r.rs_por_lai_mediana_sm)}</td><td>${f0(r.rc_min_celda_sm)}</td><td>${f2(r.f_total_mediana)}</td><td>${f2(r.deficit_medio_hPa)}</td><td>${f3(r.g_deficit_por_hPa)} [${f3(r.g_ic95_inferior)}, ${f3(r.g_ic95_superior)}]</td><td>${f2(r.r2_ln_f_vs_deficit)}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const F = CARGA.fase8b, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase8b').innerHTML = '<table><thead><tr><th>Serie</th><th>Media</th><th>OLS por década</th><th>%/década</th><th>p OLS (NW)</th><th>q OLS</th><th>Sen por década</th><th>p MK (perm.)</th><th>q MK</th><th>p Hamed–Rao</th><th>Pettitt (p)</th></tr></thead><tbody>'
+      + F.tend.map(r => `<tr><td>${r.variable} (${r.unidad})</td><td>${f2(r.media)}</td><td>${f3(r.ols_por_decada)}</td><td>${f2(r.ols_pct_por_decada)}</td><td>${f3(r.p_ols_newey_west)}</td><td>${f3(r.q_ols)}</td><td>${f3(r.sen_por_decada)}</td><td>${f3(r.p_mk_permutacion)}</td><td>${f3(r.q_mk)}</td><td>${f3(r.p_mk_hamed_rao)}</td><td>${r.pettitt_ultimo_anio_tramo1} (${f3(r.p_pettitt)})</td></tr>`).join('') + '</tbody></table>';
+    const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    ls.xaxis = Object.assign(ls.xaxis, {type: 'linear', range: [1980.5, 2022.5], dtick: 4, title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
+    const series = [['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']];
+    const xs = [F.anios[0], F.anios[F.anios.length - 1]], xmed = (xs[0] + xs[1]) / 2;
+    Plotly.newPlot('g-fase8b-series', [
+      ...series.map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: F.anios, y: F[k], name: n, line: {color: c}, hovertemplate: `${n}: %{y:.0f} mm/año<extra></extra>`})),
+      ...series.map(([k, n, c]) => {
+        const fila = F.tend.find(r => r.variable === n), m = fila.sen_por_decada * 12 / 10;
+        const o = [...F[k]].sort((a, b) => a - b), med = (o[o.length / 2 - 1] + o[o.length / 2]) / 2;
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => med + m * (x - xmed)), line: {color: c, dash: 'dot', width: 2},
+          name: `Sen ${n}: ${(fila.sen_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_mk_permutacion.toFixed(3)})`, hoverinfo: 'skip'};
+      }),
+    ], Object.assign(ls, {shapes: [{type: 'line', x0: 1997.5, x1: 1997.5, yref: 'paper', y0: 0, y1: 1, line: {color: css('--tenue'), dash: 'dot', width: 1}}]}), OPCIONES);
+    const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
+    const corto = {'T media': 'T', 'Tendencia directa de la ETo': 'Directa', 'Residuo (directa − suma)': 'Residuo'};
+    Plotly.newPlot('g-fase8b-atr', [{type: 'bar', x: A.map(r => corto[r.forzante] || r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
+      marker: {color: ['#E69F00', '#009E73', '#7C5BC7', '#8C564B', '#0072B2', '#999999']}, hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}],
+      Object.assign(base('mm/año por década'), {showlegend: false, hovermode: 'closest'}, {xaxis: Object.assign(base('').xaxis, {type: 'category'})},
+        {yaxis: Object.assign(base('mm/año por década').yaxis, {zeroline: true, zerolinecolor: css('--tenue'), zerolinewidth: 1.5})}), OPCIONES);
+  }
+  {
+    const F = CARGA.fase8, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
+    document.getElementById('t-fase8').innerHTML = '<table><thead><tr><th>Serie</th><th>Media</th><th>OLS por década</th><th>%/década</th><th>p OLS (NW)</th><th>q OLS</th><th>Sen por década [IC 95 %]</th><th>p MK (perm.)</th><th>q MK</th><th>p Hamed–Rao</th><th>Pettitt (p)</th><th>OLS sin 3 primeros / sin 3 últimos</th></tr></thead><tbody>'
+      + F.tend.map(r => `<tr><td>${r.variable} (${r.unidad})</td><td>${f2(r.media)}</td><td>${f3(r.ols_por_decada)}</td><td>${f2(r.ols_pct_por_decada)}</td><td>${f3(r.p_ols_newey_west)}</td><td>${f3(r.q_ols)}</td><td>${f3(r.sen_por_decada)} [${f3(r.sen_ic95_inf)}, ${f3(r.sen_ic95_sup)}]</td><td>${f3(r.p_mk_permutacion)}</td><td>${f3(r.q_mk)}</td><td>${f3(r.p_mk_hamed_rao)}</td><td>${r.pettitt_ultimo_anio_tramo1} (${f3(r.p_pettitt)})</td><td>${f3(r.ols_sin_primeros_anios)} / ${f3(r.ols_sin_ultimos_anios)}</td></tr>`).join('')
+      + '</tbody></table>';
+    document.getElementById('t-tanque').innerHTML = '<table><thead><tr><th>Tramo</th><th>Días</th><th>Fracción en 0</th><th>Días con dato</th><th>Máximo</th><th>Media tanque</th><th>ETo (mm/d)</th><th>Tanque/ETo</th><th>Kp si centésimas</th><th>r diaria</th><th>r mensual</th></tr></thead><tbody>'
+      + F.tanque.map(r => `<tr><td>${r.tramo}</td><td>${r.dias}</td><td>${f2(r.fraccion_dias_en_0)}</td><td>${r.dias_con_dato}</td><td>${r.maximo}</td><td>${f2(r.media_tanque)}</td><td>${f2(r.media_eto_mm_d)}</td><td>${f2(r.razon_tanque_eto)}</td><td>${f2(r.kp_implicito_factor_100)}</td><td>${f2(r.r_diaria)}</td><td>${f2(r.r_mensual)}</td></tr>`).join('')
+      + '</tbody></table>';
+    // totales anuales con eje desde 0 y solo la recta de Sen (Juan, 24 nov: sin OLS ni anomalías)
+    const ls = base('mm/año'); ls.yaxis = Object.assign(ls.yaxis || {}, {range: [0, 1300]});
+    ls.xaxis = Object.assign(ls.xaxis, {type: 'linear', range: [1997.5, 2022.5], dtick: 2, title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
+    const series = [['eto', 'ETo Penman–Monteith (FAO-56)', '#0072B2'], ['th', 'Thornthwaite', '#C8553D']];
+    const xs = [F.anios[0], F.anios[F.anios.length - 1]], xmediana = F.anios[(F.anios.length - 1) / 2];
+    Plotly.newPlot('g-fase8-series', [
+      ...series.map(([k, n, c]) => ({type: 'scatter', mode: 'lines+markers', x: F.anios, y: F[k], name: n, line: {color: c},
+        hovertemplate: `${n}: %{y:.0f} mm/año<extra></extra>`})),
+      // recta de Sen (Mann-Kendall estacional): pendiente del script 32, por la mediana de los 25 años (como la figura fija)
+      ...series.map(([k, n, c]) => {
+        const fila = F.tend.find(r => r.variable === n), m = fila.sen_por_decada * 12 / 10;
+        const orden = [...F[k]].sort((a, b) => a - b), mediana = orden[(orden.length - 1) / 2];
+        return {type: 'scatter', mode: 'lines', x: xs, y: xs.map(x => mediana + m * (x - xmediana)), line: {color: c, dash: 'dot', width: 2},
+          name: `Sen (Mann-Kendall) ${n}: ${(fila.sen_por_decada * 12).toFixed(1)} mm/año por década (p ${fila.p_mk_permutacion.toFixed(3)})`, hoverinfo: 'skip'};
+      }),
+    ], ls, OPCIONES);
+    const A = F.atr.filter(r => !r.forzante.startsWith('Suma'));
+    const corto = {'T media': 'T', 'Tendencia directa de la ETo': 'Directa', 'Residuo (directa − suma)': 'Residuo'};
+    Plotly.newPlot('g-fase8-atr', [{type: 'bar', x: A.map(r => corto[r.forzante] || r.forzante), y: A.map(r => r.contribucion_mm_anio_por_decada),
+      marker: {color: ['#E69F00', '#009E73', '#7C5BC7', '#8C564B', '#0072B2', '#999999']},
+      hovertemplate: '%{x}: %{y:.2f} mm/año por década<extra></extra>'}],
+      Object.assign(base('mm/año por década'), {showlegend: false, hovermode: 'closest'},
+        {xaxis: Object.assign(base('').xaxis, {type: 'category'})},
+        {yaxis: Object.assign(base('mm/año por década').yaxis, {zeroline: true, zerolinecolor: css('--tenue'), zerolinewidth: 1.5})}), OPCIONES);
   }
   {
     const E = CARGA.ef;

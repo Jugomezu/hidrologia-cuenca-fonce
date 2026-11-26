@@ -509,3 +509,134 @@ siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 
 los dos que quedan fuera de ± σ_ET del balance. Efecto: la mediana solo cambia en 2002 (1 144 → 1 115 mm), porque
 los dos estaban en extremos opuestos; con el rango más estrecho, 2011 pasa a «bajo todos los productos». En Budyko la
 mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo con P̄ (Juan, 24 nov).
+
+## 2026-11-24 · Punto 1 · Fase 8: tendencias de la demanda (scripts 32 y 33)
+
+**Decisión (Juan).** Periodo 1998–2022, el de la ETo; la Tarea 1 usó 1981–2022 (se declara). Si Juan descarga después
+ERA5-Land 1981–1997 de los 6 puntos, se vuelve a correr con todo el registro. Métodos y autocorrelación iguales a la
+Tarea 1: OLS con constante por mes y Newey-West (12 rezagos), Mann-Kendall estacional con Sen y p por permutación de
+años, Hamed–Rao en anomalías, Pettitt en la anomalía anual, FDR de Benjamini–Hochberg. Sensibilidades numéricas
+(script 28). Propuestas del agente: T de la atribución con ea constante (ea entra aparte) y prueba de extremos quitando 3 años.
+
+**Tanque (Juan pidió revisarlo).** Mogotes-AUT es el único tanque de la zona. No entra: no tiene un factor de unidades
+coherente. La razón tanque/ETo cambia de 27 a 53 y a 217 entre tramos, 2011 y 2022 son todo ceros, y en 2012–2018 el
+tanque no sigue a la ETo (r diaria 0.04). Solo 2018-09 a 2021 se parece algo (r mensual 0.41), pero son 3 años: no
+sirven para tendencias.
+
+**Gráfica de demanda anual (Juan, 24 nov).** Totales anuales con eje desde 0 y solo la recta de Sen (sin OLS ni anomalías).
+**Conclusión (Juan, 24 nov).** ETo Penman–Monteith (FAO-56): sin tendencia (Sen +3 mm/año por década, p 0.68).
+Thornthwaite: tendencia estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año
+por década, cerca de 2 % por década; OLS con Newey-West no la confirma (p 0.086).
+
+**Atribución (Juan, 24 nov).** En veremos: con una ETo sin tendencia no vale la pena dedicarle mucho tiempo.
+
+## 2026-11-24 · Punto 1 · Fase 9a: gradiente altitudinal (script 34)
+
+**Tema (Juan pidió avanzar el a).** Gradiente altitudinal. Propuestas del agente, pendientes de Juan:
+- Recta de cada variable contra la altura del modelo (z de ERA5-Land) en los 6 puntos. Es descriptiva: n = 6.
+- Hipsometría con el DEM ALOS de 12 m (submuestreado ×4), dentro del polígono de CAMELS-COL, en bandas de 500 m.
+- Productos en malla (TerraClimate aet y pet, GLEAM E, SSEBop v6.1): cada celda lleva la altura media del DEM que cae
+  en ella y su número de píxeles como peso. SSEBop v6.1 solo 2012–2022 (su registro); los demás 1998–2022.
+- ETo por banda = recta de los 6 puntos en la altura media de la banda; se extrapola fuera de 1 654–3 007 m.
+
+**Resultado.** ETo −105 mm/año por km (−9 %/km, R² 0.97), sobre todo por la T (−5.0 °C/km) y ea; Rs y Rn casi no
+cambian (−2 y −3 %/km). Hipsometría 1 159 vs Voronoi 1 166 mm/año (−0.6 %): los 6 puntos bastan. Cenicafé implica
+−20 %/km, el doble. ET real: GLEAM −30 %/km, SSEBop v6.1 −26 %/km, TerraClimate −11 %/km; en GLEAM y SSEBop la ET/ETo
+baja con la altura, en TerraClimate no (sigue a su pet). GLEAM tiene 1 a 5 celdas por banda (resolución 0.1°).
+
+**Tema f (resistencia del dosel, Jarvis + LAI).** El agente no lo recomienda como tema principal: la cuenca está
+limitada por energía (φ 0.49, ET/ETo 0.90, EF casi plana frente a SMrz, R² 0.16), así que el estrés estomático
+estacional debe ser débil; además faltan LAI (MODIS, por GEE en el PC de Juan) y parámetros de Jarvis por cobertura.
+A lo sumo, un chequeo corto opcional. Decide Juan.
+
+## 2026-11-24 · Punto 1 · Fase 8 con 1981–2022 (script 36)
+
+**Pedido de Juan.** Bajar ERA5-Land 1981–1997 (6 puntos, en su PC) y repetir la fase 8. Las demás fases siguen en
+1998–2022. Propuestas del agente: la extensión va en archivos aparte (punto_N_1981_1997.csv); Thornthwaite conserva el I
+de 1998–2022; Rso usa la altura del modelo de 1998–2022; la atribución usa las sensibilidades de 1998–2022. Con 1998–2022
+el script reproduce la fase 8.
+
+**Resultado.** ETo +9.5 mm/año por década (0.8 %/década), significativa con todas las pruebas (OLS p 0.002, MK p 0.010,
+Pettitt 1996). Thornthwaite +10.6 (p < 0.001). Atribución: T +5.4, Rs +4.6, ea −0.6, u2 −0.1; residuo +0.2. Por tramos
+ninguna es significativa: ETo 1981–1997 +8.9 (p 0.44), 1998–2022 +3.2 (p 0.68). La T sube parejo; la Rs es plana en
+1981–1997 y sube en escalón hacia 1999–2001, que puede ser un cambio del reanálisis (ERA5 asimila ATOVS desde 1998).
+Pendiente: qué periodo reporta Juan y cómo lo redacta.
+**Conclusión (Juan, 24 nov, 9:31 p. m.).** Se reporta 1981–2022. Para la Rs: su tendencia puede venir solo de defectos de
+los datos del reanálisis (escalón hacia 1999–2001, cuando ERA5 cambia lo que asimila), más que de una tendencia real.
+Así, la parte de la tendencia de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;
+la de la T (+5.4) sí es consistente con el calentamiento de la Tarea 1.
+
+**Conclusión fase 9a (Juan, 24 nov, 9:35 p. m.).** En todos los productos de ET real la ET disminuye con la altura
+(GLEAM −30, SSEBop v6.1 −26, TerraClimate −11 %/km). Explicación propuesta por el agente (pendiente de que Juan la
+redacte): la ETo baja por la T (Δ/(Δ+γ) de 0.70 a 0.65 entre 1 700 y 3 000 m y menor déficit), no por Rn (−3 %/km);
+GLEAM y SSEBop bajan más que la ETo por la superficie (páramo, menos área foliar, cierre estomático con frío, nubes).
+
+**Reparto de la energía (Juan pidió mostrarlo, 25 nov; script 34).** Juan propuso que arriba hay menos calor sensible y
+más latente; los datos dicen lo contrario. Con la altura la Rn real de ERA5-Land sube algo (10.8 → 13.4 MJ/m²·día),
+pero λET/Rn cae a cerca de la mitad (GLEAM 0.84 → 0.43, SSEBop 0.62 → 0.30, TerraClimate 0.67 → 0.46). Δ/(Δ+γ) baja
+de 0.70 a 0.65, así que el frío explica una parte y la superficie el resto. Son productos, no medidas.
+**Conclusión fase 9a, versión final (Juan, 25 nov, 7:16 a. m.).** La ET baja con la altura porque baja el déficit de
+vapor y porque, aunque haya mayor Rn, la fracción de Rn que va a calor latente disminuye con la altura.
+
+## 2026-11-25 · Punto 1 · Fase 9, tema f: resistencia de superficie (scripts 37 y 38)
+
+**Pedido de Juan.** Opción B: inversión de Penman–Monteith más Jarvis con LAI de MODIS, en hilo aparte y como extra por
+si cabe en el informe.
+
+**Base (script 37, sin LAI).** Se despeja la rs que hace que Penman–Monteith (ra = 208/u2 del pasto) dé la ET de GLEAM
+v4.3a y SSEBop v6.1 en la celda de cada punto, con la Rn real de ERA5-Land (hasta 2022-08). Decisiones del agente,
+pendientes de Juan: ra del pasto; medias mensuales de los términos; GLEAM como media de las 4 celdas desplazadas 0.05°.
+**Resultado.** La rs sube con la altura: GLEAM +384, SSEBop +638 s/m por km (n = 6). En los 3 puntos bajos (agropecuario
+81–90 %) la ET de GLEAM supera el techo con rs = 0 en 230–264 de 296 meses: con la Rn de ERA5-Land y la ra del pasto no
+hay rs que la reproduzca. Altura, T y cobertura van juntas entre puntos, así que sin LAI no se separan las funciones de
+Jarvis. La cuenca está limitada por energía: la rs
+cambia el reparto de la energía, no el agua disponible.
+
+**LAI (script 38).** MCD15A3H v6.1 (Terra + Aqua, compuestos de 4 días; MCD15A2H no está en el catálogo de Earth Engine) por GEE en la celda de cada punto, 2002-07 a 2022; guarda la media con todos los
+píxeles válidos y solo con el algoritmo principal. Corrido en el Ubuntu de Juan el 25 nov (proyecto GEE de Juan): 6 puntos × 1 878 compuestos. LAI medio: 1.2 y 1.7 en los puntos altos (1 y 5), 2.4 en el 6, 2.7–3.2 en los bajos; en los altos cerca de la mitad de los píxeles sale del algoritmo de respaldo (nubes).
+
+**ra por cobertura (Juan, 25 nov: «¿no podemos ajustarla con la cobertura?»).** Corrección del agente: con una ra menor
+(bosque) la rs despejada sale MENOR, no mayor (la rs entra como rs/ra). Prueba rápida, sin guardar, con ra de la ec. 4 de
+FAO-56 por cobertura (alturas supuestas: bosque 15 m, herbazal andino 1 m, agropecuario 0.5 m), viento a 10 m y
+conductancias combinadas por fracción de MapBiomas: rs mediana SSEBop 158–265 s/m abajo y 243–360 arriba (con la ra del
+pasto, 230–1 160); GLEAM sigue sin solución abajo en 161–211 meses. Pendiente de Juan: alturas por cobertura con fuente.
+
+**ra por cobertura, decidido (Juan, 25 nov, 7:43 a. m.).** Fuente: Tabla 1 de Gehrke, Sühring y Maronga (2021),
+doi:10.5194/gmd-14-5307-2021 (tipos de vegetación al estilo de ECMWF). Juan eligió: agropecuario = crops, mixed farming
+(z0 0.10 m); herbazal andino = evergreen shrubs (0.10 m); bosque = evergreen broadleaf trees (2.00 m); zoh = 0.1·zom
+como FAO-56. Supuestos del agente, aprobados por Juan (7:47 a. m.): viento de 10 m tomado 10 m sobre d; conductancias ponderadas por fracción.
+**Resultado (script 37).** rs SSEBop 153–248 s/m abajo y 234–349 arriba; GLEAM 0–6 abajo y 99–184 arriba. Pendiente
++113 (SSEBop) y +140 (GLEAM) s/m por km, contra +638 y +384 con la ra del pasto. GLEAM sigue sin solución abajo en
+134–196 de 296 meses. Herbazal como tall grass cambia poco (punto 1: 349 → 330 con SSEBop).
+
+**Jarvis con LAI (script 39, Juan aprobó el plan, 25 nov, 8:28 a. m.).** LAI = lai_todos (Juan). rc,min de la Tabla 1 de
+Gehrke et al. (2021) en paralelo por cobertura (supuesto del agente). f_total = rs·LAI/rc,min; ajuste ln f = a + g·D.
+**Resultado.** LAI ≈ 3–3.8 abajo y 1.1–1.5 arriba. Con SSEBop rs·LAI no sube con la altura (−86 s/m por km): la rs más
+alta arriba se explica por menos área foliar. GLEAM: rs·LAI +73 s/m por km (abajo solo meses con solución). f_total
+2.2–3.9 (SSEBop), 0.5–1.2 (GLEAM). g 0.14–0.52 hPa⁻¹ (SSEBop) y 0.59–1.01 (GLEAM), 5 a 34 veces el 0.03 de la tabla: no
+se interpreta como respuesta estomática, porque el déficit entra en la inversión y la rs despejada sube con D por
+construcción si la ET del producto responde poco al déficit.
+**Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).
+**Conclusión tema f (Juan, 25 nov, 8:48 a. m.).** La superficie frena más la evaporación arriba, y eso se explica por menor
+área foliar (páramo), no por cierre estomático; con estos datos no se puede estimar la respuesta al déficit.
+
+## 2026-11-26 · Punto 1 · Fase 8: periodo 1981–2022 y limpieza como en la Tarea 1 (script 42)
+
+**Decisión (Juan).** La fase 8 usa 1981–2022, con la serie limpia antes, como en la Tarea 1 (detectar y medir, no
+borrar; lo que se excluya o corrija lo decide Juan). Resultado del control: sin faltantes, imposibles ni rachas; ssrd de
+−1 a −4 J/m² de noche (redondeo de ERA5, también en 1998–2022, no se corrige); atípicos mensuales pocos y se listan.
+Homogeneidad (Pettitt): T de ERA5-Land queda ~0.3 °C bajo MSWX desde mediados de los 90 (no infla la tendencia de T);
+Rs frente a la lluvia de CHIRPS sube +0.32 MJ/m²·d después de 2000 (p 0.013); Rs frente a Hargreaves–Samani (MSWX) sin
+salto en 1999–2001 (+3 % tras 2011). Si se corrige el escalón de Rs: ETo +4.2 mm/año por década, no significativa
+(p 0.15). Pendiente: Juan decide qué hacer con el escalón (propuesta del agente: corregirlo y dejar lo otro como sensibilidad).
+
+## 2026-11-26 · Punto 1 · Fase 8: se corrige el escalón de Rs (script 36)
+
+**Decisión (Juan, 26 nov, 1:09 p. m.).** A la Rs diaria de antes de 2001 se le suma +0.317 MJ/m²·d (el salto del script
+42) y se recalculan Rn y ETo (FAO-56 ec. 38–40). Solo en la fase 8; las demás fases siguen con la Rs original. Sin
+corregir queda como sensibilidad (`*_sin_corregir_rs`).
+**Razón.** El salto aparece frente a una fuente independiente de ERA5 (lluvia de CHIRPS) y coincide con el cambio de lo
+que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en parte un defecto de los datos.
+**Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
+p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
+Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).

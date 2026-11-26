@@ -658,3 +658,10 @@ que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en par
 **Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
 p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
 Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).
+
+## Cita de Makkink (auditoría de citas, 26 nov)
+
+**Decisión (Juan, 26 nov, 5:00 p. m.).** Se quita Makkink (1957) de la lista de referencias; el informe dice que la
+ecuación se toma de las notas del curso (Hoyos). Recomendación del agente: la misma.
+**Razón.** Makkink (1957) no tiene DOI ni enlace (regla de citas). La ecuación y sus constantes (0.61 y −0.12) salen de
+las notas, y las notas tienen enlace. No se pudo confirmar en qué artículo de 1957 está la fórmula.

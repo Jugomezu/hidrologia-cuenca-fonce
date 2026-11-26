@@ -1,0 +1,6 @@
+metodo,tc_min,interpretacion,adopted_design
+Kirpich (cauce completo),45.466281,Solo tránsito por el cauce; valor bajo frente a los demás.,False
+Témez,82.397289,Estimación empírica con L en km y S en m/m.,False
+Kerby-Hathaway (lámina + cauce),69.775184,Suma el flujo laminar inicial (Kerby) y el cauce (Kirpich).,False
+NRCS-SCS Lag,175.044876,Comprobación de lag de cuenca rural; la más lenta.,False
+Diseño adoptado,60.000000,"60 min: Kerby-Hathaway (69.8), Témez (82.4) y NRCS-SCS Lag (175.0) quedan por encima; Kirpich (45.5) es el valor bajo porque solo representa el tránsito por el cauce y omite el flujo laminar inicial. No es una elección conservadora: un tc menor daría mayor intensidad (ver sensibilidad).",True

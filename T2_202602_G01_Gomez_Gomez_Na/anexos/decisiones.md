@@ -658,3 +658,16 @@ que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en par
 **Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
 p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
 Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).
+
+## 2026-11-26 · Punto 2 · Una sola cuenca en todo el diseño; tc = 60 min
+
+**Decisión (Juan).** El tc del Problema A se queda en 60 min. No se llama «conservador» (un tc mayor da menos
+intensidad); se justifica porque Kerby-Hathaway (69.8), Témez (82.4) y NRCS (175.0) quedan por encima y Kirpich (45.5)
+es el valor bajo: solo cuenta el tránsito por el cauce y omite el flujo laminar inicial.
+**Decisión (Juan).** Todo el diseño usa la misma cuenca: área, longitud y pendiente del DEM (1.0269 km², 2 312 m,
+0.0095) y C = 0.495, CN = 78, tc = 60 min del Problema A. Antes, 04 usaba una cuenca supuesta (1.85 km², tc 35, C 0.52)
+y 05d fijaba a mano tc = 25.09 min, C = 0.55 e i = 40.96 mm/h. 04 pasa a 05e y lee la cuenca de 05a/05b; 05d la lee
+de `problemaA_alcantarilla.csv`. Problemas A y B no cambian. Efecto: con C = 0.495, ningún evento horario del registro
+supera la tubería de 1 500 mm (antes, el del 26-jul-1965); i* de la GEV pasa de 44.04 a 48.93 mm/h; los hidrogramas
+NRCS bajan (Qp T=50, D=2 h, AMC-II: 9.61 → 3.70 m³/s). Queda el factor C_f del escenario NRCS (1.10 en T=50), que
+hace que su Q racional (7.07) supere al del Problema A (6.43): decisión pendiente de Juan.

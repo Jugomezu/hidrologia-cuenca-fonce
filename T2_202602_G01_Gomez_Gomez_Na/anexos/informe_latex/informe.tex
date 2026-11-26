@@ -95,9 +95,7 @@ octubre, porque la Zona de Convergencia Intertropical pasa dos veces al año sob
 seco. De un año a otro la lluvia cambia poco, y los años extremos coinciden con el ENSO: 2010, con La Niña, fue el más
 húmedo, y 2015, con El Niño, el más seco. La lluvia también disminuye con la altura, cerca de 300~mm/año por cada
 1\,000~m, pero ningún pluviómetro mide por encima de 2\,625~m, donde está el 30~\% de la cuenca, así que la parte alta
-se conoce mal. Sobre ese relieve, la mitad de la cuenca es agricultura y pasto (51.7~\%), un tercio es bosque
-(36.2~\%) y el resto son sobre todo herbazales andinos (9.9~\%) (MapBiomas Colombia 2022, Tarea 1). Con lluvia
-abundante casi todo el año y una superficie cubierta de vegetación, la pregunta es qué limita la evapotranspiración:
+se conoce mal. Con lluvia abundante casi todo el año, la pregunta es qué limita la evapotranspiración:
 la energía disponible o el agua.
 
 En este trabajo se busca entender el término de la evapotranspiración, buscando calcular su valor por varios caminos y
@@ -117,20 +115,28 @@ y (5) qué proceso distingue a la cuenca.
 \borradorIA{Armado desde \texttt{anexos/borrador\_metodologia.md} y \texttt{anexos/decisiones.md}. Juan lo revisa y
 lo pasa a su voz.}
 
-\paragraph{Datos y periodo.} Se trabajó en 1998--2022 (25 años), el periodo de IMERG en la Tarea 1. Las tendencias de
-la demanda usan además el registro completo de ERA5-Land, 1981--2022, como en la Tarea 1. La cuenca es el polígono de CAMELS-COL hasta San Gil
-\citep{camelscol}. Los forzantes de la \ETo{} son series horarias de ERA5-Land \citep{munoz2021}, del producto de
-series de tiempo, en 6 centros de celda de 0.1° con al menos el 90~\% de su área dentro de la cuenca, uno por
-franja de altura de igual área (1\,580 a 3\,259~m). El valor de cuenca es el promedio ponderado por Voronoi. Los días
-se arman en hora local (UTC$-5$). La lluvia y el caudal vienen de la Tarea 1: PI (IMERG ponderado por área de celda;
-\citealp{huffman_imerg}), PL (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en
-lámina. La lluvia principal es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad. De DHIME
-(IDEAM; \citealp{ideam_dhime}) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
-productos de ET real son GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop v6.1 y v5
-\citep{senay2023datos,senay2017datos}, con el método de \citet{senay2013}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
-cuenca por el área de intersección de cada celda. El ERA5-Land mensual está dañado en sep--dic de 2022
-\citep{ecmwf2024}: lo que lo usa se corta en 2022-08; la \ETo{} no está afectada. No hay torre de flujo en la región,
-y el tanque evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
+\paragraph{Datos y periodo.} Se trabajó en el tramo de 1998--2022 para la mayoría del trabajo, menos para las
+tendencias, que usan datos de 1981--2022. Estos rangos temporales son los mismos de la Tarea 1, con el fin de mantener
+un mismo alcance. Los datos son:
+\begin{itemize}
+  \item \textbf{Cuenca:} el polígono de CAMELS-COL hasta San Gil \citep{camelscol}.
+  \item \textbf{Forzantes de la \ETo:} series horarias de ERA5-Land \citep{munoz2021}, del producto de series de
+  tiempo, en 6 centros de celda de 0.1° con al menos el 90~\% de su área dentro de la cuenca, uno por franja de altura
+  de igual área (1\,580 a 3\,259~m). El valor de cuenca es el promedio ponderado por Voronoi y los días se arman en hora
+  local (UTC$-5$).
+  \item \textbf{Lluvia y caudal}, de la Tarea 1: PI (IMERG ponderado por área de celda; \citealp{huffman_imerg}), PL
+  (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en lámina. La lluvia principal
+  es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad.
+  \item \textbf{Estaciones} de DHIME (IDEAM; \citealp{ideam_dhime}): brillo solar, Tmáx, Tmín y HR de Mogotes,
+  La Sierra y Charalá, y el viento de Mogotes-AUT.
+  \item \textbf{Productos de ET real:} GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop
+  v6.1 y v5 \citep{senay2023datos,senay2017datos}, con el método de \citet{senay2013}, TerraClimate
+  \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la cuenca por el área de intersección de cada
+  celda.
+  \item \textbf{Limitaciones:} el ERA5-Land mensual está dañado en sep--dic de 2022 \citep{ecmwf2024}, así que lo que
+  lo usa se corta en 2022-08 (la \ETo{} no está afectada). No hay torre de flujo en la región, y el tanque
+  evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
+\end{itemize}
 
 \paragraph{\ETo{} de referencia.} \PM{}, ec.~6 de \citet{allen1998}, diaria por punto: $T = (T_\text{máx} +
 T_\text{mín})/2$; $e_s$ con la media de $e^\circ(T_\text{máx})$ y $e^\circ(T_\text{mín})$; $e_a$ como promedio de

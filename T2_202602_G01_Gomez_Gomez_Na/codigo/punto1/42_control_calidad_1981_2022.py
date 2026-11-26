@@ -47,6 +47,9 @@ ARCHIVO_CAMELS = (RAIZ_ENTREGA / "datos" / "punto1" / "camels_col" / "hydromet" 
 SALIDA = CARPETA_PRODUCTOS / "control_calidad_1981_2022.csv"
 SALIDA_ATIPICOS = CARPETA_PRODUCTOS / "control_calidad_atipicos_1981_2022.csv"
 SALIDA_FIGURA = CARPETA_PRODUCTOS / "control_calidad_homogeneidad_1981_2022.png"
+# Solo el panel de la Rs frente a CHIRPS, la evidencia del escalón que se corrige (va al anexo del informe; Juan, 26 nov)
+SALIDA_FIGURA_RS = CARPETA_PRODUCTOS / "escalon_rs_chirps_1981_2022.png"
+PANEL_RS = "residuo de Rs frente a la lluvia de CHIRPS"
 
 # Umbrales (los de la Tarea 1 donde existen)
 T_MIN, T_MAX = -15.0, 45.0           # °C, 07b: solo busca imposibles
@@ -185,7 +188,7 @@ def homogeneidad(diaria, tabla):
     resultados = {}
     for nombre, serie, unidad in (("T ERA5-Land − T MSWX", dif_t, "°C"),
                                   ("Rs ERA5-Land / Rs Hargreaves–Samani (MSWX)", razon_rs, "razón"),
-                                  ("residuo de Rs frente a la lluvia de CHIRPS", residuo, "MJ/m²·d")):
+                                  (PANEL_RS, residuo, "MJ/m²·d")):
         k, p = pettitt(serie.to_numpy())
         antes, despues = serie.iloc[: k + 1].mean(), serie.iloc[k + 1:].mean()
         resultados[nombre] = (serie, k, p)
@@ -210,6 +213,26 @@ def figura(resultados):
     ejes[-1].set_xlabel("año")
     fig.tight_layout()
     fig.savefig(SALIDA_FIGURA, dpi=150)
+    plt.close(fig)
+
+
+def figura_escalon_rs(resultados):
+    """El panel de la Rs frente a CHIRPS solo: el escalón que corrige el script 36."""
+    serie, k, p = resultados[PANEL_RS]
+    antes, despues = serie.iloc[: k + 1].mean(), serie.iloc[k + 1:].mean()
+    fig, ax = plt.subplots(figsize=(6.5, 3.9))
+    ax.plot(serie.index, serie.to_numpy(), "o-", ms=3, color="#0072B2", label="residuo anual")
+    ax.hlines([antes, despues], [serie.index[0], serie.index[k] + 0.5], [serie.index[k] + 0.5, serie.index[-1]],
+              colors="#D55E00", lw=2,
+              label=f"Pettitt: corte tras {serie.index[k]}, p = {p:.3f}; salto {despues - antes:+.3f} MJ/m²·d")
+    ax.axhline(0, color="k", lw=0.6)
+    ax.set_xlabel("año")
+    ax.set_ylabel("residuo de Rs (MJ/m²·d)")
+    ax.set_title("Rs de ERA5-Land no explicada por la lluvia de CHIRPS, media anual", fontsize=10)
+    ax.legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, frameon=False)
+    fig.tight_layout()
+    fig.savefig(SALIDA_FIGURA_RS, dpi=150)
+    plt.close(fig)
 
 
 def main():
@@ -220,6 +243,7 @@ def main():
     marcas = atipicos(tabla)
     resultados = homogeneidad(diaria, tabla)
     figura(resultados)
+    figura_escalon_rs(resultados)
     salida = pd.DataFrame(filas)
     salida.to_csv(SALIDA, index=False)
     marcas.round(4).to_csv(SALIDA_ATIPICOS, index=False)
@@ -227,7 +251,7 @@ def main():
     print(salida[salida["resultado"] == "revisar"].to_string())
     print(salida[salida["chequeo"].str.startswith(("homogeneidad", "pendiente", "atípicos"))][["chequeo", "detalle"]].to_string())
     print(f"Revisados {len(salida)} chequeos; marcados {int((salida['resultado'] == 'revisar').sum())}. "
-          f"Listo: {SALIDA.name}, {SALIDA_ATIPICOS.name}, {SALIDA_FIGURA.name}")
+          f"Listo: {SALIDA.name}, {SALIDA_ATIPICOS.name}, {SALIDA_FIGURA.name}, {SALIDA_FIGURA_RS.name}")
 
 
 if __name__ == "__main__":

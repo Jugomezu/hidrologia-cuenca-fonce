@@ -1,0 +1,97 @@
+year,valid_hours,expected_hours,annual_completeness,valid_wet_season_hours,expected_wet_season_hours,wet_season_completeness,retained,reason
+1931,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1932,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1933,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1934,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1935,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1936,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1937,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1938,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1939,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1940,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1941,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1942,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1943,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1944,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1945,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1946,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1947,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1948,3664,8784,0.417122,1456,4392,0.331512,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1949,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1950,8688,8760,0.991781,4344,4392,0.989071,sí,cumple ambos umbrales
+1951,8734,8760,0.997032,4366,4392,0.994080,sí,cumple ambos umbrales
+1952,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1953,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1954,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1955,8759,8760,0.999886,4391,4392,0.999772,sí,cumple ambos umbrales
+1956,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1957,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1958,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1959,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1960,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1961,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1962,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1963,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1964,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1965,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1966,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1967,8759,8760,0.999886,4391,4392,0.999772,sí,cumple ambos umbrales
+1968,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1969,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1970,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1971,8760,8760,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1972,8784,8784,1.000000,4392,4392,1.000000,sí,cumple ambos umbrales
+1973,8277,8760,0.944863,4154,4392,0.945811,sí,cumple ambos umbrales
+1974,8386,8760,0.957306,4253,4392,0.968352,sí,cumple ambos umbrales
+1975,8317,8760,0.949429,4203,4392,0.956967,sí,cumple ambos umbrales
+1976,8380,8784,0.954007,4175,4392,0.950592,sí,cumple ambos umbrales
+1977,8421,8760,0.961301,4200,4392,0.956284,sí,cumple ambos umbrales
+1978,8179,8760,0.933676,4156,4392,0.946266,sí,cumple ambos umbrales
+1979,8195,8760,0.935502,4152,4392,0.945355,sí,cumple ambos umbrales
+1980,8253,8784,0.939549,4205,4392,0.957423,sí,cumple ambos umbrales
+1981,8321,8760,0.949886,4165,4392,0.948315,sí,cumple ambos umbrales
+1982,8281,8760,0.945320,4117,4392,0.937386,sí,cumple ambos umbrales
+1983,8135,8760,0.928653,4117,4392,0.937386,sí,cumple ambos umbrales
+1984,8285,8784,0.943192,4135,4392,0.941485,sí,cumple ambos umbrales
+1985,8234,8760,0.939954,4178,4392,0.951275,sí,cumple ambos umbrales
+1986,8242,8760,0.940868,4130,4392,0.940346,sí,cumple ambos umbrales
+1987,8107,8760,0.925457,4126,4392,0.939435,sí,cumple ambos umbrales
+1988,8338,8784,0.949226,4184,4392,0.952641,sí,cumple ambos umbrales
+1989,8106,8760,0.925342,4078,4392,0.928506,sí,cumple ambos umbrales
+1990,8197,8760,0.935731,4154,4392,0.945811,sí,cumple ambos umbrales
+1991,8086,8760,0.923059,4050,4392,0.922131,sí,cumple ambos umbrales
+1992,8087,8784,0.920651,4053,4392,0.922814,sí,cumple ambos umbrales
+1993,7795,8760,0.889840,3907,4392,0.889572,no,completitud abril-septiembre < 90%
+1994,8068,8760,0.921005,4147,4392,0.944217,sí,cumple ambos umbrales
+1995,1313,8760,0.149886,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1996,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1997,3,8760,0.000342,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1998,2,8760,0.000228,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+1999,1,8760,0.000114,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2000,1,8784,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2001,2,8760,0.000228,2,4392,0.000455,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2002,5,8760,0.000571,2,4392,0.000455,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2003,3,8760,0.000342,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2004,3,8784,0.000342,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2005,1,8760,0.000114,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2006,4,8760,0.000457,2,4392,0.000455,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2007,3,8760,0.000342,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2008,1,8784,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2009,1,8760,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2010,3,8760,0.000342,2,4392,0.000455,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2011,1,8760,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2012,1,8784,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2013,1,8760,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2014,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2015,1,8760,0.000114,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2016,2,8784,0.000228,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2017,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2018,1,8760,0.000114,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2019,1,8760,0.000114,1,4392,0.000228,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2020,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2021,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2022,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2023,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2024,0,8784,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2025,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%
+2026,0,8760,0.000000,0,4392,0.000000,no,completitud anual < 80%; completitud abril-septiembre < 90%

@@ -1,0 +1,5 @@
+metodo,tc_min,interpretacion,adopted_design
+Kirpich,33.051783,Respuesta rápida de cauce definido; ecuación empírica.,False
+Témez,28.291592,Estimación empírica adicional con pendiente en porcentaje.,False
+NRCS-SCS Lag,117.939362,Comprobación de lag; tiende a ser conservadora en esta cuenca urbana.,False
+Diseño adoptado,35.000000,35 min: redondeo conservador por encima de Kirpich/Témez; el NRCS lag se conserva como comprobación rural de mayor duración.,True

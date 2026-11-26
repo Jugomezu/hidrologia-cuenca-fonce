@@ -1,0 +1,9 @@
+parametro,valor,unidad
+Área,1.85,km² (185 ha)
+Longitud del cauce principal,2100.0,m
+Diferencia de cotas,37.8,m
+Pendiente S0,0.018,m/m
+Coeficiente racional base C,0.52,adimensional
+Curve Number AMC-II,78.0,adimensional
+Paso de tiempo,5.0,min
+tc adoptado,35.0,min

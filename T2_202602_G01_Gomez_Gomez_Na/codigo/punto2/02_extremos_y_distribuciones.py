@@ -346,7 +346,8 @@ def make_figures(samples, fitted, qdf):
     plt.rcParams.update({"figure.dpi": 140, "font.size": 9, "axes.spines.top": False,
                          "axes.spines.right": False, "axes.grid": True, "grid.alpha": .2})
     # Gumbel probability paper with Gringorten plotting positions.
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4), constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, axes = plt.subplots(3, 1, figsize=(6.5, 10), constrained_layout=True)
     colors = {"Gumbel": "#087e78", "GEV": "#c45b38", "LP3": "#4267ac"}
     for ax, duration in zip(axes, (1, 6, 24)):
         values = np.sort(samples[duration][1]); n = len(values)

@@ -250,7 +250,8 @@ def summarize(profile: dict, routed: dict, scenario_type: str,
 def make_figure(trapezoids: dict[str, dict], time_area_profiles: dict[str, dict],
                 routed: dict[str, dict], rows: pd.DataFrame, dcrit: float,
                 q_limit: float, output: Path) -> None:
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6.7), constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 10.5), constrained_layout=True)
     trap_rows = rows[rows.scenario_type.eq("racional_modificado")].sort_values("duration_min")
     ax1.plot(trap_rows.duration_min, trap_rows.Vreq_m3, marker="o", lw=2.2, color="#197b70")
     critical_row = trap_rows.loc[trap_rows.Vreq_m3.idxmax()]
@@ -288,9 +289,10 @@ def make_figure(trapezoids: dict[str, dict], time_area_profiles: dict[str, dict]
     ax2.set_title("Hidrogramas y tránsito por piscina nivelada")
     ax2.grid(alpha=0.2)
     h1, l1 = ax2.get_legend_handles_labels(); h2, l2 = ax2b.get_legend_handles_labels()
-    ax2.legend(h1 + h2, l1 + l2, fontsize=7, loc="upper right", ncol=2)
+    # La leyenda va debajo del panel: dentro tapaba las curvas.
+    ax2.legend(h1 + h2, l1 + l2, fontsize=7.5, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False)
     fig.suptitle(f"Tanque de detención · T={T_Y} años · Do={next(iter(routed.values()))['orifice_diameter_m']*1000:.0f} mm",
-                 fontsize=14, weight="bold")
+                 fontsize=12, weight="bold")
     fig.savefig(output, dpi=180, bbox_inches="tight")
     plt.close(fig)
 

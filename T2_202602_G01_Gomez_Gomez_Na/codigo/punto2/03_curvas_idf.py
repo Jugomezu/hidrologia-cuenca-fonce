@@ -145,7 +145,7 @@ def make_figures(base, lo, hi, predictions, residuals, winner, winner_params):
                          "font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
     dense = np.geomspace(5 / 60, 24, 240)
     colors = dict(zip(RETURNS, ("#5c6bc0", "#00897b", "#e67e22", "#8e44ad", "#c0392b", "#34495e")))
-    fig, ax = plt.subplots(figsize=(9, 6), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.5, 5), constrained_layout=True)
     ax.axvspan(5 / 60, 1, color="#f4c95d", alpha=.14, label="Extrapolación < 1 h")
     for T in RETURNS:
         ax.plot(dense, predictions[winner][int(T)](dense, np.full_like(dense, T)),
@@ -171,7 +171,8 @@ def make_figures(base, lo, hi, predictions, residuals, winner, winner_params):
     ax.legend(ncol=2, frameon=False)
     fig.savefig(FIG_IDF, bbox_inches="tight"); plt.close(fig)
 
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True, constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, axes = plt.subplots(3, 1, figsize=(6.5, 9), sharex=True, constrained_layout=True)
     model_names = list(residuals)
     palette = dict(zip(model_names, ("#16836b", "#d99a38", "#5267a8")))
     for ax, T in zip(axes, (2, 10, 50)):
@@ -179,8 +180,8 @@ def make_figures(base, lo, hi, predictions, residuals, winner, winner_params):
             vals = residuals[name][int(T)]
             ax.plot(DUR_H, vals, marker="o", lw=1.2, label=name, color=palette[name])
         ax.axhline(0, color="#666", lw=.8)
-        ax.set(xscale="log", title=f"T={T} años", xlabel="Duración (h)")
-    axes[0].set_ylabel("Residuo relativo (%)")
+        ax.set(xscale="log", title=f"T={T} años", ylabel="Residuo relativo (%)")
+    axes[-1].set_xlabel("Duración (h)")
     axes[-1].legend(frameon=False, fontsize=8)
     fig.suptitle("Comparación de residuales de las formulaciones IDF")
     fig.savefig(FIG_RESID, bbox_inches="tight"); plt.close(fig)

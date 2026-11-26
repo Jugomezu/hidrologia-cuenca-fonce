@@ -217,7 +217,7 @@ def make_figures(hyetogram_df, results_df, hydrographs, tc_df):
                          "font.size": 9, "axes.spines.top": False, "axes.spines.right": False})
     selected = hyetogram_df[(hyetogram_df["T"] == 50) & (hyetogram_df["duration_h"] == 2) &
                             (hyetogram_df.AMC == "AMC-II") & (hyetogram_df.Ia_fraction == .2)].sort_values("interval")
-    fig, ax = plt.subplots(figsize=(9, 4.5), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(6.5, 4), constrained_layout=True)
     x = selected.interval_start_min + DELTA_T_MIN / 2
     ax.bar(x, selected.rainfall_increment_mm, width=4.5, color="#7aa6c2", label="Lluvia total")
     ax.bar(x, selected.loss_increment_mm, width=3.2, color="#dfaa58", label="Abstracción del intervalo")
@@ -227,17 +227,19 @@ def make_figures(hyetogram_df, results_df, hydrographs, tc_df):
     ax.legend(frameon=False, ncol=3)
     fig.savefig(FIG_HIET, bbox_inches="tight"); plt.close(fig)
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, axes = plt.subplots(2, 1, figsize=(6.5, 7.5), sharex=True, constrained_layout=True)
     colors = {10: "#5067a5", 25: "#16836b", 50: "#d27b30", 100: "#9a4d72"}
     for T in RETURN_PERIODS:
         key = (T, 2.0, "AMC-II", .2)
         item = hydrographs[key]
         axes[0].plot(item["time_h"] * 60, item["hydrograph"], label=f"T={T} años", color=colors[T])
-    axes[0].set(title="Duración de tormenta 2 h · AMC-II", xlabel="Tiempo (min)", ylabel="Q (m³/s)")
+    axes[0].set(title="Duración de tormenta 2 h · AMC-II", ylabel="Q (m³/s)")
+    axes[0].legend(frameon=False)
     for amc, color in zip(AMC_NAMES, ("#7284ba", "#16836b", "#c04444")):
         item = hydrographs[(50, 2.0, amc, .2)]
         axes[1].plot(item["time_h"] * 60, item["hydrograph"], label=amc, color=color)
-    axes[1].set(title="Sensibilidad AMC · T=50 años", xlabel="Tiempo (min)")
+    axes[1].set(title="Sensibilidad AMC · T=50 años", xlabel="Tiempo (min)", ylabel="Q (m³/s)")
     axes[1].legend(frameon=False)
     fig.suptitle("Hidrogramas NRCS-UH por convolución de lluvia efectiva")
     fig.savefig(FIG_HYDRO, bbox_inches="tight"); plt.close(fig)
@@ -247,7 +249,8 @@ def make_figures(hyetogram_df, results_df, hydrographs, tc_df):
     sens = results_df[(results_df["T"] == 50) &
                       (results_df["AMC"] == "AMC-II") &
                       np.isclose(results_df["Ia_fraction"], 0.2)].sort_values("duration_h")
-    fig, axes = plt.subplots(1, 2, figsize=(11, 4.3), constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, axes = plt.subplots(2, 1, figsize=(6.5, 7.5), constrained_layout=True)
     x = np.arange(len(base))
     axes[0].errorbar(x - .1, base.Qp_rational_m3s, yerr=[base.Qp_rational_m3s - base.Qp_rational_low95_m3s,
                                                           base.Qp_rational_high95_m3s - base.Qp_rational_m3s],

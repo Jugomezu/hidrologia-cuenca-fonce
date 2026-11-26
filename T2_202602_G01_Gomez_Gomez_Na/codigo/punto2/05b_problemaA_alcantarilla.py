@@ -333,7 +333,8 @@ def monte_carlo(values: np.ndarray, lmom, tc_methods_min: dict, tc_design: float
 
 def make_figure(sensitivity: pd.DataFrame, mc: pd.DataFrame, dcom_mm: float,
                 nominal_fs: float, nominal_d_mm: float) -> None:
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6.2), constrained_layout=True)
+    # Paneles uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean (regla de Juan, 26 nov).
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6.5, 9.5), constrained_layout=True)
     ordered = sensitivity[sensitivity.record_type.eq("sensibilidad")].sort_values(
         "impact_D_mm", ascending=True
     )
@@ -372,7 +373,7 @@ def make_figure(sensitivity: pd.DataFrame, mc: pd.DataFrame, dcom_mm: float,
              bbox={"facecolor": "white", "alpha": 0.9, "edgecolor": "#cccccc"})
     ax2.legend(fontsize=8, loc="upper left")
     ax2.grid(alpha=0.2)
-    fig.suptitle("Problema A · Prediseño de alcantarilla circular", fontsize=15, weight="bold")
+    fig.suptitle("Problema A · Prediseño de alcantarilla circular", fontsize=12, weight="bold")
     fig.savefig(FIG_PATH, dpi=180, bbox_inches="tight")
     plt.close(fig)
 

@@ -540,7 +540,8 @@ def render_microbasin_map(dem_path: Path, metadata: dict, geojson: dict) -> None
     shade = np.ma.masked_array(shade, mask=invalid)
     extent = (bounds.left, bounds.right, bounds.bottom, bounds.top)
     levels = np.arange(np.ceil(zmin / 2) * 2, np.floor(zmax / 2) * 2 + 0.1, 2)
-    fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(13, 5.8), dpi=300,
+    # Mapas uno debajo de otro para que se lean en el informe (regla de Juan, 26 nov).
+    fig, (ax0, ax1) = plt.subplots(2, 1, figsize=(6.5, 11.5), dpi=300,
                                    constrained_layout=True)
     image = None
     for ax in (ax0, ax1):
@@ -557,7 +558,7 @@ def render_microbasin_map(dem_path: Path, metadata: dict, geojson: dict) -> None
         ax.set_xlabel("UTM 13N Este (m)")
         ax.set_ylabel("UTM 13N Norte (m)")
 
-    # Panel izquierdo: contexto regional centrado en outlet, 6 km por lado.
+    # Panel superior: contexto regional centrado en outlet, 6 km por lado.
     ax0.set_xlim(ox - 3000, ox + 3000)
     ax0.set_ylim(oy - 3000, oy + 3000)
     ax0.scatter([ox], [oy], marker="*", s=125, c="#172b3a", edgecolor="white",
@@ -573,7 +574,7 @@ def render_microbasin_map(dem_path: Path, metadata: dict, geojson: dict) -> None
     ax0.set_title("Contexto regional + relieve · 6 × 6 km", fontweight="bold")
     ax0.legend(loc="upper left", fontsize=8, framealpha=0.93)
 
-    # Panel derecho: caja de la cuenca y 350 m de margen.
+    # Panel inferior: caja de la cuenca y 350 m de margen.
     minx, miny, maxx, maxy = basin.bounds
     ax1.set_xlim(minx - 350, maxx + 350)
     ax1.set_ylim(miny - 350, maxy + 350)

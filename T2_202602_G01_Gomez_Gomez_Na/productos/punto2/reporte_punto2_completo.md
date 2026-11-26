@@ -85,4 +85,6 @@ Eventos de excedencia históricos guardados:
 
 Con la tubería de 1500 mm (Qc=6.909 m³/s) ningún evento horario del registro supera la capacidad; las 8 superaciones guardadas son de diámetros menores. La evaluación se limita a resolución horaria y al modelo racional equivalente; no sustituye un tránsito hidráulico.
 
-![Figura 2.5 · Resumen gráfico de bonificaciones](fig_25_bonificaciones.png)
+![Figura 2.5a · Bonificaciones A y B](fig_25a_bonificaciones.png)
+
+![Figura 2.5b · Bonificaciones C y D](fig_25b_bonificaciones.png)

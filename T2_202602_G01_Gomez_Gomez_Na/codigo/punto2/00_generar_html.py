@@ -386,7 +386,9 @@ Eventos de excedencia históricos guardados:
 
 {hashimoto_sentence(ctx)} La evaluación se limita a resolución horaria y al modelo racional equivalente; no sustituye un tránsito hidráulico.
 
-![Figura 2.5 · Resumen gráfico de bonificaciones](fig_25_bonificaciones.png)
+![Figura 2.5a · Bonificaciones A y B](fig_25a_bonificaciones.png)
+
+![Figura 2.5b · Bonificaciones C y D](fig_25b_bonificaciones.png)
 '''
     (PRODUCTS / "reporte_punto2_completo.md").write_text(content, encoding="utf-8")
 
@@ -676,7 +678,7 @@ def section_26():
     return f'''<section id="seccion-26">
       <div class="eyebrow">Apartado 2.5</div><h2>Bonificaciones de Diseño y Riesgo</h2>
       <p class="lede">Cuatro análisis complementarios cuantifican el compromiso entre costo de protección, extremos por excedencias, calentamiento futuro y desempeño histórico de la alcantarilla. Los costos se expresan en unidades de C<sub>0</sub> normalizadas porque los archivos fuente no especifican un costo monetario base.</p>
-      <div class="fig-grid">{image_card("fig_25_bonificaciones.png", "Síntesis gráfica de las bonificaciones", "Paneles A–D: costo-riesgo, POT/AMS, calentamiento y confiabilidad histórica.")}</div>
+      <div class="fig-grid">{image_card("fig_25a_bonificaciones.png", "Síntesis gráfica de las bonificaciones (A y B)", "Paneles A y B: costo-riesgo y POT/AMS.")}{image_card("fig_25b_bonificaciones.png", "Síntesis gráfica de las bonificaciones (C y D)", "Paneles C y D: calentamiento y confiabilidad histórica.")}</div>
       <h3>2.5.1 · Costo esperado de protección</h3>
       <p>Se evalúan T<sub>d</sub>=2–500 años con Q<sub>d</sub>=Q(1/T<sub>d</sub>), costo anualizado FRC·C<sub>obra</sub> y daño anual esperado integrado entre p=0 y 1/T<sub>d</sub>. El mínimo guardado es T<sub>óptimo</sub>={ctx["T_opt"]:.0f} años para D<sub>max</sub>=20C<sub>0</sub> y r=6%.</p>
       {table(cost_headers, selected_cost, "compact")}{table(sens_headers, sensitivity, "compact")}

@@ -441,8 +441,10 @@ def create_bonus_figure(base: pd.DataFrame, pot: pd.DataFrame,
                          "axes.titleweight": "bold", "axes.spines.top": False,
                          "axes.spines.right": False, "axes.grid": True,
                          "grid.alpha": 0.22})
-    fig, axes = plt.subplots(2, 2, figsize=(15, 10), constrained_layout=True)
-    ax_a, ax_b, ax_c, ax_d = axes.flat
+    # Dos figuras de dos paneles, uno debajo de otro, a ~6.5 in (ancho de texto del informe), para que se lean
+    # (regla de Juan, 26 nov): A y B (costo, POT/AMS) en fig_25a; C y D (clima, Hashimoto) en fig_25b.
+    fig_ab, (ax_a, ax_b) = plt.subplots(2, 1, figsize=(6.5, 8.5), constrained_layout=True)
+    fig_cd, (ax_c, ax_d) = plt.subplots(2, 1, figsize=(6.5, 8.5), constrained_layout=True)
 
     # Panel A: costos esperados y retornos de referencia.
     base = base.sort_values("T_d_y")
@@ -518,6 +520,8 @@ def create_bonus_figure(base: pd.DataFrame, pot: pd.DataFrame,
                      label=f"Qc {row.diameter_mm:.0f} mm = {row.Qc_m3s:.2f} m³/s")
     ax_d.set(xlabel="Fecha (UTC)", ylabel="Caudal equivalente (m³/s)",
              title="D · 2.5.4 Hashimoto y evento crítico")
+    # Margen arriba para que la leyenda y el recuadro de métricas no tapen la línea de Qc de 1 800 mm.
+    ax_d.set_ylim(top=1.45 * float(summaries.Qc_m3s.max()))
     ax_d.legend(frameon=False, fontsize=7, loc="upper left")
     metrics = []
     for _, row in summaries.iterrows():
@@ -527,10 +531,13 @@ def create_bonus_figure(base: pd.DataFrame, pot: pd.DataFrame,
     ax_d.text(0.99, 0.97, "\n".join(metrics), transform=ax_d.transAxes, ha="right", va="top",
               fontsize=7, bbox={"boxstyle": "round,pad=.35", "facecolor": "white", "alpha": .88, "edgecolor": "#ccd6dc"})
 
-    fig.suptitle("Bonificaciones de diseño y riesgo · Denver Stapleton", fontsize=15, fontweight="bold")
-    output = PRODUCTS / "fig_25_bonificaciones.png"
-    fig.savefig(output, dpi=300, bbox_inches="tight", facecolor="white")
-    plt.close(fig)
+    fig_ab.suptitle("Bonificaciones de diseño y riesgo (A y B) · Denver Stapleton", fontsize=11, fontweight="bold")
+    fig_cd.suptitle("Bonificaciones de diseño y riesgo (C y D) · Denver Stapleton", fontsize=11, fontweight="bold")
+    output = PRODUCTS / "fig_25a_bonificaciones.png"
+    fig_ab.savefig(output, dpi=300, bbox_inches="tight", facecolor="white")
+    output_cd = PRODUCTS / "fig_25b_bonificaciones.png"
+    fig_cd.savefig(output_cd, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig_ab); plt.close(fig_cd)
     return output
 
 

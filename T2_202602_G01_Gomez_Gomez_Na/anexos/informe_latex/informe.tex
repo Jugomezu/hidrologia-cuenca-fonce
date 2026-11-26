@@ -146,7 +146,8 @@ HR constante), $u_2$ $+10$~\%, Rs $-10$~\% y $e_a$ $+10$~\%.
 $\approx 0$ en el largo plazo). Incertidumbre al 95~\%: $\sigma_P = 1.96\,|\mathrm{PL}-\mathrm{PI}|/2$, $\sigma_Q =
 25.6$~\% de Q \citep{dibaldassarre2009} y $\sigma_\mathrm{ET} = \sqrt{\sigma_P^2 + \sigma_Q^2}$. Techo de energía
 $R_n/\lambda$ con la $R_n$ real de ERA5-Land. Un producto es consistente con el balance si cae dentro de
-$\pm\sigma_\mathrm{ET}$.
+$\pm\sigma_\mathrm{ET}$. SSEBop v5 y la AA quedan fuera de ese rango, así que nos sirven poco: se muestran en la
+Tabla~\ref{tab:et_productos}, pero no entran en la mediana de productos que usan Budyko y la fracción evaporativa.
 
 \paragraph{Régimen.} Espacio de Budyko con $\bar{P}$ ($\varphi = \mathrm{ET_o}/P$, $\varepsilon = \mathrm{ET}/P$),
 curva de Fu en la forma de \citet{zhang2004} y elasticidad de Q a P \citep{sankarasubramanian2001}; $\varphi$
@@ -332,7 +333,8 @@ un script.}
   \label{fig:et_real}
 \end{figure}
 \begin{table}[htbp]\centering\small
-  \caption{Productos de ET real frente al balance $\bar{P} - Q$ en sus mismos meses ($\sigma_\mathrm{ET}$ al 95~\%).}
+  \caption{Productos de ET real frente al balance $\bar{P} - Q$ en sus mismos meses ($\sigma_\mathrm{ET}$ al 95~\%). Los que quedan fuera (SSEBop v5 y la AA)
+    no entran en la mediana de productos.}
   \label{tab:et_productos}
   \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_et_productos.tex}}
 \end{table}

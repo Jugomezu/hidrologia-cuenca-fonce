@@ -5,14 +5,15 @@ Serie anual (Juan, 2026-11-25): déficit climático máximo acumulado del año,
     déficit del año = máximo de D(t) en los meses del año calendario.
 ETo = ETo Penman–Monteith (FAO-56) de la cuenca (script 04); P̄ = (PI + PL)/2 (Juan, 2026-11-24). Periodo 1998–2022.
 
-Decisiones de este script (propuestas del agente, pendientes de que Juan las confirme):
-    - La suma no se reinicia el 1 de enero: la temporada seca dic–mar cruza el cambio de año y reiniciar la partiría.
+Decisiones de este script:
+    - (Juan, 2026-11-26) La suma no se reinicia en ninguna fecha fija; solo vuelve a 0 cuando la lluvia acumulada cubre el
+      déficit. La suma no se reinicia el 1 de enero: la temporada seca dic–mar cruza el cambio de año y reiniciar la partiría.
       Como sensibilidad se calcula también la versión que reinicia en enero (columna deficit_reinicio_enero_mm).
-    - Hay años sin ningún mes con ETo > P̄ (déficit 0). Las distribuciones del punto 2 no admiten ceros (LP3 usa log10),
+    - (propuesta del agente, pendiente de Juan) Hay años sin ningún mes con ETo > P̄ (déficit 0). Las distribuciones del punto 2 no admiten ceros (LP3 usa log10),
       así que se usa la distribución mixta (probabilidad total):
           F(x) = p0 + (1 − p0)·F+(x),   p0 = fracción de años con déficit 0,  F+ ajustada a los años con déficit > 0.
       El cuantil de periodo de retorno T sale de F+(x) = (1 − 1/T − p0)/(1 − p0); si 1 − 1/T ≤ p0, el cuantil es 0.
-    - Ajuste por momentos L (el método que eligió el punto 2) para Gumbel, GEV y LP3. IC 95 % por bootstrap de los
+    - (propuesta del agente, pendiente de Juan) Ajuste por momentos L (el método que eligió el punto 2) para Gumbel, GEV y LP3. IC 95 % por bootstrap de los
       25 años (se remuestrean años, con sus ceros, y se recalculan p0 y F+), 1 000 réplicas, semilla 42, como el punto 2.
     - T = 2, 5, 10 y 25 años. Con 25 años de datos, T mayores son extrapolación.
 

@@ -1055,7 +1055,7 @@ code { font: 400 .86em var(--f-dato); }
   <h2>Fase 10 · De la ET al diseño: déficit climático anual</h2>
   <p>Script 40 (bono 1.6). Serie elegida por Juan (25 nov): déficit climático máximo acumulado del año,
   D(t) = max(0, D(t−1) + ETo − P̄), mes a mes, con la ETo Penman–Monteith (FAO-56) y P̄ = (PI+PL)/2, 1998–2022. La suma no
-  se reinicia el 1 de enero (la temporada seca cruza el año); la versión con reinicio va como sensibilidad. Frecuencia con
+  se reinicia en ninguna fecha fija (Juan, 26 nov): la temporada seca cruza el año; la versión con reinicio en enero va como sensibilidad. Frecuencia con
   las funciones del script 02 del punto 2, sin modificar: Gumbel, GEV y LP3 por momentos L. Los años con déficit 0 se
   tratan con la distribución mixta F = p0 + (1 − p0)·F+. IC 95 % por bootstrap de los años (1 000 réplicas, semilla 42).
   Limitación: con meses, la lluvia de un mes tapa sus semanas secas, así que el déficit queda subestimado.</p>

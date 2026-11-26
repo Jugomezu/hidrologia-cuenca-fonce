@@ -632,3 +632,5 @@ Juan revisa el enunciado.
 reinicio va como sensibilidad). Los 3 años con déficit 0 se tratan con distribución mixta, F = p0 + (1 − p0)·F+.
 **Resultado.** Media 42 mm, máximo 117 (2016), p0 = 0.12, sin tendencia (MK p 0.19). T = 10: 86 (Gumbel, IC 66–104),
 96 (GEV, 67–122), 88 mm (LP3, 68–107). T = 25: 110, 134 y 95 mm. Limitación: con meses el déficit queda subestimado.
+**Sin reinicio (Juan, 26 nov).** La suma no se reinicia en ninguna fecha; solo vuelve a 0 cuando llueve más de lo que falta.
+Pendiente de Juan: cómo tratar los 3 años en 0 y qué distribución.

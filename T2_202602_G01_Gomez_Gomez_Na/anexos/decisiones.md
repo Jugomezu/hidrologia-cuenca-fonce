@@ -619,3 +619,13 @@ construcción si la ET del producto responde poco al déficit.
 **Figura (Juan, 8:28 a. m.).** Rectas de rs contra altura con su pendiente en la leyenda (script 37 y documento).
 **Conclusión tema f (Juan, 25 nov, 8:48 a. m.).** La superficie frena más la evaporación arriba, y eso se explica por menor
 área foliar (páramo), no por cierre estomático; con estos datos no se puede estimar la respuesta al déficit.
+
+## 2026-11-26 · Punto 1 · Fase 8: periodo 1981–2022 y limpieza como en la Tarea 1 (script 40)
+
+**Decisión (Juan).** La fase 8 usa 1981–2022, con la serie limpia antes, como en la Tarea 1 (detectar y medir, no
+borrar; lo que se excluya o corrija lo decide Juan). Resultado del control: sin faltantes, imposibles ni rachas; ssrd de
+−1 a −4 J/m² de noche (redondeo de ERA5, también en 1998–2022, no se corrige); atípicos mensuales pocos y se listan.
+Homogeneidad (Pettitt): T de ERA5-Land queda ~0.3 °C bajo MSWX desde mediados de los 90 (no infla la tendencia de T);
+Rs frente a la lluvia de CHIRPS sube +0.32 MJ/m²·d después de 2000 (p 0.013); Rs frente a Hargreaves–Samani (MSWX) sin
+salto en 1999–2001 (+3 % tras 2011). Si se corrige el escalón de Rs: ETo +4.2 mm/año por década, no significativa
+(p 0.15). Pendiente: Juan decide qué hacer con el escalón (propuesta del agente: corregirlo y dejar lo otro como sensibilidad).

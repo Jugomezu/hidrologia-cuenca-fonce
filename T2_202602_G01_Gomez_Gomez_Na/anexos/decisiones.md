@@ -698,3 +698,24 @@ para la misma cuenca. Ahora da 6.43 en los dos. Los hidrogramas NRCS no cambian 
 **Razón.** Ser conservador: 1 500 mm cubre solo el caso central (requerido 1 460 mm); con la IDF alta, C +20 % o el t_c
 de Kirpich se piden 1 558, 1 563 y 1 576 mm. 1 650 mm es el diámetro de ASTM C76M más pequeño que cubre los tres. La
 serie comercial de 05b se amplió con 1 650 y 1 800 mm; Monte Carlo y bonificaciones siguen evaluando el de 1 500 mm.
+
+## 2026-11-25 · Punto 1 · Fase 10: de la ET al diseño (script 40, bono 1.6)
+
+**Serie (Juan, 25 nov).** Déficit climático máximo acumulado del año: D(t) = max(0, D(t−1) + ETo − P̄), mensual, ETo
+Penman–Monteith (FAO-56) y P̄ = (PI+PL)/2, 1998–2022. Descartadas: E0 − P̄ (negativa los 25 años), riego y humedad del
+suelo (supuestos nuevos). Advertencia del agente: el plan pide que el punto 2 esté en la misma cuenca y está en Denver;
+Juan revisa el enunciado.
+**Frecuencia.** Funciones del script 02 del punto 2, sin modificar: Gumbel, GEV y LP3 por momentos L; bootstrap de años,
+1 000 réplicas, semilla 42; T = 2, 5, 10 y 25.
+**Decisiones del agente, pendientes de Juan.** La suma no se reinicia el 1 de enero (la temporada seca cruza el año; el
+reinicio va como sensibilidad). Los 3 años con déficit 0 se tratan con distribución mixta, F = p0 + (1 − p0)·F+.
+**Resultado.** Media 42 mm, máximo 117 (2016), p0 = 0.12, sin tendencia (MK p 0.19). T = 10: 86 (Gumbel, IC 66–104),
+96 (GEV, 67–122), 88 mm (LP3, 68–107). T = 25: 110, 134 y 95 mm. Limitación: con meses el déficit queda subestimado.
+**Sin reinicio (Juan, 26 nov).** La suma no se reinicia en ninguna fecha; solo vuelve a 0 cuando llueve más de lo que falta.
+**Ceros y distribución (Juan, 26 nov).** Distribución mixta con p0 = 3/25 y **Gumbel** como principal; GEV y LP3 como
+sensibilidad. Razón: 2 parámetros con 25 años, mejor PPCC (0.992); GEV falla en 143 de 1 000 réplicas; LP3 tiene techo
+(≈ 99 mm) por debajo de los 117 mm de 2016. **Resultado: T = 10 años, 86 mm (IC 95 % 66–104); T = 25, 110 mm (83–132).**
+**Enunciado (Juan, 26 nov).** El bono 1.6 exige que el punto 2 use la misma cuenca o una con información equivalente; el
+punto 2 es Denver, así que la fase 10 va como anexo, sin reclamar el bono. Se probó rehacer la serie como la define el
+enunciado (Σ(ETo − P̄) de enero, el único mes con φ > 1), pero Juan decidió no seguir (es un extra opcional). Queda la
+serie del script 40.

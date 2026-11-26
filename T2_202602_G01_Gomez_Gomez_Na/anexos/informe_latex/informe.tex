@@ -161,7 +161,7 @@ descubrimientos \citep{benjamini1995}; $\alpha = 0.05$. Antes de las tendencias,
 control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a series
 independientes de ERA5 (lluvia de CHIRPS, \citealp{funk2015}; T y Rs de Hargreaves--Samani con MSWX,
 \citealp{beck2022}). La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
-frente a la lluvia de CHIRPS; se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
+frente a la lluvia de CHIRPS (Anexo~\ref{anx:escalon_rs}); se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
 tendencias. La serie sin corregir queda como sensibilidad.
 
 \paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
@@ -393,16 +393,8 @@ Newey-West $p = 0.15$, Mann-Kendall $p = 0.15$). Thornthwaite $+10.6$~mm/año po
 significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/año por década. Sin corregir
 (sensibilidad): \ETo{} $+9.5$, significativa.
 
-\begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{control_calidad_homogeneidad_1981_2022.png}
-  \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a fuentes independientes, con el corte de
-  Pettitt: T menos la de MSWX, Rs sobre la de Hargreaves--Samani con MSWX, y residuo de la Rs frente a la lluvia de
-  CHIRPS. La línea punteada marca 1998.}
-  \label{fig:homogeneidad}
-\end{figure}
-
 \pendiente{Juan: este texto está en tercera persona («Juan decidió»): pasarlo a la voz del grupo y quitar los números
-de script. Citar las Figs.~\ref{fig:tendencias} y \ref{fig:homogeneidad}. Falta el mecanismo: por qué Thornthwaite
+de script. Citar la Fig.~\ref{fig:tendencias} y el escalón del Anexo~\ref{anx:escalon_rs} (Fig.~\ref{fig:escalon_rs}). Falta el mecanismo: por qué Thornthwaite
 sube y la \ETo{} no (la \ETo{} responde poco a la T). Cita del cambio de lo que asimila ERA5 hacia 1998 (Hersbach et
 al., 2020, sin comprobar).}
 
@@ -503,5 +495,15 @@ Mogotes-AUT. El Penman de la fase 4 se había programado como evaporación de ag
 
 \bibliographystyle{plainnat}
 \bibliography{referencias}
+
+\appendix
+\section{Escalón de la radiación solar de ERA5-Land}\label{anx:escalon_rs}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{escalon_rs_chirps_1981_2022.png}
+  \caption{Residuo anual de la Rs de ERA5-Land frente a la lluvia de CHIRPS, 1981--2022, con el corte de Pettitt
+  (después de 2000, $p = 0.013$) y las medias antes y después. El salto de $+0.317$~MJ/m$^2$·d se suma a la Rs de
+  antes de 2001 en las tendencias.}
+  \label{fig:escalon_rs}
+\end{figure}
 
 \end{document}

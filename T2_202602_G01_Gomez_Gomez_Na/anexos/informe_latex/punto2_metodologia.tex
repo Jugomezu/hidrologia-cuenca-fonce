@@ -19,7 +19,7 @@ $T=50$. Las estimaciones se calcularon con Gumbel por momentos; la muestra de a�
 limitan su interpretación.
 
 \paragraph{Resolución y uso en microcuencas.} La serie tiene resolución horaria. No permite medir directamente máximos
-de 10, 15 o 30 minutos, que pueden controlar la respuesta de microcuencas. La corrección de Weiss (1964) ajusta
+de 10, 15 o 30 minutos, que pueden controlar la respuesta de microcuencas. La corrección de \citet{weiss1964} ajusta
 máximos obtenidos con reloj fijo frente a máximos de duración móvil y se aplica a la duración observada; no
 reconstruye variabilidad subhoraria. Para duraciones menores de una hora se necesita una ley de escala
 intensidad--duración (idealmente regional y validada), además de cuantificar su incertidumbre.
@@ -29,12 +29,12 @@ Se estiman máximos móviles por año hidrológico octubre--septiembre. Las inte
 (1964), con $f_W = 1/(1 - 1/(8n))$; la columna de coherencia verifica que las láminas corregidas no decrezcan al
 aumentar la duración. El año hidrológico se identifica por el año en que termina.
 
-MOM: momentos; LMOM: L-momentos muestrales no sesgados según las fórmulas PWM de Hosking y Wallis; MLE: máxima
+MOM: momentos; LMOM: L-momentos muestrales no sesgados según las fórmulas PWM de \citet{hosking1997}; MLE: máxima
 verosimilitud. En GEV se informa explícitamente $\xi$ y el parámetro de SciPy $c = -\xi$. Las posiciones de
-graficación son las de Gringorten ($a = 0.44$).
+graficación son las de Gringorten ($a = 0.44$; \citealp{gringorten1963}).
 
 KS y AD comparan la distribución ajustada con los máximos observados; PPCC es la correlación producto-momento en el
-gráfico de probabilidad. Mann--Kendall evalúa tendencia monotónica y la pendiente de Sen se expresa en mm/h por año
+gráfico de probabilidad. Mann--Kendall \citep{mann1945} evalúa tendencia monotónica y la pendiente de Sen \citep{sen1968} se expresa en mm/h por año
 hidrológico.
 
 \subsubsection{Curvas intensidad--duración--frecuencia}
@@ -44,28 +44,28 @@ duración y sobre la intensidad frente al periodo de retorno para evitar cruces.
 exponente temporal $m$ positivo. Las bandas subhorarias se obtienen ajustando los límites bootstrap por duración con
 el modelo IDF elegido.
 
-\paragraph{Selección.} Bernard/Sherman, Talbot/Wenzel y Koutsoyiannis se compararon con MAPE, RMSE y $R^2$. La tabla
+\paragraph{Selección.} Bernard/Sherman, Talbot/Wenzel y Koutsoyiannis \citep{koutsoyiannis1998} se compararon con MAPE, RMSE y $R^2$. La tabla
 marca el mejor ajuste global y, por separado, el mejor de los modelos con desplazamiento $b>0$ utilizado para la tabla
 maestra y la extrapolación a duraciones cortas, lo que limita la intensidad cuando $d$ tiende a cero.
 
 \paragraph{Validación con NOAA Atlas 14.} Se cotejan las 36 combinaciones de duración y periodo de retorno con las
-profundidades PDS puntuales obtenidas del endpoint oficial NOAA HDSC para Denver Stapleton. La diferencia relativa
+profundidades PDS puntuales obtenidas del endpoint oficial NOAA HDSC para Denver Stapleton \citep{perica2013}. La diferencia relativa
 compara nuestra IDF LP3/LMOM--Talbot/Wenzel con NOAA.
 
 \paragraph{Periodo de retorno de eventos históricos.} Los periodos se estiman con LP3/LMOM sobre la serie de máximos
-anuales aceptada. Para el evento de 2022 se usa un umbral espacial/subhorario documentado, por lo que el resultado es
+anuales aceptada. Para el evento de 2022 se usa un umbral espacial/subhorario documentado \citep{accuweather2022}, por lo que el resultado es
 una cota inferior y no un periodo puntual observado en la estación.
 
 \subsubsection{Diseño hidrológico de la microcuenca}
 La sección separa la cuenca topográfica delimitada con DEM del escenario metodológico NRCS que se conserva como
 respaldo. El DEM Copernicus es un modelo de superficie y la cuenca automática requiere validación de drenaje urbano
-antes de usarla para construcción. La cuenca candidata y el cauce se extraen del DEM Copernicus GLO-30 reproyectado a
+antes de usarla para construcción. La cuenca candidata y el cauce se extraen del DEM Copernicus GLO-30 \citep{esa_copdem} reproyectado a
 UTM 13N.
 
 \paragraph{Problema A: alcantarilla circular.} Predimensionamiento con geometría leída de los metadatos DEM, cobertura
 periurbana ponderada, IDF LP3/LMOM y Talbot--Wenzel, Manning a tubo lleno y diámetro comercial superior. El diseño usa
-$T=50$ años y contrasta el criterio de riesgo con Chow et al. (1988). El $t_c$ de diseño es 60~min: Kerby--Hathaway
-(69.8), Témez (82.4) y NRCS-SCS Lag (175.0~min) quedan por encima; Kirpich (45.5~min) es el valor bajo porque solo
+$T=50$ años y contrasta el criterio de riesgo con \citet{chow1988}. El $t_c$ de diseño es 60~min: Kerby--Hathaway
+(69.8; \citealp{txdot_hdm}), Témez (82.4) y NRCS-SCS Lag (175.0~min; \citealp{nrcs2010cap15}) quedan por encima; Kirpich (45.5~min; \citealp{txdot_hdm}) es el valor bajo porque solo
 representa el tránsito por el cauce y omite el flujo laminar inicial.
 
 \paragraph{Problema B: tanque de detención por urbanización.} El escenario cambia de $C=0.495$ y $t_c=60$~min a
@@ -74,7 +74,7 @@ $C=0.78$ y $t_c=30$~min, manteniendo $T=50$ años y limitando la descarga a $Q_\
 63\,000~m$^3$; la salida se controla con orificio dimensionado ($C_d = 0.61$) y tránsito RK4 de 1~min
 ($S = A_\mathrm{tanque}\,h$).
 
-\paragraph{Respaldo metodológico: hietogramas NRCS-UH y AMC.} Hietogramas de bloques alternos e hidrogramas NRCS-UH
+\paragraph{Respaldo metodológico: hietogramas NRCS-UH y AMC.} Hietogramas de bloques alternos e hidrogramas NRCS-UH \citep{nrcs2007cap16}
 de la misma microcuenca DEM y con los mismos parámetros del Problema A ($A=1.0269$~km$^2$, $C=0.495$,
 $CN_\mathrm{II}=78$ y $t_c=60$~min). El caudal racional de esta sección usa el mismo $C$, sin factor de frecuencia
 ($C_f = 1$), así que coincide con el del Problema A.
@@ -88,12 +88,12 @@ normalizadas porque los archivos fuente no especifican un costo monetario base.
 $\mathrm{FRC}\cdot C_\mathrm{obra}$ y daño anual esperado integrado entre $p=0$ y $1/T_d$.
 
 \paragraph{POT/GPD y relación de Langbein.} La serie horaria se declusterizó con separación mínima de seis horas
-secas. El umbral seleccionado genera alrededor de dos eventos por año válido; se ajustó GPD a los excesos con
-convención scipy $c=+\xi$ y se transformó el retorno de evento a retorno AMS mediante Langbein.
+secas. El umbral seleccionado genera alrededor de dos eventos por año válido; se ajustó GPD \citep{coles2001} a los excesos con
+convención scipy $c=+\xi$ y se transformó el retorno de evento a retorno AMS mediante \citet{langbein1949}.
 
 \paragraph{Cambio climático y GEV no estacionaria.} La curva IDF se escala con 7~\% por °C. La GEV evalúa
 $\mu(t)=\mu_0+\mu_1 t$ en $t_\mathrm{final}+25$ años contra el umbral fijo $i^*=48.93$~mm/h.
 
-\paragraph{Confiabilidad, resiliencia y vulnerabilidad.} Hashimoto se calculó con caudal horario, Weiss $=1.14$ y
+\paragraph{Confiabilidad, resiliencia y vulnerabilidad.} Hashimoto \citep{hashimoto1982} se calculó con caudal horario, Weiss $=1.14$ y
 capacidades a tubo lleno de Manning. $\alpha$ es la fracción de horas sin falla; $\gamma$ es la tasa de recuperación
 por hora fallida; $\nu$ resume el exceso sobre capacidad.

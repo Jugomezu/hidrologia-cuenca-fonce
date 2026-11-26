@@ -52,6 +52,7 @@ MODULO_PUNTO2 = RAIZ_ENTREGA / "codigo" / "punto2" / "02_extremos_y_distribucion
 SALIDA_SERIE = CARPETA_PRODUCTOS / "deficit_climatico_anual.csv"
 SALIDA_FRECUENCIA = CARPETA_PRODUCTOS / "deficit_climatico_frecuencia.csv"
 SALIDA_PNG = CARPETA_PRODUCTOS / "deficit_climatico_frecuencia.png"
+SALIDA_CIFRAS = CARPETA_PRODUCTOS / "tablas_informe" / "cifras_fase10.tex"
 
 ANIO_INICIO, ANIO_FIN = 1998, 2022
 DISTRIBUCIONES = ("Gumbel", "GEV", "LP3")
@@ -148,6 +149,7 @@ def main():
                           "MK_S": s_mk, "MK_p": p_mk, "Sen_mm_por_anio": sen})
     tabla = pd.DataFrame(filas)
     tabla.round(4).to_csv(SALIDA_FRECUENCIA, index=False)
+    escribir_cifras_informe(anual, tabla, p_mk)
     print(tabla[["distribucion", "periodo_retorno_anios", "deficit_mm", "ic95_bajo_mm", "ic95_alto_mm",
                  "PPCC", "replicas_validas"]].round(2).to_string(index=False))
     figura(anual, tabla, p2)
@@ -156,7 +158,8 @@ def main():
 
 def figura(anual, tabla, p2):
     valores = anual["deficit_mm"].to_numpy()
-    fig, (eje_serie, eje_frec) = plt.subplots(1, 2, figsize=(11, 4.2))
+    # Paneles uno debajo de otro, a ancho de texto, para que se lean en el informe (regla de Juan, 26 nov).
+    fig, (eje_serie, eje_frec) = plt.subplots(2, 1, figsize=(6.5, 8))
 
     eje_serie.bar(anual["anio"], anual["deficit_mm"], color="#999999")
     eje_serie.set_xlabel("año")
@@ -193,6 +196,31 @@ def figura(anual, tabla, p2):
     fig.savefig(SALIDA_PNG, dpi=150)
     plt.close(fig)
 
+
+
+def escribir_cifras_informe(anual: pd.DataFrame, tabla: pd.DataFrame, p_mk: float) -> None:
+    """Macros de LaTeX con las cifras que cita el anexo de la fase 10 (nada escrito a mano en el informe)."""
+    valores = anual["deficit_mm"].to_numpy()
+    principal = tabla[tabla.distribucion.eq(DISTRIBUCION_PRINCIPAL)].set_index("periodo_retorno_anios")
+    anio_max = int(anual.loc[anual["deficit_mm"].idxmax(), "anio"])
+    macros = {
+        "fdiezMedia": f"{valores.mean():.0f}",
+        "fdiezMax": f"{valores.max():.0f}",
+        "fdiezAnioMax": f"{anio_max}",
+        "fdiezCeros": f"{int((valores == 0).sum())}",
+        "fdiezNanios": f"{len(valores)}",
+        "fdiezMKp": f"{p_mk:.2f}",
+        "fdiezTdiez": f"{principal.loc[10, 'deficit_mm']:.0f}",
+        "fdiezTdiezBajo": f"{principal.loc[10, 'ic95_bajo_mm']:.0f}",
+        "fdiezTdiezAlto": f"{principal.loc[10, 'ic95_alto_mm']:.0f}",
+        "fdiezTveinticinco": f"{principal.loc[25, 'deficit_mm']:.0f}",
+        "fdiezTveinticincoBajo": f"{principal.loc[25, 'ic95_bajo_mm']:.0f}",
+        "fdiezTveinticincoAlto": f"{principal.loc[25, 'ic95_alto_mm']:.0f}",
+    }
+    SALIDA_CIFRAS.parent.mkdir(parents=True, exist_ok=True)
+    lineas = ["% Escrito por codigo/punto1/40_deficit_climatico_frecuencia.py; no editar a mano."]
+    lineas += [f"\\newcommand{{\\{k}}}{{{v}}}" for k, v in macros.items()]
+    SALIDA_CIFRAS.write_text("\n".join(lineas) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":
     main()

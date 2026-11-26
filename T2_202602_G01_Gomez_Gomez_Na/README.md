@@ -51,7 +51,8 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Otros métodos | 22, 21, 23, 25 | Thornthwaite, los demás métodos, Hargreaves de la Tarea 1, mes a mano |
 | Diferencias entre métodos | 26, 27, 28 | Términos de la ETo, α* y sensibilidad |
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
-| HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
+| Energía o agua, por mes | 30, 31 | Régimen mensual y fracción evaporativa |
+| HR de las estaciones | 32 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
 
 Probado el 2026-11-23 en una copia limpia, con `productos/punto1/` vacío salvo `terraclimate_mensual_cuenca.csv`:
 los 24 scripts (del 02 al 29) corren en este orden y reproducen los productos guardados (solo cambian cifras en el 4.º decimal).

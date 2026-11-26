@@ -515,7 +515,7 @@ mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo c
 **Decisión (Juan).** La HR que cita el texto de Hargreaves es el promedio simple de 5 estaciones del IDEAM (DHIME,
 1998–2022): La Sierra-AUT, Escuela Agrícola Mogotes, Charalá, Mogotes-AUT y Andalucía. Se dejan todos los días de
 Mogotes-AUT, también los 149 de 2016–2017 con HR menor de 30 %, que parecen falla del sensor. Resultado: 79.3 %
-(script 30, `productos/punto1/hr_estaciones.csv`).
+(script 32, `productos/punto1/hr_estaciones.csv`).
 
 **Cómo se calcula.** Mogotes-AUT trae la HR media diaria; las otras cuatro, solo máxima y mínima, y su HR del día es
 el promedio de las dos. HR de cada estación = media de sus días válidos. El 79.4 % del borrador salió de un cálculo

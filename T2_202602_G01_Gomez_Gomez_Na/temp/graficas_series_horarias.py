@@ -1067,14 +1067,27 @@ code { font: 400 .86em var(--f-dato); }
   el I de 1998–2022 y la atribución con las sensibilidades de 1998–2022. Con 1998–2022 el script reproduce la fase 8
   (diferencia máxima 0.0005 mm/mes).</p>
   <div class="tabla" id="t-fase8b"></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>ETo y Thornthwaite anuales 1981–2022 (mm/año), con la recta de Sen</h3><div class="grafico" id="g-fase8b-series" style="height:480px"></div></div>
-  <div class="tarjeta" style="margin-top:16px"><h3>Atribución 1981–2022 (mm/año por década)</h3><div class="grafico" id="g-fase8b-atr" style="height:400px"></div></div>
-  <p class="nota">Lectura del agente, para Juan: con 42 años la ETo sube +9.5 mm/año por década (0.8 %/década), significativa
+  <div class="tarjeta" style="margin-top:16px"><h3>ETo y Thornthwaite anuales 1981–2022 con la Rs corregida (mm/año), con la recta de Sen</h3><div class="grafico" id="g-fase8b-series" style="height:480px"></div></div>
+  <div class="tarjeta" style="margin-top:16px"><h3>Atribución 1981–2022 con la Rs corregida (mm/año por década)</h3><div class="grafico" id="g-fase8b-atr" style="height:400px"></div></div>
+  <p class="nota">Antes de corregir la Rs (queda como sensibilidad). Lectura del agente, para Juan: con 42 años la ETo sube +9.5 mm/año por década (0.8 %/década), significativa
   con todas las pruebas; Thornthwaite +10.6. Por tramos ninguna es significativa (1981–1997: ETo +8.9 mm/año por década,
   p 0.44; 1998–2022: +3.2, p 0.68): la pendiente de 1981–1997 es parecida a la de 42 años, pero 17 años no bastan. La T
   sube de forma pareja (0.16 °C/década en 1981–1997, 0.14 en 42 años). La Rs no: plana dentro de 1981–1997 y un escalón
   hacia 1999–2001 (Pettitt 1999), y aporta casi la mitad de la tendencia de la ETo. Ese escalón puede ser un cambio del
   reanálisis (ERA5 empieza a asimilar ATOVS en 1998); no hay Rs observada antes de 1998 para comprobarlo.</p>
+  <h3>Control de calidad de 1981–2022 (script 42, como en la Tarea 1; Juan, 26 nov)</h3>
+  <p>Sin horas faltantes ni repetidas, sin valores imposibles ni rachas, Rs ≤ Ra. Atípicos mensuales pocos (se listan).
+  Homogeneidad con Pettitt: T de ERA5-Land ~0.3 °C bajo MSWX desde mediados de los 90; Rs frente a la lluvia de CHIRPS
+  +0.32 MJ/m²·día después de 2000 (p 0.013); Rs frente a Hargreaves–Samani con MSWX, sin salto en 1999–2001. Si se
+  corrige ese escalón de Rs, la ETo 1981–2022 sube +4.2 mm/año por década y deja de ser significativa (p 0.15).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Decisión de Juan (26 nov, 1:09 p. m.): se corrige el escalón de Rs</h3>
+  <p>A la Rs diaria de antes de 2001 se le suma +0.317 MJ/m²·día y se recalculan Rn y la ETo (script 36). Solo en la fase 8;
+  las demás fases siguen con la Rs original. La tabla y las gráficas de arriba ya son con la Rs corregida; sin corregir queda
+  como sensibilidad (archivos <code>*_sin_corregir_rs</code>).</p>
+  <p class="nota">Resultado: ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, Mann-Kendall
+  p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p &lt; 0.001) y T +0.14 °C/década, sin cambio. La Rs ya no tiene tendencia
+  (p 0.75). Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. La T empuja la ETo hacia
+  arriba, pero no lo bastante para que la tendencia sea detectable en 42 años.</p></div>
   <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan con 1981–2022 (24 nov, 9:31 p. m.)</h3>
   <p>Se reporta 1981–2022. Para la Rs: su tendencia puede venir solo de defectos de los datos del reanálisis, más que de
   una tendencia real. La parte de la ETo que sale de la Rs (+4.6 de +9.5 mm/año por década) no se toma como cambio real;

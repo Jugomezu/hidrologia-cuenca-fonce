@@ -12,11 +12,17 @@ Pasos, con las mismas funciones de los scripts 03, 04, 22 y 32 (se importan, no 
 4. Forzantes (T, ea, u2, Rs) igual que el script 32.
 5. Tendencias con los métodos de la Tarea 1 (script 32) sobre 1981–2022 (504 meses). La atribución usa las
    sensibilidades del script 28 (calculadas con 1998–2022).
-Comprobación: con 1998–2022 el mismo camino reproduce eto_mensual_cuenca.csv, el Thornthwaite de metodos_mensual.csv
-y tendencias_demanda.csv.
+6. Corrección del escalón de Rs (decisión de Juan, 26 nov): el control de calidad (script 42) encontró un salto de
+   +0.317 MJ/m²·d después de 2000 en el residuo de Rs frente a la lluvia de CHIRPS (Pettitt p 0.013). A la Rs diaria
+   de cada punto antes de 2001-01-01 se le SUMA ese salto, y con esa Rs se recalculan Rns, Rnl y Rn (FAO-56 ec. 37–40,
+   como el script 03) y la ETo. La T, ea, u2 y Thornthwaite no cambian. La corrección es solo para la fase 8; las
+   demás fases (1998–2022) siguen con la Rs original. Sin corregir queda como sensibilidad (archivos *_sin_corregir_rs).
+Comprobación: con 1998–2022 y sin corregir, el mismo camino reproduce eto_mensual_cuenca.csv, el Thornthwaite de
+metodos_mensual.csv y tendencias_demanda.csv.
 
 Escribe productos/punto1/demanda_mensual_cuenca_1981_2022.csv, tendencias_demanda_1981_2022.csv,
-atribucion_eto_1981_2022.csv y tendencias_demanda_1981_2022.png.
+atribucion_eto_1981_2022.csv y tendencias_demanda_1981_2022.png (con la Rs corregida), y los mismos con el sufijo
+_sin_corregir_rs (sensibilidad).
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
     python codigo/punto1/36_tendencias_demanda_1981_2022.py
@@ -38,6 +44,13 @@ SALIDA_MENSUAL = CARPETA_PRODUCTOS / "demanda_mensual_cuenca_1981_2022.csv"
 SALIDA_TENDENCIAS = CARPETA_PRODUCTOS / "tendencias_demanda_1981_2022.csv"
 SALIDA_ATRIBUCION = CARPETA_PRODUCTOS / "atribucion_eto_1981_2022.csv"
 SALIDA_FIGURA = CARPETA_PRODUCTOS / "tendencias_demanda_1981_2022.png"
+
+SUFIJO_SIN_CORREGIR = "_sin_corregir_rs"
+ARCHIVO_CONTROL = CARPETA_PRODUCTOS / "control_calidad_1981_2022.csv"
+
+# Escalón de Rs (script 42, residuo de Rs frente a CHIRPS; Pettitt: corte después de 2000). Decisión de Juan, 26 nov.
+CORRECCION_RS_MJM2 = 0.317
+INICIO_SIN_CORRECCION = pd.Timestamp("2001-01-01")
 
 INICIO_LOCAL = pd.Timestamp("1981-01-01 00:00")
 FIN_LOCAL_EXTENSION = pd.Timestamp("1997-12-31 23:00")
@@ -101,6 +114,32 @@ def diaria_completa():
     return diaria.reset_index(drop=True)
 
 
+def corregir_rs(diaria):
+    """Suma el escalón a la Rs antes de 2001 y recalcula Rns, Rnl y Rn como el script 03 (ec. 38–40; Rso no cambia)."""
+    d = diaria.copy()
+    antes = d["fecha"] < INICIO_SIN_CORRECCION
+    d.loc[antes, "rs_MJm2"] += CORRECCION_RS_MJM2
+    rns = (1 - rn03.ALBEDO_REFERENCIA) * d["rs_MJm2"]                                            # ec. 38
+    rs_sobre_rso = (d["rs_MJm2"] / d["rso_MJm2"]).clip(upper=1.0)
+    t4 = ((d["tmax_C"] + rn03.KELVIN) ** 4 + (d["tmin_C"] + rn03.KELVIN) ** 4) / 2
+    rnl = (rn03.STEFAN_BOLTZMANN * t4 * (0.34 - 0.14 * np.sqrt(d["ea_kPa"]))                     # ec. 39
+           * (1.35 * rs_sobre_rso - 0.35))
+    # la misma fórmula, donde no se corrige, devuelve la Rn guardada (redondeada a 4 decimales)
+    assert np.allclose((rns - rnl)[~antes], d.loc[~antes, "rn_MJm2"], atol=2e-4)
+    d.loc[antes, "rns_MJm2"] = rns[antes]
+    d.loc[antes, "rnl_MJm2"] = rnl[antes]
+    d.loc[antes, "rn_MJm2"] = (rns - rnl)[antes]                                                 # ec. 40
+    return d
+
+
+def comprobar_correccion():
+    """El salto que se suma es el que reporta el script 42."""
+    if ARCHIVO_CONTROL.exists():
+        control = pd.read_csv(ARCHIVO_CONTROL)
+        fila = control[control["chequeo"].str.contains("CHIRPS") & control["chequeo"].str.startswith("homogeneidad")]
+        assert len(fila) == 1 and f"salto {CORRECCION_RS_MJM2:+.3f}" in fila["detalle"].iloc[0], fila
+
+
 def promedio_cuenca(mensual, columnas):
     peso = mensual["punto"].map(PESOS)
     suma = mensual[columnas].mul(peso, axis=0).groupby(mensual["fecha"]).sum()
@@ -161,32 +200,53 @@ def comprobar_1998_2022(tabla):
     print("Comprobación 1998–2022: reproduce las tendencias de la fase 8.")
 
 
-def main():
-    diaria = diaria_completa()
-    tabla = demanda_mensual(diaria)
-    assert len(tabla) == 42 * 12
-    comprobar_1998_2022(tabla)
-
-    tabla_t = tend32.tendencias(tabla)
-    atr = tend32.atribucion(tabla_t)
+def guardar(tabla, tabla_t, atr, sufijo=""):
+    rutas = [p.with_name(p.stem + sufijo + p.suffix)
+             for p in (SALIDA_MENSUAL, SALIDA_TENDENCIAS, SALIDA_ATRIBUCION, SALIDA_FIGURA)]
     salida = tabla.copy()
     salida.index = salida.index.strftime("%Y-%m")
     salida.index.name = "mes"
-    salida.round(4).to_csv(SALIDA_MENSUAL)
-    tabla_t.round(5).to_csv(SALIDA_TENDENCIAS, index=False)
-    atr.round(5).to_csv(SALIDA_ATRIBUCION, index=False)
-    tend32.figura(tabla, tabla_t, atr, salida=SALIDA_FIGURA)
+    salida.round(4).to_csv(rutas[0])
+    tabla_t.round(5).to_csv(rutas[1], index=False)
+    atr.round(5).to_csv(rutas[2], index=False)
+    tend32.figura(tabla, tabla_t, atr, salida=rutas[3])
+    return rutas
 
+
+def resumen(titulo, tabla, tabla_t, atr):
     pd.set_option("display.width", 200)
+    print(f"\n===== {titulo} =====")
     anual = tabla[["eto", "thornthwaite"]].groupby(tabla.index.year).sum()
-    print("\nMedia anual (mm/año): 1981–1997", anual.loc[:1997].mean().round(0).to_dict(),
+    print("Media anual (mm/año): 1981–1997", anual.loc[:1997].mean().round(0).to_dict(),
           "| 1998–2022", anual.loc[1998:].mean().round(0).to_dict())
     print(tabla_t[["variable", "media", "ols_por_decada", "ols_pct_por_decada", "p_ols_newey_west", "q_ols",
                    "sen_por_decada", "p_mk_permutacion", "q_mk", "p_mk_hamed_rao", "pettitt_ultimo_anio_tramo1",
                    "p_pettitt", "ols_sin_primeros_anios", "ols_sin_ultimos_anios"]].round(4).to_string())
     print(atr[["forzante", "tendencia_forzante_por_decada", "contribucion_pct_por_decada",
                "contribucion_mm_anio_por_decada"]].round(3).to_string())
-    print(f"Listo: {SALIDA_MENSUAL.name}, {SALIDA_TENDENCIAS.name}, {SALIDA_ATRIBUCION.name}, {SALIDA_FIGURA.name}")
+
+
+def main():
+    comprobar_correccion()
+    diaria = diaria_completa()
+
+    # Sin corregir: comprobación contra 1998–2022 y sensibilidad
+    tabla0 = demanda_mensual(diaria)
+    assert len(tabla0) == 42 * 12
+    comprobar_1998_2022(tabla0)
+    t0 = tend32.tendencias(tabla0)
+    a0 = tend32.atribucion(t0)
+    guardar(tabla0, t0, a0, SUFIJO_SIN_CORREGIR)
+    resumen("Sin corregir la Rs (sensibilidad)", tabla0, t0, a0)
+
+    # Principal: Rs corregida antes de 2001
+    tabla = demanda_mensual(corregir_rs(diaria))
+    assert (tabla.loc[tabla.index.year >= 2001] - tabla0.loc[tabla0.index.year >= 2001]).abs().max().max() < 1e-9
+    tabla_t = tend32.tendencias(tabla)
+    atr = tend32.atribucion(tabla_t)
+    rutas = guardar(tabla, tabla_t, atr)
+    resumen(f"Rs corregida (+{CORRECCION_RS_MJM2} MJ/m²·d antes de 2001)", tabla, tabla_t, atr)
+    print("Listo:", ", ".join(r.name for r in rutas), "y los mismos con", SUFIJO_SIN_CORREGIR)
 
 
 if __name__ == "__main__":

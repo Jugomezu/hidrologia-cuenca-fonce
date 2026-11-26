@@ -629,3 +629,14 @@ Homogeneidad (Pettitt): T de ERA5-Land queda ~0.3 °C bajo MSWX desde mediados d
 Rs frente a la lluvia de CHIRPS sube +0.32 MJ/m²·d después de 2000 (p 0.013); Rs frente a Hargreaves–Samani (MSWX) sin
 salto en 1999–2001 (+3 % tras 2011). Si se corrige el escalón de Rs: ETo +4.2 mm/año por década, no significativa
 (p 0.15). Pendiente: Juan decide qué hacer con el escalón (propuesta del agente: corregirlo y dejar lo otro como sensibilidad).
+
+## 2026-11-26 · Punto 1 · Fase 8: se corrige el escalón de Rs (script 36)
+
+**Decisión (Juan, 26 nov, 1:09 p. m.).** A la Rs diaria de antes de 2001 se le suma +0.317 MJ/m²·d (el salto del script
+42) y se recalculan Rn y ETo (FAO-56 ec. 38–40). Solo en la fase 8; las demás fases siguen con la Rs original. Sin
+corregir queda como sensibilidad (`*_sin_corregir_rs`).
+**Razón.** El salto aparece frente a una fuente independiente de ERA5 (lluvia de CHIRPS) y coincide con el cambio de lo
+que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en parte un defecto de los datos.
+**Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
+p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
+Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).

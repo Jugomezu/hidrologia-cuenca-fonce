@@ -1069,6 +1069,9 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:12px"><h3>Decisión de Juan (26 nov)</h3>
   <p>Sin reinicio de la suma; distribución mixta (p0 = 0.12) con Gumbel. El déficit climático que se supera en promedio una
   vez cada 10 años es 86 mm (IC 95 % 66–104); cada 25 años, 110 mm (83–132). GEV y LP3 quedan como sensibilidad.</p></div>
+  <p class="nota">Va como anexo, sin reclamar el bono (Juan, 26 nov): el enunciado exige que el punto 2 use la misma cuenca o
+  una con información equivalente, y el punto 2 es Denver. No se rehace con la serie exacta del enunciado (Σ de la temporada
+  seca de 1.3, es decir, enero).</p>
 </section>
 
 <section>

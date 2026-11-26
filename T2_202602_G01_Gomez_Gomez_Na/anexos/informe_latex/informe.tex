@@ -61,7 +61,7 @@
 
 \title{Evapotranspiración en la cuenca del río Fonce y diseño hidrológico\\[4pt]
   \large Hidrología · Tarea 2 · Semestre 202602 · Grupo G01}
-\author{Gómez \and Gómez \and Na\ifentrega\else\\[6pt]\textcolor{orange!70!black}{\small[Pendiente: nombres completos]}\fi}
+\author{Juan Pablo Gómez \and Andrea Gómez}
 \date{Noviembre de 2026}
 
 \begin{document}
@@ -72,27 +72,34 @@
 
 \subsection{Punto 1: la demanda y el uso de agua en la cuenca del río Fonce}
 
-\borradorIA{Texto armado con las cifras de los scripts y el plan del punto 1. El grupo lo revisa, lo pasa a su voz y
-agrega la bibliografía del contexto hidroclimático (Tarea 1).}
+% Texto de Juan (26 nov, en el hilo), con las cifras llenadas y erratas corregidas.
+La cuenca del río Fonce, tal como drena hasta la estación San Gil (IDEAM 24027010), se encuentra en la ladera
+occidental de la cordillera Oriental, en el departamento de Santander. Esta cuenca tiene un área de
+\SI{2098.85}{km^2}, y entre 1998 y 2022, según lo descrito en la Tarea 1, recibe una precipitación promedio de
+\cifraPL~mm/año según los pluviómetros consultados, o de \cifraPI~mm/año según IMERG. La cuenca también tiene un
+caudal medido de \cifraQ~mm/año, de acuerdo con las medidas de la estación San Gil, que es el 56~\% ($Q/\bar{P}$) del
+agua que le entra por precipitación, y el resto, \cifraETbalance~mm/año, se va como evapotranspiración.
 
-La cuenca del río Fonce hasta la estación de San Gil (IDEAM 24027010) drena \SI{2098.85}{km^2} de la vertiente
-occidental de la cordillera Oriental, en Santander. En la Tarea 1 se describieron su relieve, su lluvia y su caudal; en
-1998--2022 recibe en promedio \cifraPm~mm/año (promedio de IMERG, \cifraPI, y de la red de pluviómetros,
-\cifraPL) y devuelve por el río \cifraQ~mm/año, es decir, el \cifraQsobreP{} de la lluvia. La diferencia, cerca de
-\cifraETbalance~mm/año, vuelve a la atmósfera como evapotranspiración, el término del balance que la Tarea 1 no podía
-medir.
+\borradorIA{Párrafo de contexto hidroclimático armado con los resultados de la Tarea 1. Juan lo revisa y lo pasa a su
+voz.}
 
-Esta parte del trabajo estima ese término por varios caminos y explica qué lo controla. Las preguntas son cinco:
+La cuenca va de 1\,121~m en San Gil a 4\,299~m en el páramo del sureste, con altura media de 2\,264~m (Copernicus
+DEM, Tarea 1). Está a sotavento de los alisios, pero es húmeda: P/ETP anual de 2.01 con los pluviómetros y 1.77 con
+IMERG. Su lluvia y su caudal son bimodales, por el doble paso de la Zona de Convergencia Intertropical
+\citep{poveda2004}: la lluvia tiene picos en abril (mayo en IMERG) y octubre, el caudal en mayo y noviembre, y enero es
+el mes más seco. Entre años, la señal es débil y coincide con el ENSO (2010, con La Niña, fue el año más húmedo; 2015,
+con El Niño, el más seco). La lluvia baja con la altura (de $-222$ a $-297$~mm/año por cada 1\,000~m) y ningún
+pluviómetro mide por encima de 2\,625~m, donde está el 30~\% de la cuenca. La cubren mosaicos de agricultura y pasto
+(51.7~\%), bosque (36.2~\%) y herbazales andinos (9.9~\%) (MapBiomas Colombia 2022, Tarea 1).
+
+En este trabajo se busca entender el término de la evapotranspiración, buscando calcular su valor por varios caminos y
+explicando qué la controla en esta cuenca. Se busca responder las siguientes 5 preguntas:
 (1) cuál es la demanda atmosférica de la cuenca y qué la controla; (2) cuánta agua devuelve la cuenca a la atmósfera y
-con qué incertidumbre; (3) en qué meses manda la energía y en cuáles el agua; (4) si la demanda ha cambiado en
-1998--2022 y por qué; y (5) qué proceso distingue a la cuenca.
+con qué incertidumbre; (3) en qué meses manda la energía y en cuáles el agua; (4) si la demanda ha cambiado y por qué;
+y (5) qué proceso distingue a la cuenca.
 
-\pendiente{Contexto hidroclimático con bibliografía (régimen bimodal, ZCIT, altitud), motivación y la hipótesis de
-la Tarea 1 que se pone a prueba. Altitud de la cuenca: dar el rango con su fuente (el esqueleto decía 1\,118 a
-4\,284~m, sin fuente).}
-
-\subsection{Punto 2}
-\pendiente{El sitio del punto 2, su contexto y las preguntas (lo escribe la compañera).}
+\subsection{Punto 2: diseño hidrológico de una microcuenca en Denver}
+\input{punto2_introduccion}
 
 % =====================================================================================================================
 \section{Metodología}
@@ -163,7 +170,7 @@ control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y hom
 fuentes: la lluvia de CHIRPS (satélite y estaciones; \citealp{funk2015}), independiente de ERA5, y la T y la Rs de
 Hargreaves--Samani con MSWX, que no es del todo independiente: es ERA5 corregido con climatologías de estaciones
 \citep{beck2022}. La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
-frente a la lluvia de CHIRPS; se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
+frente a la lluvia de CHIRPS (Anexo~\ref{anx:escalon_rs}); se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
 tendencias. La serie sin corregir queda como sensibilidad.
 
 \paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
@@ -184,8 +191,8 @@ $f = r_s\,\mathrm{LAI}/r_{c,\min}$ al estilo de Jarvis y se ajusta $\ln f = a + 
 
 \pendiente{Fase 9: por qué se eligieron los temas a y f y se descartan los otros cuatro.}
 
-\subsection{Punto 2}
-\pendiente{Metodología del punto 2 (compañera).}
+\subsection{Punto 2: lluvia horaria, curvas IDF y diseño}
+\input{punto2_metodologia}
 
 % =====================================================================================================================
 \section{Resultados y discusión física}
@@ -396,16 +403,8 @@ Newey-West $p = 0.15$, Mann-Kendall $p = 0.15$). Thornthwaite $+10.6$~mm/año po
 significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/año por década. Sin corregir
 (sensibilidad): \ETo{} $+9.5$, significativa.
 
-\begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{control_calidad_homogeneidad_1981_2022.png}
-  \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a otras fuentes, con el corte de
-  Pettitt: T menos la de MSWX, Rs sobre la de Hargreaves--Samani con MSWX, y residuo de la Rs frente a la lluvia de
-  CHIRPS. La línea punteada marca 1998.}
-  \label{fig:homogeneidad}
-\end{figure}
-
 \pendiente{Juan: este texto está en tercera persona («Juan decidió»): pasarlo a la voz del grupo y quitar los números
-de script. Citar las Figs.~\ref{fig:tendencias} y \ref{fig:homogeneidad}. Falta el mecanismo: por qué Thornthwaite
+de script. Citar la Fig.~\ref{fig:tendencias} y el escalón del Anexo~\ref{anx:escalon_rs} (Fig.~\ref{fig:escalon_rs}). Falta el mecanismo: por qué Thornthwaite
 sube y la \ETo{} no (la \ETo{} responde poco a la T). Cita del cambio de lo que asimila ERA5 hacia 1998 (Hersbach et
 al., 2020, sin comprobar).}
 
@@ -466,7 +465,7 @@ cuenca está limitada por energía: la $r_s$ cambia el reparto de la energía, n
 \pendiente{Juan: citar las Figs.~\ref{fig:rs} y \ref{fig:jarvis} en el texto.}
 
 \subsection{Punto 2}
-\pendiente{Resultados y recomendación de diseño con su incertidumbre (compañera).}
+\input{punto2_resultados}
 
 % =====================================================================================================================
 \section{Conclusiones}
@@ -506,5 +505,15 @@ Mogotes-AUT. El Penman de la fase 4 se había programado como evaporación de ag
 
 \bibliographystyle{plainnat}
 \bibliography{referencias}
+
+\appendix
+\section{Escalón de la radiación solar de ERA5-Land}\label{anx:escalon_rs}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{escalon_rs_chirps_1981_2022.png}
+  \caption{Residuo anual de la Rs de ERA5-Land frente a la lluvia de CHIRPS, 1981--2022, con el corte de Pettitt
+  (después de 2000, $p = 0.013$) y las medias antes y después. El salto de $+0.317$~MJ/m$^2$·d se suma a la Rs de
+  antes de 2001 en las tendencias.}
+  \label{fig:escalon_rs}
+\end{figure}
 
 \end{document}

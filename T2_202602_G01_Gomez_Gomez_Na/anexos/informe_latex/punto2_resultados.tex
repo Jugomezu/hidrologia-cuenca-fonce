@@ -1,0 +1,201 @@
+% Punto 2 · Resultados y discusión.
+% Texto de la compañera, tomado de codigo/punto2/00_generar_html.py (textos de «Interpretación hidrológica», títulos
+% y leyendas de figura, y la síntesis final) y pasado a LaTeX tal cual. Cambios: formato, punto decimal, espacio para
+% los miles (N=5.000 → 5 000) y las referencias cruzadas a las figuras. Las cifras coinciden con los CSV de
+% productos/punto2/ en lo revisado el 26 nov (T de 1965 y 2022, volúmenes del Problema B, Q del Problema A); falta
+% revisar el resto y pasarlas a macros.
+
+\subsubsection{Calidad del registro y homogeneidad}
+\paragraph{Control de homogeneidad 1949--1972 frente a 1973--1994.} Control exploratorio de homogeneidad de máximos de
+1~h: 1949--1972 ($n=24$) media/mediana 22.30/21.49~mm/h, frente a 1973--1994 ($n=21$) 13.28/12.80~mm/h;
+Mann--Whitney $U=399.5$, $p\approx 0.000821$ (aproximación normal con corrección por empates). La completitud media
+cae de 100.0~\% (8\,762 horas/año) a 93.7~\% (8\,213 horas/año). La diferencia es una señal de posible
+inhomogeneidad asociada al cambio de cobertura/frecuencia de reportes; no demuestra por sí sola que el muestreo sea la
+única causa y limita la comparación directa de extremos.
+
+\subsubsection{Distribuciones de los máximos}
+El papel de probabilidad (Fig.~\ref{fig:p2_papel}) permite comparar las colas observadas con tres familias de
+extremos; el diagrama L-momento (Fig.~\ref{fig:p2_lmom}) resume la forma de las muestras y la figura bootstrap
+(Fig.~\ref{fig:p2_boot}) muestra cómo crece la incertidumbre con $T/N$.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig2_papel_probabilidad.png}
+  \caption{Papel de probabilidad: Gringorten ($a=0.44$), observaciones y ajustes LMOM Gumbel, GEV y LP3 para 1, 6 y
+  24~h.}
+  \label{fig:p2_papel}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig2_diagrama_lmomentos.png}
+  \caption{Diagrama de razones L-momento: $\tau_3$ y $\tau_4$ muestrales por duración frente a curvas teóricas GEV,
+  Gumbel, Log-normal y Pearson III.}
+  \label{fig:p2_lmom}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig2_incertidumbre_bootstrap.png}
+  \caption{Incertidumbre bootstrap: ancho relativo del intervalo del 95~\% frente a $T/N$ para el ajuste Gumbel LMOM.}
+  \label{fig:p2_boot}
+\end{figure}
+
+\subsubsection{Curvas IDF}
+En la comparación homogénea de ajustes LMOM, los CSV de bondad de ajuste muestran que LP3 tiene KS y AD menores o
+iguales frente a ambas alternativas en las seis duraciones; las formulaciones paramétricas se evalúan luego contra esos
+cuantiles (Figs.~\ref{fig:p2_idf} y \ref{fig:p2_modelos}). Las duraciones inferiores a 60 minutos son extrapolaciones
+del modelo, no mediciones subhorarias.
+
+\paragraph{Nota sobre el límite bootstrap.} Para $T=5$ años y duraciones subhorarias, la cota inferior del intervalo
+puede coincidir con la intensidad central después de la proyección isotónica. Al imponer simultáneamente orden
+creciente de lámina con duración y de intensidad con $T$, la proyección eleva cotas inferiores que violan esas
+restricciones hasta la frontera factible; no significa que el bootstrap original tuviera un intervalo degenerado.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig3_curvas_idf_loglog.png}
+  \caption{Curvas IDF en escala log--log: puntos LP3/LMOM ajustados, curvas para $T=2$--100 años, bandas bootstrap al
+  95~\% en $T=10$ y 50; el sombreado indica extrapolación menor de una hora.}
+  \label{fig:p2_idf}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig3_comparacion_modelos_idf.png}
+  \caption{Residuales de los modelos: errores relativos por duración para las tres formulaciones paramétricas.}
+  \label{fig:p2_modelos}
+\end{figure}
+
+\paragraph{Punto frente a malla.} Una IDF puntual de pluviómetro/Atlas 14 y una IDF derivada de una celda ERA5-Land o
+IMERG no representan el mismo soporte espacial, periodo ni proceso. La razón
+IDF$_\mathrm{malla}$/IDF$_\mathrm{puntual}$ mezcla reducción areal (FRA), suavizado espacial y sesgo del producto;
+debe derivarse con series y periodos comparables. Los CSV no contienen IDF de celda ERA5-Land/IMERG: no se inventa
+una razón numérica malla/punto.
+
+\pendiente{Resumen de la comparación con NOAA Atlas 14 (sesgo relativo por duración y $T$) desde
+\path{idf_comparacion_oficial_y_evento.csv}: el texto de la compañera remite a la tabla interactiva y no da la cifra.}
+
+\paragraph{Extremos históricos.} El máximo del 26-jul-1965 equivale a $T=75.7$ años tras la corrección de Weiss; el
+evento intenso del 07-ago-2022 alcanza $T\geq 137.3$ años en la distribución ajustada. Son estimaciones extrapoladas
+de una muestra finita y dependen del control de homogeneidad; no son intervalos deterministas entre tormentas.
+
+\paragraph{Estacionariedad de los máximos.} Los estadísticos Mann--Kendall de LP3/LMOM son negativos en las seis
+duraciones. Un cambio en la frecuencia de muestreo/reportes después de 1973 puede contribuir a una inhomogeneidad y a
+una tendencia aparente; esta explicación es una hipótesis que requiere una prueba de homogeneidad independiente.
+
+\subsubsection{Microcuenca y diseño}
+El área de 1.0269~km$^2$ y la distancia de 1.08~km sitúan la cuenca en escala de respuesta rápida
+(Fig.~\ref{fig:p2_dem}); el DSM puede incluir edificios/vegetación y no representa por sí solo cunetas, sumideros ni
+conexiones de alcantarillado.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig_24_microcuenca_dem.png}
+  \caption{Microcuenca delimitada junto a Denver Stapleton: cuenca candidata y cauce extraídos del DEM Copernicus
+  GLO-30 reproyectado a UTM 13N.}
+  \label{fig:p2_dem}
+\end{figure}
+
+\paragraph{Problema A.} El resumen de Monte Carlo ($N=5\,000$) da $p_\mathrm{ef}=0.66$~\% anual,
+$R_\mathrm{ef}(25\text{ años})=15.2$~\% y $\mathrm{FS}=1.08$; la probabilidad se estima con LP3 en
+$\log_{10}$(mm/h), anclada a la IDF de 45.51~mm/h para $T=50$. Para 250~km$^2$ el FRA ilustrativo 0.662 reduce la
+lluvia puntual a un promedio areal y muestra por qué la lluvia convectiva no puede suponerse uniforme en cuencas
+extensas. El tiempo de concentración domina la sensibilidad del diámetro, seguido por el intervalo bootstrap de la IDF
+y la incertidumbre de $C$; la distribución alternativa tiene menor impacto en este predimensionamiento
+(Fig.~\ref{fig:p2_A}).
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig_24_problemaA_sensibilidad_mc.png}
+  \caption{Sensibilidad y Monte Carlo de la alcantarilla: tornado de variación del diámetro requerido y distribuciones
+  Monte Carlo de carga y capacidad; línea de capacidad y factor de seguridad del diseño.}
+  \label{fig:p2_A}
+\end{figure}
+
+\paragraph{Problema B.} Para la tormenta de 180~min, el patrón con pico al final necesita 36\,597~m$^3$, frente a
+25\,642~m$^3$ con pico inicial (Fig.~\ref{fig:p2_B}). Al concentrar la lluvia intensa hacia el final, llega más volumen
+antes de que el tanque y el orificio hayan evacuado agua.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig_24_problemaB_tanque.png}
+  \caption{Volumen de detención y tránsito del tanque: duración crítica trapezoidal; hidrogramas de entrada/salida y
+  almacenamiento con pico inicial, central y final.}
+  \label{fig:p2_B}
+\end{figure}
+
+\paragraph{Respaldo NRCS.} AMC-I/II/III modifica el almacenamiento inicial y la lluvia efectiva NRCS
+(Figs.~\ref{fig:p2_hieto}--\ref{fig:p2_qp}); conserva valor como comparación de pérdidas, mientras que los escenarios A
+y B usan los parámetros y el control de descarga indicados en sus respectivos CSV.
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig4_hietograma_lluvia_efectiva.png}
+  \caption{Hietograma NRCS de lluvia efectiva: bloques alternos, abstracciones y exceso para $T=50$ años, $D=2$~h,
+  AMC-II.}
+  \label{fig:p2_hieto}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig4_hidrogramas_diseno.png}
+  \caption{Hidrogramas NRCS-UH: $Q(t)$ para $T=10$--100 años con AMC-II y sensibilidad AMC-I/II/III para $T=50$
+  años.}
+  \label{fig:p2_hidro}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig4_caudales_pico_incertidumbre.png}
+  \caption{Caudales pico e incertidumbre NRCS: comparación Racional/NRCS-UH, intervalos bootstrap y efecto de
+  duración.}
+  \label{fig:p2_qp}
+\end{figure}
+
+\subsubsection{Diseño y riesgo}
+\paragraph{Costo esperado.} El mínimo guardado es $T_\text{óptimo}=227$ años para $D_\mathrm{max}=20C_0$ y $r=6$~\%.
+El óptimo balancea la reducción del daño con el costo de una obra mayor; cambia de 96 a 500 años en la sensibilidad
+factorial de $D_\mathrm{max}$ y $r$. La cifra es normalizada y no representa un presupuesto monetario.
+
+\paragraph{POT frente a AMS.} POT utiliza varios eventos por año, mientras AMS retiene un máximo anual. Langbein hace
+comparables los retornos; las diferencias también reflejan el umbral y el ajuste GPD.
+
+\paragraph{Cambio climático.} La fila $\Delta T=0$ recupera $i(t_c=60\text{ min})=45.51$~mm/h,
+$Q_{50}=6.426$~m$^3$/s y $D_\mathrm{com}=1\,500$~mm, los mismos del Problema A. El escalamiento climático reduce el
+retorno efectivo de la obra y eleva $Q_p$. La GEV futura puede diferir de la curva IDF por la tendencia ajustada y la
+limitada muestra anual.
+
+\paragraph{Confiabilidad.} Con la tubería de 1\,500~mm ($Q_c=6.909$~m$^3$/s) ningún evento horario del registro supera
+la capacidad; las 8 superaciones guardadas son de diámetros menores. Las métricas están limitadas por la resolución
+horaria (Figs.~\ref{fig:p2_bonos} y \ref{fig:p2_bonos2}).
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig_25a_bonificaciones.png}
+  \caption{Diseño y riesgo (1 de 2): (A) costo esperado y (B) POT-GPD frente a AMS.}
+  \label{fig:p2_bonos}
+\end{figure}
+
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fig_25b_bonificaciones.png}
+  \caption{Diseño y riesgo (2 de 2): (C) cambio climático y (D) Hashimoto y evento crítico.}
+  \label{fig:p2_bonos2}
+\end{figure}
+
+\subsubsection{Síntesis, limitaciones y recomendaciones}
+La lluvia horaria de Denver Stapleton se depuró con criterios de completitud, se ajustó como IDF y se contrastó con
+NOAA Atlas 14. Los eventos del 26-jul-1965 ($T\approx 75.7$ años) y 07-ago-2022 ($T\geq 137.3$ años) ilustran
+extremos que exceden la escala frecuente, sujetos a incertidumbre y homogeneidad.
+
+\paragraph{Conclusión de diseño.} El Problema A entrega un predimensionamiento de alcantarilla circular con riesgo
+explícito y FS nominal; el Problema B cuantifica el almacenamiento incremental tras urbanización y muestra que el
+patrón temporal de la lluvia controla el volumen requerido. Confirmar la cuenca, obras de entrada, remanso y operación
+antes de diseño final.
+
+\paragraph{Limitaciones y recomendaciones.}
+\begin{itemize}
+  \item La cuenca derivada de Copernicus GLO-30 es una candidata topográfica; validar con topografía bare-earth, red
+  pluvial levantada y modelación de drenaje de Denver.
+  \item La IDF subhoraria es extrapolada desde datos horarios; validar con pluviógrafos/radar y una ley de escala
+  regional antes de dimensionar microdrenaje.
+  \item La comparación NOAA es puntual. No hay todavía una serie de celda ERA5-Land/IMERG en los productos locales para
+  estimar una razón malla/punto homogénea.
+  \item El escenario NRCS AMC-I/II/III usa la misma cuenca DEM y los mismos $C$, $CN$ y $t_c$ que el Problema A (el
+  Problema B cambia $C$ y $t_c$ a propósito, por la urbanización).
+  \item Verificar criterios municipales, pérdidas locales, sumergencia, remanso, bloqueo por sedimentos, seguridad
+  estructural y rutas de excedencia superficial antes de construcción.
+\end{itemize}
+Uso recomendado: reporte de análisis y predimensionamiento. No reemplaza los planos, la revisión normativa ni el modelo
+hidráulico/hidrológico de detalle.
+
+\pendiente{Recomendación de diseño con su incertidumbre, en una frase (diámetro, $T$, riesgo y FS con su
+intervalo). Es el paso 2.}

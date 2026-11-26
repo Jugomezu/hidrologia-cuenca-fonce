@@ -672,3 +672,22 @@ las notas, y las notas tienen enlace. No se pudo confirmar en qué artículo de 
 forma de FAO-24 sale de su tabla 16 (p. 28). Recomendación del agente: mantener c = 0.8 y aclarar de dónde sale.
 **Decisión (Juan, 26 nov, 5:24 p. m.).** Se deja como está: c = 0.8 y el texto sin cambios («Yo interpreté que
 sugería 0.8»).
+
+## 2026-11-26 · Punto 2 · Una sola cuenca en todo el diseño; tc = 60 min
+
+**Decisión (Juan).** El tc del Problema A se queda en 60 min. No se llama «conservador» (un tc mayor da menos
+intensidad); se justifica porque Kerby-Hathaway (69.8), Témez (82.4) y NRCS (175.0) quedan por encima y Kirpich (45.5)
+es el valor bajo: solo cuenta el tránsito por el cauce y omite el flujo laminar inicial.
+**Decisión (Juan).** Todo el diseño usa la misma cuenca: área, longitud y pendiente del DEM (1.0269 km², 2 312 m,
+0.0095) y C = 0.495, CN = 78, tc = 60 min del Problema A. Antes, 04 usaba una cuenca supuesta (1.85 km², tc 35, C 0.52)
+y 05d fijaba a mano tc = 25.09 min, C = 0.55 e i = 40.96 mm/h. 04 pasa a 05e y lee la cuenca de 05a/05b; 05d la lee
+de `problemaA_alcantarilla.csv`. Problemas A y B no cambian. Efecto: con C = 0.495, ningún evento horario del registro
+supera la tubería de 1 500 mm (antes, el del 26-jul-1965); i* de la GEV pasa de 44.04 a 48.93 mm/h; los hidrogramas
+NRCS bajan (Qp T=50, D=2 h, AMC-II: 9.61 → 3.70 m³/s). Queda el factor C_f del escenario NRCS (1.10 en T=50), que
+hace que su Q racional (7.07) supere al del Problema A (6.43): decisión pendiente de Juan.
+
+## 2026-11-26 · Punto 2 · Sin factor de frecuencia C_f en la sección NRCS
+
+**Decisión (Juan).** C_f = 1 en todos los T del script 05e (antes 1.00/1.05/1.10/1.15, sin fuente).
+**Razón.** Evitar contradicciones aparentes: con C_f el racional de T = 50 daba 7.07 m³/s frente a 6.43 del Problema A
+para la misma cuenca. Ahora da 6.43 en los dos. Los hidrogramas NRCS no cambian (no usan C).

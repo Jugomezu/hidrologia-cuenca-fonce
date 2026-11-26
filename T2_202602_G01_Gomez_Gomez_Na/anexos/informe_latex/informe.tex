@@ -157,7 +157,12 @@ mensual; y fracción evaporativa $\lambda\mathrm{ET}/R_n$ frente a la humedad de
 métodos de la Tarea 1: Mann-Kendall estacional \citep{hirsch1982} con pendiente de Sen \citep{sen1968} (p por
 permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OLS con una constante por mes y error de
 Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
-descubrimientos \citep{benjamini1995}; $\alpha = 0.05$.
+descubrimientos \citep{benjamini1995}; $\alpha = 0.05$. Antes de las tendencias, la serie 1981--2022 pasa el
+control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a series
+independientes de ERA5 (lluvia de CHIRPS, \citealp{funk2015}; T y Rs de Hargreaves--Samani con MSWX,
+\citealp{beck2022}). La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
+frente a la lluvia de CHIRPS; se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
+tendencias. La serie sin corregir queda como sensibilidad.
 
 \paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
 comparan con la altura del modelo mediante una recta de mínimos cuadrados; con $n = 6$ es solo descriptiva. La
@@ -368,24 +373,31 @@ el borde de la búsqueda; R$^2$ 0.16; la prueba sola no es concluyente) y una ex
 \subsubsection{Cambios en la demanda}
 \begin{figure}[htbp]\centering
   \includegraphics[width=\textwidth]{tendencias_demanda_1981_2022.png}
-  \caption{\ETo{} \PM{} y Thornthwaite anuales con la recta de Sen, 1981--2022, y atribución de la tendencia de la
-  \ETo{} a cada forzante.}
+  \caption{\ETo{} \PM{} (con la Rs corregida) y Thornthwaite anuales con la recta de Sen, 1981--2022, y atribución
+  de la tendencia de la \ETo{} a cada forzante.}
   \label{fig:tendencias}
 \end{figure}
-% Texto de Juan: temp/textos_informe/fase8_conclusion.md (tal cual, pasado a LaTeX). Primero 1998–2022 y después
-% 1981–2022, que es el periodo que se reporta (Juan, 24 nov, 9:31 p. m.).
-La \ETo{} Penman--Monteith (FAO-56) no tiene tendencia en 1998--2022 (Sen $+3$~mm/año por década, $p = 0.68$).
-En Thornthwaite la tendencia es estadísticamente detectable con Mann-Kendall ($p = 0.015$), pero pequeña en magnitud:
-$+16$~mm/año por década, cerca de 2~\% por década; OLS con Newey-West no la confirma ($p = 0.086$).
+% Texto de Juan: temp/textos_informe/fase8_conclusion.md, versión final («Con 1981–2022 y la Rs corregida», 26 nov),
+% tal cual, pasada a LaTeX. Las versiones anteriores (1998–2022 y 1981–2022 sin corregir) quedan en ese archivo.
+El control de calidad (script 42, como la Tarea 1) halló un escalón de Rs de $+0.317$~MJ/m$^2$·d después de 2000 frente
+a la lluvia de CHIRPS (Pettitt $p = 0.013$). Juan decidió corregirlo: se suma a la Rs de antes de 2001 y se recalculan
+Rn y la \ETo{} (script 36, solo fase 8). Resultado: \ETo{} $+4.2$~mm/año por década ($+0.37$~\%), no significativa (OLS
+Newey-West $p = 0.15$, Mann-Kendall $p = 0.15$). Thornthwaite $+10.6$~mm/año por década y T $+0.14$~°C/década,
+significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/año por década. Sin corregir
+(sensibilidad): \ETo{} $+9.5$, significativa.
 
-Se reporta 1981--2022. La \ETo{} sube $+9.5$~mm/año por década (0.8~\%/década), significativa con todas las pruebas.
-Para la Rs, su tendencia puede venir solo de defectos de los datos del reanálisis (escalón hacia 1999--2001), más que
-de una tendencia real.
+\begin{figure}[htbp]\centering
+  \includegraphics[width=0.8\textwidth]{control_calidad_homogeneidad_1981_2022.png}
+  \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a fuentes independientes, con el corte de
+  Pettitt: T menos la de MSWX, Rs sobre la de Hargreaves--Samani con MSWX, y residuo de la Rs frente a la lluvia de
+  CHIRPS. La línea punteada marca 1998.}
+  \label{fig:homogeneidad}
+\end{figure}
 
-\pendiente{Juan: citar la Fig.~\ref{fig:tendencias}; Thornthwaite en 1981--2022 ($+11$~mm/año por década); la
-atribución (T y Rs aportan casi todo); que ninguno de los dos subperiodos es significativo por sí solo; y una cita para
-el cambio de lo que asimila ERA5 hacia 1998 (el hilo de la fase 8 sugiere Hersbach et al., 2020, sin comprobar). Si la
-tendencia de Rs es un artefacto, decir qué queda de la de la \ETo.}
+\pendiente{Juan: este texto está en tercera persona («Juan decidió»): pasarlo a la voz del grupo y quitar los números
+de script. Citar las Figs.~\ref{fig:tendencias} y \ref{fig:homogeneidad}. Falta el mecanismo: por qué Thornthwaite
+sube y la \ETo{} no (la \ETo{} responde poco a la T). Cita del cambio de lo que asimila ERA5 hacia 1998 (Hersbach et
+al., 2020, sin comprobar).}
 
 \subsubsection{El paisaje de la cuenca}
 \begin{figure}[htbp]\centering

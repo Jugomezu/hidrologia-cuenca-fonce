@@ -483,6 +483,33 @@ ea +10 %, sobre todos los métodos. Thornthwaite conserva el I del clima base (I
 
 **Método con solo temperatura (Juan).** Hargreaves: necesita Tmáx, Tmín y Ra, y Ra sale de la latitud y la fecha.
 
+## 2026-11-24 · Punto 1 · Fase 7: criterio de meses limitados por energía o por agua (script 30)
+
+**Decisión (Juan).** Se usa el índice de aridez de Budyko, φ = ETP/P, aquí ETo/P con P̄: φ < 1 limitado por energía,
+φ > 1 limitado por agua. Resultado (ciclo medio 1998–2022): solo enero tiene φ > 1 (1.15; con PI 1.39, con PL 0.98);
+febrero 0.76; el resto 0.34–0.70. Mes a mes, enero tiene φ > 1 en el 56 % de los años y febrero en el 44 %.
+**Ojo.** Budyko es de largo plazo (ΔS ≈ 0); en un mes el suelo puede cubrir la falta de lluvia. En enero ET/ETo de los
+productos sigue en 0.90: la ET no cae. φ > 1 dice que la lluvia del mes no alcanza, no que la ET esté frenada.
+
+## 2026-11-24 · Punto 1 · P̄ en todo lo que sigue
+
+**Decisión (Juan).** De aquí en adelante toda la lluvia es P̄ = (PI + PL)/2 (fases 7, 8, 9, informe y presentación).
+PI y PL quedan solo donde ya están, como sensibilidad.
+
+## 2026-11-24 · Punto 1 · Fase 7: qué ETP va en el índice de aridez de Budyko
+
+**Decisión (Juan).** φ es el clima y no puede salir de la ET real (sería φ = ε). Principal: ETo Penman–Monteith
+(FAO-56), la validada en las fases 2–5. Sensibilidad, con P − Q (P̄): Rn/λ de ERA5-Land (techo de energía, la ETP
+original de Budyko) y Priestley–Taylor. Thornthwaite fuera (−38 % frente a la ETo). Resultado: φ 0.49 / 0.73 / 0.61,
+siempre < 1 (energía); ω 2.66 / 1.75 / 1.99; elasticidad teórica 1.62 / 1.45 / 1.51 (la empírica no depende de la ETP: 1.63).
+
+## 2026-11-24 · Punto 1 · Mediana de productos sin SSEBop v5 ni la AA
+
+**Decisión (Juan).** La mediana (y el rango) de los productos de ET real del script 24 se hace sin SSEBop v5 ni la AA,
+los dos que quedan fuera de ± σ_ET del balance. Efecto: la mediana solo cambia en 2002 (1 144 → 1 115 mm), porque
+los dos estaban en extremos opuestos; con el rango más estrecho, 2011 pasa a «bajo todos los productos». En Budyko la
+mediana queda en 1 132 mm/año (ε 0.47, ω 3.85). Budyko también quedó solo con P̄ (Juan, 24 nov).
+
 ## 2026-11-24 · Punto 1 · HR media de la cuenca (texto de Hargreaves)
 
 **Decisión (Juan).** La HR que cita el texto de Hargreaves es el promedio simple de 5 estaciones del IDEAM (DHIME,

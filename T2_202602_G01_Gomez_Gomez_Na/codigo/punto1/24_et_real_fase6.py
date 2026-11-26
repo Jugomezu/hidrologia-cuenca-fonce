@@ -20,8 +20,9 @@ Decisiones (anexos/decisiones.md). Propuestas por el agente con Juan ausente (20
       (un aforo) y 42.8 % (el máximo del estudio), también al 95 %.
     - Año hidrológico: empieza en el mes calendario con la menor agua media en el suelo (ERA5-Land, 0–289 cm).
     - «Muy distinto de los productos»: el P − Q del año queda fuera del rango de los productos con los 12 meses ese año
-      (ERA5-Land e, GLEAM E, MOD16A2GF, TerraClimate aet, SSEBop v6.1 y v5, y la AA), o fuera de ± sigma_ET (95 %) de su
-      mediana. El rango solo casi nunca marca nada: SSEBop v5 (~470 mm) y la AA (~1 550 mm) lo abren mucho.
+      (ERA5-Land e, GLEAM E, MOD16A2GF, TerraClimate aet y SSEBop v6.1), o fuera de ± sigma_ET (95 %) de su mediana.
+      SSEBop v5 (~470 mm) y la AA (~1 550 mm) se sacan del rango y de la mediana (Juan, 24 nov): son los dos productos
+      que quedan fuera de ± sigma_ET del balance.
 
 Lee (productos/punto1/):
     balance_hidrico_mensual.csv     PI, PL, Q y agua en el suelo, mm/mes (script 15)
@@ -56,6 +57,7 @@ ARCHIVO_ERA5_MENSUAL = (RAIZ_ENTREGA / "datos" / "punto1" / "era5land_mensual_ba
 
 MESES = pd.period_range("1998-01", "2022-12", freq="M")
 ULTIMO_MES_ERA5_MENSUAL = pd.Period("2022-08", "M")   # error de ECMWF desde 2022-09 (anexos/decisiones.md)
+FUERA_DE_LA_MEDIANA = ["ssebop_v5", "aa_brutsaert_stricker"]   # Juan, 24 nov: fuera de ± sigma_ET del balance
 LAMBDA_MJ_KG = 2.45                                    # calor latente de vaporización, FAO-56 (el mismo de la ETo)
 
 # Incertidumbre del caudal: Di Baldassarre y Montanari (2009), HESS 13, 913–921, https://doi.org/10.5194/hess-13-913-2009
@@ -172,7 +174,7 @@ def balance_por_anio(mensual, mes_inicio, etiqueta):
     anual["sigma_ET"] = np.hypot(anual["sigma_P"], anual["sigma_Q"])
 
     # Marcas (solo se señalan; no se explican aquí)
-    productos_del_anio = anual[list(NOMBRES)]
+    productos_del_anio = anual[[c for c in NOMBRES if c not in FUERA_DE_LA_MEDIANA]]
     anual["productos_con_dato"] = productos_del_anio.notna().sum(axis=1)
     anual["min_productos"] = productos_del_anio.min(axis=1)
     anual["max_productos"] = productos_del_anio.max(axis=1)

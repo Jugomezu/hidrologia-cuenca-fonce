@@ -351,13 +351,19 @@ def datos_sensibilidad():
 
 
 def datos_regimen():
-    """Fase 7: ET/ETo y P/ETo por mes calendario, para explicar los criterios (de et_techo_energia.csv, script 24)."""
-    c = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia.csv").set_index("mes_calendario")
-    productos = ["era5land_e", "gleam_E", "mod16a2gf", "terraclimate_aet", "ssebop_v61", "ssebop_v5",
-                 "aa_brutsaert_stricker"]
-    r = lambda x: (x / c["ETo"]).round(3).tolist()
-    return {"mediana": r(c[productos].median(axis=1)), "minimo": r(c[productos].min(axis=1)),
-            "maximo": r(c[productos].max(axis=1)), "pi": r(c["PI"]), "pl": r(c["PL"])}
+    """Fase 7: φ = ETo/P por mes calendario (salida de 30_regimen_mensual.py)."""
+    c = pd.read_csv(CARPETA_PRODUCTOS / "regimen_mensual.csv")
+    return {k: c[k].round(3).tolist() for k in ["phi_Pm", "fraccion_meses_agua_Pm"]}
+
+
+def datos_ef():
+    """Fase 7: EF = λET/Rn frente a SMrz (salidas de 31_fraccion_evaporativa.py)."""
+    d = pd.read_csv(CARPETA_PRODUCTOS / "fraccion_evaporativa.csv")
+    u = pd.read_csv(CARPETA_PRODUCTOS / "fraccion_evaporativa_umbral.csv").set_index("ET")
+    return {"theta": d["theta"].round(4).tolist(), "mes": d["mes"].tolist(), "mc": d["mes_calendario"].tolist(),
+            "sin_gleam": d["EF_sin_gleam"].round(4).tolist(), "gleam": d["EF_gleam"].round(4).tolist(),
+            "ajuste": {k: u.loc[k, ["theta_critica", "EF_max", "pendiente_b", "r2_frente_a_plano"]].round(4).to_dict()
+                       for k in u.index}}
 
 
 def datos_budyko():
@@ -462,6 +468,7 @@ def main():
         "sensibilidad": datos_sensibilidad(),
         "budyko": datos_budyko(),
         "regimen": datos_regimen(),
+        "ef": datos_ef(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
         "variables": [
@@ -845,7 +852,7 @@ code { font: 400 .86em var(--f-dato); }
     <div class="grafico" id="g-f6-anual" style="height:440px"></div></div>
   <h3 style="margin-top:20px">Años marcados (solo se señalan; no se explican)</h3>
   <p class="nota">Marcas: P − Q negativo; mayor que Rn/λ; mayor que la ETo; fuera del rango de los productos; a más de
-  ± σ_ET (95 %) de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop y AA con los 12 meses ese año).</p>
+  ± σ_ET (95 %) de la mediana de los productos (ERA5-Land e, GLEAM, MOD16, TerraClimate y SSEBop v6.1 con los 12 meses ese año; sin SSEBop v5 ni la AA, que quedan fuera de ± σ_ET del balance: Juan, 24 nov).</p>
   <div class="tabla" id="t-f6-marcas"></div>
   <h3>Cómo se estima la incertidumbre del balance (σ_ET)</h3>
   <p>P − Q tiene dos fuentes de error. <b>σ_P</b>: PI y PL son dos estimaciones de la misma lluvia; se tratan como dos
@@ -863,21 +870,46 @@ code { font: 400 .86em var(--f-dato); }
 <section>
   <h2>Fase 7 · Budyko: ¿manda la energía o el agua?</h2>
   <p>Años calendario con los 12 meses de Q (11 años; script 24; Juan, 23 nov). φ = ETo/P con la ETo
-  Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño; como sensibilidad, P − Q con PI o con PL
-  y la mediana de los productos con cada P (ERA5-Land e, GLEAM, MOD16, TerraClimate, SSEBop v6.1 y v5 y la AA, script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
+  Penman–Monteith (FAO-56); ε = ET/P. ET principal (Juan, 23 nov): P − Q con P̄ = (PI + PL)/2, porque ΔS anual es pequeño. Solo P̄ (Juan, 24 nov): las series
+  con PI y PL se quitaron. Comparación: la mediana de los productos de ET real con P̄ (ERA5-Land e, GLEAM, MOD16, TerraClimate y SSEBop v6.1; sin SSEBop v5 ni la AA, Juan 24 nov; script 24). ΔS del suelo fuera (−90 a +82 mm al año). ω de Fu (1981) ajustado
   al punto multianual; si el punto queda sobre el límite de energía (ET > ETo) no hay ω. Elasticidad teórica:
   ε_P = 1 + φ·F′(φ)/(1 − F(φ)); empírica: mediana de Sankarasubramanian et al. (2001, doi:10.1029/2000WR900330).
   Script 29.</p>
+  <p><b>Qué ETP va en φ (Juan, 24 nov).</b> φ es el clima, así que no puede salir de la ET real (si no, φ = ε). Principal: ETo
+  Penman–Monteith (FAO-56), la validada en las fases 2–5. Sensibilidad con P − Q (P̄): Rn/λ de ERA5-Land (1 754 mm/año,
+  techo de energía, la ETP original de Budyko) y Priestley–Taylor (1 454). Thornthwaite fuera (−38 % frente a la ETo).
+  φ va de 0.49 (ETo) a 0.61 (Priestley–Taylor) y 0.73 (Rn/λ): la cuenca queda siempre del lado de energía (φ &lt; 1),
+  pero ω cambia (2.66, 1.99, 1.75) y la elasticidad teórica también (1.62, 1.51, 1.45).</p>
   <div class="tabla" id="t-budyko"></div>
   <div class="tarjeta" style="margin-top:16px"><h3>Espacio de Budyko: años (puntos pequeños), media (grandes) y curva de Fu ajustada (punteada)</h3><div class="grafico" id="g-budyko" style="height:560px"></div></div>
-  <h3>Criterios para clasificar los meses (propuesta, para que Juan decida)</h3>
-  <p>Idea: si la ET real del mes llega casi a la demanda (ET/ETo cerca de 1), lo que la frena es la energía; si se
-  queda muy por debajo, falta agua. Las franjas son los umbrales propuestos: ET/ETo ≥ 0.8 limitado por energía,
-  0.5–0.8 transición, < 0.5 limitado por agua. La línea verde es la mediana de los productos de ET real (los mismos de
-  la fase 6) dividida por la ETo, con su rango entre productos; las punteadas son P/ETo (oferta de lluvia frente a
-  demanda): debajo de 1, la lluvia del mes no alcanza la demanda y la ET sale del almacenamiento. Ciclo anual medio
-  1998–2022.</p>
-  <div class="tarjeta"><h3>ET/ETo y P/ETo por mes, con las franjas de los criterios</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
+  <h3>Clasificación de los meses: energía o agua</h3>
+  <p>Criterio (Juan, 24 nov): el del espacio de Budyko, con el índice de aridez φ = ETP/P, aquí ETo/P con P̄.
+  φ &lt; 1: la lluvia del mes cubre la demanda, limitado por energía. φ &gt; 1: la demanda supera la lluvia, limitado
+  por agua (la ET depende del agua guardada en el suelo). Línea negra: ciclo medio 1998–2022 (solo P̄, Juan 24 nov); barras: fracción de los años en que ese mes tuvo φ &gt; 1 con P̄. Script 30.</p>
+  <div class="tarjeta"><h3>Índice de aridez mensual φ = ETo/P</h3><div class="grafico" id="g-regimen" style="height:480px"></div></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Interpretación de Juan (24 nov)</h3>
+  <p>Todos los meses en promedio son húmedos, con φ menor que 1, menos enero, que tiene un φ promedio de 1.15 y de hecho
+  cae por encima de 1 más de la mitad de los años. También febrero es un poco más árido que los demás meses. En
+  conclusión, todos los meses clasifican como húmedos menos enero y febrero, que parecen estar sobre el límite.</p>
+  <p class="nota">Cifras: enero φ 1.15 (φ &gt; 1 en el 56 % de los años); febrero 0.76 (44 %); diciembre 0.70 (12 %).
+  Matiz: φ &gt; 1 dice que la lluvia del mes no cubre la demanda, no que la ET esté frenada; en enero el suelo amortigua
+  (ET/ETo ≈ 0.90).</p></div>
+  <h3>Fracción evaporativa frente a la humedad del suelo (script 31)</h3>
+  <p>Marco de Seneviratne et al. (2010, <a href="https://doi.org/10.1016/j.earscirev.2010.02.004">doi:10.1016/j.earscirev.2010.02.004</a>):
+  con suelo húmedo EF = λET/Rn es plana (energía); bajo una humedad crítica θ* cae (agua). Se ajusta una recta con
+  quiebre, θ* por mínimos cuadrados. θ = SMrz de GLEAM, media de la cuenca. ET = mediana de MOD16, TerraClimate, ERA5-Land e y
+  SSEBop v6.1. La ET de GLEAM no se usa: GLEAM reduce su ET según su propio SMrz, así que sería circular (con ella el
+  ajuste sale más «limpio», R² 0.31, por la fórmula y no por la cuenca; queda en el CSV del script 31). Color: mes del año.
+  <b>Resultado: no aparece quiebre dentro de los datos</b>: el mejor θ* cae en el borde superior (0.452, donde se
+  amontonan los meses), así que el ajuste es una recta: EF sube poco con la humedad en todo el rango (R² 0.16 sin GLEAM; mediana sin SSEBop v5, Juan 24 nov).</p>
+  <div class="tarjeta"><h3>EF = λET/Rn frente a SMrz (m³/m³), 296 meses</h3><div class="grafico" id="g-ef" style="height:440px"></div></div>
+  <div class="tarjeta" style="margin-top:12px"><h3>Interpretación de Juan (24 nov)</h3>
+  <p>Esta cuenca no está limitada por agua; por el contrario, está más que todo limitada por energía. Si en algún mes
+  estuviera limitada por agua, veríamos un quiebre en la línea de ajuste, y esto no se ve. Estamos en la parte plana, o
+  muy cerca de ella: la ET es poco sensible a la humedad del suelo, porque el suelo casi siempre está húmedo.</p>
+  <p class="nota">Matices: θ* = 0.452 es el borde de la búsqueda, no un quiebre encontrado (SMrz de GLEAM casi no pasa de
+  0.45); la pendiente es débil (EF 0.57 → 0.64, R² 0.16). Esta prueba sola no es concluyente: la conclusión se apoya
+  también en Budyko (φ = 0.49), ET/ETo ≈ 0.90 y el φ mensual (solo enero &gt; 1).</p></div>
 </section>
 
 <section>
@@ -1335,10 +1367,10 @@ for (const [valor, texto] of CARGA.cifras) {
     Plotly.newPlot('g-sens-mes', trazasDe(orden[0]), lm, OPCIONES);
   }
   {
-    const B = CARGA.budyko, colores = [css('--tinta'), '#7C5BC7', '#0072B2', '#E69F00', '#009E73', '#CC79A7'];
+    const B = CARGA.budyko, colores = [css('--tinta'), '#C8553D', '#882255', '#7C5BC7'];
     const fmt = v => v === null ? '—' : v;
-    document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>φ = ETo/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
-      + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
+    document.getElementById('t-budyko').innerHTML = '<table><thead><tr><th>ET</th><th>P</th><th>ET</th><th>ETP</th><th>φ = ETP/P</th><th>ε = ET/P</th><th>ω de Fu</th><th>Elasticidad teórica</th><th>Elasticidad empírica</th><th>ET/ETo años secos</th><th>ET/ETo años húmedos</th></tr></thead><tbody>'
+      + B.resumen.map(r => `<tr><td>${r.serie}</td><td>${Math.round(r.P_mm)}</td><td>${Math.round(r.ET_mm)}</td><td>${Math.round(r.ETP_mm)}</td><td>${r.phi}</td><td>${r.epsilon}</td><td>${fmt(r.omega_fu)}${r.nota ? ' (' + r.nota + ')' : ''}</td><td>${fmt(r.elasticidad_teorica)}</td><td>${r.elasticidad_empirica_sankarasubramanian}</td><td>${r.ET_sobre_ETo_anios_secos}</td><td>${r.ET_sobre_ETo_anios_humedos}</td></tr>`).join('')
       + '</tbody></table>';
     const xs = Array.from({length: 121}, (_, i) => 0.01 + i * 0.01);
     const fu = (x, w) => 1 + x - Math.pow(1 + Math.pow(x, w), 1 / w);
@@ -1357,28 +1389,42 @@ for (const [valor, texto] of CARGA.cifras) {
         hovertemplate: `Fu ω = ${r.omega_fu}: φ %{x:.2f}, ε %{y:.3f}<extra></extra>`});
     });
     const lb = base('ε = ET/P'); lb.hovermode = 'closest';
-    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0.3, 0.8], title: 'φ = ETo/P'});
-    lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0.2, 0.8]});
+    lb.xaxis = Object.assign(lb.xaxis || {}, {type: 'linear', range: [0, 1.2], title: 'φ = ETP/P (ETo salvo donde se indica)'});
+    lb.yaxis = Object.assign(lb.yaxis || {}, {range: [0, 1]});
     Plotly.newPlot('g-budyko', trazas, lb, OPCIONES);
   }
   {
     const R = CARGA.regimen;
-    const lr = ejeMes(base('razón con la ETo')); lr.hovermode = 'x unified';
-    lr.yaxis = Object.assign(lr.yaxis || {}, {range: [0, 3.4]});
-    const zona = (y0, y1, color, texto) => ({type: 'rect', xref: 'paper', x0: 0, x1: 1, y0, y1, fillcolor: color, line: {width: 0}, layer: 'below'});
-    lr.shapes = [zona(0, 0.5, 'rgba(230,159,0,0.18)'), zona(0.5, 0.8, 'rgba(128,128,128,0.15)'), zona(0.8, 3.4, 'rgba(0,114,178,0.08)'),
+    const lr = ejeMes(base('φ = ETo/P')); lr.hovermode = 'x unified';
+    lr.yaxis = Object.assign(lr.yaxis || {}, {range: [0, 1.6]});
+    lr.yaxis2 = {overlaying: 'y', side: 'right', range: [0, 1.6], title: 'fracción de años con φ > 1', showgrid: false, tickfont: {color: css('--tenue')}};
+    lr.margin = Object.assign(lr.margin || {}, {r: 70});
+    lr.shapes = [{type: 'rect', xref: 'paper', x0: 0, x1: 1, y0: 1, y1: 1.6, fillcolor: 'rgba(230,159,0,0.15)', line: {width: 0}, layer: 'below'},
+      {type: 'rect', xref: 'paper', x0: 0, x1: 1, y0: 0, y1: 1, fillcolor: 'rgba(0,114,178,0.06)', line: {width: 0}, layer: 'below'},
       {type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 1, y1: 1, line: {color: css('--tenue'), width: 1}}];
-    lr.annotations = [[0.25, 'limitado por agua (< 0.5)'], [0.65, 'transición'], [3.25, 'limitado por energía (≥ 0.8)']].map(([y, t]) =>
-      ({xref: 'paper', x: 1, xanchor: 'right', y, showarrow: false, text: t, font: {size: 11, color: css('--tenue')}}));
+    lr.annotations = [[1.5, 'limitado por agua (φ > 1)'], [0.08, 'limitado por energía (φ < 1)']].map(([y, t]) =>
+      ({xref: 'paper', x: 0.99, xanchor: 'right', y, showarrow: false, text: t, font: {size: 11, color: css('--tenue')}}));
     Plotly.newPlot('g-regimen', [
-      {type: 'scatter', mode: 'lines', x: [...xm, ...xm.slice().reverse()], y: [...R.maximo, ...R.minimo.slice().reverse()],
-       fill: 'toself', fillcolor: 'rgba(0,158,115,0.15)', line: {width: 0}, name: 'rango entre productos', hoverinfo: 'skip'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.mediana, name: 'ET/ETo (mediana de productos)', line: {color: '#009E73', width: 3},
-       hovertemplate: 'ET/ETo: %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pi, name: 'P/ETo con PI', line: {color: '#E69F00', dash: 'dot'},
-       hovertemplate: 'P/ETo (PI): %{y:.2f}<extra></extra>'},
-      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.pl, name: 'P/ETo con PL', line: {color: '#0072B2', dash: 'dot'},
-       hovertemplate: 'P/ETo (PL): %{y:.2f}<extra></extra>'}], lr, OPCIONES);
+      {type: 'bar', x: xm, y: R.fraccion_meses_agua_Pm, yaxis: 'y2', name: 'años con φ > 1 (P̄)', marker: {color: 'rgba(230,159,0,0.45)'},
+       hovertemplate: 'años con φ > 1: %{y:.0%}<extra></extra>'},
+      {type: 'scatter', mode: 'lines+markers', x: xm, y: R.phi_Pm, name: 'φ con P̄', line: {color: css('--tinta'), width: 3},
+       hovertemplate: 'φ (P̄): %{y:.2f}<extra></extra>'},
+], lr, OPCIONES);
+  }
+  {
+    const E = CARGA.ef;
+    const trazas = [];
+    [['sin_gleam', 'x', 'y', 'mediana sin GLEAM']].forEach(([k, xa, ya, n]) => {
+      const A = E.ajuste[k], xs = [Math.min(...E.theta), A.theta_critica, Math.max(...E.theta)];
+      trazas.push({type: 'scatter', mode: 'markers', x: E.theta, y: E[k], xaxis: xa, yaxis: ya, name: n, text: E.mes,
+        marker: {size: 6, color: E.mc, colorscale: 'Twilight', cmin: 1, cmax: 12, showscale: true, colorbar: {title: 'mes', len: 0.8}},
+        hovertemplate: '%{text}: θ %{x:.3f}, EF %{y:.3f}<extra></extra>'});
+      trazas.push({type: 'scatter', mode: 'lines', x: xs, y: xs.map(v => A.EF_max + A.pendiente_b * Math.min(v - A.theta_critica, 0)),
+        xaxis: xa, yaxis: ya, line: {color: '#0072B2', width: 4}, name: `ajuste, θ* = ${A.theta_critica.toFixed(3)}, R² ${A.r2_frente_a_plano.toFixed(2)}`, hoverinfo: 'skip'});
+    });
+    const le = base('EF = λET/Rn'); le.hovermode = 'closest'; le.showlegend = true; Object.assign(le.legend, {orientation: 'h', y: -0.25, yanchor: 'top'});
+    Object.assign(le.xaxis, {type: 'linear', title: {text: 'SMrz de GLEAM (m³/m³)', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-ef', trazas, le, OPCIONES);
   }
   document.getElementById('texto-f4').innerHTML = CARGA.texto_f4.map(t => `<p>${t}</p>`).join('');
   const H1 = CARGA.hargreaves_t1;
@@ -1602,6 +1648,30 @@ for (const [nombre, dias] of ventanas) {
   };
   document.getElementById('ventanas').appendChild(b);
 }
+
+// Cambio de tema (claro/oscuro) después de dibujar: Plotly guarda los colores como texto, así que se cambian los
+// valores viejos de los tokens por los nuevos en todas las gráficas.
+(() => {
+  const TOKENS = ['--tinta', '--tenue', '--linea', '--superficie'];
+  const foto = () => Object.fromEntries(TOKENS.map(k => [k, css(k)]));
+  let previo = foto();
+  const recolorear = () => {
+    const nuevo = foto(), pares = TOKENS.filter(k => previo[k] && previo[k] !== nuevo[k]).map(k => [previo[k], nuevo[k]]);
+    previo = nuevo;
+    if (!pares.length) return;
+    const marca = k => String.fromCharCode(1) + k + String.fromCharCode(1);
+    document.querySelectorAll('.js-plotly-plot').forEach(gd => {
+      let s = JSON.stringify({data: gd.data, layout: gd.layout}, (k, v) => (k[0] === '_' ? undefined : v));
+      pares.forEach(([viejo], k) => { s = s.split(viejo).join(marca(k)); });
+      pares.forEach(([, nuevo], k) => { s = s.split(marca(k)).join(nuevo); });
+      const o = JSON.parse(s);
+      try { Promise.resolve((s.includes('"pattern"') ? Plotly.newPlot : Plotly.react)(gd, o.data, o.layout, OPCIONES)).catch(e => console.warn('tema', gd.id, e)); } catch (e) { console.warn('tema', gd.id, e); }
+    });
+  };
+  new MutationObserver(recolorear).observe(document.documentElement, {attributes: true, attributeFilter: ['data-theme', 'class', 'style']});
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', recolorear); } catch (e) {}
+  setTimeout(recolorear, 1500);
+})();
 </script>
 </body>
 </html>

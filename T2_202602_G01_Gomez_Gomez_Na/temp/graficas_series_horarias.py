@@ -1064,7 +1064,7 @@ code { font: 400 .86em var(--f-dato); }
   <p class="nota">Lectura preliminar (agente, para Juan): 22 de 25 años tienen déficit (p0 = 0.12); media 42 mm, máximo
   117 mm (2016). El máximo cae casi siempre en enero o febrero. Sin tendencia (Mann-Kendall p 0.19). T = 10 años: 86 mm
   (Gumbel, IC 66–104), 96 (GEV, 67–122), 88 (LP3, 68–107); las tres coinciden dentro del IC. T = 25: 110, 134 y 95 mm, y
-  ahí se separan: la GEV sube rápido y la LP3 se aplana. En la GEV, 143 de 1 000 réplicas no tienen ajuste por momentos L.
+  ahí se separan: la GEV sube rápido y la LP3 se aplana. La LP3 se aplana porque tiene techo: en log el sesgo es −2.0 (A) y −2.2 (con +1 mm), y una Pearson III con sesgo negativo tiene un máximo, 99 y 101 mm, por debajo de los 117 mm de 2016. En la GEV, 143 de 1 000 réplicas no tienen ajuste por momentos L.
   Reiniciar en enero solo cambia 2016 (117 → 90) y 2019 (68 → 27).</p>
 </section>
 

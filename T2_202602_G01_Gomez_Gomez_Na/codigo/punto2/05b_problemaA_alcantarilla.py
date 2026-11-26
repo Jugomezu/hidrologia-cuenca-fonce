@@ -41,7 +41,9 @@ CN_II = 78.0
 SHEET_LENGTH_M = 300.0  # Kerby se limita al tramo corto de flujo laminar/superficial.
 KERBY_RETARDANCE_N = 0.20  # valor compuesto representativo de parques y lotes.
 MANNING_N_NOMINAL = 0.013
-COMMERCIAL_MM = np.array([600, 750, 900, 1050, 1200, 1350, 1500], dtype=float)
+# Diámetros internos de tubo de concreto reforzado de ASTM C76M-22a (Tablas 1 a 5); la serie se amplió con 1 650 y
+# 1 800 mm el 26 nov para poder recomendar el diámetro que cubre la sensibilidad (decisión de Juan).
+COMMERCIAL_MM = np.array([600, 750, 900, 1050, 1200, 1350, 1500, 1650, 1800], dtype=float)
 
 
 def read_inputs():
@@ -352,7 +354,7 @@ def make_figure(sensitivity: pd.DataFrame, mc: pd.DataFrame, dcom_mm: float,
     commercial_offsets = COMMERCIAL_MM - nominal_d_mm
     for index, offset in enumerate(commercial_offsets):
         ax1.axvline(offset, color="#83929a", lw=0.65, ls=":" if index % 2 else "--", alpha=0.55)
-    ax1.text(0.98, 0.02, "Líneas verticales: diámetros comerciales 600–1500 mm",
+    ax1.text(0.98, 0.02, f"Líneas verticales: diámetros comerciales {COMMERCIAL_MM[0]:.0f}–{COMMERCIAL_MM[-1]:.0f} mm",
              transform=ax1.transAxes, ha="right", va="bottom", fontsize=8,
              bbox={"facecolor": "white", "alpha": 0.85, "edgecolor": "#cccccc"})
     ax1.text(0.98, 0.12, f"D nominal = {nominal_d_mm:.0f} mm; Dcom = {dcom_mm:.0f} mm", transform=ax1.transAxes,
@@ -484,6 +486,14 @@ def main() -> None:
         note="Impacto como rango máximo-mínimo de diámetro requerido entre escenarios del factor."
     )
     sensitivity_out = pd.concat([sens, sensitivity_summary[sens.columns]], ignore_index=True)
+
+    # Diámetro recomendado (decisión de Juan, 26 nov): el comercial más pequeño que cubre el mayor diámetro requerido
+    # de la sensibilidad (t_c, IDF, C, distribución). Es más conservador que el nominal, que solo cubre el caso central.
+    d_max_sens_mm = float(sens.loc[sens.factor.ne("Referencia"), "D_required_mm"].max())
+    d_recommended_mm = commercial_diameter(d_max_sens_mm / 1000)
+    if not np.isfinite(d_recommended_mm):
+        raise ValueError(f"El diámetro máximo de la sensibilidad ({d_max_sens_mm:.0f} mm) excede la serie comercial.")
+    q_capacity_rec = pipe_capacity(d_recommended_mm / 1000, MANNING_N_NOMINAL, slope)
     sensitivity_out.sort_values(["record_type", "impact_rank", "factor"], na_position="last").to_csv(
         OUT_SENS, index=False, encoding="utf-8-sig"
     )
@@ -513,6 +523,8 @@ def main() -> None:
         "manning_n": MANNING_N_NOMINAL, "D_required_m": d_required_m,
         "D_required_mm": 1000 * d_required_m, "D_commercial_mm": dcom_mm,
         "Qc_full_m3s": q_capacity, "FS_nominal": fs_nominal,
+        "D_required_max_sensitivity_mm": d_max_sens_mm, "D_recommended_mm": d_recommended_mm,
+        "Qc_full_recommended_m3s": q_capacity_rec, "FS_recommended": q_capacity_rec / q_design,
         "design_note": "Manning a tubo lleno; diseño preliminar sin pérdidas locales, remanso, entrada, sedimentos ni verificación estructural.",
     }])
     design.to_csv(OUT_DESIGN, index=False, encoding="utf-8-sig")

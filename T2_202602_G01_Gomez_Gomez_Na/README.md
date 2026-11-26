@@ -86,6 +86,7 @@ python codigo/punto2/05c_problemaB_tanque_detencion.py
 python codigo/punto2/05d_bonificaciones_punto2.py    # lee la cuenca y la obra del Problema A
 python codigo/punto2/05e_hidrogramas_nrcs.py         # antes 04; misma cuenca y parámetros del Problema A
 python codigo/punto2/00_generar_html.py              # informe HTML del punto 2
+python codigo/punto2/06_cifras_informe.py             # cifras del punto 2 que cita el informe LaTeX
 ```
 
 Toda la parte de diseño (05b, 05c, 05d, 05e) usa una sola cuenca: la del DEM (05a) con el C, el CN y el tc del Problema A.

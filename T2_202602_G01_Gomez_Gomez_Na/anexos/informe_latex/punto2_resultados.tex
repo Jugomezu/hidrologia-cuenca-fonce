@@ -197,5 +197,14 @@ antes de diseño final.
 Uso recomendado: reporte de análisis y predimensionamiento. No reemplaza los planos, la revisión normativa ni el modelo
 hidráulico/hidrológico de detalle.
 
-\pendiente{Recomendación de diseño con su incertidumbre, en una frase (diámetro, $T$, riesgo y FS con su
-intervalo). Es el paso 2.}
+\paragraph{Recomendación de diseño.}
+\borradorIA{Se recomienda una alcantarilla circular de concreto reforzado de \pdosDrec~mm para $T=50$ años (diámetro
+comercial de ASTM C76M; \citealp{astm_c76m}). El caudal de diseño es \pdosQ~m$^3$/s; el diámetro requerido,
+\pdosDreq~mm, y el comercial inmediato, \pdosDnom~mm (capacidad a tubo lleno \pdosQcnom~m$^3$/s, FS \pdosFSnom). Ese
+tubo cubre solo el caso central: en la sensibilidad, el diámetro requerido pasa de \pdosDnom~mm con el límite alto del
+IC95~\% de la IDF (\pdosDidfAlta~mm), con $C$ +20~\% (\pdosDcAlto~mm) y con el $t_c$ de Kirpich (\pdosTcKirpich~min,
+\pdosDmaxSens~mm). Con \pdosDrec~mm la capacidad es \pdosQcrec~m$^3$/s (FS \pdosFSrec) y cubre los tres casos. En
+\pdosVida~años de vida útil el riesgo nominal de $T=50$ es \pdosRiesgoNom~\%; el efectivo del Monte Carlo, calculado
+para el tubo de \pdosDnom~mm, es \pdosRiesgoEf~\%, y con \pdosDrec~mm sería menor (no se recalculó). La incertidumbre
+dominante es el $t_c$ y la extrapolación subhoraria de la IDF. Para el Problema B, el tanque de \pdosVtanque~m$^3$ cubre
+el peor patrón de lluvia (\pdosVpeor~m$^3$, pico al final).}

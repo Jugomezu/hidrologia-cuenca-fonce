@@ -691,3 +691,10 @@ hace que su Q racional (7.07) supere al del Problema A (6.43): decisión pendien
 **Decisión (Juan).** C_f = 1 en todos los T del script 05e (antes 1.00/1.05/1.10/1.15, sin fuente).
 **Razón.** Evitar contradicciones aparentes: con C_f el racional de T = 50 daba 7.07 m³/s frente a 6.43 del Problema A
 para la misma cuenca. Ahora da 6.43 en los dos. Los hidrogramas NRCS no cambian (no usan C).
+
+## 2026-11-26 · Punto 2 · Diámetro recomendado: 1 650 mm
+
+**Decisión (Juan).** Se recomienda 1 650 mm, no el 1 500 mm nominal, y se dice la incertidumbre.
+**Razón.** Ser conservador: 1 500 mm cubre solo el caso central (requerido 1 460 mm); con la IDF alta, C +20 % o el t_c
+de Kirpich se piden 1 558, 1 563 y 1 576 mm. 1 650 mm es el diámetro de ASTM C76M más pequeño que cubre los tres. La
+serie comercial de 05b se amplió con 1 650 y 1 800 mm; Monte Carlo y bonificaciones siguen evaluando el de 1 500 mm.

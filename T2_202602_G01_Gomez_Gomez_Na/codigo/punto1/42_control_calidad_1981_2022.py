@@ -198,7 +198,7 @@ def homogeneidad(diaria, tabla):
 
 
 def figura(resultados):
-    fig, ejes = plt.subplots(1, 3, figsize=(15, 4.2))
+    fig, ejes = plt.subplots(3, 1, figsize=(6.5, 8), sharex=True)
     for ax, (nombre, (serie, k, p)) in zip(ejes, resultados.items()):
         ax.plot(serie.index, serie.to_numpy(), "o-", ms=3, color="#0072B2")
         antes, despues = serie.iloc[: k + 1].mean(), serie.iloc[k + 1:].mean()
@@ -206,8 +206,8 @@ def figura(resultados):
                   colors="#D55E00", lw=2, label=f"Pettitt: corte tras {serie.index[k]}, p = {p:.3f}")
         ax.axvline(1997.5, color="k", ls=":", lw=1)
         ax.set_title(nombre, fontsize=10)
-        ax.set_xlabel("año")
         ax.legend(fontsize=8, loc="best")
+    ejes[-1].set_xlabel("año")
     fig.tight_layout()
     fig.savefig(SALIDA_FIGURA, dpi=150)
 

@@ -271,7 +271,7 @@ def atribucion(tabla_t):
 
 # ---------------------------------------------------------------- figura
 def figura(tabla, tabla_t, atr, salida=SALIDA_FIGURA):
-    fig, ejes = plt.subplots(1, 2, figsize=(12, 4.5))
+    fig, ejes = plt.subplots(2, 1, figsize=(6.5, 8))
     # totales anuales con eje desde 0 y solo la recta de Sen (Juan, 24 nov: sin OLS ni anomalías)
     anual = tabla[["eto", "thornthwaite"]].groupby(tabla.index.year).sum()
     tt = tabla_t.set_index("clave")

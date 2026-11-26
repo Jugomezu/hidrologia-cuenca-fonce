@@ -250,7 +250,7 @@ def main():
 
     # Figura: ciclo anual de la ETo (media por mes calendario de los días usados)
     nombres_mes = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
-    figura, ejes = plt.subplots(1, 3, figsize=(12, 4.3), sharey=True)
+    figura, ejes = plt.subplots(3, 1, figsize=(6.5, 8.2), sharex=True, sharey=True)
     for eje, codigo in zip(ejes, ESTACIONES):
         datos = por_mes.loc[codigo]
         celda = diaria.loc[diaria["estacion"] == codigo, "celda_era5"].iloc[0]
@@ -264,13 +264,13 @@ def main():
         eje.set_title(f"{nombre} ({int(float(catalogo.loc[codigo, 'altitud']))} m)", fontsize=10)
         eje.set_xticks(range(1, 13), nombres_mes)
         eje.grid(alpha=0.3)
-    ejes[0].set_ylabel("ETo media (mm/día)")
+        eje.set_ylabel("ETo media (mm/día)")
     manijas, etiquetas = ejes[0].get_legend_handles_labels()
     etiquetas[-1] = "ETo FAO-56 (este trabajo, celda de la estación)"
-    figura.legend(manijas, etiquetas, loc="lower center", ncol=3, frameon=False, fontsize=9)
-    figura.suptitle("Ciclo anual de la ETo FAO-56, 1998–2022 (solo días con todas las entradas de estación)",
-                    fontsize=11)
-    figura.tight_layout(rect=(0, 0.07, 1, 1))
+    figura.legend(manijas, etiquetas, loc="lower center", ncol=1, frameon=False, fontsize=8.5)
+    figura.suptitle("Ciclo anual de la ETo FAO-56, 1998–2022\n(solo días con todas las entradas de estación)",
+                    fontsize=10)
+    figura.tight_layout(rect=(0, 0.1, 1, 1))
     figura.savefig(SALIDA_FIGURA, dpi=150)
 
     pd.set_option("display.width", 250)

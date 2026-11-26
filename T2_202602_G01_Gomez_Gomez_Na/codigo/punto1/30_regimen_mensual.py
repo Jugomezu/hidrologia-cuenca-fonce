@@ -57,7 +57,7 @@ def main():
     print(f"Listo: {SALIDA_CSV}")
     print(tabla[["mes", "phi_Pm", "clase_Pm", "fraccion_meses_agua_Pm"]].round(2).to_string(index=False))
 
-    fig, eje = plt.subplots(figsize=(7, 4))
+    fig, eje = plt.subplots(figsize=(6.5, 3.6))
     eje.axhspan(1, 2, color="#E69F00", alpha=0.15, label="limitado por agua (φ > 1)")
     eje.axhspan(0, 1, color="#0072B2", alpha=0.08, label="limitado por energía (φ < 1)")
     eje.plot(tabla["mes"], tabla["phi_Pm"], "k-o", lw=2, label="φ con P̄")

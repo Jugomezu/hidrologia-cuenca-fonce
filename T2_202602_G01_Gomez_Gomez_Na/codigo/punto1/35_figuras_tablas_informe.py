@@ -114,7 +114,7 @@ def figura_metodos(anual):
             y += 1
         y += 0.5
 
-    fig, eje = plt.subplots(figsize=(8, 5.4))
+    fig, eje = plt.subplots(figsize=(6.5, 5.6))
     for posicion, m in filas:
         valor = anual[m]
         if m == PM:
@@ -176,7 +176,7 @@ def figura_sensibilidad():
     anual = t[t["mes"] == "anual"].pivot(index="metodo", columns="escenario", values="cambio_pct")
     metodos = list(dict.fromkeys(t["metodo"]))
     anual = anual.loc[metodos, list(ESCENARIOS)]
-    fig, eje = plt.subplots(figsize=(8, 4.6))
+    fig, eje = plt.subplots(figsize=(6.5, 4.8))
     limite = 21  # mismo rango de color que el documento de trabajo; Thornthwaite con +2 °C llega a ~21 %
     assert anual.abs().max().max() <= limite + 0.5, "un cambio sale del rango de color"
     imagen = eje.imshow(anual.values, cmap="RdBu_r", vmin=-limite, vmax=limite, aspect="auto")
@@ -201,7 +201,7 @@ def figura_et_real():
     central = pd.read_csv(CARPETA_PRODUCTOS / "et_incertidumbre.csv").query("caso_sigma_Q == 'central'").iloc[0]
     techo = pd.read_csv(CARPETA_PRODUCTOS / "et_techo_energia_resumen.csv").set_index("camino")
     et, sigma = central["ETR_Pm"], central["sigma_ET"]
-    fig, eje = plt.subplots(figsize=(8, 4.4))
+    fig, eje = plt.subplots(figsize=(6.5, 5.4))
     x = range(len(frente))
     eje.axhspan(et - sigma, et + sigma, color="0.85", label="P̄ − Q ± σ_ET (95 %)")
     eje.axhline(et, color="black", lw=2, label=f"P̄ − Q = {miles(et)} mm/año")
@@ -214,10 +214,11 @@ def figura_et_real():
     for i, v in enumerate(frente["producto_mm_anio"]):
         eje.text(i, v + 25, miles(v), ha="center", fontsize=8, zorder=4,
                  bbox=dict(facecolor="white", edgecolor="none", pad=1, alpha=0.9))
-    eje.set_xticks(list(x), [p.replace(" (", "\n(") for p in frente["producto"]], fontsize=7.5)
+    eje.set_xticks(list(x), [" ".join(p.split(" ")[:-1]) + "\n" + p.split(" ")[-1] if " (" not in p
+                            else p.replace(" (", "\n(") for p in frente["producto"]], fontsize=7.5)
     eje.set_ylabel("mm/año (meses comunes con Q)")
     eje.set_ylim(0, techo.loc["balance con Pm", "Rn_lambda_mm_anio"] * 1.12)
-    eje.legend(fontsize=7, loc="upper left", ncol=2)
+    eje.legend(fontsize=7.5, loc="upper center", bbox_to_anchor=(0.5, -0.17), ncol=2, frameon=False)
     eje.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     salida = CARPETA_PRODUCTOS / "et_real_productos.png"

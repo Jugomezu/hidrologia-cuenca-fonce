@@ -77,7 +77,7 @@ def main():
     por_mes.round(3).to_csv(SALIDA_POR_MES)
     resumen.round(3).to_csv(SALIDA_RESUMEN)
 
-    figura, (izq, der) = plt.subplots(1, 2, figsize=(13, 4.3), gridspec_kw={"width_ratios": [2, 1]})
+    figura, (izq, der) = plt.subplots(2, 1, figsize=(6.5, 7))
     fechas = pd.to_datetime(datos["mes"])
     izq.plot(fechas, datos["eto_fao56"], color="#1B6A80", lw=1.3, label="ETo FAO-56 (este trabajo)")
     izq.plot(fechas, datos["pet_terraclimate"], color="#CC79A7", lw=1.3, ls="--", label="pet TerraClimate v1.1")

@@ -124,7 +124,7 @@ def main():
 
 def figura(tabla, resumen):
     colores = {"GLEAM v4.3a": "#CC79A7", "SSEBop v6.1": "#E69F00"}
-    fig, ejes = plt.subplots(1, 3, figsize=(16, 4.8))
+    fig, ejes = plt.subplots(3, 1, figsize=(6.5, 9.5))
     for prod, r in resumen.groupby("producto"):
         r = r.sort_values("z_modelo_m")
         ejes[0].plot(r["rs_mediana_sm"], r["z_modelo_m"], "o--", color=colores[prod], alpha=0.5, label=f"{prod}: rs")

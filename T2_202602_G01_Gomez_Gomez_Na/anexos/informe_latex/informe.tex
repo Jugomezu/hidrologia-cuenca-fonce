@@ -192,7 +192,7 @@ $f = r_s\,\mathrm{LAI}/r_{c,\min}$ al estilo de Jarvis y se ajusta $\ln f = a + 
 
 \subsubsection{La demanda: \ETo{} de referencia}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.85\textwidth]{eto_ciclo_anual.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{eto_ciclo_anual.png}
   \caption{Ciclo anual de la \ETo{} \PM{} de la cuenca (media 1998--2022).}
   \label{fig:eto_ciclo}
 \end{figure}
@@ -201,23 +201,26 @@ controla.}
 
 \subsubsection{¿Qué tan buena es la referencia?}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{rs_estaciones_vs_era5land_ciclo_anual.png}\hfill
-  \includegraphics[width=0.48\textwidth]{eto_estaciones_vs_era5land_ciclo_anual.png}
-  \caption{Izquierda: Rs de ERA5-Land frente a la de Angstrom en tres estaciones. Derecha: nuestra \ETo{} frente a la
-  \ETo{} de estación.}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{rs_estaciones_vs_era5land_ciclo_anual.png}
+  \caption{Rs de ERA5-Land frente a la de Angstrom en tres estaciones.}
+  \label{fig:rs_estaciones}
+\end{figure}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{eto_estaciones_vs_era5land_ciclo_anual.png}
+  \caption{Nuestra \ETo{} frente a la \ETo{} de estación.}
   \label{fig:pruebas_estaciones}
 \end{figure}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.75\textwidth]{eto_vs_terraclimate_pet.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{eto_vs_terraclimate_pet.png}
   \caption{Nuestra \ETo{} frente a la pet de TerraClimate, promedio de la cuenca.}
   \label{fig:terraclimate}
 \end{figure}
-\pendiente{Juan: resultado de las dos pruebas (Figs.~\ref{fig:pruebas_estaciones} y \ref{fig:terraclimate}), la
+\pendiente{Juan: resultado de las dos pruebas (Figs.~\ref{fig:rs_estaciones}, \ref{fig:pruebas_estaciones} y \ref{fig:terraclimate}), la
 dispersión y sus limitaciones.}
 
 \subsubsection{Métodos de otras familias y sus diferencias}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.9\textwidth]{metodos_frente_eto.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{metodos_frente_eto.png}
   \caption{Media anual 1998--2022 de cada método, tal como lo calcula su ecuación, agrupado por la cantidad que
   estima; el color indica las variables que usa. La línea punteada es la \ETo{} \PM; su barra se parte en el término
   radiativo (lleno) y el aerodinámico (rayado). El porcentaje es frente a la \ETo; la comparación de cada método con la
@@ -302,14 +305,14 @@ a 0.50~kPa, frente a 0.59 a 0.65~m/s de viento) y se correlaciona más con $\alp
 meses).
 
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{terminos_fao56.png}\hfill
-  \includegraphics[width=0.48\textwidth]{alfa_implicito.png}
-  \caption{Izquierda: términos radiativo y aerodinámico de la \ETo{} \PM{} por mes. Derecha: $\alpha^* =
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{terminos_fao56.png}\\[6pt]
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{alfa_implicito.png}
+  \caption{Arriba: términos radiativo y aerodinámico de la \ETo{} \PM{} por mes. Abajo: $\alpha^* =
   \mathrm{ET_o}/E_\mathrm{eq}$ por mes.}
   \label{fig:terminos_alfa}
 \end{figure}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.85\textwidth]{sensibilidad_metodos.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{sensibilidad_metodos.png}
   \caption{Cambio de la media anual de cada método al perturbar una entrada (1998--2022). «ea cte» y «HR cte»:
   al subir la temperatura se deja fija la presión de vapor o la humedad relativa. Cenicafé solo depende de la
   altitud.}
@@ -321,7 +324,7 @@ un script.}
 
 \subsubsection{ET real y su incertidumbre}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.9\textwidth]{et_real_productos.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{et_real_productos.png}
   \caption{Productos de ET real frente al balance $\bar{P} - Q$ con su $\sigma_\mathrm{ET}$ al 95~\% (franja gris), en
   los meses de cada producto que tienen Q. En gris, los dos que caen fuera de la franja. Líneas de referencia: balances
   con PI y con PL, \ETo{} \PM{} y techo de energía $R_n/\lambda$.}
@@ -337,7 +340,7 @@ un script.}
 
 \subsubsection{¿Manda la energía o el agua?}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.65\textwidth]{budyko.png}
+  \includegraphics[width=0.8\textwidth]{budyko.png}
   \caption{Espacio de Budyko con $\bar{P}$: años y media, con la curva de Fu ajustada.}
   \label{fig:budyko}
 \end{figure}
@@ -348,11 +351,15 @@ un script.}
   \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_budyko.tex}}
 \end{table}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{regimen_mensual.png}\hfill
-  \includegraphics[width=0.48\textwidth]{fraccion_evaporativa.png}
-  \caption{Izquierda: índice de aridez mensual $\varphi = \mathrm{ET_o}/\bar{P}$. Derecha: fracción evaporativa
-  $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de la zona de raíces de GLEAM.}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{regimen_mensual.png}
+  \caption{Índice de aridez mensual $\varphi = \mathrm{ET_o}/\bar{P}$.}
   \label{fig:regimen_ef}
+\end{figure}
+\begin{figure}[htbp]\centering
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{fraccion_evaporativa.png}
+  \caption{Fracción evaporativa $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de la zona de raíces de GLEAM:
+  arriba con la mediana de productos sin GLEAM, abajo con GLEAM (circular).}
+  \label{fig:ef}
 \end{figure}
 
 % Texto de Juan: temp/textos_informe/fase7_indice_aridez.md (tal cual, pasado a LaTeX).
@@ -366,13 +373,13 @@ Esta cuenca no está limitada por agua; por el contrario, está más que todo li
 estuviera limitada por agua, veríamos un quiebre en la línea de ajuste, y esto no se ve. Estamos en la parte plana, o
 muy cerca de ella: la ET es poco sensible a la humedad del suelo, porque el suelo casi siempre está húmedo.
 
-\pendiente{Juan: citar las Figs.~\ref{fig:budyko} y \ref{fig:regimen_ef} y la Tabla~\ref{tab:budyko} en el texto;
+\pendiente{Juan: citar las Figs.~\ref{fig:budyko}, \ref{fig:regimen_ef} y \ref{fig:ef} y la Tabla~\ref{tab:budyko} en el texto;
 los matices acordados (enero: $\varphi > 1$ no frena la ET porque el suelo amortigua; el quiebre $\theta^* = 0.452$ es
 el borde de la búsqueda; R$^2$ 0.16; la prueba sola no es concluyente) y una explicación alternativa.}
 
 \subsubsection{Cambios en la demanda}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{tendencias_demanda_1981_2022.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{tendencias_demanda_1981_2022.png}
   \caption{\ETo{} \PM{} (con la Rs corregida) y Thornthwaite anuales con la recta de Sen, 1981--2022, y atribución
   de la tendencia de la \ETo{} a cada forzante.}
   \label{fig:tendencias}
@@ -387,7 +394,7 @@ significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/
 (sensibilidad): \ETo{} $+9.5$, significativa.
 
 \begin{figure}[htbp]\centering
-  \includegraphics[width=0.8\textwidth]{control_calidad_homogeneidad_1981_2022.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{control_calidad_homogeneidad_1981_2022.png}
   \caption{Homogeneidad de la serie anual 1981--2022 de ERA5-Land frente a fuentes independientes, con el corte de
   Pettitt: T menos la de MSWX, Rs sobre la de Hargreaves--Samani con MSWX, y residuo de la Rs frente a la lluvia de
   CHIRPS. La línea punteada marca 1998.}
@@ -401,15 +408,15 @@ al., 2020, sin comprobar).}
 
 \subsubsection{El paisaje de la cuenca}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{gradiente_altitudinal.png}
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{gradiente_altitudinal.png}
   \caption{\ETo{} y ET real de los productos frente a la altura, e hipsometría de la cuenca con ET/\ETo{} por banda
   de 500~m.}
   \label{fig:gradiente}
 \end{figure}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{gradiente_altitudinal_energia.png}
-  \caption{Izquierda: fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto en los 6 puntos, frente a la
-  altura del modelo, con $\Delta/(\Delta+\gamma)$ (superficie húmeda, teórica). Derecha: reparto de la $R_n$ real de
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{gradiente_altitudinal_energia.png}
+  \caption{Arriba: fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto en los 6 puntos, frente a la
+  altura del modelo, con $\Delta/(\Delta+\gamma)$ (superficie húmeda, teórica). Abajo: reparto de la $R_n$ real de
   ERA5-Land entre calor latente y calor sensible (más $G$), con la mediana de los tres productos.}
   \label{fig:gradiente_energia}
 \end{figure}
@@ -428,16 +435,16 @@ estomático con frío y nubes. La $R_n$ que sube es la real de ERA5-Land; la del
 
 \paragraph{Resistencia de superficie.}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{resistencia_superficie.png}
-  \caption{Izquierda: $r_s$ efectiva despejada de GLEAM v4.3a y de SSEBop v6.1 frente a la altura (mediana y
-  cuartiles de los meses), con la $r_a$ por cobertura y, como sensibilidad, con la del pasto. Derecha: ciclo anual de
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{resistencia_superficie.png}
+  \caption{Arriba: $r_s$ efectiva despejada de GLEAM v4.3a y de SSEBop v6.1 frente a la altura (mediana y
+  cuartiles de los meses), con la $r_a$ por cobertura y, como sensibilidad, con la del pasto. Abajo: ciclo anual de
   la $r_s$ con SSEBop v6.1 en cada punto.}
   \label{fig:rs}
 \end{figure}
 \begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{jarvis_lai.png}
-  \caption{Izquierda: $r_s$ y $r_s\cdot\mathrm{LAI}$ frente a la altura. Centro: LAI de MCD15A3H en la celda de cada
-  punto. Derecha: $f = r_s\,\mathrm{LAI}/r_{c,\min}$ con SSEBop v6.1 frente al déficit de vapor, con su ajuste por
+  \includegraphics[width=\textwidth,height=0.86\textheight,keepaspectratio]{jarvis_lai.png}
+  \caption{Arriba: $r_s$ y $r_s\cdot\mathrm{LAI}$ frente a la altura. En medio: LAI de MCD15A3H en la celda de cada
+  punto. Abajo: $f = r_s\,\mathrm{LAI}/r_{c,\min}$ con SSEBop v6.1 frente al déficit de vapor, con su ajuste por
   punto.}
   \label{fig:jarvis}
 \end{figure}

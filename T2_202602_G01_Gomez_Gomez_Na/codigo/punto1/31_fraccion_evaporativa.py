@@ -86,7 +86,7 @@ def main():
     print(f"Listo: {SALIDA_MES}\nListo: {SALIDA_UMBRAL}")
     print(umbral.round(3).to_string(index=False))
 
-    fig, ejes = plt.subplots(1, 2, figsize=(10, 4), sharey=True)
+    fig, ejes = plt.subplots(2, 1, figsize=(6.5, 7), sharex=True, sharey=True)
     for eje, fila in zip(ejes, filas):
         n = fila["ET"]
         eje.scatter(d["theta"], d[f"EF_{n}"], s=10, c=d["mes_calendario"], cmap="twilight", alpha=0.8)
@@ -96,7 +96,7 @@ def main():
         eje.set_xlabel("SMrz de GLEAM (m³/m³)")
         eje.set_title(f"ET: {'mediana sin GLEAM' if n == 'sin_gleam' else 'GLEAM E (circular)'}; "
                       f"θ* = {fila['theta_critica']:.3f}", fontsize=9)
-    ejes[0].set_ylabel("EF = λET/Rn")
+        eje.set_ylabel("EF = λET/Rn")
     fig.tight_layout()
     fig.savefig(SALIDA_PNG, dpi=150)
     print(f"Listo: {SALIDA_PNG}")

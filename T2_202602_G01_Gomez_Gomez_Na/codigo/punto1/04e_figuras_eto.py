@@ -53,7 +53,7 @@ def figura_ciclo_anual():
     puntos = pd.read_csv(ETO_PUNTOS)
     alturas = pd.read_csv(ALTURAS).set_index("punto")["z_celda_dem_m"]
 
-    figura, (izq, der) = plt.subplots(1, 2, figsize=(12, 4.6))
+    figura, (izq, der) = plt.subplots(2, 1, figsize=(6.5, 8))
     izq.bar(X, c["eto_radiativa_mm_mes"], color="#E69F00", label="Término radiativo")
     izq.bar(X, c["eto_aerodinamica_mm_mes"], bottom=c["eto_radiativa_mm_mes"], color="#56B4E9",
             label="Término aerodinámico")

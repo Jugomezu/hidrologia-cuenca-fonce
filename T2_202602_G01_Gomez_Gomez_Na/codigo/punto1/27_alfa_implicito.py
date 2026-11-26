@@ -103,7 +103,7 @@ def main():
     print(f"Para verificar a mano (punto {PUNTO_MANO}, {MES_MANO}, hoja metodos_mes_a_mano.xlsx): "
           f"Eeq {mano['eeq']:.3f}, ETo {mano['eto']:.3f} mm/mes, α* {mano['eto'] / mano['eeq']:.4f}")
 
-    fig, eje = plt.subplots(figsize=(8, 4))
+    fig, eje = plt.subplots(figsize=(6.5, 4.6))
     x = list(range(1, 13))
     eje.fill_between(x, ciclo["alfa_estrella_min"], ciclo["alfa_estrella_max"], color="#0072B2", alpha=0.15,
                      label="α* mín.–máx. entre años")
@@ -118,7 +118,7 @@ def main():
     eje2.set_ylabel("kPa  ·  m/s")
     lineas = eje.get_legend_handles_labels()
     lineas2 = eje2.get_legend_handles_labels()
-    eje.legend(lineas[0] + lineas2[0], lineas[1] + lineas2[1], fontsize=7, loc="upper center", ncol=3)
+    eje.legend(lineas[0] + lineas2[0], lineas[1] + lineas2[1], fontsize=7.5, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False)
     eje.set_title("α* por mes, cuenca, media 1998–2022", fontsize=10)
     fig.tight_layout()
     fig.savefig(SALIDA_PNG, dpi=150)

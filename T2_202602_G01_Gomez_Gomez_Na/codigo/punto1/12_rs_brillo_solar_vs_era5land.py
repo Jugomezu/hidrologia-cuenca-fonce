@@ -206,7 +206,7 @@ def main():
 
     # Figura: ciclo anual (media por mes calendario de los días pareados), una gráfica por estación
     nombres_mes = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
-    figura, ejes = plt.subplots(1, 3, figsize=(12, 4.3), sharey=True)
+    figura, ejes = plt.subplots(3, 1, figsize=(6.5, 8.5), sharex=True, sharey=True)
     for eje, codigo in zip(ejes, ESTACIONES):
         datos = por_mes[por_mes["estacion"] == codigo]
         info = resumen.loc[codigo]
@@ -216,9 +216,9 @@ def main():
         eje.set_title(f"{info['nombre'].split(' [')[0].title()} ({int(info['z_estacion_m'])} m)", fontsize=10)
         eje.set_xticks(range(1, 13), nombres_mes)
         eje.grid(alpha=0.3)
-        eje.legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=2, frameon=False)
-    ejes[0].set_ylabel("Rs media (MJ/m²·día)")
-    figura.suptitle("Ciclo anual de Rs, 1998–2022 (solo días con brillo solar)", fontsize=11)
+        eje.legend(fontsize=8, loc="lower center", ncol=2)
+        eje.set_ylabel("Rs media (MJ/m²·día)")
+    figura.suptitle("Ciclo anual de Rs, 1998–2022 (solo días con brillo solar)", fontsize=10)
     figura.tight_layout()
     figura.savefig(SALIDA_FIGURA, dpi=150)
 

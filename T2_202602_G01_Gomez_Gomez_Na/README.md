@@ -3,6 +3,9 @@
 Esta carpeta sigue la estructura obligatoria de la entrega y ya lleva el nombre que exige: el ZIP de la
 entrega es esta carpeta comprimida entera, `T2_202602_G01_Gomez_Gomez_Na.zip`.
 
+Integrantes: Juan Pablo Gómez y Andrea Gómez. «Na» en el nombre de la carpeta no es una persona: el formato del
+nombre exige tres apellidos y el grupo tiene dos.
+
 ```
 README.md
 T2_202602_G01_informe.pdf        (pendiente)
@@ -22,7 +25,6 @@ anexos/
 
 ## Pendiente para la entrega
 
-- Integrantes con su nombre completo.
 - Procedencia de los datos.
 
 Requisitos: `pip install -r codigo/requirements.txt`. Antes de armar el ZIP, `python codigo/verificar_entrega.py`

@@ -70,7 +70,8 @@ día. «Leído» dice qué parte del contenido se comprobó contra lo que afirma
   Vélez), lo que respalda el texto de Juan (comprobado el 2026-11-26). https://cenicafe.org/es/publications/arc057(04)288-298.pdf (también en
   https://www.scribd.com/document/519656789/arc057-04-288-298). Usado: ETo = 4.37·exp(−0.0002 h), ec. 1, p. 292.
   No tiene DOI.
-- Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
+- (No se cita en el informe desde el 2026-11-26, decisión de Juan: no tiene DOI ni enlace; la ecuación se atribuye a
+  las notas de Hoyos.) Makkink, G. F. (1957). Testing the Penman formula by means of lysimeters. *Journal of the Institution of Water
   Engineers, 11*, 277–288. Sin DOI ni enlace en línea encontrado: la ecuación se toma de las notas del curso (Hoyos),
   Parte 7. Leído: no (el original no está en línea). Lo que sí se leyó: FAO-24 (Doorenbos y Pruitt, 1977), p. 8,
   dice «The Radiation Method is essentially an adaptation of the Makkink formula (1957)» y su método de radiación,

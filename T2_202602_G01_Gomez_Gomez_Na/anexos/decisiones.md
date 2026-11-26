@@ -665,3 +665,10 @@ Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residu
 ecuación se toma de las notas del curso (Hoyos). Recomendación del agente: la misma.
 **Razón.** Makkink (1957) no tiene DOI ni enlace (regla de citas). La ecuación y sus constantes (0.61 y −0.12) salen de
 las notas, y las notas tienen enlace. No se pudo confirmar en qué artículo de 1957 está la fórmula.
+
+## Penman con c = 0.8 (auditoría de citas, 26 nov)
+
+**Hallazgo.** En FAO-24, p. 15, el 0.8 es el coeficiente del Penman original (Eo) con tiempo en calma; el c de la
+forma de FAO-24 sale de su tabla 16 (p. 28). Recomendación del agente: mantener c = 0.8 y aclarar de dónde sale.
+**Decisión (Juan, 26 nov, 5:24 p. m.).** Se deja como está: c = 0.8 y el texto sin cambios («Yo interpreté que
+sugería 0.8»).

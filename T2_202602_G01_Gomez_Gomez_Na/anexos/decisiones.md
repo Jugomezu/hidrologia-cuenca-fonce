@@ -640,3 +640,9 @@ que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en par
 **Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
 p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
 Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).
+
+## 2026-11-26 · Punto 1 · Fase 9a: métodos aprobados
+
+**Decisión (Juan, 26 nov, 5:05 p. m.).** Se aprueban las cuatro propuestas del script 34: bandas de 500 m, recta contra la
+altura del modelo (la de la presión de ERA5-Land), pesos por píxel del DEM dentro de la cuenca y SSEBop v6.1 solo
+2012–2022. Tema principal: a; el f queda como complemento. Fase 9 cerrada.

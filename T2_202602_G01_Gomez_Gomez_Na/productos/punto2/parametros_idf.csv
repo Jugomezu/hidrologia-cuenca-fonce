@@ -1,0 +1,4 @@
+formulacion,a,m,b_h,c,MAPE_pct,RMSE_mmh,R2,T_curve_crossings,curvas_no_cruzan,P_no_decrece_por_restriccion_c_le_1,violaciones_P_antes,violaciones_P_despues,isotonic_max_adjustment_mmh,selection_LP3_LMOM_lower_KS_all,selection_LP3_LMOM_lower_AD_all,ganador_global,modelo_maestro_b_positivo,w_by_return_period
+Bernard-Sherman,12.683353,0.32660717,0,0.73909206,9.8741347,1.9706338,0.97279415,0,True,True,0,0,8.8817842e-16,True,True,True,False,
+Talbot-Wenzel,12.684253,0.32660717,0.0001234098,0.73911715,9.8743454,1.970538,0.9727968,0,True,True,0,0,8.8817842e-16,True,True,False,True,
+Koutsoyiannis-1998,12.684253,0.32660717,0.0001234098,0.73911715,9.8743454,1.970538,0.9727968,0,True,True,0,0,8.8817842e-16,True,True,False,False,T2=13.770825;T5=23.233668;T10=29.920582;T25=38.620183;T50=45.19975;T100=51.819475

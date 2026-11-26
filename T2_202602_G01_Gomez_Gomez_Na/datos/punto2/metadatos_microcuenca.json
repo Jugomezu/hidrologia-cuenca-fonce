@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "station": "USW00023062",
+  "station_coordinates_wgs84": {
+    "latitude": 39.7633,
+    "longitude": -104.8694
+  },
+  "dem_source": "Copernicus GLO-30 public AWS COG",
+  "dem_url": "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N39_00_W105_00_DEM/Copernicus_DSM_COG_10_N39_00_W105_00_DEM.tif",
+  "dem_path_relative": "datos/punto2/dem_microcuenca_denver.tif",
+  "area_km2": 1.0269,
+  "area_ha": 102.69,
+  "main_channel_length_m": 2312.497833620555,
+  "elevation_min_m": 1607.4869384765625,
+  "elevation_max_m": 1629.5340576171875,
+  "outlet_elevation_m": 1607.4869384765625,
+  "relief_slope_S0_m_per_m": 0.00953389828958542,
+  "slope_definition": "(cota máxima de la cuenca - cota outlet)/longitud de ruta D8 más larga; estimación topográfica DEM.",
+  "distance_basin_centroid_to_station_m": 1079.3890429436797,
+  "distance_outlet_to_station_m": 916.8953289031377,
+  "outlet_coordinates_utm13_m": {
+    "x": 510986.06115976727,
+    "y": 4402389.2729572235
+  },
+  "geojson_path_relative": "datos/punto2/microcuenca_denver.geojson",
+  "delineation": "Pysheds D8; fill pits/depressions and resolve flats; outlet candidato cercano a estación con área 0.1–5 km², seleccionado con preferencia por 1.85 km².",
+  "caveats": [
+    "El Copernicus GLO-30 es DSM e incluye edificios/vegetación; no sustituye un DEM bare-earth ni una validación de drenaje urbano.",
+    "La selección automática del outlet identifica una cuenca topográfica candidata cercana al pluviómetro, no una delimitación de obra certificada."
+  ]
+}

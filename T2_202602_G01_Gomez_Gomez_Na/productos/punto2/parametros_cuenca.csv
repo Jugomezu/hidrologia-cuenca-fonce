@@ -1,0 +1,9 @@
+parametro,valor,unidad
+Área,1.0269,"km² (DEM, 05a)"
+Longitud del cauce principal,2312.497833620555,m
+Diferencia de cotas,22.047119140625,m
+Pendiente S0,0.00953389828958542,m/m
+Coeficiente racional base C,0.495,adimensional
+Curve Number AMC-II,78.0,adimensional
+Paso de tiempo,5.0,min
+tc adoptado,60.0,min

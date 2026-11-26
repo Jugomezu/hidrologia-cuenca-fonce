@@ -203,7 +203,29 @@ de la Tabla~1 de \citet{gehrke2021}: agropecuario 0.10~m, herbazal andino 0.10~m
 MCD15A3H v6.1 \citep{myneni2021} en la celda de cada punto (2002--2022). Con el $r_{c,\min}$ de la misma tabla se forma
 $f = r_s\,\mathrm{LAI}/r_{c,\min}$ al estilo de Jarvis y se ajusta $\ln f = a + g\,D$ contra el déficit de vapor.
 
-\pendiente{Fase 9: por qué se eligieron los temas a y f y se descartan los otros cuatro.}
+\paragraph{Por qué estos temas.}
+\borradorIA{Armado con la ficha de la cuenca de la Tarea 1 y los resultados de este trabajo. Juan lo revisa y lo pasa
+a su voz.}
+Se eligieron dos temas de los seis:
+\begin{itemize}
+  \item \textbf{a. Gradiente altitudinal (elegido):} la cuenca va de 1\,121 a 4\,299~m y el 30~\% de su área está por
+  encima de 2\,625~m. Con ese relieve, la temperatura, el déficit de vapor y la radiación cambian con la altura.
+  \item \textbf{f. Resistencia del dosel (elegido):} la cobertura cambia con la altura, de agricultura y pasto abajo a
+  bosque y herbazal andino arriba, y el LAI de MODIS baja de cerca de 3 en los puntos bajos a 1.2--1.7 en los altos.
+  No es el caso que pide el tema (estrés estacional por agua), porque la cuenca está limitada por energía; se usa para
+  ver si la superficie explica parte del gradiente.
+  \item \textbf{b. Intercepción y cobertura (descartado):} hay bosque (36~\% del área), pero Gash o la regresión por
+  evento necesitan lluvia por evento bajo y sobre el dosel, y no hay medidas de trascolación en la cuenca.
+  \item \textbf{c. Niebla y nubosidad (descartado):} hay páramo, pero la prueba del tema no puede detectar una entrada
+  oculta: GLEAM (1\,157~mm/año) y MOD16 (1\,121) superan el balance (1\,045), aunque todos caen dentro de su
+  incertidumbre de $\pm$\cifraSigmaET~mm/año (Tabla~\ref{tab:et_productos}).
+  \item \textbf{d. Nieve, hielo y sublimación (descartado):} la cuenca no tiene nieve ni glaciares; su punto más alto
+  es 4\,299~m.
+  \item \textbf{e. Agua libre y riego (descartado):} los cuerpos de agua son el 0.12~\% del área (MapBiomas 2022,
+  Tarea 1), así que su evaporación no pesa en el balance.
+\end{itemize}
+\pendiente{Juan: confirmar que no hay embalses ni distritos de riego que pesen, y si hace falta una cita para la
+ausencia de glaciares.}
 
 \subsection{Punto 2: lluvia horaria, curvas IDF y diseño}
 \input{punto2_metodologia}

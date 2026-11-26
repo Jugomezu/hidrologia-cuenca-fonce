@@ -1,0 +1,95 @@
+chequeo,revisados,marcados,resultado,detalle
+"punto 1: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 1: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"27 horas, mínimo -2 J/m²; no se corrige"
+punto 1: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 1: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 1: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 1: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 1: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+"punto 2: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 2: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"30 horas, mínimo -4 J/m²; no se corrige"
+punto 2: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 2: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 2: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 2: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 2: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+"punto 3: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 3: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"28 horas, mínimo -2 J/m²; no se corrige"
+punto 3: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 3: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 3: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 3: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 3: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+"punto 4: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 4: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"32 horas, mínimo -4 J/m²; no se corrige"
+punto 4: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 4: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 4: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 4: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 4: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+"punto 5: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 5: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"40 horas, mínimo -3 J/m²; no se corrige"
+punto 5: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 5: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 5: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 5: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 5: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+"punto 6: horas faltantes, repetidas o vacías",149016,0,sin problemas,"faltan 0, repetidas 0, celdas vacías 0"
+"punto 6: ssrd entre −10 y 0 J/m² (anotado, de noche)",149016,0,sin problemas,"27 horas, mínimo -3 J/m²; no se corrige"
+punto 6: T fuera de −15 a 45 °C,149016,0,sin problemas,horas 1981–1997
+punto 6: punto de rocío > T + 0.5 °C,149016,0,sin problemas,horas 1981–1997
+punto 6: presión fuera de 55–95 kPa,149016,0,sin problemas,horas 1981–1997
+punto 6: ssrd < −10 J/m²,149016,0,sin problemas,horas 1981–1997
+punto 6: viento ≥ 30 m/s,149016,0,sin problemas,horas 1981–1997
+punto 1: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 1: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 1: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 1: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 1: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 1: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 1: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+punto 2: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 2: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 2: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 2: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 2: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 2: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 2: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+punto 3: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 3: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 3: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 3: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 3: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 3: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 3: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+punto 4: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 4: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 4: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 4: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 4: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 4: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 4: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+punto 5: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 5: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 5: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 5: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 5: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 5: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 5: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+punto 6: Rs diaria > Ra,6209,0,sin problemas,días 1981–1997
+punto 6: Tmín ≤ Tmedia ≤ Tmáx,6209,0,sin problemas,días 1981–1997
+punto 6: rachas de 5+ días iguales en tmax_C,6209,0,sin problemas,días 1981–1997
+punto 6: rachas de 5+ días iguales en tmin_C,6209,0,sin problemas,días 1981–1997
+punto 6: rachas de 5+ días iguales en ea_kPa,6209,0,sin problemas,días 1981–1997
+punto 6: rachas de 5+ días iguales en rs_MJm2,6209,0,sin problemas,días 1981–1997
+punto 6: rachas de 5+ días iguales en viento10_ms,6209,0,sin problemas,días 1981–1997
+atípicos mensuales de eto (1.5 RIC por mes del calendario),504,7,revisar,"1981–1997: 3 de 204 meses; 1998–2022: 4 de 300 meses (se listan, no se borran)"
+atípicos mensuales de thornthwaite (1.5 RIC por mes del calendario),504,7,revisar,"1981–1997: 2 de 204 meses; 1998–2022: 5 de 300 meses (se listan, no se borran)"
+atípicos mensuales de t (1.5 RIC por mes del calendario),504,7,revisar,"1981–1997: 3 de 204 meses; 1998–2022: 4 de 300 meses (se listan, no se borran)"
+atípicos mensuales de ea (1.5 RIC por mes del calendario),504,15,revisar,"1981–1997: 5 de 204 meses; 1998–2022: 10 de 300 meses (se listan, no se borran)"
+atípicos mensuales de u2 (1.5 RIC por mes del calendario),504,12,revisar,"1981–1997: 2 de 204 meses; 1998–2022: 10 de 300 meses (se listan, no se borran)"
+atípicos mensuales de rs (1.5 RIC por mes del calendario),504,10,revisar,"1981–1997: 3 de 204 meses; 1998–2022: 7 de 300 meses (se listan, no se borran)"
+"homogeneidad: T ERA5-Land − T MSWX (Pettitt, anual)",42,1,revisar,"corte después de 1994, p = 0.000; media antes -1.363 y después -1.658 °C (salto -0.296)"
+"homogeneidad: Rs ERA5-Land / Rs Hargreaves–Samani (MSWX) (Pettitt, anual)",42,1,revisar,"corte después de 2011, p = 0.001; media antes 1.119 y después 1.155 razón (salto +0.036)"
+"homogeneidad: residuo de Rs frente a la lluvia de CHIRPS (Pettitt, anual)",42,1,revisar,"corte después de 2000, p = 0.013; media antes -0.166 y después 0.151 MJ/m²·d (salto +0.317)"
+"pendiente de Rs frente a P (CHIRPS), anomalías mensuales",504,0,sin problemas,-0.899 MJ/m²·d por cada 100 mm de lluvia de más en el mes

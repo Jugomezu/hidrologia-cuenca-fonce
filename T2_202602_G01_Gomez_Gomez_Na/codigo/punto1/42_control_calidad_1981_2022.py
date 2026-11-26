@@ -26,7 +26,7 @@ Escribe productos/punto1/control_calidad_1981_2022.csv (un renglón por chequeo)
 y control_calidad_homogeneidad_1981_2022.png.
 
 Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
-    python codigo/punto1/40_control_calidad_1981_2022.py
+    python codigo/punto1/42_control_calidad_1981_2022.py
 """
 
 import importlib.util

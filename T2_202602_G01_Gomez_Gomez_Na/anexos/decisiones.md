@@ -620,7 +620,7 @@ construcción si la ET del producto responde poco al déficit.
 **Conclusión tema f (Juan, 25 nov, 8:48 a. m.).** La superficie frena más la evaporación arriba, y eso se explica por menor
 área foliar (páramo), no por cierre estomático; con estos datos no se puede estimar la respuesta al déficit.
 
-## 2026-11-26 · Punto 1 · Fase 8: periodo 1981–2022 y limpieza como en la Tarea 1 (script 40)
+## 2026-11-26 · Punto 1 · Fase 8: periodo 1981–2022 y limpieza como en la Tarea 1 (script 42)
 
 **Decisión (Juan).** La fase 8 usa 1981–2022, con la serie limpia antes, como en la Tarea 1 (detectar y medir, no
 borrar; lo que se excluya o corrija lo decide Juan). Resultado del control: sin faltantes, imposibles ni rachas; ssrd de

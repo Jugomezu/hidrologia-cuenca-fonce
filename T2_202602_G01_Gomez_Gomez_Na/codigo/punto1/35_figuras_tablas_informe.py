@@ -37,6 +37,7 @@ CARPETA_PRODUCTOS = RAIZ_ENTREGA / "productos" / "punto1"
 CARPETA_TABLAS = CARPETA_PRODUCTOS / "tablas_informe"
 
 PM = "ETo Penman–Monteith (FAO-56)"
+AA = "Brutsaert–Stricker (AA)"
 
 # Nombre de cada columna de metodos_mensual.csv tal como aparece en el informe.
 NOMBRES_METODOS = {
@@ -115,8 +116,24 @@ def figura_metodos(anual):
         y += 0.5
 
     fig, eje = plt.subplots(figsize=(6.5, 5.6))
+    # ET real del balance con su incertidumbre (fase 6): la AA queda por encima y se descarta (Juan, 26 nov).
+    central = pd.read_csv(CARPETA_PRODUCTOS / "et_incertidumbre.csv").query("caso_sigma_Q == 'central'").iloc[0]
+    et_bajo, et_alto = central["ETR_Pm"] - central["sigma_ET"], central["ETR_Pm"] + central["sigma_ET"]
     for posicion, m in filas:
         valor = anual[m]
+        if m == AA:
+            assert valor > et_alto, "la AA ya no queda por encima del rango de la ET real"
+            eje.barh(posicion, et_alto - et_bajo, left=et_bajo, color="#999999", alpha=0.3, height=0.95, zorder=0)
+            eje.barh(posicion, valor, color=color_de[m], height=0.65, alpha=0.35, hatch="xx", edgecolor="#555555")
+            eje.text(et_bajo + 10, posicion + 0.47, f"ET real P̄ − Q ± σ: {miles(et_bajo)}–{miles(et_alto)}",
+                     va="top", fontsize=6.5, color="#444444")
+            eje.text(560, posicion - 1, "se descarta: queda por encima del rango de la ET real", va="center",
+                     fontsize=7.5, color="#B00000", fontweight="bold",
+                     bbox=dict(facecolor="white", edgecolor="none", pad=1))
+            diferencia = 100 * (valor / anual[PM] - 1)
+            eje.text(valor + 20, posicion - 0.12, f"{miles(valor)}   {signo(diferencia, 0)} %", va="center",
+                     fontsize=8, bbox=dict(facecolor="white", edgecolor="none", pad=1, alpha=0.9))
+            continue
         if m == PM:
             eje.barh(posicion, radiativo, color=color_de[m], height=0.65)
             eje.barh(posicion, aerodinamico, left=radiativo, color="white", edgecolor=color_de[m], hatch="///",

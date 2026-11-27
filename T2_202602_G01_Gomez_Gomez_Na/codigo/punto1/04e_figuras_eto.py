@@ -22,6 +22,7 @@ Uso, desde la carpeta de la entrega (T2_202602_G01_Gomez_Gomez_Na/):
 from pathlib import Path
 
 import matplotlib
+import numpy as np
 import pandas as pd
 
 matplotlib.use("Agg")
@@ -53,27 +54,20 @@ def figura_ciclo_anual():
     puntos = pd.read_csv(ETO_PUNTOS)
     alturas = pd.read_csv(ALTURAS).set_index("punto")["z_celda_dem_m"]
 
-    figura, (izq, der) = plt.subplots(2, 1, figsize=(6.5, 8))
-    izq.bar(X, c["eto_radiativa_mm_mes"], color="#E69F00", label="Término radiativo")
-    izq.bar(X, c["eto_aerodinamica_mm_mes"], bottom=c["eto_radiativa_mm_mes"], color="#56B4E9",
-            label="Término aerodinámico")
-    for x, total in zip(X, c["eto_mm_mes"]):
-        izq.text(x, total + 1, f"{total:.0f}", ha="center", fontsize=8)
-    izq.set_title("Cuenca: ETo por términos (suman la ETo)", fontsize=10)
-    izq.set_ylabel("ETo media (mm/mes)")
-    izq.legend(fontsize=8, loc="lower center", ncol=2)
-
+    # Solo la ETo por punto: los términos radiativo y aerodinámico ya salen en la figura de términos del script 35
+    # (con su porcentaje); tenerlos aquí también los repetía en el informe (Juan, 27 nov).
+    assert np.allclose(c["eto_radiativa_mm_mes"] + c["eto_aerodinamica_mm_mes"], c["eto_mm_mes"])
+    figura, der = plt.subplots(figsize=(6.5, 4.5))
     for k, (n, grupo) in enumerate(puntos.groupby("punto")):
         p = ciclo(grupo, ["eto_mm_mes"])["eto_mm_mes"]
         der.plot(X, p, "o-", ms=3, lw=1.2, color=COLOR_PUNTO[k], label=f"Punto {n} ({alturas.loc[n]:.0f} m)")
     der.plot(X, c["eto_mm_mes"], "k-", lw=2.4, label="Cuenca (Voronoi)")
-    der.set_title("ETo por punto (altura de la celda en el DEM)", fontsize=10)
+    der.set_title("ETo por punto (altura de la celda en el DEM) y de la cuenca", fontsize=10)
+    der.set_ylabel("ETo media (mm/mes)")
     der.legend(fontsize=7.5, ncol=2, loc="lower center")
-    for eje in (izq, der):
-        eje.set_xticks(X, MESES)
-        eje.grid(alpha=0.3, axis="y")
+    der.set_xticks(X, MESES)
+    der.grid(alpha=0.3, axis="y")
     der.set_ylim(bottom=0)
-    izq.set_ylim(bottom=0)
     figura.suptitle("Ciclo anual de la ETo FAO-56 con ERA5-Land, media 1998–2022", fontsize=11)
     figura.tight_layout()
     figura.savefig(FIGURA_CICLO, dpi=150)

@@ -200,6 +200,25 @@ def figura_meses_en_dispersion():
     print(f"Listo: {salida}")
 
 
+def comprobar_cifras_fase5():
+    """Cifras del texto de Juan de la fase 5 que no salían de ningún script (auditoría fases 0–5): se calculan aquí.
+
+    R² anual de Penman (FAO-24) frente a Penman–Monteith (FAO-56), y correlación de α* con el déficit de vapor y con
+    u2 en los 300 meses. Si cambian los datos y la cifra redondeada deja de ser la del texto, el script falla.
+    """
+    metodos = pd.read_csv(CARPETA_PRODUCTOS / "metodos_mensual.csv")
+    anual = metodos.assign(anio=metodos["mes"].str[:4]).groupby("anio")[["penman_fao24_mm_mes", "eto_fao56_mm_mes"]].sum()
+    r2_penman = anual.corr().iloc[0, 1] ** 2
+    alfa = pd.read_csv(CARPETA_PRODUCTOS / "alfa_implicito_mensual.csv")
+    assert len(alfa) == 300
+    r_deficit = alfa["alfa_estrella"].corr(alfa["deficit_kPa"])
+    r_viento = alfa["alfa_estrella"].corr(alfa["u2_ms"])
+    assert round(r2_penman, 3) == 0.991, r2_penman
+    assert round(r_deficit, 2) == 0.95, r_deficit
+    assert round(r_viento, 2) == 0.78, r_viento
+    print(f"Fase 5: R² anual Penman {r2_penman:.3f}; r(α*, déficit) {r_deficit:.3f}; r(α*, u2) {r_viento:.3f}")
+
+
 def tabla_metodos(anual):
     """Sesgo de cada método frente a la referencia de su misma superficie, y meses en que supera la dispersión."""
     ajuste = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_por_mes.csv")
@@ -354,6 +373,7 @@ def main():
     anual = anual_por_metodo()
     figura_metodos(anual)
     figura_meses_en_dispersion()
+    comprobar_cifras_fase5()
     tabla_metodos(anual)
     figura_sensibilidad()
     figura_et_real()

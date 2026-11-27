@@ -315,7 +315,7 @@ no se distingue de la incertidumbre de la referencia.
 
 \paragraph{Por qué difieren los métodos.}
 % Texto de Juan: temp/textos_informe/fase5_diferencias_eto.md (tal cual, pasado a LaTeX).
-En esta sección se compararán los métodos de \ETo{} (evapotranspiración de referencia) anual de los métodos elegidos.
+En esta sección se compararán los métodos de \ETo{} (evapotranspiración de referencia) anual de los métodos elegidos (Fig.~\ref{fig:metodos} y Tabla~\ref{tab:metodos}).
 
 \textbf{Penman:} Para la actividad se calculó la \ETo{} con este método usando $c = 0.8$, como sugiere FAO-24
 (p.~15). Este método es muy similar al Penman--Monteith de FAO-56 con el que estamos comparando, tanto que tienen una
@@ -329,9 +329,9 @@ entonces atribuir al viento.
 
 \textbf{Makkink:} Este método utiliza solo T y Rs, por lo que no tiene en cuenta el componente de viento o la humedad.
 Esto hace que el método de Makkink sea muy bueno cuando la humedad no es un factor limitante y el viento es más bien
-bajo, pero lo más importante es que el limitante sea la radiación.
+bajo, pero lo más importante es que el limitante sea la radiación (Fig.~\ref{fig:sensibilidad}).
 
-En nuestro caso el componente aerodinámico de Penman--Monteith es una parte pequeña del total, pero podría explicar la
+En nuestro caso el componente aerodinámico de Penman--Monteith es una parte pequeña del total (Fig.~\ref{fig:terminos_alfa}, arriba), pero podría explicar la
 pequeña diferencia que hay entre estos dos métodos, pues Makkink ignora el componente aerodinámico. El método intenta
 compensar eso con sus coeficientes, que lo ajustan a las condiciones aerodinámicas de la zona donde fue calibrado, y
 por eso la diferencia entre FAO-56 y Makkink no es tan grande como todo el término aerodinámico de FAO-56, pero igual
@@ -366,7 +366,7 @@ baja principalmente por la altitud, no por falta de radiación. El método ve te
 da una ETP baja.
 
 \textbf{$\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$:} $\alpha^*$ mide cuánto se aparta la \ETo{} de la evaporación de
-equilibrio, que depende solo de la energía. En la cuenca $\alpha^*$ va de 1.004 (mayo) a 1.028 (enero), así que casi
+equilibrio, que depende solo de la energía. En la cuenca $\alpha^*$ va de 1.004 (mayo) a 1.028 (enero; Fig.~\ref{fig:terminos_alfa}, abajo), así que casi
 toda la \ETo{} depende de la energía y no del aire. Ese valor resulta de dos efectos: el déficit de vapor y el viento
 suman entre 7 y 10~\% (\ETo{} con $r_s = 0$ / $E_\mathrm{eq}$), y la resistencia del pasto ($r_s = 70$~s/m) le quita
 casi todo eso. La forma de $\alpha^*$ a lo largo del año sigue al déficit de vapor y al viento: los meses con más
@@ -388,9 +388,8 @@ meses).
   altitud.}
   \label{fig:sensibilidad}
 \end{figure}
-\pendiente{Citar en el texto las Figs.~\ref{fig:metodos}, \ref{fig:terminos_alfa} y \ref{fig:sensibilidad} y la
-Tabla~\ref{tab:metodos}. El R$^2$ de 0.991 (Penman) y las correlaciones de $\alpha^*$ (0.95 y 0.78) todavía no salen de
-un script.}
+% Cifras del texto de la fase 5 (R² 0.991, correlaciones 0.95 y 0.78): comprobadas en el script 35.
+
 
 \subsubsection{ET real y su incertidumbre}
 \begin{figure}[!htbp]\centering

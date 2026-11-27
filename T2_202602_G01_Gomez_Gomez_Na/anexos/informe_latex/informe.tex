@@ -454,20 +454,26 @@ descartar productos, pero no para decir cuál de los otros cinco es el mejor.
   \label{fig:ef}
 \end{figure}
 
-% Texto de Juan: temp/textos_informe/fase7_indice_aridez.md (tal cual, pasado a LaTeX).
-Frente a la gráfica del índice de aridez, podemos interpretar que todos los meses en promedio son húmedos, con
-$\varphi$ menor que 1, menos enero, que tiene un $\varphi$ promedio de 1.15 y de hecho cae por encima de 1 más de la
-mitad de los años. También febrero es un poco más árido que los demás meses. En conclusión, todos los meses clasifican
-como húmedos menos enero y febrero, que parecen estar sobre el límite.
+% Texto de Juan: temp/textos_informe/fase7_indice_aridez.md (tal cual, pasado a LaTeX), con la cita de la figura.
+Frente a la gráfica del índice de aridez (Fig.~\ref{fig:regimen_ef}), podemos interpretar que todos los meses en
+promedio son húmedos, con $\varphi$ menor que 1, menos enero, que tiene un $\varphi$ promedio de 1.15 y de hecho cae
+por encima de 1 más de la mitad de los años. También febrero es un poco más árido que los demás meses. En conclusión,
+todos los meses clasifican como húmedos menos enero y febrero, que parecen estar sobre el límite.
 
-% Texto de Juan: temp/textos_informe/fase7_fraccion_evaporativa.md (tal cual, pasado a LaTeX).
+% Texto de Juan (fase7_fraccion_evaporativa.md), con la redacción que aprobó el 26 nov.
 Esta cuenca no está limitada por agua; por el contrario, está más que todo limitada por energía. Si en algún mes
-estuviera limitada por agua, veríamos un quiebre en la línea de ajuste, y esto no se ve. Estamos en la parte plana, o
-muy cerca de ella: la ET es poco sensible a la humedad del suelo, porque el suelo casi siempre está húmedo.
+estuviera limitada por agua, veríamos un quiebre en la línea de ajuste de la Fig.~\ref{fig:ef}. La fracción
+evaporativa cambia poco con la humedad del suelo (de 0.57 a 0.64, con R$^2$ de 0.16 frente a una recta plana) y no
+aparece un quiebre: el $\theta^* = 0.452$ del ajuste es el borde de la búsqueda. Pero el suelo casi nunca se seca (la
+humedad de GLEAM va de 0.36 a 0.45), así que esta prueba sola no es concluyente. Junto con Budyko y ET/\ETo{} = 0.90,
+apunta a que manda la energía.
 
-\pendiente{Juan: citar las Figs.~\ref{fig:budyko}, \ref{fig:regimen_ef} y \ref{fig:ef} y la Tabla~\ref{tab:budyko} en el texto;
-los matices acordados (enero: $\varphi > 1$ no frena la ET porque el suelo amortigua; el quiebre $\theta^* = 0.452$ es
-el borde de la búsqueda; R$^2$ 0.16; la prueba sola no es concluyente) y una explicación alternativa.}
+\borradorIA{Dos frases de la IA para que Juan las apruebe: Budyko y el matiz de enero, y una explicación alternativa.}
+En el espacio de Budyko (Fig.~\ref{fig:budyko} y Tabla~\ref{tab:budyko}) la cuenca queda en $\varphi = \cifraPhi$ y
+$\varepsilon = \cifraEpsilon$, lejos del límite de agua y cerca de la curva del límite de energía. Que enero tenga
+$\varphi > 1$ dice que la lluvia de ese mes no cubre la demanda, no que la ET se frene: el suelo guarda agua de los
+meses anteriores. Una explicación alternativa de que no aparezca el quiebre es que los productos de ET ya traen su
+propio modelo de estrés hídrico, y la humedad de GLEAM no explora suelos secos.
 
 \subsubsection{Cambios en la demanda}
 \begin{figure}[!htbp]\centering

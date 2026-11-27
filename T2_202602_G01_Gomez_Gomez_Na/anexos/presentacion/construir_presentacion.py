@@ -115,7 +115,7 @@ diapositiva(0.8, "p1", f"""
 diapositiva(0.9, "p1", f"""
 <h2>La demanda la pone la radiación</h2>
 <div class="fig-texto">
-  {figura("punto1/eto_ciclo_anual.png", alto_px=700, desde=0.075, alt="Ciclo anual de la ETo")}
+  {figura("punto1/terminos_fao56.png", alto_px=560, alt="Términos radiativo y aerodinámico de la ETo por mes")}
   <div class="columna">
     <div class="cifras">
       <div><span class="num">1 166 <small>mm/año</small></span><span>ETo Penman–Monteith (FAO-56), ERA5-Land horario, 6 puntos</span></div>
@@ -131,7 +131,7 @@ diapositiva(0.9, "p1", f"""
     La diferencia entre las dos pruebas, <b>5.0 puntos porcentuales</b>, es la incertidumbre de la referencia.</p>
   </div>
 </div>
-""", "La ETo baja en las temporadas de lluvia por la nubosidad. ERA5-Land da más Rs que el brillo solar, pero la ETo casi coincide con la de estación. Esa banda de 5.0 pp es con la que juzgamos los otros métodos.")
+""", "El término aerodinámico es solo 6 a 9 % de la ETo según el mes. ERA5-Land da más Rs que el brillo solar, pero la ETo casi coincide con la de estación. Esa banda de 5.0 pp es con la que juzgamos los otros métodos.")
 
 # 5 · Métodos -------------------------------------------------------------------------
 diapositiva(0.9, "p1", f"""

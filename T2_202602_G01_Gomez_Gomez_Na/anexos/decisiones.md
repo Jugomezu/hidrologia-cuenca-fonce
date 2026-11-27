@@ -719,3 +719,27 @@ sensibilidad. Razón: 2 parámetros con 25 años, mejor PPCC (0.992); GEV falla 
 punto 2 es Denver, así que la fase 10 va como anexo, sin reclamar el bono. Se probó rehacer la serie como la define el
 enunciado (Σ(ETo − P̄) de enero, el único mes con φ > 1), pero Juan decidió no seguir (es un extra opcional). Queda la
 serie del script 40.
+
+## 2026-11-26 · Punto 1 · Fase 9a: métodos aprobados
+
+**Decisión (Juan, 26 nov, 5:05 p. m.).** Se aprueban las cuatro propuestas del script 34: bandas de 500 m, recta contra la
+altura del modelo (la de la presión de ERA5-Land), pesos por píxel del DEM dentro de la cuenca y SSEBop v6.1 solo
+2012–2022. Tema principal: a; el f queda como complemento. Fase 9 cerrada.
+
+## 2026-11-24 · Punto 1 · HR media de la cuenca (texto de Hargreaves)
+
+**Decisión (Juan).** La HR que cita el texto de Hargreaves es el promedio simple de 5 estaciones del IDEAM (DHIME,
+1998–2022): La Sierra-AUT, Escuela Agrícola Mogotes, Charalá, Mogotes-AUT y Andalucía. Se dejan todos los días de
+Mogotes-AUT, también los 149 de 2016–2017 con HR menor de 30 %, que parecen falla del sensor. Resultado: 79.3 %
+(script 41, `productos/punto1/hr_estaciones.csv`).
+
+**Cómo se calcula.** Mogotes-AUT trae la HR media diaria; las otras cuatro, solo máxima y mínima, y su HR del día es
+el promedio de las dos. HR de cada estación = media de sus días válidos. El 79.4 % del borrador salió de un cálculo
+rápido fuera del repositorio que no se pudo reproducir; se reemplaza por el del script.
+
+## 2026-11-24 · Punto 1 · Qué es la pet de TerraClimate
+
+**Decisión (Juan).** La pet de TerraClimate v1.1 se describe como «ASCE Penman–Monteith de pasto corto (mismas
+constantes que FAO-56) con rs corregida por CO2». La ASCE corta diaria usa Cn = 900, Cd = 0.34, h = 0.12 m y
+rs = 70 s/m (ASCE-EWRI 2005, tablas 1 y 2), las de la ec. 6 de FAO-56; lo que la aparta es la corrección de rs por CO2
+(Yang et al., 2019). Cambia el texto del script 05 y del `.meta.json`; los datos no cambian.

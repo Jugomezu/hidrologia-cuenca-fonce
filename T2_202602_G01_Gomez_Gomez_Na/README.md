@@ -37,7 +37,7 @@ revisa nombre, estructura, nombres ASCII, rutas absolutas y credenciales. Cada a
 Todo se corre desde esta carpeta (la raíz de la entrega), por ejemplo `python codigo/punto1/04_eto_fao56.py`.
 Cada script lee de `datos/punto1/` y de lo que escribieron los anteriores en `productos/punto1/` y `anexos/punto1/`.
 
-**Descargas (no hace falta correrlas).** 01, 05, 06, 07, 08, 09, 10, 11 y 19 bajan los datos y piden cuenta y clave
+**Descargas (no hace falta correrlas).** 01 (también con `--extension_1981`), 05, 06, 07, 08, 09, 10, 11, 19 y 38 bajan los datos y piden cuenta y clave
 propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/punto1/`. El 05 además deja
 `productos/punto1/terraclimate_mensual_cuenca.csv`, que leen los scripts 14, 16 y 17: ese archivo va en la entrega.
 `00_metadatos_datos.py` solo escribe los `.meta.json` que falten.
@@ -53,8 +53,12 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Otros métodos | 22, 21, 23, 25 | Thornthwaite, los demás métodos, Hargreaves de la Tarea 1, mes a mano |
 | Diferencias entre métodos | 26, 27, 28 | Términos de la ETo, α* y sensibilidad |
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
+| Energía o agua, por mes | 30, 31 | Régimen mensual y fracción evaporativa |
+| HR de las estaciones | 41 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
+| Cambios en la demanda | 32, 33 | Tendencias 1998–2022 y atribución; diagnóstico del tanque de Mogotes-AUT |
+| Cambios en la demanda, 1981–2022 | 42, 36 | Control de calidad del registro largo; tendencias con la Rs corregida antes de 2001 |
+| Paisaje de la cuenca | 34, 37, 39 | Gradiente altitudinal y reparto de energía; resistencia de superficie; Jarvis con LAI |
 | Mapa de la cuenca | 43 | DEM con sombreado, estaciones del IDEAM, puntos de ERA5-Land y aforo (figura 1 del informe) |
-| HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
 | Déficit climático y frecuencia (anexo) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py`; escribe `cifras_fase10.tex` |
 | Figuras y tablas del informe | 35 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–32 |
 

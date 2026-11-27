@@ -3,8 +3,9 @@
 Esta carpeta sigue la estructura obligatoria de la entrega y ya lleva el nombre que exige: el ZIP de la
 entrega es esta carpeta comprimida entera, `T2_202602_G01_Gomez_Gomez_Na.zip`.
 
-Integrantes: Juan Pablo Gómez y Andrea Gómez. «Na» en el nombre de la carpeta no es una persona: el formato del
-nombre exige tres apellidos y el grupo tiene dos.
+Integrantes: Juan Pablo Gómez y Andrea Gómez. El grupo tiene solo dos integrantes. «Na» en el nombre de la carpeta
+y del ZIP no es una persona, sino un relleno: la expresión regular del enunciado,
+`^T2_202602_G[0-9]{2}(_[A-Z][A-Za-z]+){3}\.zip$`, exige exactamente tres apellidos.
 
 ```
 README.md
@@ -59,7 +60,7 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Cambios en la demanda, 1981–2022 | 42, 36 | Control de calidad del registro largo; tendencias con la Rs corregida antes de 2001 |
 | Paisaje de la cuenca | 34, 37, 39 | Gradiente altitudinal y reparto de energía; resistencia de superficie; Jarvis con LAI |
 | Mapa de la cuenca | 43 | DEM con sombreado, estaciones del IDEAM, puntos de ERA5-Land y aforo (figura 1 del informe) |
-| Déficit climático y frecuencia (anexo) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py`; escribe `cifras_fase10.tex` |
+| Déficit climático y frecuencia (no va en el informe) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py` |
 | Figuras y tablas del informe | 35 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–32 |
 
 Probado el 2026-11-23 en una copia limpia, con `productos/punto1/` vacío salvo `terraclimate_mensual_cuenca.csv`:
@@ -68,7 +69,7 @@ El script 23 compara además con la Tarea 1 si encuentra `../Analisis_De_Cuenca/
 
 ## Informe
 
-`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después de los scripts 35 y 40 del punto 1 y del 06 del punto 2,
+`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después del script 35 del punto 1 y del 06 del punto 2,
 desde esa carpeta:
 `latexmk -pdf informe.tex`, y se copia `informe.pdf` a la raíz como `T2_202602_G01_informe.pdf`.
 

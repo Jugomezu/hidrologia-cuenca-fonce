@@ -74,8 +74,6 @@
 \input{../../productos/punto1/tablas_informe/cifras.tex}
 % Cifras del punto 2 (codigo/punto2/06_cifras_informe.py).
 \input{../../productos/punto2/tablas_informe/cifras_punto2.tex}
-% Cifras del anexo de la fase 10 (codigo/punto1/40_deficit_climatico_frecuencia.py).
-\input{../../productos/punto1/tablas_informe/cifras_fase10.tex}
 
 \title{Evapotranspiración en la cuenca del río Fonce y diseño hidrológico\\[4pt]
   \large Hidrología · Tarea 2 · Semestre 202602 · Grupo G01}
@@ -249,7 +247,7 @@ el 0.12~\% de su área (e).
 \subsubsection{La demanda: \ETo{} de referencia}
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{eto_ciclo_anual.png}
-  \caption{Ciclo anual de la \ETo{} \PM{} de la cuenca (media 1998--2022).}
+  \caption{Ciclo anual de la \ETo{} \PM{} en los 6 puntos de ERA5-Land y en la cuenca (media 1998--2022).}
   \label{fig:eto_ciclo}
 \end{figure}
 % Texto de Juan (26 nov, en el hilo), con las variables y las cifras llenadas.
@@ -426,7 +424,7 @@ meses).
   \label{tab:et_productos}
   \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_et_productos.tex}}
 \end{table}
-\borradorIA{Redactado por la IA (pedido de Juan, 26 nov); falta el visto bueno de Juan.}
+% Redactado por la IA a pedido de Juan (26 nov); Juan le dio el visto bueno el 27 nov.
 La ET real de la cuenca sale del balance de largo plazo, $\mathrm{ET} = \bar{P} - Q$: \cifraETbalance{}
 $\pm$ \cifraSigmaET~mm/año (95~\%). La incertidumbre es grande, cerca del 45~\% del valor, y viene casi por partes
 iguales de la lluvia y del caudal:
@@ -592,8 +590,23 @@ cómo se reparte la energía, no cuánta agua hay disponible.
 
 % =====================================================================================================================
 \section{Conclusiones}
-\pendiente{Respuesta a las cinco preguntas de la introducción, sin repetir cifras ni traer resultados nuevos (punto 1),
-y la del punto 2. Lo escribe el grupo.}
+\subsection*{Punto 1}
+% Respuestas de Juan (27 nov, en el hilo), redactadas sin cifras por la IA como pide el enunciado; Juan pidió escribirlas.
+\begin{enumerate}
+  \item La demanda atmosférica de la cuenca la controla casi toda la energía disponible; el término aerodinámico pesa
+  poco.
+  \item La cuenca devuelve a la atmósfera menos de la mitad de la lluvia, con una incertidumbre del orden de la propia
+  ET, dominada por la diferencia entre IMERG y los pluviómetros y por el error del caudal.
+  \item La ET está limitada por energía casi todo el año; solo enero, y febrero en algunos años, pasan a estar
+  limitados por agua ($\varphi > 1$).
+  \item La demanda no muestra una tendencia significativa entre 1981 y 2022; el pequeño aumento se asocia sobre todo
+  al calentamiento, una vez corregido el salto de la radiación del reanálisis.
+  \item Lo que distingue a la cuenca es su gradiente de altura: la demanda baja al subir y, en las partes altas, la
+  vegetación más rala (menor LAI) aumenta la resistencia de superficie, de modo que la ET la frenan la energía y la
+  cobertura, no la falta de agua.
+\end{enumerate}
+
+\subsection*{Punto 2}
 
 \pendiente{Punto 2, lo que deben responder las conclusiones (lo escribe el grupo; lista de la IA, no texto):
 (1) qué tan confiable es la IDF de Denver con 45 años horarios y el posible cambio de registro de 1973;
@@ -618,7 +631,7 @@ decisiones de método, con su justificación, están en \path{anexos/decisiones.
 \paragraph{Qué hizo la IA.} Escribió el código de descarga y procesamiento del punto 1 (\texttt{codigo/punto1/}),
 las figuras y las tablas; propuso opciones de método con su evidencia (puntos de ERA5-Land, comparación de métodos por
 superficie, incertidumbre del balance); explicó conceptos cuando se le pidió; armó los borradores de la metodología,
-de la introducción y de esta declaración; y hizo auditorías del código y de las citas.
+de la introducción y de esta declaración, e hizo auditorías del código y de las citas.
 
 \paragraph{Qué decidió y verificó el grupo.} Las decisiones de método las tomó el grupo: los 6 puntos de ERA5-Land,
 los métodos de la fase 4, la lluvia $\bar{P}$, la incertidumbre al 95~\%, el criterio de meses limitados por agua y el
@@ -641,7 +654,10 @@ Las decisiones las tomó el grupo: mantener $t_c = 60$~min sin llamarlo conserva
 $C_f$ para no tener dos caudales de diseño para la misma cuenca y recomendar el tubo de \pdosDrec~mm en lugar del de
 \pdosDnom~mm.}
 
-\pendiente{Contribución de cada integrante y la declaración de IA de la segunda integrante sobre el punto 2.}
+\paragraph{Contribución de cada integrante.} Juan Pablo Gómez: realización del punto 1, unificación del informe y
+diapositivas. Andrea Gómez: realización del punto 2.
+
+\pendiente{Andrea confirma o completa su contribución y escribe su declaración de IA sobre el punto 2.}
 
 \bibliographystyle{plainnat}
 \bibliography{referencias}
@@ -657,25 +673,5 @@ $C_f$ para no tener dos caudales de diseño para la misma cuenca y recomendar el
 \end{figure}
 
 
-\section{Déficit climático y frecuencia: de la ET al diseño}\label{anx:deficit}
-% Cifras: productos/punto1/tablas_informe/cifras_fase10.tex (script 40). Decisiones de Juan en anexos/decisiones.md.
-\borradorIA{Este anexo une los dos puntos: aplica el análisis de frecuencia del punto 2 (funciones del script 02, sin
-modificar) a una variable del punto 1. No reclama el bono: el punto 2 está en Denver y no en la cuenca del Fonce.
-
-La serie es el déficit climático máximo acumulado de cada año, $D(t) = \max\!\left[0,\, D(t-1) + \mathrm{ET_o} -
-\bar{P}\right]$, mensual, con la \ETo{} \PM{} y \Pm{}, 1998--2022. La suma no se reinicia en ninguna fecha: solo vuelve
-a cero cuando llueve más de lo que falta. La media es \fdiezMedia~mm y el máximo \fdiezMax~mm (\fdiezAnioMax); sin
-tendencia (Mann--Kendall $p = \fdiezMKp$). Como \fdiezCeros{} de los \fdiezNanios{} años no tienen déficit, se usa una
-distribución mixta, $F = p_0 + (1-p_0)\,F_+$, con Gumbel por momentos L como principal y GEV y LP3 como sensibilidad;
-intervalos por bootstrap de años (1\,000 réplicas). Con $T = 10$ años el déficit es \fdiezTdiez~mm (IC 95~\%
-\fdiezTdiezBajo--\fdiezTdiezAlto); con $T = 25$, \fdiezTveinticinco~mm (\fdiezTveinticincoBajo--\fdiezTveinticincoAlto)
-(Fig.~\ref{fig:deficit}). Con pasos mensuales el déficit queda subestimado frente al diario.}
-
-\begin{figure}[!htbp]\centering
-  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{deficit_climatico_frecuencia.png}
-  \caption{Arriba: déficit climático máximo acumulado de cada año, 1998--2022. Abajo: frecuencia con la distribución
-  mixta (Gumbel, GEV y LP3 por momentos L); barras, IC 95~\% bootstrap; sombreado, extrapolación más allá de 25 años.}
-  \label{fig:deficit}
-\end{figure}
 
 \end{document}

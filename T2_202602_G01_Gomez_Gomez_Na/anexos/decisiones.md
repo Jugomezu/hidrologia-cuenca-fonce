@@ -528,26 +528,6 @@ sirven para tendencias.
 Thornthwaite: tendencia estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año
 por década, cerca de 2 % por década; OLS con Newey-West no la confirma (p 0.086).
 
-## 2026-11-24 · Punto 1 · HR media de la cuenca (texto de Hargreaves)
-
-**Decisión (Juan).** La HR que cita el texto de Hargreaves es el promedio simple de 5 estaciones del IDEAM (DHIME,
-1998–2022): La Sierra-AUT, Escuela Agrícola Mogotes, Charalá, Mogotes-AUT y Andalucía. Se dejan todos los días de
-Mogotes-AUT, también los 149 de 2016–2017 con HR menor de 30 %, que parecen falla del sensor. Resultado: 79.3 %
-(script 30, `productos/punto1/hr_estaciones.csv`).
-
-**Cómo se calcula.** Mogotes-AUT trae la HR media diaria; las otras cuatro, solo máxima y mínima, y su HR del día es
-el promedio de las dos. HR de cada estación = media de sus días válidos. El 79.4 % del borrador salió de un cálculo
-rápido fuera del repositorio que no se pudo reproducir; se reemplaza por el del script.
-
-## 2026-11-24 · Punto 1 · Qué es la pet de TerraClimate
-
-**Decisión (Juan).** La pet de TerraClimate v1.1 se describe como «ASCE Penman–Monteith de pasto corto (mismas
-constantes que FAO-56) con rs corregida por CO2». La ASCE corta diaria usa Cn = 900, Cd = 0.34, h = 0.12 m y
-rs = 70 s/m (ASCE-EWRI 2005, tablas 1 y 2), las de la ec. 6 de FAO-56; lo que la aparta es la corrección de rs por CO2
-(Yang et al., 2019). Cambia el texto del script 05 y del `.meta.json`; los datos no cambian.
-
-**Atribución (Juan, 24 nov).** En veremos: con una ETo sin tendencia no vale la pena dedicarle mucho tiempo.
-
 ## 2026-11-24 · Punto 1 · Fase 9a: gradiente altitudinal (script 34)
 
 **Tema (Juan pidió avanzar el a).** Gradiente altitudinal. Propuestas del agente, pendientes de Juan:
@@ -743,3 +723,8 @@ rápido fuera del repositorio que no se pudo reproducir; se reemplaza por el del
 constantes que FAO-56) con rs corregida por CO2». La ASCE corta diaria usa Cn = 900, Cd = 0.34, h = 0.12 m y
 rs = 70 s/m (ASCE-EWRI 2005, tablas 1 y 2), las de la ec. 6 de FAO-56; lo que la aparta es la corrección de rs por CO2
 (Yang et al., 2019). Cambia el texto del script 05 y del `.meta.json`; los datos no cambian.
+
+## 2026-11-27 · Punto 1 · Fase 10 fuera del informe
+
+**Decisión (Juan).** Se quita del informe el anexo B (déficit climático con la frecuencia del punto 2). El script 40 y
+sus productos siguen en el repositorio.

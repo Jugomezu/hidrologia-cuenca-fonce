@@ -74,8 +74,6 @@
 \input{../../productos/punto1/tablas_informe/cifras.tex}
 % Cifras del punto 2 (codigo/punto2/06_cifras_informe.py).
 \input{../../productos/punto2/tablas_informe/cifras_punto2.tex}
-% Cifras del anexo de la fase 10 (codigo/punto1/40_deficit_climatico_frecuencia.py).
-\input{../../productos/punto1/tablas_informe/cifras_fase10.tex}
 
 \title{Evapotranspiración en la cuenca del río Fonce y diseño hidrológico\\[4pt]
   \large Hidrología · Tarea 2 · Semestre 202602 · Grupo G01}
@@ -657,25 +655,5 @@ $C_f$ para no tener dos caudales de diseño para la misma cuenca y recomendar el
 \end{figure}
 
 
-\section{Déficit climático y frecuencia: de la ET al diseño}\label{anx:deficit}
-% Cifras: productos/punto1/tablas_informe/cifras_fase10.tex (script 40). Decisiones de Juan en anexos/decisiones.md.
-\borradorIA{Este anexo une los dos puntos: aplica el análisis de frecuencia del punto 2 (funciones del script 02, sin
-modificar) a una variable del punto 1. No reclama el bono: el punto 2 está en Denver y no en la cuenca del Fonce.
-
-La serie es el déficit climático máximo acumulado de cada año, $D(t) = \max\!\left[0,\, D(t-1) + \mathrm{ET_o} -
-\bar{P}\right]$, mensual, con la \ETo{} \PM{} y \Pm{}, 1998--2022. La suma no se reinicia en ninguna fecha: solo vuelve
-a cero cuando llueve más de lo que falta. La media es \fdiezMedia~mm y el máximo \fdiezMax~mm (\fdiezAnioMax); sin
-tendencia (Mann--Kendall $p = \fdiezMKp$). Como \fdiezCeros{} de los \fdiezNanios{} años no tienen déficit, se usa una
-distribución mixta, $F = p_0 + (1-p_0)\,F_+$, con Gumbel por momentos L como principal y GEV y LP3 como sensibilidad;
-intervalos por bootstrap de años (1\,000 réplicas). Con $T = 10$ años el déficit es \fdiezTdiez~mm (IC 95~\%
-\fdiezTdiezBajo--\fdiezTdiezAlto); con $T = 25$, \fdiezTveinticinco~mm (\fdiezTveinticincoBajo--\fdiezTveinticincoAlto)
-(Fig.~\ref{fig:deficit}). Con pasos mensuales el déficit queda subestimado frente al diario.}
-
-\begin{figure}[!htbp]\centering
-  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{deficit_climatico_frecuencia.png}
-  \caption{Arriba: déficit climático máximo acumulado de cada año, 1998--2022. Abajo: frecuencia con la distribución
-  mixta (Gumbel, GEV y LP3 por momentos L); barras, IC 95~\% bootstrap; sombreado, extrapolación más allá de 25 años.}
-  \label{fig:deficit}
-\end{figure}
 
 \end{document}

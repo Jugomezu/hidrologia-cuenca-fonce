@@ -55,7 +55,7 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
 | Mapa de la cuenca | 43 | DEM con sombreado, estaciones del IDEAM, puntos de ERA5-Land y aforo (figura 1 del informe) |
 | HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
-| Déficit climático y frecuencia (anexo) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py`; escribe `cifras_fase10.tex` |
+| Déficit climático y frecuencia (no va en el informe) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py` |
 | Figuras y tablas del informe | 35 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–32 |
 
 Probado el 2026-11-23 en una copia limpia, con `productos/punto1/` vacío salvo `terraclimate_mensual_cuenca.csv`:
@@ -64,7 +64,7 @@ El script 23 compara además con la Tarea 1 si encuentra `../Analisis_De_Cuenca/
 
 ## Informe
 
-`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después de los scripts 35 y 40 del punto 1 y del 06 del punto 2,
+`anexos/informe_latex/informe.tex` (con `referencias.bib`). Después del script 35 del punto 1 y del 06 del punto 2,
 desde esa carpeta:
 `latexmk -pdf informe.tex`, y se copia `informe.pdf` a la raíz como `T2_202602_G01_informe.pdf`.
 

@@ -728,3 +728,11 @@ rs = 70 s/m (ASCE-EWRI 2005, tablas 1 y 2), las de la ec. 6 de FAO-56; lo que la
 
 **Decisión (Juan).** Se quita del informe el anexo B (déficit climático con la frecuencia del punto 2). El script 40 y
 sus productos siguen en el repositorio.
+
+## 2026-11-27 · Entrega · Datos sin grasa
+
+**Decisión (Juan).** De `datos/punto1/` se quita todo lo que ningún script de cálculo abre (comprobado con `strace` al
+correr los scripts): el resto de CAMELS-COL nacional, las 300 series mensuales de IMERG, el mapa geológico del SGC,
+ONI y TNA de NOAA, ERA5-Land de GEE de 1981–1997 y los pluviómetros de 1981. Las divisorias de CAMELS-COL y el IMERG de
+Colombia, que sí se leen, se recortan a la cuenca con el script 00b. Pasa de 907 a 477 MB; todos los productos salen
+iguales. `temp/` no se borra: se queda en el repositorio y solo se deja fuera del ZIP.

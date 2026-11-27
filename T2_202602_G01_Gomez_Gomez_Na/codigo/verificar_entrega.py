@@ -4,7 +4,7 @@ Comprueba:
     1. El nombre de la carpeta (+ ".zip") cumple ^T2_202602_G[0-9]{2}(_[A-Z][A-Za-z]+){3}\\.zip$.
     2. Están los elementos obligatorios: README.md, T2_202602_GNN_informe.pdf, T2_202602_GNN_presentacion.pdf,
        codigo/{punto1,punto2}, datos/{punto1,punto2}, productos/{punto1,punto2}, anexos/.
-    3. No hay nada más en la raíz de la carpeta (por ejemplo temp/, que se borra antes de entregar).
+    3. No hay nada más en la raíz de la carpeta (por ejemplo temp/, que se queda en el repositorio pero no va en el ZIP).
     4. Todo nombre de archivo y carpeta usa solo ASCII y no tiene espacios.
     5. El código no tiene rutas absolutas (C:\\..., /home/..., /Users/..., /mnt/...).
     6. No hay credenciales: archivos como .cdsapirc o .netrc, ni claves escritas en el código.
@@ -55,7 +55,7 @@ def revisar_estructura(grupo, problemas):
     permitidos = set(archivos) | {"codigo", "datos", "productos", "anexos"}
     for elemento in RAIZ_ENTREGA.iterdir():
         if elemento.name not in permitidos and elemento.name != ".gitkeep":
-            problemas.append(f"Estructura: '{elemento.name}' no está permitido en la raíz (borrarlo antes de entregar).")
+            problemas.append(f"Estructura: '{elemento.name}' no está permitido en la raíz (dejarlo fuera del ZIP; no se borra del repositorio).")
 
 
 def revisar_nombres_ascii(problemas):

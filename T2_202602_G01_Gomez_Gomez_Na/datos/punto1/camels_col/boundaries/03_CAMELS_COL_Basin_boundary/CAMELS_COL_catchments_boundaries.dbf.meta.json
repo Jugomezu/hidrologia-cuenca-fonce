@@ -4,8 +4,8 @@
   "version": "publicada 2026-02-26 (3a versión del registro)",
   "unidades": "series diarias: pr mm, poten_evapo mm/día, t_max/t_min/t_mean °C, streamflow m³/s; atributos según attrs/01_CAMELS_COL_Attributes/CAMELS_COL_readme.txt",
   "fecha_descarga": "2026-09-18",
-  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md",
-  "tamano_bytes": 91096,
-  "sha256": "bec756766edd27b51cc79f234957592cf82717107d9a53c5dba499741539611f",
+  "procesamiento": "copia sin cambios de ../Analisis_De_Cuenca/data/ (Tarea 1); detalle en ../Analisis_De_Cuenca/DATOS_FUENTES.md; recortado a la cuenca 24027010 con codigo/punto1/00b_recorte_datos_tarea1.py",
+  "tamano_bytes": 259,
+  "sha256": "47cd2600a64d7e9272d65bfbd5c7128b3a453fbeb08d6d6724355ba42dfe3e58",
   "metadatos_escritos_por": "codigo/punto1/00_metadatos_datos.py"
 }

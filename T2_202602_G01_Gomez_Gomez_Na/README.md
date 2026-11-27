@@ -24,10 +24,6 @@ anexos/
 | `productos/` | Series mensuales y anuales procesadas, tablas y figuras del informe. |
 | `anexos/` | Resultados complementarios, comprobaciones y evidencia del uso de IA. |
 
-## Pendiente para la entrega
-
-- Procedencia de los datos.
-
 Requisitos: `pip install -r codigo/requirements.txt`. Antes de armar el ZIP, `python codigo/verificar_entrega.py`
 revisa nombre, estructura, nombres ASCII, rutas absolutas y credenciales. Cada archivo de `datos/` lleva su
 `.meta.json` (fuente, versión, unidades, fecha de descarga, procesamiento); los que faltan los escribe
@@ -41,7 +37,7 @@ Cada script lee de `datos/punto1/` y de lo que escribieron los anteriores en `pr
 **Descargas (no hace falta correrlas).** 01 (también con `--extension_1981`), 05, 06, 07, 08, 09, 10, 11, 19 y 38 bajan los datos y piden cuenta y clave
 propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/punto1/`. El 05 además deja
 `productos/punto1/terraclimate_mensual_cuenca.csv`, que leen los scripts 14, 16 y 17: ese archivo va en la entrega.
-`00_metadatos_datos.py` solo escribe los `.meta.json` que falten.
+`00_metadatos_datos.py` solo escribe los `.meta.json` que falten; `00b_recorte_datos_tarea1.py` recorta a la cuenca las divisorias de CAMELS-COL y el IMERG de Colombia (ya está hecho).
 
 **Cálculo, en este orden:**
 
@@ -75,10 +71,27 @@ desde esa carpeta:
 
 ## `datos/punto1/`
 
-Por ahora es una copia exacta de `../Analisis_De_Cuenca/data/`, los datos crudos de la Tarea 1 tal como se
-descargaron (CAMELS-COL, DEM, ERA5-Land, pluviómetros del IDEAM, IMERG, MapBiomas, NOAA y SGC). Su procedencia,
-licencias y SHA-256 están en `../Analisis_De_Cuenca/DATOS_FUENTES.md`. No se editan. Antes de entregar hay que
-dejar solo lo que el punto 1 use de verdad, recortado a la cuenca y al período.
+Solo los archivos que lee el código del punto 1, recortados a la cuenca del Fonce en San Gil (IDEAM 24027010) y al
+periodo analizado. Cada archivo lleva su `.meta.json` (fuente, versión, unidades, fecha de descarga y procesamiento).
+
+| Carpeta | Fuente |
+|---|---|
+| `camels_col/` | CAMELS-COL (Jimenez et al., 2026), doi:10.5281/zenodo.18794895: Q diario de San Gil y su divisoria |
+| `dem/` | DEM ALOS PALSAR 12.5 m (Alaska Satellite Facility), recortado a la cuenca |
+| `era5land_puntos/`, `era5land_puntos_balance/`, `era5land_celdas_estaciones/` | ERA5-Land horario (CDS, reanalysis-era5-land-timeseries) en los 6 puntos y en las celdas de 3 estaciones |
+| `era5land_mensual_balance/`, `era5land_gee/` | ERA5-Land mensual (CDS) y diario de temperatura (Google Earth Engine) |
+| `imerg/` | NASA GPM IMERG V07 mensual, doi:10.5067/GPM/IMERG/3B-MONTH/07 |
+| `ideam/`, `ideam_estaciones/`, `ideam_brillo_solar/` | IDEAM: catálogo de estaciones y descargas de DHIME (pluviómetros, T, HR, viento, tanque, brillo solar) |
+| `gleam_v4/`, `mod16a2gf/`, `ssebop/`, `ssebop_v5/`, `terraclimate/`, `mcd15a3h/` | Productos de ET real, demanda y LAI (ver `anexos/referencias.md`) |
+| `mapbiomas/` | MapBiomas Colombia, colección 3, coberturas 2022 |
+
+El 2026-11-27 se quitó lo que ningún script lee: el resto de CAMELS-COL (todas las cuencas del país), las series de
+IMERG por mes, el mapa geológico del SGC, los índices ONI y TNA de NOAA, ERA5-Land de GEE de 1981–1997 y los
+pluviómetros de 1981. Las dos bases nacionales que sí se leen (divisorias de CAMELS-COL e IMERG de Colombia) las
+recorta `codigo/punto1/00b_recorte_datos_tarea1.py`.
+
+`temp/` es la carpeta de trabajo (documento de trabajo, plan, textos de Juan). Se queda en el repositorio, pero no va
+en el ZIP.
 
 ## Punto 2: orden de ejecución
 

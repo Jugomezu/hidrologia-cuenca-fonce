@@ -53,6 +53,7 @@ propias (CDS, Earth Engine, SFTP de GLEAM). Sus resultados ya vienen en `datos/p
 | Otros métodos | 22, 21, 23, 25 | Thornthwaite, los demás métodos, Hargreaves de la Tarea 1, mes a mano |
 | Diferencias entre métodos | 26, 27, 28 | Términos de la ETo, α* y sensibilidad |
 | ET real y Budyko | 24, 29 | ET real por varios caminos y espacio de Budyko |
+| Mapa de la cuenca | 43 | DEM con sombreado, estaciones del IDEAM, puntos de ERA5-Land y aforo (figura 1 del informe) |
 | HR de las estaciones | 30 | HR media de 5 estaciones del IDEAM (cifra del texto de Hargreaves) |
 | Déficit climático y frecuencia (anexo) | 40 | Usa las funciones de `codigo/punto2/02_extremos_y_distribuciones.py`; escribe `cifras_fase10.tex` |
 | Figuras y tablas del informe | 35 | Figuras fijas de métodos, sensibilidad y ET real; tablas y cifras en LaTeX (`productos/punto1/tablas_informe/`). Va después de 21–32 |

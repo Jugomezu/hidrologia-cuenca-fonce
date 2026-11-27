@@ -10,7 +10,7 @@ y del ZIP no es una persona, sino un relleno: la expresión regular del enunciad
 ```
 README.md
 T2_202602_G01_informe.pdf        (pendiente)
-T2_202602_G01_presentacion.pdf   (pendiente)
+T2_202602_G01_presentacion.pdf
 codigo/     punto1/  punto2/
 datos/      punto1/  punto2/
 productos/  punto1/  punto2/
@@ -22,7 +22,7 @@ anexos/
 | `codigo/` | Scripts que reproducen el procesamiento, las tablas y las figuras de cada punto. |
 | `datos/` | Archivos de entrada efectivamente usados, recortados a la cuenca y al período. |
 | `productos/` | Series mensuales y anuales procesadas, tablas y figuras del informe. |
-| `anexos/` | Resultados complementarios, comprobaciones y evidencia del uso de IA. |
+| `anexos/` | Resultados complementarios, comprobaciones y evidencia del uso de IA. `anexos/presentacion/` arma la presentación: `python anexos/presentacion/construir_presentacion.py` y luego `node anexos/presentacion/exportar_pdf.js` (Playwright) escriben el HTML y el PDF de la raíz. |
 
 Requisitos: `pip install -r codigo/requirements.txt`. Antes de armar el ZIP, `python codigo/verificar_entrega.py`
 revisa nombre, estructura, nombres ASCII, rutas absolutas y credenciales. Cada archivo de `datos/` lleva su

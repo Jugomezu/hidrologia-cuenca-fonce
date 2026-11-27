@@ -719,3 +719,8 @@ sensibilidad. Razón: 2 parámetros con 25 años, mejor PPCC (0.992); GEV falla 
 punto 2 es Denver, así que la fase 10 va como anexo, sin reclamar el bono. Se probó rehacer la serie como la define el
 enunciado (Σ(ETo − P̄) de enero, el único mes con φ > 1), pero Juan decidió no seguir (es un extra opcional). Queda la
 serie del script 40.
+
+## 2026-11-27 · Punto 1 · Fase 10 fuera del informe
+
+**Decisión (Juan).** Se quita del informe el anexo B (déficit climático con la frecuencia del punto 2). El script 40 y
+sus productos siguen en el repositorio.

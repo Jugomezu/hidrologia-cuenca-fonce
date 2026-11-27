@@ -331,7 +331,7 @@ entonces atribuir al viento.
 Esto hace que el método de Makkink sea muy bueno cuando la humedad no es un factor limitante y el viento es más bien
 bajo, pero lo más importante es que el limitante sea la radiación (Fig.~\ref{fig:sensibilidad}).
 
-En nuestro caso el componente aerodinámico de Penman--Monteith es una parte pequeña del total (Fig.~\ref{fig:terminos_alfa}, arriba), pero podría explicar la
+En nuestro caso el componente aerodinámico de Penman--Monteith es una parte pequeña del total (Fig.~\ref{fig:terminos_alfa}), pero podría explicar la
 pequeña diferencia que hay entre estos dos métodos, pues Makkink ignora el componente aerodinámico. El método intenta
 compensar eso con sus coeficientes, que lo ajustan a las condiciones aerodinámicas de la zona donde fue calibrado, y
 por eso la diferencia entre FAO-56 y Makkink no es tan grande como todo el término aerodinámico de FAO-56, pero igual
@@ -366,7 +366,7 @@ baja principalmente por la altitud, no por falta de radiación. El método ve te
 da una ETP baja.
 
 \textbf{$\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$:} $\alpha^*$ mide cuánto se aparta la \ETo{} de la evaporación de
-equilibrio, que depende solo de la energía. En la cuenca $\alpha^*$ va de 1.004 (mayo) a 1.028 (enero; Fig.~\ref{fig:terminos_alfa}, abajo), así que casi
+equilibrio, que depende solo de la energía. En la cuenca $\alpha^*$ va de 1.004 (mayo) a 1.028 (enero; Fig.~\ref{fig:alfa}), así que casi
 toda la \ETo{} depende de la energía y no del aire. Ese valor resulta de dos efectos: el déficit de vapor y el viento
 suman entre 7 y 10~\% (\ETo{} con $r_s = 0$ / $E_\mathrm{eq}$), y la resistencia del pasto ($r_s = 70$~s/m) le quita
 casi todo eso. La forma de $\alpha^*$ a lo largo del año sigue al déficit de vapor y al viento: los meses con más
@@ -375,11 +375,16 @@ a 0.50~kPa, frente a 0.59 a 0.65~m/s de viento) y se correlaciona más con $\alp
 meses).
 
 \begin{figure}[!htbp]\centering
-  \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{terminos_fao56.png}\\[6pt]
-  \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{alfa_implicito.png}
-  \caption{Arriba: términos radiativo y aerodinámico de la \ETo{} \PM{} por mes. Abajo: $\alpha^* =
-  \mathrm{ET_o}/E_\mathrm{eq}$ por mes.}
+  \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{terminos_fao56.png}
+  \caption{Términos radiativo y aerodinámico de la \ETo{} \PM{} por mes.}
   \label{fig:terminos_alfa}
+\end{figure}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.5\textheight,keepaspectratio]{alfa_implicito.png}
+  \caption{Arriba: $\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$ y la misma razón con $r_s = 0$, por mes; 1 es la
+  evaporación de equilibrio, que depende solo de la energía. Abajo: déficit de vapor y viento $u_2$ de cada mes, que
+  explican por qué $\alpha^*$ pasa de 1.}
+  \label{fig:alfa}
 \end{figure}
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{sensibilidad_metodos.png}

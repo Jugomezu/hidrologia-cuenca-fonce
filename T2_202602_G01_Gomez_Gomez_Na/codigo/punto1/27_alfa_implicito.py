@@ -103,23 +103,33 @@ def main():
     print(f"Para verificar a mano (punto {PUNTO_MANO}, {MES_MANO}, hoja metodos_mes_a_mano.xlsx): "
           f"Eeq {mano['eeq']:.3f}, ETo {mano['eto']:.3f} mm/mes, α* {mano['eto'] / mano['eeq']:.4f}")
 
-    fig, eje = plt.subplots(figsize=(6.5, 4.6))
+    # Tres paneles apilados con el mismo eje de meses: arriba las razones con Eeq, abajo déficit y viento, cada uno
+    # en su propio eje (antes iban los dos en un eje derecho compartido; Juan pidió una figura más legible, 26 nov).
     x = list(range(1, 13))
-    eje.fill_between(x, ciclo["alfa_estrella_min"], ciclo["alfa_estrella_max"], color="#0072B2", alpha=0.15,
-                     label="α* mín.–máx. entre años")
-    eje.plot(x, ciclo["alfa_estrella"], "o-", color="#0072B2", label="α* = ETo/Eeq")
-    eje.plot(x, ciclo["alfa_rs0"], "s--", color="#009E73", label="ETo(rs = 0)/Eeq")
-    eje.axhline(ALFA_PT, color="#E69F00", ls=":", label="α de Priestley–Taylor (1.26)")
-    eje.set_xticks(x, MESES)
+    fig, (eje, eje_def, eje_u2) = plt.subplots(3, 1, figsize=(6.5, 6.4), sharex=True,
+                                              gridspec_kw={"height_ratios": [2.6, 1, 1]})
+    eje.fill_between(x, ciclo["alfa_estrella_min"], ciclo["alfa_estrella_max"], color="#0072B2", alpha=0.15, lw=0)
+    eje.plot(x, ciclo["alfa_estrella"], "o-", color="#0072B2")
+    eje.plot(x, ciclo["alfa_rs0"], "s--", color="#009E73")
+    eje.text(12.25, ciclo["alfa_estrella"].iloc[-1], "α* = ETo/Eeq\n(franja: mín.–máx.\nentre años)", fontsize=7.5,
+             color="#0072B2", va="center")
+    eje.text(12.25, ciclo["alfa_rs0"].iloc[-1], "ETo con rs = 0\n/ Eeq", fontsize=7.5, color="#009E73", va="center")
+    eje.axhline(1, color="#555555", lw=0.8)
+    eje.text(0.6, 1.0015, "1 = solo energía (equilibrio)", fontsize=7, color="#555555", va="bottom")
+    eje.set_ylim(top=ciclo["alfa_rs0"].max() + 0.018)
+    eje.text(0.6, eje.get_ylim()[1], f"α de Priestley–Taylor = {ALFA_PT} (muy por encima de la escala)", fontsize=7,
+             color="#B07800", va="top")
     eje.set_ylabel("razón con Eeq")
-    eje2 = eje.twinx()
-    eje2.plot(x, ciclo["deficit_kPa"], color="#A65E1A", lw=1, label="déficit es − ea (kPa)")
-    eje2.plot(x, ciclo["u2_ms"], color="#7C5BC7", lw=1, label="u2 (m/s)")
-    eje2.set_ylabel("kPa  ·  m/s")
-    lineas = eje.get_legend_handles_labels()
-    lineas2 = eje2.get_legend_handles_labels()
-    eje.legend(lineas[0] + lineas2[0], lineas[1] + lineas2[1], fontsize=7.5, loc="upper center", bbox_to_anchor=(0.5, -0.12), ncol=2, frameon=False)
     eje.set_title("α* por mes, cuenca, media 1998–2022", fontsize=10)
+    eje_def.plot(x, ciclo["deficit_kPa"], "o-", ms=3.5, color="#A65E1A")
+    eje_def.set_ylabel("déficit\n(kPa)")
+    eje_u2.plot(x, ciclo["u2_ms"], "o-", ms=3.5, color="#7C5BC7")
+    eje_u2.set_ylabel("u2\n(m/s)")
+    eje_u2.set_xticks(x, MESES)
+    eje_u2.set_xlim(0.5, 14.3)
+    for e in (eje, eje_def, eje_u2):
+        e.grid(alpha=0.3)
+        e.spines[["top", "right"]].set_visible(False)
     fig.tight_layout()
     fig.savefig(SALIDA_PNG, dpi=150)
     print(f"Listo: {SALIDA_PNG}")

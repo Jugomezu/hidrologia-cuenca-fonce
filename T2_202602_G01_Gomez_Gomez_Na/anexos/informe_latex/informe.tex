@@ -410,8 +410,19 @@ meses).
   \label{tab:et_productos}
   \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_et_productos.tex}}
 \end{table}
-\pendiente{Juan: ET $= \bar{P} - Q$ (\cifraETbalance{} $\pm$ \cifraSigmaET~mm/año), el techo de energía
-(\cifraRnLambda~mm/año) y los productos (Fig.~\ref{fig:et_real}, Tabla~\ref{tab:et_productos}).}
+\borradorIA{Redactado por la IA (pedido de Juan, 26 nov); falta el visto bueno de Juan.}
+La ET real de la cuenca sale del balance de largo plazo, $\mathrm{ET} = \bar{P} - Q$: \cifraETbalance{}
+$\pm$ \cifraSigmaET~mm/año (95~\%). La incertidumbre es grande, cerca del 45~\% del valor, y viene casi por partes
+iguales de la lluvia (315~mm/año, por la diferencia entre IMERG y los pluviómetros) y del caudal (344~mm/año, el
+25.6~\% de Q). Esa ET equivale al 90~\% de la \ETo{} y usa el 60~\% de la energía disponible: queda muy por debajo
+del techo de energía $R_n/\lambda$ (\cifraRnLambda~mm/año), el máximo que podría evaporarse si toda la $R_n$ se
+usara para evaporar.
+
+Los productos de ET real se comparan con ese balance en sus mismos meses (Fig.~\ref{fig:et_real} y
+Tabla~\ref{tab:et_productos}). Cinco caen dentro de la incertidumbre: ERA5-Land (1\,274~mm/año), GLEAM (1\,157),
+MOD16 (1\,121), TerraClimate (1\,029) y SSEBop v6.1 (847). Dos quedan fuera: SSEBop v5 (475), muy por debajo, y la
+AA (1\,551), por encima; por eso no se usan en adelante. Con una incertidumbre tan amplia, el balance sirve para
+descartar productos, pero no para decir cuál de los otros cinco es el mejor.
 
 \subsubsection{¿Manda la energía o el agua?}
 \begin{figure}[!htbp]\centering

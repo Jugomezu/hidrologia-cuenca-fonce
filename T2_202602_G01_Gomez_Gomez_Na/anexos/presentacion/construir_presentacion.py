@@ -64,7 +64,7 @@ diapositiva(0.3, "inicio", f"""
 """, "Presentarnos. Dos puntos: la ET de la cuenca del Fonce (Juan) y el diseño de drenaje en Denver (Andrea).")
 
 # 2 · Dos escalas ---------------------------------------------------------------------
-diapositiva(0.7, "intro", """
+diapositiva(0.6, "intro", """
 <h2>Dos problemas, dos escalas</h2>
 <div class="dos">
   <div class="bloque p1">
@@ -82,15 +82,16 @@ diapositiva(0.7, "intro", """
   <div class="bloque p2">
     <p class="ceja">Punto 2 · Microcuenca junto a Denver Stapleton</p>
     <p class="grande">1.0269 <small>km²</small></p>
-    <p>Lluvia horaria de una estación · minutos a horas</p>
+    <p>Lluvia horaria de una estación · piedemonte semiárido, tormentas convectivas de verano</p>
     <ol class="preguntas">
-      <li>Curvas intensidad–duración–frecuencia (IDF) con su incertidumbre</li>
-      <li>Problema A: alcantarilla circular para T = 50 años</li>
-      <li>Problema B: tanque de detención tras urbanizar</li>
+      <li>¿Qué intensidad tiene cada periodo de retorno, y cómo se compara con NOAA Atlas 14?</li>
+      <li>¿Qué alcantarilla pide la microcuenca para T = 50 años, y qué tan sensible es?</li>
+      <li>¿Cuánto tanque de detención hace falta tras urbanizar, según el patrón de la tormenta?</li>
+      <li>¿Cómo cambian diseño y confiabilidad con costo, excedencias, calentamiento e historia?</li>
     </ol>
   </div>
 </div>
-""", "El punto 1 es balance de largo plazo en una cuenca grande; el punto 2 es diseño con extremos de minutos en una cuenca de 1 km². Leer las 5 preguntas: estructuran lo que sigue.")
+""", "El punto 1 es balance de largo plazo en una cuenca grande; el punto 2 es diseño con extremos de minutos en una cuenca de 1 km². Leer las preguntas de cada punto (5 y 4): estructuran lo que sigue.")
 
 # 3 · La cuenca -----------------------------------------------------------------------
 diapositiva(0.8, "p1", f"""
@@ -246,23 +247,22 @@ diapositiva(0.75, "p2", f"""
 
 # 11 · IDF ----------------------------------------------------------------------------
 diapositiva(0.8, "p2", f"""
-<h2>Curvas IDF: Log-Pearson III y Talbot–Wenzel</h2>
+<h2>Curvas IDF, frente a NOAA Atlas 14</h2>
 <div class="fig-texto">
   {figura("punto2/fig3_curvas_idf_loglog.png", alto_px=780, alt="Curvas IDF de Denver Stapleton")}
   <div class="columna">
     <ul class="claves">
-      <li>Máximos anuales por año hidrológico (octubre–septiembre), con la corrección de Weiss.</li>
-      <li>LP3 por L-momentos tiene KS y AD menores o iguales que Gumbel y GEV en las seis duraciones.</li>
-      <li>Bandas bootstrap al 95 % en T = 10 y 50 años.</li>
+      <li>Máximos anuales con la corrección de Weiss; <b>LP3 por L-momentos</b> (asimetría positiva, mejor KS y AD en las seis duraciones) y modelo Talbot–Wenzel.</li>
       <li>Por debajo de 1 h la curva es extrapolación, no medida.</li>
     </ul>
     <div class="cifras">
-      <div><span class="num">T ≈ 75.7 <small>años</small></span><span>tormenta del 26 de julio de 1965</span></div>
-      <div><span class="num">T ≥ 137.3 <small>años</small></span><span>7 de agosto de 2022 (cota inferior)</span></div>
+      <div><span class="num">18 de 36</span><span>casos dentro de la banda del 90 % de NOAA: todos los de T ≥ 25 años</span></div>
+      <div><span class="num">−17 a −28 %</span><span>por debajo de NOAA para T ≤ 10 años (1 a 24 h); T = 50 y 1 h: 45.51 frente a 53 mm/h</span></div>
+      <div><span class="num">T ≥ 137.3 <small>años</small></span><span>tormenta del 7 de agosto de 2022 (cota inferior); la del 26 de julio de 1965, T ≈ 75.7</span></div>
     </div>
   </div>
 </div>
-""", "Las duraciones cortas son las que controlan una microcuenca, y son justo las que no medimos. Eso es la principal incertidumbre del diseño.")
+""", "Las duraciones cortas son las que controlan una microcuenca, y son justo las que no medimos. Eso es la principal incertidumbre del diseño. NOAA usa series de duración parcial de muchas estaciones y registros subhorarios; nosotros, máximos anuales de una sola estación horaria.")
 
 # 12 · Problema A ---------------------------------------------------------------------
 diapositiva(0.9, "p2", f"""
@@ -290,16 +290,34 @@ diapositiva(0.75, "p2", f"""
     <div class="cifras">
       <div><span class="num">C 0.495 → 0.78</span><span>al urbanizar, y tc de 60 a 30 min</span></div>
       <div><span class="num">6.426 <small>m³/s</small></span><span>descarga máxima permitida: el pico antes de urbanizar</span></div>
-      <div><span class="num">25 642 → 36 597 <small>m³</small></span><span>volumen con pico al inicio y con pico al final (180 min)</span></div>
+      <div><span class="num">25 642 → 36 597 <small>m³</small></span><span>pico al inicio y pico al final (180 min): +43 % con la misma lámina</span></div>
       <div><span class="num rec">63 000 <small>m³</small></span><span>tanque de 18 000 m² × 3.5 m con orificio: cubre el peor caso</span></div>
     </div>
-    <p class="nota">Con el pico al final llega más volumen antes de que el orificio haya evacuado agua.</p>
+    <p class="nota">Con el pico al final el vaso se llena antes de que el orificio evacúe; aun así el tanque no rebosa y la
+    salida queda bajo 6.426 m³/s. El racional modificado da una duración crítica de 75 min.</p>
   </div>
 </div>
 """, "Tránsito por piscina nivelada con RK4 de 1 minuto y Cd = 0.61. El orden de la lluvia dentro de la tormenta importa tanto como su total.")
 
-# 14 · Conclusiones -------------------------------------------------------------------
-diapositiva(0.9, "fin", """
+# 14 · Análisis complementarios ------------------------------------------------------
+diapositiva(0.75, "p2", f"""
+<h2>Con +2 °C, el tubo de 1 500 mm ya no alcanza</h2>
+<div class="fig-texto">
+  {figura("punto2/fig_25b_bonificaciones.png", alto_px=680, desde=0.035, hasta=0.5, alt="Caudal pico y retorno efectivo con el calentamiento")}
+  <div class="columna">
+    <div class="cifras">
+      <div><span class="num">7.33 <small>m³/s</small></span><span>pico T = 50 años con +2 °C (+14 % de intensidad, 7 %/°C), contra 6.91 del tubo de 1 500 mm</span></div>
+      <div><span class="num">α = 1.000</span><span>con 1 500 mm o más, ninguna hora del registro supera la capacidad; con 1 200 mm fallan 8</span></div>
+      <div><span class="num">T = 227 <small>años</small></span><span>mínimo del costo esperado (costos normalizados, no un presupuesto)</span></div>
+    </div>
+    <p class="nota">POT-GPD con Langbein coincide con los máximos anuales en T bajos y medios; en T altos LP3 da algo más:
+    es la opción conservadora.</p>
+  </div>
+</div>
+""", "Estos análisis responden la cuarta pregunta y refuerzan el tubo de 1 650 mm (8.91 m³/s).")
+
+# 15 · Conclusiones -------------------------------------------------------------------
+diapositiva(0.8, "fin", """
 <h2>Conclusiones</h2>
 <div class="dos concl">
   <div class="bloque p1">
@@ -315,16 +333,17 @@ diapositiva(0.9, "fin", """
   <div class="bloque p2">
     <p class="ceja">Punto 2 · Denver</p>
     <ol>
-      <li>La IDF horaria depende del registro: posible cambio en 1973.</li>
-      <li>El diseño lo controlan el tc y la IDF subhoraria extrapolada; por eso un tubo mayor que el nominal.</li>
-      <li>El patrón temporal de la lluvia fija el volumen del tanque.</li>
-      <li>Falta validar la cuenca con el drenaje urbano.</li>
+      <li>La IDF cae en la banda de NOAA Atlas 14 para T ≥ 25 años y por debajo para T ≤ 10; el cambio de registro de 1973 pide cautela.</li>
+      <li>El tc y la IDF subhoraria controlan el diseño: se recomienda el tubo de 1 650 mm.</li>
+      <li>El patrón temporal de la tormenta fija el volumen del tanque.</li>
+      <li>LP3 es algo más conservador que POT; con +2 °C el tubo de 1 500 mm se supera.</li>
+      <li>Es un predimensionamiento: falta validar la cuenca con el drenaje urbano.</li>
     </ol>
   </div>
 </div>
-<p class="pie-ia">Uso de IA: Claude (Claude Code) escribió el código y los borradores; las decisiones de método y los
-textos de resultados son del grupo. Detalle en anexos/bitacora_ia.md.</p>
-""", "Cerrar respondiendo las 5 preguntas del inicio sin repetir cifras. Abrir a preguntas.")
+<p class="pie-ia">Uso de IA: Claude (Claude Code) en el punto 1 y la integración; Codex (OpenAI) en la programación del punto 2.
+Las decisiones de método son del grupo. Detalle en el informe y en anexos/bitacora_ia.md.</p>
+""", "Cerrar respondiendo las preguntas del inicio sin repetir cifras. Abrir a preguntas.")
 
 
 ESTILO = """

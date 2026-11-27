@@ -445,7 +445,7 @@ MOD16 (1\,121), TerraClimate (1\,029) y SSEBop v6.1 (847). Dos quedan fuera: SSE
 AA (1\,551), por encima; por eso no se usan en adelante. Con una incertidumbre tan amplia, el balance sirve para
 descartar productos, pero no para decir cuál de los otros cinco es el mejor.
 
-\subsubsection{¿Manda la energía o el agua?}
+\subsubsection{¿Manda la energía o el agua?}\label{sec:energia_agua}
 \begin{figure}[!htbp]\centering
   \includegraphics[width=0.8\textwidth]{budyko.png}
   \caption{Espacio de Budyko con $\bar{P}$: años y media, con la curva de Fu ajustada.}
@@ -598,9 +598,9 @@ cómo se reparte la energía, no cuánta agua hay disponible.
   poco.
   \item La cuenca devuelve a la atmósfera menos de la mitad de la lluvia, con una incertidumbre del orden de la propia
   ET, dominada por la diferencia entre IMERG y los pluviómetros y por el error del caudal.
-  \item La ET está limitada por energía casi todo el año; solo enero, y febrero en algunos años, pasan a estar
-  limitados por agua ($\varphi > 1$).
-  \item La demanda no muestra una tendencia significativa entre 1981 y 2022; el pequeño aumento se asocia sobre todo
+  \item La ET está limitada por energía casi todo el año; solo enero está principalmente limitado por el agua, porque
+  es el único mes con $\varphi > 1$ (Sec.~\ref{sec:energia_agua}).
+\item La demanda no muestra una tendencia significativa entre 1981 y 2022; el pequeño aumento se asocia sobre todo
   al calentamiento, una vez corregido el salto de la radiación del reanálisis.
   \item Lo que distingue a la cuenca es su gradiente de altura: la demanda baja al subir y, en las partes altas, la
   vegetación más rala (menor LAI) aumenta la resistencia de superficie, de modo que la ET la frenan la energía y la
@@ -633,9 +633,7 @@ frente a la red pluvial construida y no se contó con una IDF de malla homogéne
 % =====================================================================================================================
 \section{Uso de inteligencia artificial}
 
-\borradorIA{Armado desde \texttt{anexos/bitacora\_ia.md}. La bitácora llega al 23 de noviembre: faltan las fases 6
-(revisión de Juan), 7, 8 y 9, el armado de este informe y la parte del punto 2. Falta la contribución de cada
-integrante.}
+% Declaración de IA aprobada por Juan (27 nov).
 
 Se usó Claude (Anthropic) a través de Claude Code, dentro de un proyecto de claude.ai conectado al repositorio del
 grupo. Cada tarea se pidió en una conversación aparte y queda registrada en \path{anexos/bitacora_ia.md}; las
@@ -644,7 +642,9 @@ decisiones de método, con su justificación, están en \path{anexos/decisiones.
 \paragraph{Qué hizo la IA.} Escribió el código de descarga y procesamiento del punto 1 (\texttt{codigo/punto1/}),
 las figuras y las tablas; propuso opciones de método con su evidencia (puntos de ERA5-Land, comparación de métodos por
 superficie, incertidumbre del balance); explicó conceptos cuando se le pidió; armó los borradores de la metodología,
-de la introducción y de esta declaración, e hizo auditorías del código y de las citas.
+de la introducción y de esta declaración, e hizo auditorías del código y de las citas. En las fases 7 a 9 hizo además
+el código y las figuras del espacio de Budyko, las tendencias, el gradiente con la altura y la resistencia de
+superficie, y armó este informe en LaTeX con los textos del grupo.
 
 \paragraph{Qué decidió y verificó el grupo.} Las decisiones de método las tomó el grupo: los 6 puntos de ERA5-Land,
 los métodos de la fase 4, la lluvia $\bar{P}$, la incertidumbre al 95~\%, el criterio de meses limitados por agua y el
@@ -652,8 +652,10 @@ periodo de las tendencias, entre otras. Cuando el agente tomó una decisión con
 marcada y el grupo la revisó: aprobó $\sigma_P$, cambió $\sigma_Q$ a su valor al 95~\% y cambió el año hidrológico por
 el calendario. La \ETo{} se verificó a mano en un día (\texttt{anexos/punto1/dia\_verificado\_a\_mano.xlsx}), las
 pruebas de estación en un mes (\texttt{mes\_estacion\_a\_mano.xlsx}) y los métodos en un mes
-(\texttt{metodos\_mes\_a\_mano.xlsx}). Los textos de resultados y discusión de ambos puntos los escribió el grupo sin IA en
-el primer borrador; la IA solo los criticó.
+(\texttt{metodos\_mes\_a\_mano.xlsx}). La mayoría de los textos de resultados y discusión los escribió
+el grupo y la IA los criticó. Algunos párrafos de resultados del punto 1 (ET real, fracción evaporativa, tendencias,
+gradiente con la altura y resistencia de superficie) y las conclusiones del punto 1 los redactó la IA a partir de las
+respuestas y conclusiones del grupo; el grupo los revisó y aprobó.
 
 \paragraph{Qué se rechazó o corrigió.} Una HR de 79.4~\% calculada fuera del repositorio se reemplazó por la del
 script (79.3~\%). La primera ETo de estación usaba un viento supuesto de 2~m/s; se cambió por el medido en
@@ -671,9 +673,9 @@ sensibilidad y la definición de los escenarios del tanque de detención. Todos 
 tubo lleno, laminación en el tanque y análisis de riesgo fueron verificados manualmente contra los archivos CSV
 generados y las referencias del curso.
 
-\borradorIA{Al integrarlo a esta entrega, la IA auditó y reprodujo sus scripts, pasó su texto al informe sin
+Al integrarlo a esta entrega, la IA auditó y reprodujo sus scripts, pasó su texto al informe sin
 reescribirlo y escribió el script de cifras \path{codigo/punto2/06_cifras_informe.py}. Las decisiones de diseño las
-tomó el grupo.}
+tomó el grupo.
 
 \paragraph{Contribución de cada integrante.} % Texto de Andrea (27 nov); el final del documento venía cortado y la
 % IA agregó la unificación del informe y las diapositivas y cerró el paréntesis; sin el Anexo B, que se borró (Juan, 27 nov).

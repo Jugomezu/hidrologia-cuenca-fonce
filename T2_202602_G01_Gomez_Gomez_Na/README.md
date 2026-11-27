@@ -67,7 +67,8 @@ El script 23 compara además con la Tarea 1 si encuentra `../Analisis_De_Cuenca/
 
 `anexos/informe_latex/informe.tex` (con `referencias.bib`). Después del script 35 del punto 1 y del 06 del punto 2,
 desde esa carpeta:
-`latexmk -pdf informe.tex`, y se copia `informe.pdf` a la raíz como `T2_202602_G01_informe.pdf`.
+`latexmk -pdf informe.tex` da el borrador (con marcas). Para la entrega se compila una copia con `\entregatrue`
+(sin marcas; falla si queda un `\pendiente`) y se copia a la raíz como `T2_202602_G01_informe.pdf`.
 
 ## `datos/punto1/`
 

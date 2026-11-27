@@ -484,17 +484,22 @@ propio modelo de estrés hídrico, y la humedad de GLEAM no explora suelos secos
 \end{figure}
 % Texto de Juan: temp/textos_informe/fase8_conclusion.md, versión final («Con 1981–2022 y la Rs corregida», 26 nov),
 % tal cual, pasada a LaTeX. Las versiones anteriores (1998–2022 y 1981–2022 sin corregir) quedan en ese archivo.
-El control de calidad (script 42, como la Tarea 1) halló un escalón de Rs de $+0.317$~MJ/m$^2$·d después de 2000 frente
-a la lluvia de CHIRPS (Pettitt $p = 0.013$). Juan decidió corregirlo: se suma a la Rs de antes de 2001 y se recalculan
-Rn y la \ETo{} (script 36, solo fase 8). Resultado: \ETo{} $+4.2$~mm/año por década ($+0.37$~\%), no significativa (OLS
-Newey-West $p = 0.15$, Mann-Kendall $p = 0.15$). Thornthwaite $+10.6$~mm/año por década y T $+0.14$~°C/década,
-significativas. Atribución: T $+5.5$, $e_a$ $-0.6$, $u_2$ $-0.1$, Rs $-0.6$~mm/año por década. Sin corregir
-(sensibilidad): \ETo{} $+9.5$, significativa.
+% Basado en el texto de Juan (fase8_conclusion.md, versión final), pasado a la voz del grupo por pedido de Juan (26 nov).
+Antes de buscar tendencias, la serie 1981--2022 pasó el mismo control de calidad de la Tarea 1. Encontramos un
+escalón en la Rs de ERA5-Land de $+0.317$~MJ/m$^2$·d después de 2000, frente a la lluvia de CHIRPS (Pettitt
+$p = 0.013$; Anexo~\ref{anx:escalon_rs}, Fig.~\ref{fig:escalon_rs}). Es probablemente un defecto del reanálisis y no
+un cambio real: las observaciones que asimila ERA5, de donde ERA5-Land toma sus forzantes, cambian con el tiempo
+\citep{hersbach2020}. Por eso lo corregimos sumando el escalón a la Rs de antes de 2001 y recalculando la $R_n$ y la
+\ETo{}, solo para las tendencias.
 
-\pendiente{Juan: este texto está en tercera persona («Juan decidió»): pasarlo a la voz del grupo y quitar los números
-de script. Citar la Fig.~\ref{fig:tendencias} y el escalón del Anexo~\ref{anx:escalon_rs} (Fig.~\ref{fig:escalon_rs}). Falta el mecanismo: por qué Thornthwaite
-sube y la \ETo{} no (la \ETo{} responde poco a la T). Cita del cambio de lo que asimila ERA5 hacia 1998 (Hersbach et
-al., 2020, sin comprobar).}
+Con la serie corregida (Fig.~\ref{fig:tendencias}), la \ETo{} sube $+4.2$~mm/año por década ($+0.37$~\%), pero la
+tendencia no es significativa (OLS con Newey-West $p = 0.15$; Mann-Kendall $p = 0.15$). En cambio, la temperatura sube
+$+0.14$~°C por década y Thornthwaite $+10.6$~mm/año por década, ambas significativas. La diferencia está en cuánto
+responde cada método a la temperatura: Thornthwaite cambia 10.3~\% por cada °C y la \ETo{} solo 3.2~\%
+(Fig.~\ref{fig:sensibilidad}), porque la \ETo{} depende sobre todo de la radiación. En la atribución, la temperatura
+aporta $+5.5$~mm/año por década, y $e_a$ ($-0.6$), $u_2$ ($-0.1$) y Rs ($-0.6$) la compensan un poco. Sin la
+corrección de la Rs, la \ETo{} subiría $+9.5$~mm/año por década y saldría significativa: más de la mitad de esa
+tendencia venía del escalón.
 
 \subsubsection{El paisaje de la cuenca}
 \begin{figure}[!htbp]\centering

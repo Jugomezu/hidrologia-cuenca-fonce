@@ -159,7 +159,7 @@ diapositiva(0.9, "p1", f"""
 
 # 6 · ET real -------------------------------------------------------------------------
 diapositiva(0.9, "p1", f"""
-<h2>La cuenca devuelve 1 045 ± 467 mm al año</h2>
+<h2>La cuenca evapora 1 045 ± 467 mm al año</h2>
 <div class="fig-texto">
   {figura("punto1/et_real_productos.png", alto_px=860, alt="Productos de ET real frente al balance")}
   <div class="columna">

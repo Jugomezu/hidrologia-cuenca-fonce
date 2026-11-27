@@ -280,7 +280,7 @@ def figura_et_real():
     eje.axhline(central["ETR_PL"], color="#0072B2", ls="--", lw=1, label="P − Q con PL")
     eje.axhline(central["ETR_PI"], color="#E69F00", ls="--", lw=1, label="P − Q con PI")
     eje.axhline(techo.loc["balance con Pm", "ETo_mm_anio"], color="black", ls=":", lw=1.5, label="ETo Penman–Monteith (FAO-56)")
-    eje.axhline(techo.loc["balance con Pm", "Rn_lambda_mm_anio"], color="#C8553D", lw=1.5, label="Rn/λ (ERA5-Land)")
+    eje.axhline(techo.loc["balance con Pm", "Rn_lambda_mm_anio"], color="#C8553D", lw=1.5, label="Rn/λ (ERA5-Land): máximo posible de evaporación")
     colores = ["#0072B2" if d else "#999999" for d in frente["dentro_de_sigma_ET_de_Pm"]]
     eje.bar(x, frente["producto_mm_anio"], color=colores, width=0.6, zorder=3)
     for i, v in enumerate(frente["producto_mm_anio"]):

@@ -131,7 +131,12 @@ def main():
 
     fig, eje = plt.subplots(figsize=(6, 5))
     x = np.linspace(0.01, 1.2, 200)
-    eje.plot(x, np.minimum(x, 1), "k-", lw=1, label="límites de energía y de agua")
+    # El techo se ve completo: ε = φ hasta φ = 1 y plano (ε = 1) después; por eso ε llega a 1.1 (Juan, 26 nov).
+    eje.plot(x, np.minimum(x, 1), "k-", lw=1.8, label="límites de energía y de agua")
+    eje.axvline(1, color="#777777", lw=0.8, ls=":")
+    eje.text(0.62, 0.70, "límite de energía\nε = φ", rotation=0, fontsize=7.5, ha="right")
+    eje.text(1.02, 1.015, "límite de agua\nε = 1", fontsize=7.5, ha="left", va="bottom")
+    eje.text(1.005, 0.03, "φ = 1", fontsize=7, color="#555555")
     colores = ["#000000", "#C8553D", "#882255", "#7C5BC7"]
     tabla = pd.DataFrame(filas_anual)
     for (nombre, fila), color in zip(resumen.set_index("serie").iterrows(), colores):
@@ -141,7 +146,7 @@ def main():
         if not np.isnan(fila["omega_fu"]):
             eje.plot(x, fu(x, fila["omega_fu"]), color=color, lw=1, ls="--")
     eje.set_xlim(0, 1.2)
-    eje.set_ylim(0, 1)
+    eje.set_ylim(0, 1.1)
     eje.set_xlabel("φ = ETP/P (ETo salvo donde se indica)")
     eje.set_ylabel("ε = ET/P")
     eje.legend(fontsize=7, loc="lower right")

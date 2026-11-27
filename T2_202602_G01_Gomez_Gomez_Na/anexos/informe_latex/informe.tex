@@ -60,9 +60,12 @@
 \ifentrega
   \newcommand{\pendiente}[1]{\PackageError{informe}{Queda un pendiente: #1}{}}
   \newcommand{\borradorIA}[1]{}
+  \newcommand{\cambioIA}[1]{#1}
 \else
   \newcommand{\pendiente}[1]{\begin{pendientebox}\textbf{Pendiente:} #1\end{pendientebox}}
   \newcommand{\borradorIA}[1]{\begin{iabox}\textbf{Borrador de la IA:} #1\end{iabox}}
+  % Cambio de la IA dentro de un texto de un integrante: en azul en el borrador, normal en la entrega.
+  \newcommand{\cambioIA}[1]{\textcolor{blue!60!black}{#1}}
 \fi
 
 % ---- Notación -----------------------------------------------------------------------------------------------------
@@ -608,13 +611,27 @@ cómo se reparte la energía, no cuánta agua hay disponible.
 
 \subsection*{Punto 2}
 
-\pendiente{Punto 2, lo que deben responder las conclusiones (lo escribe el grupo; lista de la IA, no texto):
-(1) qué tan confiable es la IDF de Denver con 45 años horarios y el posible cambio de registro de 1973;
-(2) qué controla la incertidumbre del diseño ($t_c$, IDF subhoraria extrapolada, $C$) y por qué se recomienda un tubo
-mayor que el nominal;
-(3) qué muestra el Problema B: el patrón temporal de la lluvia controla el volumen del tanque;
-(4) los límites: cuenca del DSM sin validar con drenaje urbano y sin IDF de malla para comparar.
-Fuentes que faltan en el texto de la segunda integrante: el método de Témez para el $t_c$, el escalamiento de
+% Texto de Andrea (27 nov) tal cual, salvo el dato de NOAA de (1), que la IA corrigió con el CSV (en azul).
+En relación con las preguntas planteadas para el punto 2, se concluye que: (1) la serie horaria de 45~años válidos en
+Denver Stapleton permite ajustar curvas IDF mediante LP3/LMOM y Talbot--Wenzel que \cambioIA{caen dentro del
+intervalo de confianza del 90~\% de NOAA Atlas 14 para $T \geq 25$~años, y por debajo de él para $T \leq 10$~años},
+aunque la caída de completitud instrumental después de 1973 introduce una inhomogeneidad significativa
+($p = 0.00082$) que obliga a interpretar con cautela las tendencias aparentes y los periodos de retorno extremos; (2)
+para $T = 50$~años, la incertidumbre en el dimensionamiento de la alcantarilla está dominada por el tiempo de
+concentración y por la extrapolación subhoraria de la IDF desde registros horarios, por lo que frente al diámetro
+comercial mínimo de 1\,500~mm (FS $= 1.08$), que resulta superado en los escenarios de sensibilidad, se recomienda
+adoptar el diámetro comercial de 1\,650~mm ($Q_c = 8.91$~m$^3$/s, FS $= 1.39$) para reducir el riesgo efectivo
+durante los 25~años de vida útil; (3) en el tanque de detención tras urbanizar la microcuenca, el tránsito demuestra
+que el patrón temporal de la tormenta controla el almacenamiento requerido, pues a igual lámina total una lluvia con
+pico al final demanda un 43~\% más de volumen que una con pico inicial (36\,597 frente a 25\,642~m$^3$) al saturar el
+vaso antes de que el orificio evacúe el caudal; y (4) los análisis complementarios confirman que el modelo LP3/LMOM es
+ligeramente más conservador que POT-GPD en periodos de retorno altos, que un calentamiento de $+2$~°C eleva el caudal
+de diseño a 7.33~m$^3$/s superando la capacidad del tubo de 1\,500~mm (6.91~m$^3$/s), y que un diámetro igual o
+superior a 1\,500~mm evita fallas en toda la serie histórica ($\alpha = 1.000$). Estas recomendaciones tienen alcance
+de predimensionamiento, ya que la cuenca proviene de un modelo digital de superficie (Copernicus DSM) sin validación
+frente a la red pluvial construida y no se contó con una IDF de malla homogénea para contrastar la reducción areal.
+
+\pendiente{Fuentes que faltan en el texto del punto 2: el método de Témez para el $t_c$, el escalamiento de
 7~\% por °C y el evento del 7 de agosto de 2022.}
 
 % =====================================================================================================================
@@ -646,18 +663,32 @@ el primer borrador; la IA solo los criticó.
 script (79.3~\%). La primera ETo de estación usaba un viento supuesto de 2~m/s; se cambió por el medido en
 Mogotes-AUT. El Penman de la fase 4 se había programado como evaporación de agua libre (E$_0$); se reconoció como \ETo{} de FAO-24 ($c = 0.8$) y se compara como tal.
 
-\paragraph{Punto 2.} \borradorIA{El análisis del punto 2 (código, figuras y texto) lo hizo la segunda integrante; cómo
-usó IA en él lo declara ella. Al integrarlo a esta entrega, la IA auditó y reprodujo sus scripts, unificó la cuenca en
+\paragraph{Punto 2.} % Texto de Andrea (27 nov) tal cual.
+Se usó Codex (OpenAI) como apoyo en la programación y depuración de los scripts del punto 2, la estructura de las
+pruebas de calidad de GHCNh, el ajuste de distribuciones por momentos, la regresión isotónica, la simulación de Monte
+Carlo y el tránsito por piscina nivelada.
+
+Las decisiones hidrológicas e hidráulicas las tomó la integrante 2: la regla doble de completitud anual ($>80$~\%
+anual y $>90$~\% en abril--septiembre), la selección de LP3/LMOM y Talbot--Wenzel, la adopción de $t_c = 60$~min para
+representar el flujo laminar inicial, la recomendación del diámetro comercial de 1\,650~mm para cubrir la
+sensibilidad y la definición de los escenarios del tanque de detención. Todos los cálculos de Manning, capacidades a
+tubo lleno, laminación en el tanque y análisis de riesgo fueron verificados manualmente contra los archivos CSV
+generados y las referencias del curso.
+
+\borradorIA{Al integrarlo a esta entrega, la IA auditó y reprodujo sus scripts, unificó la cuenca en
 todo el diseño (área, longitud y pendiente del DEM; $C$, $CN$ y $t_c$ del Problema A), pasó su texto al informe sin
 reescribirlo, apiló sus figuras en vertical y escribió el script de cifras \path{codigo/punto2/06_cifras_informe.py}.
 Las decisiones las tomó el grupo: mantener $t_c = 60$~min sin llamarlo conservador, quitar el factor de frecuencia
 $C_f$ para no tener dos caudales de diseño para la misma cuenca y recomendar el tubo de \pdosDrec~mm en lugar del de
 \pdosDnom~mm.}
 
-\paragraph{Contribución de cada integrante.} Juan Pablo Gómez: realización del punto 1, unificación del informe y
-diapositivas. Andrea Gómez: realización del punto 2.
-
-\pendiente{Andrea confirma o completa su contribución y escribe su declaración de IA sobre el punto 2.}
+\paragraph{Contribución de cada integrante.} % Texto de Andrea (27 nov); el final del documento venía cortado y la
+% IA agregó lo que decía el texto anterior de Juan (unificación del informe y diapositivas) y el cierre del paréntesis.
+Juan Pablo Gómez desarrolló el punto 1 (descarga, procesamiento, validación y análisis de la evapotranspiración en la
+cuenca del río Fonce), el Anexo B\cambioIA{, la unificación del informe y las diapositivas}. Andrea Gómez desarrolló
+íntegramente el punto 2 (depuración de lluvia horaria en Denver, curvas IDF, validación con NOAA Atlas 14,
+delimitación de la microcuenca, diseño de alcantarilla y tanque de detención, y análisis complementarios de
+riesgo\cambioIA{).}
 
 \bibliographystyle{plainnat}
 \bibliography{referencias}

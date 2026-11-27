@@ -164,6 +164,42 @@ def figura_metodos(anual):
     return radiativo, aerodinamico
 
 
+def figura_meses_en_dispersion():
+    """Sesgo % de cada método frente a su referencia, mes a mes, con la banda de dispersión de la fase 3 (Juan, 26 nov).
+
+    Cada método lleva en la leyenda cuántos de los 12 meses caen dentro de la banda.
+    """
+    ajuste = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_por_mes.csv")
+    dispersion = ajuste.groupby("mes")["dispersion_pruebas_pct"].first()
+    assert (ajuste.groupby("mes")["dispersion_pruebas_pct"].nunique() == 1).all()
+    colores = {"Makkink": "#009E73", "Penman (FAO-24, c = 0.8)": "#0072B2", "Hargreaves–Samani": "#7C5BC7",
+               "Cenicafé 2006": "#CC79A7", "Priestley–Taylor": "#E69F00", "Thornthwaite": "#A65E1A"}
+    meses = list(range(1, 13))
+    fig, eje = plt.subplots(figsize=(6.5, 4.6))
+    eje.fill_between(meses, -dispersion.loc[meses], dispersion.loc[meses], color="#BBBBBB", alpha=0.5, lw=0,
+                     label="± dispersión entre pruebas (fase 3)")
+    eje.axhline(0, color="black", lw=0.8)
+    orden = []
+    for metodo, color in colores.items():
+        datos = ajuste[ajuste["metodo"] == metodo].set_index("mes").loc[meses]
+        dentro = int((~datos["supera_dispersion"].astype(bool)).sum())
+        orden.append((dentro, metodo))
+        etiqueta = f"{metodo}: {dentro} de 12 meses dentro"
+        if metodo == "Priestley–Taylor":
+            etiqueta += " (frente a rs = 0)"
+        eje.plot(meses, datos["sesgo_pct"], "o-", ms=3.5, lw=1.4, color=color, label=etiqueta)
+    eje.set_xticks(meses, ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"])
+    eje.set_ylabel("sesgo frente a su referencia (%)")
+    eje.grid(alpha=0.3)
+    eje.spines[["top", "right"]].set_visible(False)
+    fig.legend(fontsize=7, loc="lower center", ncol=2, frameon=False)
+    fig.tight_layout(rect=(0, 0.2, 1, 1))
+    salida = CARPETA_PRODUCTOS / "metodos_meses_en_dispersion.png"
+    fig.savefig(salida, dpi=200)
+    plt.close(fig)
+    print(f"Listo: {salida}")
+
+
 def tabla_metodos(anual):
     """Sesgo de cada método frente a la referencia de su misma superficie, y meses en que supera la dispersión."""
     ajuste = pd.read_csv(CARPETA_PRODUCTOS / "ajuste_por_mes.csv")
@@ -317,6 +353,7 @@ def escribir_tabla(nombre, lineas):
 def main():
     anual = anual_por_metodo()
     figura_metodos(anual)
+    figura_meses_en_dispersion()
     tabla_metodos(anual)
     figura_sensibilidad()
     figura_et_real()

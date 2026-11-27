@@ -259,10 +259,10 @@ Fig.~\ref{fig:terminos_alfa}).
 \end{figure}
 \begin{figure}[!htbp]\centering
   \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{eto_vs_terraclimate_pet.png}
-  \caption{Nuestra \ETo{} frente a la pet de TerraClimate, promedio de la cuenca.}
+  \caption{Ciclo anual de nuestra \ETo{} y de la pet de TerraClimate, promedio de la cuenca, 1998--2022.}
   \label{fig:terraclimate}
 \end{figure}
-\borradorIA{Redactado por la IA (pedido de Juan, 26 nov); falta el visto bueno de Juan.}
+% Texto redactado por la IA y aprobado por Juan (26 nov).
 La \ETo{} se probó de dos formas. Primero, contra la \ETo{} calculada con datos de tres estaciones del IDEAM. ERA5-Land
 da más Rs que la que sale del brillo solar con Angstrom ($+1.8$ en Mogotes, $+4.7$ en La Sierra y $+2.3$~MJ/m$^2$·d
 en Charalá; Fig.~\ref{fig:rs_estaciones}), pero la \ETo{} casi coincide: $-0.08$, $+0.66$ y $-0.16$~mm/d
@@ -299,8 +299,18 @@ El que mejor se ajusta parece ser Makkink. Esto tiene sentido porque nuestra cue
 estas son condiciones favorables para ese método.
 
 Ninguno de los métodos se mantiene completamente dentro del rango de la dispersión; sin embargo, el mejor es de nuevo
-Makkink, que está dentro del rango 7 meses al año. Esto significa que en estos meses la diferencia de Makkink
+Makkink, que está dentro del rango 7 meses al año (Fig.~\ref{fig:meses_dispersion}). Esto significa que en estos meses la diferencia de Makkink
 no se distingue de la incertidumbre de la referencia.
+
+% Ubicada junto al texto que la cita (pedido de Juan, 26 nov).
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.42\textheight,keepaspectratio]{metodos_meses_en_dispersion.png}
+  \caption{Sesgo de cada método frente a la referencia de su misma superficie, por mes calendario (media
+  1998--2022), con la dispersión entre las pruebas de la referencia (franja gris). En la leyenda, cuántos de los 12
+  meses caen dentro de la franja.}
+  \label{fig:meses_dispersion}
+\end{figure}
+
 
 % Texto de Juan: temp/textos_informe/fase5_diferencias_eto.md (tal cual, pasado a LaTeX).
 En esta sección se compararán los métodos de \ETo{} (evapotranspiración de referencia) anual de los métodos elegidos.

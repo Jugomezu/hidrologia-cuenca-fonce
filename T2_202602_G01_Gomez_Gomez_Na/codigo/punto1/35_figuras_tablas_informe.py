@@ -355,6 +355,7 @@ def cifras_texto(anual):
         "cifraETo": miles_tex(anual[PM]), "cifraRnLambda": miles_tex(techo.loc["balance con Pm", "Rn_lambda_mm_anio"]),
         "cifraPhi": f"{budyko['phi']:.2f}", "cifraEpsilon": f"{budyko['epsilon']:.2f}",
         "cifraQsobreP": f"{central['Q'] / central['P_media']:.2f}",
+        "cifraPsobreETo": f"{1 / budyko['phi']:.2f}",   # inverso de φ, para la introducción
     }
     lineas = ["% Generado por codigo/punto1/35_figuras_tablas_informe.py; no se edita a mano.",
               "% Medias anuales 1998–2022 (mm/año) de la cuenca del Fonce en San Gil; P, Q y ET en los 262 meses con Q."]

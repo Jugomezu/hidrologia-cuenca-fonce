@@ -3,8 +3,9 @@
 Esta carpeta sigue la estructura obligatoria de la entrega y ya lleva el nombre que exige: el ZIP de la
 entrega es esta carpeta comprimida entera, `T2_202602_G01_Gomez_Gomez_Na.zip`.
 
-Integrantes: Juan Pablo Gómez y Andrea Gómez. «Na» en el nombre de la carpeta no es una persona: el formato del
-nombre exige tres apellidos y el grupo tiene dos.
+Integrantes: Juan Pablo Gómez y Andrea Gómez. El grupo tiene solo dos integrantes. «Na» en el nombre de la carpeta
+y del ZIP no es una persona, sino un relleno: la expresión regular del enunciado,
+`^T2_202602_G[0-9]{2}(_[A-Z][A-Za-z]+){3}\.zip$`, exige exactamente tres apellidos.
 
 ```
 README.md

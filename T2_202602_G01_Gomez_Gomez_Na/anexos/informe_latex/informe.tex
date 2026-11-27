@@ -414,11 +414,11 @@ meses).
 La ET real de la cuenca sale del balance de largo plazo, $\mathrm{ET} = \bar{P} - Q$: \cifraETbalance{}
 $\pm$ \cifraSigmaET~mm/año (95~\%). La incertidumbre es grande, cerca del 45~\% del valor, y viene casi por partes
 iguales de la lluvia y del caudal:
-\begin{equation*}
+\begin{gather*}
   \sigma_P = 1.96\,\frac{|\mathrm{PL} - \mathrm{PI}|}{2} = 315~\text{mm/año}, \qquad
-  \sigma_Q = 0.256\,Q = 344~\text{mm/año}, \qquad
+  \sigma_Q = 0.256\,Q = 344~\text{mm/año},\\
   \sigma_\mathrm{ET} = \sqrt{\sigma_P^2 + \sigma_Q^2} = \cifraSigmaET~\text{mm/año}.
-\end{equation*}
+\end{gather*}
 $\sigma_P$ toma la diferencia entre IMERG (PI) y los pluviómetros (PL) como medida de cuánto no sabemos de la lluvia, y
 $\sigma_Q$ es el error del caudal al 95~\% que dan \citet{dibaldassarre2009}. Esa ET equivale al 90~\% de la \ETo{} y usa el 60~\% de la energía disponible: queda muy por debajo
 del techo de energía $R_n/\lambda$ (\cifraRnLambda~mm/año), el máximo que podría evaporarse si toda la $R_n$ se

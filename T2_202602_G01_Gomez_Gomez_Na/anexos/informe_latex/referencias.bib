@@ -1,3 +1,4 @@
+% En las entradas tipo misc, plainnat no imprime doi ni publisher: por eso llevan además url (al DOI) y howpublished.
 % Referencias del informe. Cada entrada sale de anexos/referencias.md (auditoría de citas del 2026-11-21).
 % Regla del proyecto: toda cita con DOI o un enlace donde se pueda leer.
 
@@ -25,6 +26,8 @@
   author       = {Hoyos, Carlos D.},
   title        = {Evapotranspiración [notas del curso de Hidrología]},
   howpublished = {Universidad Nacional de Colombia},
+  year         = {s.\,f.},
+  note         = {Consultado en noviembre de 2026},
   url          = {https://carlosdhoyos.github.io/cursos/hidrologia/evapotranspiracion.html}
 }
 
@@ -60,7 +63,9 @@
   title     = {{CAMELS-COL}: A large-sample hydrometeorological dataset for {Colombia} (v3)},
   publisher = {Zenodo},
   year      = {2026},
-  doi       = {10.5281/zenodo.18794895}
+  doi       = {10.5281/zenodo.18794895},
+  url          = {https://doi.org/10.5281/zenodo.18794895},
+  howpublished = {Zenodo}
 }
 
 @article{abatzoglou2018,
@@ -68,6 +73,7 @@
   title   = {{TerraClimate}, a high-resolution global dataset of monthly climate and climatic water balance from 1958--2015},
   journal = {Scientific Data},
   volume  = {5},
+  number  = {1},
   pages   = {170191},
   year    = {2018},
   doi     = {10.1038/sdata.2017.191}
@@ -89,6 +95,8 @@
   title   = {{GLEAM4}: global land evaporation and soil moisture dataset at 0.1° resolution from 1980 to near present},
   journal = {Scientific Data},
   volume  = {12},
+  number  = {1},
+  pages   = {416},
   year    = {2025},
   doi     = {10.1038/s41597-025-04610-y}
 }
@@ -98,7 +106,9 @@
   title     = {{MODIS/Terra} Net Evapotranspiration Gap-Filled 8-Day {L4} Global 500m {SIN} Grid {V061}},
   publisher = {NASA LP DAAC},
   year      = {2021},
-  doi       = {10.5067/MODIS/MOD16A2GF.061}
+  doi       = {10.5067/MODIS/MOD16A2GF.061},
+  url          = {https://doi.org/10.5067/MODIS/MOD16A2GF.061},
+  howpublished = {NASA LP DAAC}
 }
 
 @article{senay2013,
@@ -112,22 +122,14 @@
   doi     = {10.1111/jawr.12057}
 }
 
-@article{senay2023,
-  author  = {Senay, Gabriel B. and others},
-  title   = {Improving the Operational Simplified Surface Energy Balance evapotranspiration model using the Forcing and Normalizing Operation},
-  journal = {Remote Sensing},
-  volume  = {15},
-  number  = {1},
-  pages   = {260},
-  year    = {2023},
-  doi     = {10.3390/rs15010260}
-}
-
 @misc{huffman_imerg,
-  author    = {Huffman, G. J. and others},
-  title     = {{GPM IMERG} Final Precipitation {L3} 1 month 0.1° {V07} ({GPM\_3IMERGM})},
+  author    = {Huffman, G. J. and Stocker, E. F. and Bolvin, D. T. and Nelkin, E. J. and Tan, J.},
+  title     = {{GPM IMERG} Final Precipitation {L3} 1 month 0.1 degree x 0.1 degree {V07} ({GPM\_3IMERGM})},
   publisher = {NASA GES DISC},
-  doi       = {10.5067/GPM/IMERG/3B-MONTH/07}
+  year      = {2023},
+  doi       = {10.5067/GPM/IMERG/3B-MONTH/07},
+  url          = {https://doi.org/10.5067/GPM/IMERG/3B-MONTH/07},
+  howpublished = {NASA GES DISC}
 }
 
 @article{hargreaves1985,
@@ -172,16 +174,6 @@
   pages   = {288--298},
   year    = {2006},
   url     = {https://cenicafe.org/es/publications/arc057(04)288-298.pdf}
-}
-
-@article{makkink1957,
-  author  = {Makkink, G. F.},
-  title   = {Testing the {Penman} formula by means of lysimeters},
-  journal = {Journal of the Institution of Water Engineers},
-  volume  = {11},
-  pages   = {277--288},
-  year    = {1957},
-  note    = {Ecuación tomada de las notas del curso (Hoyos)}
 }
 
 @article{penman1948,
@@ -237,4 +229,393 @@
   pages   = {125--161},
   year    = {2010},
   doi     = {10.1016/j.earscirev.2010.02.004}
+}
+
+% Métodos de tendencias de la fase 8 (los mismos de la Tarea 1) y curva de Fu. Los 7 DOI se comprobaron en la API de
+% Crossref el 2026-11-25: título, autor, revista, año, volumen y número coinciden.
+@article{hirsch1982,
+  author  = {Hirsch, Robert M. and Slack, James R. and Smith, Richard A.},
+  title   = {Techniques of trend analysis for monthly water quality data},
+  journal = {Water Resources Research},
+  volume  = {18},
+  number  = {1},
+  pages   = {107--121},
+  year    = {1982},
+  doi     = {10.1029/WR018i001p00107}
+}
+
+@article{sen1968,
+  author  = {Sen, Pranab Kumar},
+  title   = {Estimates of the regression coefficient based on {Kendall's} tau},
+  journal = {Journal of the American Statistical Association},
+  volume  = {63},
+  number  = {324},
+  pages   = {1379--1389},
+  year    = {1968},
+  doi     = {10.1080/01621459.1968.10480934}
+}
+
+@article{hamed1998,
+  author  = {Hamed, Khaled H. and Rao, A. Ramachandra},
+  title   = {A modified {Mann-Kendall} trend test for autocorrelated data},
+  journal = {Journal of Hydrology},
+  volume  = {204},
+  number  = {1--4},
+  pages   = {182--196},
+  year    = {1998},
+  doi     = {10.1016/S0022-1694(97)00125-X}
+}
+
+@article{newey1987,
+  author  = {Newey, Whitney K. and West, Kenneth D.},
+  title   = {A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix},
+  journal = {Econometrica},
+  volume  = {55},
+  number  = {3},
+  pages   = {703--708},
+  year    = {1987},
+  doi     = {10.2307/1913610}
+}
+
+@article{pettitt1979,
+  author  = {Pettitt, A. N.},
+  title   = {A non-parametric approach to the change-point problem},
+  journal = {Journal of the Royal Statistical Society, Series C (Applied Statistics)},
+  volume  = {28},
+  number  = {2},
+  pages   = {126--135},
+  year    = {1979},
+  doi     = {10.2307/2346729}
+}
+
+@article{benjamini1995,
+  author  = {Benjamini, Yoav and Hochberg, Yosef},
+  title   = {Controlling the false discovery rate: a practical and powerful approach to multiple testing},
+  journal = {Journal of the Royal Statistical Society, Series B},
+  volume  = {57},
+  number  = {1},
+  pages   = {289--300},
+  year    = {1995},
+  doi     = {10.1111/j.2517-6161.1995.tb02031.x}
+}
+
+@article{zhang2004,
+  author  = {Zhang, Lu and Hickel, Klaus and Dawes, W. R. and Chiew, Francis H. S. and Western, A. W. and Briggs, P. R.},
+  title   = {A rational function approach for estimating mean annual evapotranspiration},
+  journal = {Water Resources Research},
+  volume  = {40},
+  number  = {2},
+  pages   = {W02502},
+  year    = {2004},
+  doi     = {10.1029/2003WR002710}
+}
+
+% Fase 9, tema f (resistencia de superficie). Gehrke et al. comprobado por el hilo de la fase 9; MCD15A3H comprobado
+% el 2026-11-25 en su página de NASA Earthdata (DOI, título, autores y año 2021).
+@article{gehrke2021,
+  author  = {Gehrke, Katrin F. and Sühring, Matthias and Maronga, Björn},
+  title   = {Modeling of land--surface interactions in the {PALM} model system 6.0: land surface model description,
+             first evaluation, and sensitivity to model parameters},
+  journal = {Geoscientific Model Development},
+  volume  = {14},
+  number  = {8},
+  pages   = {5307--5329},
+  year    = {2021},
+  doi     = {10.5194/gmd-14-5307-2021}
+}
+
+@misc{myneni2021,
+  author    = {Myneni, R. and Knyazikhin, Y. and Park, T.},
+  title     = {{MODIS/Terra+Aqua} Leaf Area Index/{FPAR} 4-Day {L4} Global 500m {SIN} Grid {V061} ({MCD15A3H})},
+  publisher = {NASA LP DAAC},
+  year      = {2021},
+  doi       = {10.5067/MODIS/MCD15A3H.061},
+  url          = {https://doi.org/10.5067/MODIS/MCD15A3H.061},
+  howpublished = {NASA LP DAAC}
+}
+
+% Control de calidad de la fase 8 (script 42). Comprobados en la API de Crossref el 2026-11-26.
+@article{funk2015,
+  author  = {Funk, Chris and Peterson, Pete and Landsfeld, Martin and Pedreros, Diego and Verdin, James and Shukla, Shraddhanand and Husak, Gregory and Rowland, James and Harrison, Laura and Hoell, Andrew and Michaelsen, Joel},
+  title   = {The climate hazards infrared precipitation with stations---a new environmental record for monitoring extremes},
+  journal = {Scientific Data},
+  volume  = {2},
+  number  = {1},
+  pages   = {150066},
+  year    = {2015},
+  doi     = {10.1038/sdata.2015.66}
+}
+
+@article{beck2022,
+  author  = {Beck, Hylke E. and van Dijk, Albert I. J. M. and Larraondo, Pablo R. and McVicar, Tim R. and Pan, Ming and Dutra, Emanuel and Miralles, Diego G.},
+  title   = {{MSWX}: Global 3-hourly 0.1° bias-corrected meteorological data including near-real-time updates and forecast ensembles},
+  journal = {Bulletin of the American Meteorological Society},
+  volume  = {103},
+  number  = {3},
+  pages   = {E710--E732},
+  year    = {2022},
+  doi     = {10.1175/BAMS-D-21-0145.1}
+}
+
+
+% Fuentes de datos que el texto nombraba sin cita (auditoría de citas del 2026-11-26). DHIME y MapBiomas no tienen
+% DOI: se citan con su portal (forma de cita de MapBiomas de ../../../Analisis_De_Cuenca/DATOS_FUENTES.md). ALOS:
+% DOI y forma de cita de la página del proyecto ALOS PALSAR RTC en NASA Earthdata (leída el 2026-11-26); el producto
+% exacto del mosaico de la Tarea 1 no se registró.
+@misc{ideam_dhime,
+  author       = {{Instituto de Hidrología, Meteorología y Estudios Ambientales}},
+  title        = {Consulta y descarga de datos hidrometeorológicos ({DHIME})},
+  organization = {IDEAM},
+  year         = {2026},
+  note         = {Datos en estado preliminar. Consultado en 2026},
+  url          = {https://atencionciudadano.ideam.gov.co}
+}
+
+@misc{mapbiomas_col3,
+  author       = {{Fundación Gaia Amazonas}},
+  title        = {Proyecto {MapBiomas Colombia} Colección 3.0 -- Mapeo anual de cobertura y uso del suelo},
+  year         = {2025},
+  note         = {Cobertura 2022. Consultado el 2026-10-09},
+  url          = {https://colombia.mapbiomas.org}
+}
+
+@misc{asf_alos,
+  author    = {{ASF DAAC}},
+  title     = {{ALOS PALSAR} High Resolution Radiometric Terrain Corrected Product},
+  publisher = {NASA Alaska Satellite Facility Distributed Active Archive Center},
+  year      = {2014},
+  note      = {Incluye material {\copyright}~JAXA/METI},
+  doi       = {10.5067/Z97HFCNKR6VA},
+  url          = {https://doi.org/10.5067/Z97HFCNKR6VA},
+  howpublished = {NASA Alaska Satellite Facility Distributed Active Archive Center}
+}
+
+% SSEBop: se citan los conjuntos de datos (DataCite, 2026-11-26). Senay et al. (2023, Remote Sensing 15(1) 260) se
+% quitó: describe FANO como «v0.2.6» y no dice que sea la base de la v6.1 (VIIRS) que usamos.
+@misc{senay2023datos,
+  author       = {Senay, Gabriel and Kagone, Stefanie and Parrish, Gabriel E. and Budde, Michael E. and Rowland, James},
+  title        = {{SSEBop} Evapotranspiration Data from 2012 to Present: Dekadal (10-day), Monthly, Seasonal, and Annual Time Scales},
+  publisher    = {U.S. Geological Survey},
+  howpublished = {U.S. Geological Survey},
+  year         = {2023},
+  doi          = {10.5066/P9QJWQ6K},
+  url          = {https://doi.org/10.5066/P9QJWQ6K}
+}
+
+@misc{senay2017datos,
+  author       = {Senay, Gabriel B. and Kagone, Stefanie K. and Friedrichs, MacKenzie and Velpuri, Naga M. and Rowland, James and Verdin, James},
+  title        = {{SSEBop} Evapotranspiration Data},
+  publisher    = {U.S. Geological Survey},
+  howpublished = {U.S. Geological Survey},
+  year         = {2017},
+  doi          = {10.5066/F72V2F1F},
+  url          = {https://doi.org/10.5066/F72V2F1F}
+}
+
+@article{poveda2004,
+  author  = {Poveda, Germán},
+  title   = {La hidroclimatología de {C}olombia: una síntesis desde la escala inter-decadal hasta la escala diurna},
+  journal = {Revista de la Academia Colombiana de Ciencias Exactas, Físicas y Naturales},
+  volume  = {28},
+  number  = {107},
+  pages   = {201--221},
+  year    = {2004},
+  doi     = {10.18257/raccefyn.28(107).2004.1991}
+}
+
+% Punto 2 (auditoría de citas del 2026-11-26). DOI comprobados en Crossref; GHCNh y NOAA Atlas 14 en sus páginas de
+% NOAA; NEH 630 cap. 16 en el sitio de directivas del NRCS.
+@misc{menne2023,
+  author       = {Menne, Matthew J. and Noone, Simon and Casey, Nancy W. and Dunn, Robert H. and McNeill, Shelley and Kantor, Diana and Thorne, Peter W. and Orcutt, Karen and Cunningham, Sam and Risavi, Nicholas},
+  title        = {Global Historical Climatology Network-hourly ({GHCNh}), Version 1},
+  howpublished = {NOAA National Centers for Environmental Information},
+  year         = {2023},
+  doi          = {10.25921/jp3d-3v19},
+  url          = {https://doi.org/10.25921/jp3d-3v19}
+}
+
+@techreport{perica2013,
+  author      = {Perica, Sanja and Martin, Deborah and Pavlovic, Sandra and Roy, Ishani and St. Laurent, Michael and Trypaluk, Carl and Unruh, Dale and Yekta, Michael and Bonnin, Geoffrey},
+  title       = {{NOAA Atlas 14} Volume 8 Version 2.0: Precipitation-Frequency Atlas of the {United States}, Midwestern States},
+  institution = {NOAA, National Weather Service},
+  address     = {Silver Spring, Maryland},
+  year        = {2013},
+  url         = {https://www.weather.gov/media/owp/oh/hdsc/docs/Atlas14_Volume8.pdf}
+}
+
+@article{weiss1964,
+  author  = {Weiss, Leonard L.},
+  title   = {Ratio of true to fixed-interval maximum rainfall},
+  journal = {Journal of the Hydraulics Division},
+  volume  = {90},
+  number  = {1},
+  pages   = {77--82},
+  year    = {1964},
+  doi     = {10.1061/JYCEAJ.0001008}
+}
+
+@book{hosking1997,
+  author    = {Hosking, J. R. M. and Wallis, J. R.},
+  title     = {Regional Frequency Analysis: An Approach Based on {L}-Moments},
+  publisher = {Cambridge University Press},
+  year      = {1997},
+  doi       = {10.1017/CBO9780511529443}
+}
+
+@article{gringorten1963,
+  author  = {Gringorten, Irving I.},
+  title   = {A plotting rule for extreme probability paper},
+  journal = {Journal of Geophysical Research},
+  volume  = {68},
+  number  = {3},
+  pages   = {813--814},
+  year    = {1963},
+  doi     = {10.1029/JZ068i003p00813}
+}
+
+@article{mann1945,
+  author  = {Mann, Henry B.},
+  title   = {Nonparametric tests against trend},
+  journal = {Econometrica},
+  volume  = {13},
+  number  = {3},
+  pages   = {245--259},
+  year    = {1945},
+  doi     = {10.2307/1907187}
+}
+
+@article{koutsoyiannis1998,
+  author  = {Koutsoyiannis, Demetris and Kozonis, Demosthenes and Manetas, Alexandros},
+  title   = {A mathematical framework for studying rainfall intensity-duration-frequency relationships},
+  journal = {Journal of Hydrology},
+  volume  = {206},
+  number  = {1--2},
+  pages   = {118--135},
+  year    = {1998},
+  doi     = {10.1016/S0022-1694(98)00097-3}
+}
+
+@article{langbein1949,
+  author  = {Langbein, W. B.},
+  title   = {Annual floods and the partial-duration flood series},
+  journal = {Transactions, American Geophysical Union},
+  volume  = {30},
+  number  = {6},
+  pages   = {879--881},
+  year    = {1949},
+  doi     = {10.1029/TR030i006p00879}
+}
+
+@book{coles2001,
+  author    = {Coles, Stuart},
+  title     = {An Introduction to Statistical Modeling of Extreme Values},
+  publisher = {Springer},
+  address   = {London},
+  year      = {2001},
+  doi       = {10.1007/978-1-4471-3675-0}
+}
+
+@article{hashimoto1982,
+  author  = {Hashimoto, Tsuyoshi and Stedinger, Jery R. and Loucks, Daniel P.},
+  title   = {Reliability, resiliency, and vulnerability criteria for water resource system performance evaluation},
+  journal = {Water Resources Research},
+  volume  = {18},
+  number  = {1},
+  pages   = {14--20},
+  year    = {1982},
+  doi     = {10.1029/WR018i001p00014}
+}
+
+@manual{nrcs2007cap16,
+  author       = {{USDA Natural Resources Conservation Service}},
+  title        = {National Engineering Handbook, Part 630 Hydrology, Chapter 16: Hydrographs},
+  organization = {USDA NRCS},
+  year         = {2007},
+  url          = {https://directives.nrcs.usda.gov/sites/default/files2/1720461096/Chapter%2016%20-%20Hydrographs.pdf}
+}
+
+@book{chow1988,
+  author    = {Chow, Ven Te and Maidment, David R. and Mays, Larry W.},
+  title     = {Applied Hydrology},
+  publisher = {McGraw-Hill},
+  address   = {New York},
+  year      = {1988},
+  note      = {ISBN 0-07-010810-2. Sin enlace libre},
+  url       = {https://library.usi.edu/record/256928}
+}
+
+@misc{esa_copdem,
+  author       = {{European Space Agency}},
+  title        = {Copernicus {DEM} -- Global and European Digital Elevation Model ({COP-DEM}), {GLO-30}},
+  howpublished = {Copernicus Data Space Ecosystem},
+  year         = {s.\,f.},
+  note         = {DOI que pide la página del producto. Es un modelo de superficie (DSM)},
+  doi          = {10.5270/ESA-c5d3d65},
+  url          = {https://doi.org/10.5270/ESA-c5d3d65}
+}
+
+@manual{nrcs2010cap15,
+  author       = {{USDA Natural Resources Conservation Service}},
+  title        = {National Engineering Handbook, Part 630 Hydrology, Chapter 15: Time of Concentration},
+  organization = {USDA NRCS},
+  year         = {2010},
+  url          = {https://damtoolbox.org/images/2/20/NEH15.pdf}
+}
+
+@manual{txdot_hdm,
+  author       = {{Texas Department of Transportation}},
+  title        = {Hydraulic Design Manual, Chapter 4 Hydrology, Section 11: Time of Concentration (métodos de Kerby y Kerby--Kirpich)},
+  organization = {TxDOT},
+  year         = {s.\,f.},
+  note         = {Consultado el 2026-11-26},
+  url          = {https://www.txdot.gov/manuals/des/hyd/chapter-4--hydrology/section-11--time-of-concentration/application-of-the-kerby-kirpich-method.html}
+}
+
+@misc{accuweather2022,
+  author       = {{AccuWeather}},
+  title        = {Motorists stranded across {Denver} as heavy rains trigger flash flooding},
+  howpublished = {AccuWeather},
+  year         = {2022},
+  note         = {8 de agosto de 2022},
+  url          = {https://www.accuweather.com/en/weather-news/motorists-stranded-across-denver-as-heavy-rains-trigger-flash-flooding/1228751}
+}
+
+@misc{astm_c76m,
+  author       = {{ASTM International}},
+  title        = {{ASTM C76M-22a}: Standard Specification for Reinforced Concrete Culvert, Storm Drain, and Sewer Pipe (Metric)},
+  year         = {2022},
+  howpublished = {Norma técnica; diámetros internos en las Tablas 1 a 5},
+  note         = {Vista previa consultada el 26 de noviembre de 2026},
+  url          = {https://cdn.standards.iteh.ai/samples/113179/286ecf536c2a4da7aadb9fe27be2b8c9/ASTM-C76M-22a.pdf}
+}
+
+@article{hersbach2020,
+  author  = {Hersbach, Hans and Bell, Bill and Berrisford, Paul and Hirahara, Shoji and Hor{\'a}nyi, Andr{\'a}s and Mu{\~n}oz-Sabater, Joaqu{\'i}n and others},
+  title   = {The {ERA5} global reanalysis},
+  journal = {Quarterly Journal of the Royal Meteorological Society},
+  volume  = {146},
+  number  = {730},
+  pages   = {1999--2049},
+  year    = {2020},
+  doi     = {10.1002/qj.3803}
+}
+
+@article{fowler2021,
+  author  = {Fowler, Hayley J. and Lenderink, Geert and Prein, Andreas F. and Westra, Seth and others},
+  title   = {Anthropogenic intensification of short-duration rainfall extremes},
+  journal = {Nature Reviews Earth \& Environment},
+  volume  = {2},
+  number  = {2},
+  pages   = {107--122},
+  year    = {2021},
+  doi     = {10.1038/s43017-020-00128-6}
+}
+
+@misc{fom2016,
+  author       = {{Ministerio de Fomento}},
+  title        = {Orden {FOM}/298/2016, de 15 de febrero, por la que se aprueba la norma 5.2-{IC} drenaje superficial de la {Instrucción} de {Carreteras}},
+  howpublished = {Boletín Oficial del Estado, núm. 60, 10 de marzo de 2016 (BOE-A-2016-2405)},
+  year         = {2016},
+  note         = {Tiempo de concentración: apartado 2.2.2.5},
+  url          = {https://www.boe.es/boe/dias/2016/03/10/pdfs/BOE-A-2016-2405.pdf}
 }

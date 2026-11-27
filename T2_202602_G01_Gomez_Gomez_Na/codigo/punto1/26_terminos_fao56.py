@@ -52,7 +52,7 @@ def main():
     print(f"Anual: radiativo {anual.iloc[0]:.0f}, aerodinámico {anual.iloc[1]:.0f} mm/año "
           f"({100 * anual.iloc[1] / anual.sum():.1f} %)")
 
-    fig, eje = plt.subplots(figsize=(8, 4))
+    fig, eje = plt.subplots(figsize=(6.5, 3.6))
     x = range(1, 13)
     eje.bar(x, ciclo["eto_radiativa_mm_mes"], color="#0072B2", label="término radiativo")
     eje.bar(x, ciclo["eto_aerodinamica_mm_mes"], bottom=ciclo["eto_radiativa_mm_mes"], color="#E69F00",

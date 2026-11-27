@@ -429,6 +429,15 @@ def datos_fase9f_jarvis():
     return r.round(4).astype(object).where(r.notna(), None).to_dict(orient="records")
 
 
+def datos_fase10():
+    """Fase 10: déficit climático anual y su frecuencia (40_deficit_climatico_frecuencia.py)."""
+    serie = pd.read_csv(CARPETA_PRODUCTOS / "deficit_climatico_anual.csv")
+    frec = pd.read_csv(CARPETA_PRODUCTOS / "deficit_climatico_frecuencia.csv")
+    def reg(df):
+        return df.round(4).astype(object).where(df.notna(), None).to_dict(orient="records")
+    return {"serie": reg(serie), "frecuencia": reg(frec)}
+
+
 def texto_fase4():
     """Fase 5: explicación de las diferencias escrita por Juan (temp/textos_informe/fase5_diferencias_eto.md)."""
     import html, re
@@ -525,6 +534,7 @@ def main():
         "fase9": datos_fase9(),
         "fase9f": datos_fase9f(),
         "fase9fj": datos_fase9f_jarvis(),
+        "fase10": datos_fase10(),
         "fase8b": datos_fase8_1981(),
         "fase6": datos_fase6(),
         "puntos": PUNTOS,
@@ -1039,6 +1049,29 @@ code { font: 400 .86em var(--f-dato); }
   <div class="tarjeta" style="margin-top:12px"><h3>Conclusión de Juan (25 nov, 8:48 a. m.)</h3>
   <p>La superficie frena más la evaporación arriba, y eso se explica por menor área foliar (páramo), no por cierre
   estomático; con estos datos no se puede estimar la respuesta al déficit.</p></div>
+</section>
+
+<section>
+  <h2>Fase 10 · De la ET al diseño: déficit climático anual</h2>
+  <p>Script 40 (bono 1.6). Serie elegida por Juan (25 nov): déficit climático máximo acumulado del año,
+  D(t) = max(0, D(t−1) + ETo − P̄), mes a mes, con la ETo Penman–Monteith (FAO-56) y P̄ = (PI+PL)/2, 1998–2022. La suma no
+  se reinicia en ninguna fecha fija (Juan, 26 nov): la temporada seca cruza el año; la versión con reinicio en enero va como sensibilidad. Frecuencia con
+  las funciones del script 02 del punto 2, sin modificar: Gumbel, GEV y LP3 por momentos L. Los años con déficit 0 se
+  tratan con la distribución mixta F = p0 + (1 − p0)·F+. IC 95 % por bootstrap de los años (1 000 réplicas, semilla 42).
+  Limitación: con meses, la lluvia de un mes tapa sus semanas secas, así que el déficit queda subestimado.</p>
+  <div class="tarjeta"><h3>Serie anual (mm)</h3><div class="grafico" id="g-fase10-serie" style="height:360px"></div></div>
+  <div class="tabla" id="t-fase10" style="margin-top:12px"></div>
+  <p class="nota">Lectura preliminar (agente, para Juan): 22 de 25 años tienen déficit (p0 = 0.12); media 42 mm, máximo
+  117 mm (2016). El máximo cae casi siempre en enero o febrero. Sin tendencia (Mann-Kendall p 0.19). T = 10 años: 86 mm
+  (Gumbel, IC 66–104), 96 (GEV, 67–122), 88 (LP3, 68–107); las tres coinciden dentro del IC. T = 25: 110, 134 y 95 mm, y
+  ahí se separan: la GEV sube rápido y la LP3 se aplana. La LP3 se aplana porque tiene techo: en log el sesgo es −2.0 (A) y −2.2 (con +1 mm), y una Pearson III con sesgo negativo tiene un máximo, 99 y 101 mm, por debajo de los 117 mm de 2016. En la GEV, 143 de 1 000 réplicas no tienen ajuste por momentos L.
+  Reiniciar en enero solo cambia 2016 (117 → 90) y 2019 (68 → 27).</p>
+  <div class="tarjeta" style="margin-top:12px"><h3>Decisión de Juan (26 nov)</h3>
+  <p>Sin reinicio de la suma; distribución mixta (p0 = 0.12) con Gumbel. El déficit climático que se supera en promedio una
+  vez cada 10 años es 86 mm (IC 95 % 66–104); cada 25 años, 110 mm (83–132). GEV y LP3 quedan como sensibilidad.</p></div>
+  <p class="nota">Va como anexo, sin reclamar el bono (Juan, 26 nov): el enunciado exige que el punto 2 use la misma cuenca o
+  una con información equivalente, y el punto 2 es Denver. No se rehace con la serie exacta del enunciado (Σ de la temporada
+  seca de 1.3, es decir, enero).</p>
 </section>
 
 <section>
@@ -1669,6 +1702,17 @@ for (const [valor, texto] of CARGA.cifras) {
     const J = CARGA.fase9fj, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);
     document.getElementById('t-fase9fj').innerHTML = '<table><thead><tr><th>Producto</th><th>Punto</th><th>z (m)</th><th>Meses</th><th>LAI</th><th>rs (s/m)</th><th>rs·LAI (s/m)</th><th>rc,min celda</th><th>f_total</th><th>D medio (hPa)</th><th>g (1/hPa) [IC 95 %]</th><th>R²</th></tr></thead><tbody>'
       + J.map(r => `<tr><td>${r.producto}</td><td>${r.punto}</td><td>${f0(r.z_modelo_m)}</td><td>${r.meses}</td><td>${f2(r.lai_mediana)}</td><td>${f0(r.rs_mediana_sm)}</td><td>${f0(r.rs_por_lai_mediana_sm)}</td><td>${f0(r.rc_min_celda_sm)}</td><td>${f2(r.f_total_mediana)}</td><td>${f2(r.deficit_medio_hPa)}</td><td>${f3(r.g_deficit_por_hPa)} [${f3(r.g_ic95_inferior)}, ${f3(r.g_ic95_superior)}]</td><td>${f2(r.r2_ln_f_vs_deficit)}</td></tr>`).join('') + '</tbody></table>';
+  }
+  {
+    const D = CARGA.fase10, f0 = (v) => v == null ? '' : Number(v).toFixed(0), f1 = (v) => v == null ? '' : Number(v).toFixed(1), f2 = (v) => v == null ? '' : Number(v).toFixed(2);
+    const l = base('mm'); l.showlegend = true; Object.assign(l.legend, {orientation: 'h', y: -0.2, yanchor: 'top'});
+    l.xaxis = Object.assign(l.xaxis, {type: 'linear', title: {text: 'año', font: {size: 11, color: css('--tenue')}}});
+    Plotly.newPlot('g-fase10-serie', [
+      {type: 'bar', x: D.serie.map(r => r.anio), y: D.serie.map(r => r.deficit_mm), name: 'sin reinicio (serie usada)', marker: {color: '#0072B2'}, hovertemplate: '%{x}: %{y:.1f} mm<extra></extra>'},
+      {type: 'scatter', mode: 'markers', x: D.serie.map(r => r.anio), y: D.serie.map(r => r.deficit_reinicio_enero_mm), name: 'con reinicio en enero (sensibilidad)', marker: {color: '#D55E00', symbol: 'diamond'}, hovertemplate: '%{x}: %{y:.1f} mm<extra></extra>'}
+    ], l, OPCIONES);
+    document.getElementById('t-fase10').innerHTML = '<table><thead><tr><th>Distribución</th><th>T (años)</th><th>Déficit (mm)</th><th>IC 95 % (mm)</th><th>p0</th><th>PPCC</th><th>Réplicas válidas</th></tr></thead><tbody>'
+      + D.frecuencia.map(r => `<tr><td>${r.distribucion}</td><td>${r.periodo_retorno_anios}</td><td>${f1(r.deficit_mm)}</td><td>${f1(r.ic95_bajo_mm)}–${f1(r.ic95_alto_mm)}</td><td>${f2(r.p0)}</td><td>${f2(r.PPCC)}</td><td>${r.replicas_validas}</td></tr>`).join('') + '</tbody></table>';
   }
   {
     const F = CARGA.fase8b, f2 = (v) => v == null ? '' : Number(v).toFixed(2), f3 = (v) => v == null ? '' : Number(v).toFixed(3);

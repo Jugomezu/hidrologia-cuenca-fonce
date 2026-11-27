@@ -1,0 +1,7 @@
+estacion,nombre,fuente_hr_diaria,dias_validos,primer_dia,ultimo_dia,dias_hr_menor_30,hr_media_pct
+24025030,LA SIERRA - AUT [24025030],(máxima + mínima) / 2,6432,1998-01-02,2022-12-31,0,83.75
+24025040,ESCUELA AGRICOLA MOGOTES [24025040],(máxima + mínima) / 2,6673,1998-01-01,2022-12-30,0,74.74
+24025050,CHARALÁ [24025050],(máxima + mínima) / 2,6590,1998-01-01,2022-12-31,0,76.6
+24025090,MOGOTES - AUT [24025090],media diaria,4006,2005-04-20,2021-09-09,149,78.87
+24035350,ANDALUCIA [24035350],(máxima + mínima) / 2,5948,1998-01-01,2017-02-16,1,82.56
+promedio,promedio simple de las 5,,,,,,79.3

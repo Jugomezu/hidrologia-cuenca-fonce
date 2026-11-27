@@ -1,0 +1,3 @@
+criterio,numero_anios,media_maximos_anuales_mm,cuantil_1h_T10_mm,cuantil_1h_T50_mm,metodo
+filtrados_80_90,45,15.6422,26.0469,36.3173,Gumbel por momentos sobre máximos anuales horarios (preliminar)
+todos_completitud_50,46,15.7435,26.0708,36.2649,Gumbel por momentos sobre máximos anuales horarios (preliminar)

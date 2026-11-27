@@ -255,7 +255,7 @@ def energia_por_punto():
 
 
 def figura_energia(e):
-    fig, ejes = plt.subplots(1, 2, figsize=(11, 4.6))
+    fig, ejes = plt.subplots(2, 1, figsize=(6.5, 8.5))
     colores = {"terraclimate_aet": "#009E73", "gleam_E": "#CC79A7", "ssebop_v61": "#E69F00"}
     ax = ejes[0]
     for n in ET_REAL:
@@ -286,7 +286,7 @@ def figura_energia(e):
 
 # ---------------------------------------------------------------- figura
 def figura(tabla_p, celdas, bandas, m_eto, b_eto):
-    fig, ejes = plt.subplots(1, 3, figsize=(16, 5.2))
+    fig, ejes = plt.subplots(3, 1, figsize=(6.5, 9.5))
     colores = {"terraclimate_aet": "#009E73", "gleam_E": "#CC79A7", "ssebop_v61": "#E69F00", "terraclimate_pet": "#56B4E9"}
     nombres = {"terraclimate_aet": "TerraClimate aet", "gleam_E": "GLEAM E", "ssebop_v61": "SSEBop v6.1 (2012–2022)",
                "terraclimate_pet": "TerraClimate pet (demanda)"}
@@ -313,6 +313,7 @@ def figura(tabla_p, celdas, bandas, m_eto, b_eto):
     ax.plot(m_eto * z + b_eto, z, "--", color="#0072B2", label="ETo (recta de los 6 puntos)")
     ax.set_xlim(0, None)
     ax.set_xlabel("mm/año")
+    ax.set_ylabel("altura (m)")
     ax.set_title("ET real de los productos, por celda")
     ax.legend(fontsize=8)
     # (c) hipsometría y ET/ETo por banda
@@ -330,7 +331,7 @@ def figura(tabla_p, celdas, bandas, m_eto, b_eto):
     ax2.set_xlim(0, 1.4)
     ax2.axvline(1, color="k", lw=0.8)
     ax2.set_xlabel("ET/ETo")
-    ax2.legend(fontsize=8, loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=3, frameon=False)
+    ax2.legend(fontsize=7.5, loc="upper right")
     fig.tight_layout()
     fig.savefig(PRODUCTOS / "gradiente_altitudinal.png", dpi=150)
 

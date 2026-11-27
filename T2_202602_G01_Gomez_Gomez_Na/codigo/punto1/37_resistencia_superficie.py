@@ -271,7 +271,7 @@ def main():
 
 def figura(tabla, resumen):
     colores = {"GLEAM v4.3a": "#CC79A7", "SSEBop v6.1": "#E69F00"}
-    fig, ejes = plt.subplots(1, 2, figsize=(12, 4.6))
+    fig, ejes = plt.subplots(2, 1, figsize=(6.5, 8.8))
     for prod, r in resumen.groupby("producto"):
         r = r.sort_values("z_modelo_m")
         ejes[0].errorbar(r["rs_mediana_sm"], r["z_modelo_m"],
@@ -291,7 +291,7 @@ def figura(tabla, resumen):
     ejes[0].set_xlabel("rs efectiva, mediana y cuartiles (s/m)")
     ejes[0].set_ylabel("altura del modelo (m)")
     ejes[0].set_title("Resistencia de superficie frente a la altura")
-    ejes[0].legend(fontsize=6.5)
+    ejes[0].legend(fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
     # ciclo anual de la rs de SSEBop por punto (mediana por mes del calendario)
     s = tabla[tabla["producto"] == "SSEBop v6.1"]
     ciclo = s.groupby(["punto", s["mes"].dt.month])["rs_sm"].median().unstack(0)
@@ -303,7 +303,7 @@ def figura(tabla, resumen):
     ejes[1].set_xticks(range(1, 13))
     ejes[1].set_xlabel("mes")
     ejes[1].set_ylabel("rs efectiva (s/m)")
-    ejes[1].set_title("Ciclo anual de la rs con SSEBop v6.1 (2012–2022), ra por cobertura")
+    ejes[1].set_title("Ciclo anual de la rs con SSEBop v6.1 (2012–2022), ra por cobertura", fontsize=10)
     ejes[1].legend(fontsize=7, ncol=2)
     fig.tight_layout()
     fig.savefig(SALIDA_FIGURA, dpi=150)

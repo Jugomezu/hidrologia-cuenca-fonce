@@ -1,8 +1,19 @@
 % Informe de la Tarea 2 (Hidrología, 202602), grupo G01.
-% Compilar desde esta carpeta:  latexmk -pdf informe.tex   (o pdflatex + bibtex + pdflatex x2)
+%
+% Compilar desde esta carpeta (anexos/informe_latex/):
+%     latexmk -pdf informe.tex        (o pdflatex, bibtex, pdflatex, pdflatex)
 % y copiar informe.pdf a la raíz de la entrega como T2_202602_G01_informe.pdf.
-% Las figuras se leen de productos/ (rutas relativas). Los recuadros \pendiente{...} marcan lo que falta escribir:
-% el informe no se entrega con ninguno.
+%
+% Las figuras y las tablas se leen de productos/ (rutas relativas). Las tablas y las cifras de los textos redactados
+% con IA las escribe codigo/punto1/35_figuras_tablas_informe.py: no se copian números a mano.
+%
+% Reglas del grupo para este archivo:
+%   - Los textos de resultados y discusión del punto 1 son de Juan (temp/textos_informe/) y van tal cual; solo se
+%     pasan a LaTeX. Cada uno lleva encima un comentario con el archivo de donde sale.
+%   - Lo que redactó la IA (metodología, introducción, declaración de IA) va marcado con \borradorIA para que el
+%     grupo lo revise y lo pase a su voz.
+%   - Los recuadros \pendiente marcan lo que falta. El informe no se entrega con ninguno: con \entregatrue se
+%     ocultan los recuadros y el documento falla si queda alguno.
 \documentclass[11pt,letterpaper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -17,62 +28,141 @@
 \usepackage{xcolor}
 \usepackage[most]{tcolorbox}
 \usepackage[round,authoryear]{natbib}
-\usepackage{url}
+\usepackage{xurl}
 \usepackage[hidelinks]{hyperref}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
+\usepackage{float}
+% Regla de Juan (26 nov): ninguna figura sale de su sección. Barrera de flotantes en cada sección, subsección y
+% subsubsección (y una figura de la sección nueva no puede subir por encima de su título).
+\usepackage[section,below]{placeins}
+\usepackage{etoolbox}
+\pretocmd{\subsection}{\FloatBarrier}{}{\PackageError{informe}{no se pudo parchar subsection}{}}
+\pretocmd{\subsubsection}{\FloatBarrier}{}{\PackageError{informe}{no se pudo parchar subsubsection}{}}
+% Flotantes cerca de donde se citan (pedido de Juan, 26 nov)
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
 
 \graphicspath{{../../productos/punto1/}{../../anexos/punto1/}{../../productos/punto2/}}
 
-% Recuadro para lo que falta: no debe quedar ninguno en la versión entregada.
+% ---- Marcas de trabajo ------------------------------------------------------------------------------------------
+\newif\ifentrega
+\entregafalse   % \entregatrue para la versión que se sube: sin marcas, y error si queda algún \pendiente
 \newtcolorbox{pendientebox}{colback=orange!8,colframe=orange!70!black,boxrule=0.6pt,arc=2pt,
   left=4pt,right=4pt,top=2pt,bottom=2pt,fontupper=\small}
-\newcommand{\pendiente}[1]{\begin{pendientebox}\textbf{Pendiente:} #1\end{pendientebox}}
+\newtcolorbox{iabox}{colback=blue!4,colframe=blue!50!black,boxrule=0.4pt,arc=2pt,
+  left=4pt,right=4pt,top=2pt,bottom=2pt,fontupper=\small}
+\ifentrega
+  \newcommand{\pendiente}[1]{\PackageError{informe}{Queda un pendiente: #1}{}}
+  \newcommand{\borradorIA}[1]{}
+  \newcommand{\cambioIA}[1]{#1}
+\else
+  \newcommand{\pendiente}[1]{\begin{pendientebox}\textbf{Pendiente:} #1\end{pendientebox}}
+  \newcommand{\borradorIA}[1]{\begin{iabox}\textbf{Borrador de la IA:} #1\end{iabox}}
+  % Cambio de la IA dentro de un texto de un integrante: en azul en el borrador, normal en la entrega.
+  \newcommand{\cambioIA}[1]{\textcolor{blue!60!black}{#1}}
+\fi
 
+% ---- Notación -----------------------------------------------------------------------------------------------------
 \newcommand{\ETo}{ET$_\mathrm{o}$}
 \newcommand{\PM}{Penman--Monteith (FAO-56)}
+\newcommand{\Pm}{$\bar{P}$}
+
+% Cifras calculadas por el script 35 (medias anuales de la cuenca).
+\input{../../productos/punto1/tablas_informe/cifras.tex}
+% Cifras del punto 2 (codigo/punto2/06_cifras_informe.py).
+\input{../../productos/punto2/tablas_informe/cifras_punto2.tex}
 
 \title{Evapotranspiración en la cuenca del río Fonce y diseño hidrológico\\[4pt]
   \large Hidrología · Tarea 2 · Semestre 202602 · Grupo G01}
-\author{\pendiente{Nombres completos de los tres integrantes (Gómez, Gómez, Na).}}
-\date{24 de noviembre de 2026}
+\author{Juan Pablo Gómez \and Andrea Gómez Mahecha}
+\date{Noviembre de 2026}
 
 \begin{document}
 \maketitle
 
-% =====================================================================================================
+% =====================================================================================================================
 \section{Introducción}
 
-\pendiente{Punto 1: la cuenca del río Fonce hasta San Gil (IDEAM 24027010, \SI{2098.85}{km^2}, de 1\,118 a
-4\,284~m), su contexto hidroclimático (de la ficha de la Tarea 1), la motivación, los objetivos y las preguntas o
-hipótesis, con bibliografía. Las cinco preguntas de la síntesis pueden servir de preguntas iniciales: cuál es la
-demanda y qué la controla; cuánta agua devuelve la cuenca y con qué incertidumbre; en qué meses manda la energía y en
-cuáles el agua; qué ha cambiado y por qué; qué proceso distingue a la cuenca.}
+\subsection{Punto 1: la demanda y el uso de agua en la cuenca del río Fonce}
 
-\pendiente{Punto 2: el sitio, su contexto y las preguntas (lo escribe la compañera).}
+% Texto de Juan (26 nov, en el hilo), con las cifras llenadas y erratas corregidas.
+La cuenca del río Fonce, tal como drena hasta la estación San Gil (IDEAM 24027010), se encuentra en la ladera
+occidental de la cordillera Oriental, en el departamento de Santander. Esta cuenca tiene un área de
+\SI{2098.85}{km^2}, y entre 1998 y 2022, según lo descrito en la Tarea 1, recibe una precipitación promedio de
+\cifraPL~mm/año según los pluviómetros consultados, o de \cifraPI~mm/año según IMERG. La cuenca también tiene un
+caudal medido de \cifraQ~mm/año, de acuerdo con las medidas de la estación San Gil, que es el 56~\% ($Q/\bar{P}$) del
+agua que le entra por precipitación, y el resto, \cifraETbalance~mm/año, se va como evapotranspiración.
 
-% =====================================================================================================
+% Contexto hidroclimático: borrador de la IA revisado y aprobado por Juan (27 nov).
+
+La cuenca sube desde 1\,121~m en San Gil hasta 4\,299~m en el páramo del sureste (altura media de 2\,264~m; Fig.~\ref{fig:mapa}),
+y ese relieve ordena su clima. Está en el flanco que queda a sotavento de los alisios y aun así es húmeda: la lluvia anual
+duplica la evapotranspiración de referencia (\Pm/\ETo{} = \cifraPsobreETo). Esa lluvia llega en dos temporadas, con picos en abril y
+octubre, porque la Zona de Convergencia Intertropical pasa dos veces al año sobre el centro de Colombia
+\citep{poveda2004}. El río sigue ese ritmo con algo de atraso, con picos en mayo y noviembre, y enero es el mes más
+seco. De un año a otro la lluvia cambia poco, y los años extremos coinciden con el ENSO: 2010, con La Niña, fue el más
+húmedo, y 2015, con El Niño, el más seco. La lluvia también disminuye con la altura, cerca de 300~mm/año por cada
+1\,000~m, pero ningún pluviómetro mide por encima de 2\,625~m, donde está el 30~\% de la cuenca, así que la parte alta
+se conoce mal. Con lluvia abundante casi todo el año, la pregunta es qué limita la evapotranspiración:
+la energía disponible o el agua.
+
+\begin{figure}[!htbp]
+  \centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{mapa_cuenca_estaciones.png}
+  \caption{Cuenca del río Fonce hasta San Gil sobre el DEM ALOS PALSAR de 12.5~m con sombreado de relieve
+  \citep{asf_alos} (mapa de la Tarea 1), con lo que usa esta tarea: las estaciones climatológicas del IDEAM (cuadros
+  azules, con las variables que aportan), los 6 puntos de ERA5-Land y sus regiones de Voronoi, los 7 pluviómetros de
+  la lluvia $P_L$ y el aforo de San Gil.}
+  \label{fig:mapa}
+\end{figure}
+
+En este trabajo se busca entender el término de la evapotranspiración, buscando calcular su valor por varios caminos y
+explicando qué la controla en esta cuenca. Se busca responder las siguientes 5 preguntas:
+(1) cuál es la demanda atmosférica de la cuenca y qué la controla; (2) cuánta agua devuelve la cuenca a la atmósfera y
+con qué incertidumbre; (3) en qué meses manda la energía y en cuáles el agua; (4) si la demanda ha cambiado y por qué;
+y (5) qué proceso distingue a la cuenca.
+
+\subsection{Punto 2: diseño hidrológico de una microcuenca en Denver}
+\input{punto2_introduccion}
+
+% =====================================================================================================================
 \section{Metodología}
 
 \subsection{Punto 1: evapotranspiración en la cuenca del Fonce}
 
-\paragraph{Datos y periodo.} Se trabajó en 1998--2022 (25 años), el periodo de IMERG en la Tarea 1; las tendencias
-de la Tarea 1 empiezan en 1981 y las de este trabajo no. La cuenca es el polígono de CAMELS-COL hasta San Gil
-\citep{camelscol}. Los forzantes de la \ETo{} son series horarias de ERA5-Land \citep{munoz2021}, del producto de
-series de tiempo, en 6 centros de celda de 0.1° con al menos el 90~\% de su área dentro de la cuenca, uno por
-franja de altura de igual área (1\,580 a 3\,259~m). El valor de cuenca es el promedio ponderado por Voronoi. Los días
-se arman en hora local (UTC$-5$). La lluvia y el caudal vienen de la Tarea 1: PI (IMERG ponderado por área de celda;
-\citealp{huffman_imerg}), PL (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en
-lámina. La lluvia principal es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad. De DHIME
-(IDEAM) se usaron brillo solar, Tmáx, Tmín y HR de Mogotes, La Sierra y Charalá, y el viento de Mogotes-AUT. Los
-productos de ET real son GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop v6.1 y v5
-\citep{senay2013,senay2023}, TerraClimate \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la
-cuenca por el área de intersección de cada celda. El ERA5-Land mensual está dañado en sep--dic de 2022
-\citep{ecmwf2024}: lo que lo usa se corta en 2022-08; la \ETo{} no está afectada. No hay torre de flujo en la región,
-y el tanque evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
+% Metodología del punto 1: aprobada por Juan como texto suyo (27 nov).
 
-\paragraph{\ETo{} de referencia.} \PM{}, ec.~6 de \citet{allen1998}, diaria por punto: $T = (T_\mathrm{máx} +
-T_\mathrm{mín})/2$; $e_s$ con la media de $e^\circ(T_\mathrm{máx})$ y $e^\circ(T_\mathrm{mín})$; $e_a$ como promedio de
+\paragraph{Datos y periodo.} Se trabajó en el tramo de 1998--2022 para la mayoría del trabajo, menos para las
+tendencias, que usan datos de 1981--2022. Estos rangos temporales son los mismos de la Tarea 1, con el fin de mantener
+un mismo alcance. Los datos son:
+\begin{itemize}
+  \item \textbf{Cuenca:} el polígono de CAMELS-COL hasta San Gil \citep{camelscol}.
+  \item \textbf{Forzantes de la \ETo:} series horarias de ERA5-Land \citep{munoz2021}, del producto de series de
+  tiempo, en 6 centros de celda de 0.1° con al menos el 90~\% de su área dentro de la cuenca, uno por franja de altura
+  de igual área (1\,580 a 3\,259~m). El valor de cuenca es el promedio ponderado por Voronoi y los días se arman en hora
+  local (UTC$-5$).
+  \item \textbf{Lluvia y caudal}, de la Tarea 1: PI (IMERG ponderado por área de celda; \citealp{huffman_imerg}), PL
+  (7 pluviómetros del IDEAM dentro de la divisoria, depurados) y Q observado en San Gil, en lámina. La lluvia principal
+  es $\bar{P} = (\mathrm{PI}+\mathrm{PL})/2$; PI y PL quedan como sensibilidad.
+  \item \textbf{Estaciones} de DHIME (IDEAM; \citealp{ideam_dhime}): brillo solar, Tmáx, Tmín y HR de Mogotes,
+  La Sierra y Charalá, y el viento de Mogotes-AUT.
+  \item \textbf{Productos de ET real:} GLEAM v4.3a \citep{miralles2025}, MOD16A2GF v061 \citep{running2021}, SSEBop
+  v6.1 y v5 \citep{senay2023datos,senay2017datos}, con el método de \citet{senay2013}, TerraClimate
+  \citep{abatzoglou2018} y la evaporación de ERA5-Land, promediados en la cuenca por el área de intersección de cada
+  celda.
+  \item \textbf{Limitaciones:} el ERA5-Land mensual está dañado en sep--dic de 2022 \citep{ecmwf2024}, así que lo que
+  lo usa se corta en 2022-08 (la \ETo{} no está afectada). No hay torre de flujo en la región, y el tanque
+  evaporímetro de Mogotes-AUT no se usa porque no tiene un factor de unidades coherente.
+\end{itemize}
+
+\paragraph{\ETo{} de referencia.} \PM{}, ec.~6 de \citet{allen1998}, diaria por punto: $T = (T_\text{máx} +
+T_\text{mín})/2$; $e_s$ con la media de $e^\circ(T_\text{máx})$ y $e^\circ(T_\text{mín})$; $e_a$ como promedio de
 las 24 $e^\circ(T_d)$ horarias; $\gamma$ con la presión de cada punto; $u_2 = 0.748\,u_{10}$ (ec.~47); $G = 0$; $R_n$
 del pasto de referencia (albedo 0.23). La \ETo{} mensual es la suma de las diarias. La ec.~47 supone un perfil
 logarítmico neutro sobre pasto de 0.12~m: $u_2$ es el viento del pasto de referencia, no el real. Un día a mano
@@ -80,12 +170,13 @@ logarítmico neutro sobre pasto de 0.12~m: $u_2$ es el viento del pasto de refer
 
 \paragraph{Pruebas de la referencia.} (1) Rs de estación con Angstrom (FAO-56 ec.~35) frente a la celda de ERA5-Land
 de cada estación. (2) \ETo{} \PM{} con datos de estación y viento de Mogotes-AUT medido a 10~m
-\citep{ideam_gdim003}, solo en días con todas las entradas. (3) La pet de TerraClimate, ASCE Penman--Monteith con
-resistencia corregida por CO$_2$ \citep{yang2019}; sus anomalías vienen de ERA5. La dispersión entre pruebas, por mes,
-es $|$sesgo~\% frente a TerraClimate $-$ media del sesgo~\% frente a las 3 estaciones$|$.
+\citep{ideam_gdim003}, solo en días con todas las entradas. (3) La pet de TerraClimate, ASCE Penman--Monteith de pasto
+corto (mismas constantes que FAO-56) con $r_s$ corregida por CO$_2$ \citep{yang2019}; sus anomalías vienen de ERA5.
+La dispersión entre pruebas, por mes, es $|$sesgo~\% frente a TerraClimate $-$ media del sesgo~\% frente a las 3
+estaciones$|$.
 
 \paragraph{Métodos de otras familias.} Thornthwaite \citep{thornthwaite1948}, Hargreaves \citep{hargreaves1985},
-Priestley--Taylor \citep[$\alpha = 1.26$;][]{priestley1972}, Makkink \citep{makkink1957}, Cenicafé
+Priestley--Taylor \citep[$\alpha = 1.26$;][]{priestley1972}, Makkink (en la forma de las notas del curso, \citealp{hoyos_et}), Cenicafé
 \citep{jaramillo2006}, Penman en la forma de FAO-24 con $c = 0.8$ \citep{penman1948,doorenbos1977} y la relación
 complementaria de \citet{brutsaert1979}, con las ecuaciones de las notas del curso \citep{hoyos_et}. Mismos forzantes,
 periodo y paso diario que la \ETo. Cada método se compara, sin calibrar, con una referencia de su misma superficie:
@@ -99,152 +190,514 @@ HR constante), $u_2$ $+10$~\%, Rs $-10$~\% y $e_a$ $+10$~\%.
 $\approx 0$ en el largo plazo). Incertidumbre al 95~\%: $\sigma_P = 1.96\,|\mathrm{PL}-\mathrm{PI}|/2$, $\sigma_Q =
 25.6$~\% de Q \citep{dibaldassarre2009} y $\sigma_\mathrm{ET} = \sqrt{\sigma_P^2 + \sigma_Q^2}$. Techo de energía
 $R_n/\lambda$ con la $R_n$ real de ERA5-Land. Un producto es consistente con el balance si cae dentro de
-$\pm\sigma_\mathrm{ET}$.
+$\pm\sigma_\mathrm{ET}$. SSEBop v5 y la AA quedan fuera de ese rango, así que nos sirven poco: se muestran en la
+Tabla~\ref{tab:et_productos}, pero no entran en la mediana de productos que usan Budyko y la fracción evaporativa.
 
 \paragraph{Régimen.} Espacio de Budyko con $\bar{P}$ ($\varphi = \mathrm{ET_o}/P$, $\varepsilon = \mathrm{ET}/P$),
-curva de Fu y elasticidad de Q a P \citep{sankarasubramanian2001}; $\varphi$ mensual; y fracción evaporativa
-$\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de GLEAM \citep{seneviratne2010}.
+curva de Fu en la forma de \citet{zhang2004} y elasticidad de Q a P \citep{sankarasubramanian2001}; $\varphi$
+mensual; y fracción evaporativa $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de GLEAM
+\citep{seneviratne2010}.
 
-\paragraph{Cambios en la demanda.} Tendencias 1998--2022 de la \ETo, Thornthwaite, T, $e_a$, $u_2$ y Rs con los
-métodos de la Tarea 1: Mann-Kendall estacional con pendiente de Sen (p por permutación de años), OLS con una constante
-por mes y error de Newey-West (12 rezagos), Pettitt y control de FDR; $\alpha = 0.05$.
+\paragraph{Cambios en la demanda.} Tendencias 1981--2022 (y 1998--2022 como contraste) de la \ETo, Thornthwaite, T, $e_a$, $u_2$ y Rs con los
+métodos de la Tarea 1: Mann-Kendall estacional \citep{hirsch1982} con pendiente de Sen \citep{sen1968} (p por
+permutación de años), Mann-Kendall con la corrección de \citet{hamed1998}, OLS con una constante por mes y error de
+Newey-West con 12 rezagos \citep{newey1987}, Pettitt \citep{pettitt1979} y control de la tasa de falsos
+descubrimientos \citep{benjamini1995}; $\alpha = 0.05$. Antes de las tendencias, la serie 1981--2022 pasa el
+control de calidad de la Tarea 1: faltantes, imposibles, rachas, atípicos y homogeneidad con Pettitt frente a otras
+fuentes: la lluvia de CHIRPS (satélite y estaciones; \citealp{funk2015}), independiente de ERA5, y la T y la Rs de
+Hargreaves--Samani con MSWX, que no es del todo independiente: es ERA5 corregido con climatologías de estaciones
+\citep{beck2022}. La Rs muestra un escalón de $+0.317$~MJ/m$^2$·d después de 2000
+frente a la lluvia de CHIRPS (Anexo~\ref{anx:escalon_rs}); se suma a la Rs diaria de antes de 2001 y se recalculan $R_n$ y la \ETo, solo en las
+tendencias. La serie sin corregir queda como sensibilidad.
 
-\pendiente{Juan: revisar y pasar a su voz (borrador en \texttt{anexos/borrador\_metodologia.md}). Falta la fase 9
-(tema del paisaje).}
+\paragraph{Gradiente altitudinal.} La \ETo, T, $e_a$, $u_2$, Rs y $R_n$ medias 1998--2022 de los 6 puntos se
+comparan con la altura del modelo mediante una recta de mínimos cuadrados; con $n = 6$ es solo descriptiva. La
+hipsometría sale del DEM ALOS PALSAR de 12.5~m \citep{asf_alos} dentro del polígono, en bandas de 500~m. Cada celda de los productos de ET real
+en malla (GLEAM, SSEBop v6.1 y TerraClimate) lleva la altura media del DEM que cae en ella. La \ETo{} de cada banda se
+lee de la recta de los 6 puntos. El reparto de la energía usa la $R_n$ real de ERA5-Land en la celda de cada punto y la
+fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto. Como referencia teórica se usa $\Delta/(\Delta+\gamma)$,
+la fracción que va a calor latente en la evaporación de equilibrio \citep{priestley1972}.
 
-\subsection{Punto 2}
-\pendiente{Metodología del punto 2 (compañera).}
+\paragraph{Resistencia de superficie.} En la celda de cada punto se despeja la $r_s$ que hace que la ec.~6 de
+\citet{allen1998}, con la $R_n$ real de ERA5-Land (hasta 2022-08), dé la ET de GLEAM v4.3a y de SSEBop v6.1, con medias
+mensuales de los términos. La $r_a$ es la de la ec.~4 de FAO-56 por cobertura de MapBiomas 2022 \citep{mapbiomas_col3}, con la longitud de rugosidad
+de la Tabla~1 de \citet{gehrke2021}: agropecuario 0.10~m, herbazal andino 0.10~m y bosque 2.00~m, con $z_{oh} =
+0.1\,z_{om}$ y las conductancias ponderadas por fracción. La $r_a$ del pasto queda como sensibilidad. El LAI es el de
+MCD15A3H v6.1 \citep{myneni2021} en la celda de cada punto (2002--2022). Con el $r_{c,\min}$ de la misma tabla se forma
+$f = r_s\,\mathrm{LAI}/r_{c,\min}$ al estilo de Jarvis y se ajusta $\ln f = a + g\,D$ contra el déficit de vapor.
 
-% =====================================================================================================
+\paragraph{Por qué estos temas.}
+% Texto de Juan (26 nov, en el hilo), tal cual.
+Se escogió el tema a porque nuestra cuenca abarca un amplio rango de alturas, por lo que la altitud es un factor muy
+importante en sus dinámicas, además se evaluó el tema f porque nos ayuda a entender mejor los resultados obtenidos en
+el tema a. Adicionalmente, estos dos temas tienen la ventaja de que se pueden evaluar con datos de fácil acceso.
+
+% Por qué no los otros cuatro: borrador de la IA aprobado por Juan (27 nov).
+Los otros cuatro no se trabajaron: la intercepción (b) pide medidas de trascolación que no hay; la niebla (c) no se
+puede detectar con la incertidumbre del balance; la cuenca no tiene nieve ni glaciares (d), y los cuerpos de agua son
+el 0.12~\% de su área (e).
+
+\subsection{Punto 2: lluvia horaria, curvas IDF y diseño}
+\input{punto2_metodologia}
+
+% =====================================================================================================================
 \section{Resultados y discusión física}
 
 \subsection{Punto 1}
 
 \subsubsection{La demanda: \ETo{} de referencia}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.9\textwidth]{eto_ciclo_anual.png}
-  \caption{Ciclo anual de la \ETo{} \PM{} de la cuenca (media 1998--2022) y sus términos radiativo y aerodinámico.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{eto_ciclo_anual.png}
+  \caption{Ciclo anual de la \ETo{} \PM{} en los 6 puntos de ERA5-Land y en la cuenca (media 1998--2022).}
   \label{fig:eto_ciclo}
 \end{figure}
-\pendiente{Juan: valor anual de la \ETo, su ciclo (Fig.~\ref{fig:eto_ciclo}) y qué la controla.}
+% Texto de Juan (26 nov, en el hilo), con las variables y las cifras llenadas.
+La \ETo{} de referencia se construyó con el método de \PM, como se ilustra en el FAO-56 \citep{allen1998},
+utilizando datos horarios de ERA5-Land \citep{munoz2021}: la temperatura del aire a 2~m (para Tmáx, Tmín y la
+temperatura media), la temperatura de rocío a 2~m (para $e_a$), el viento a 10~m (para $u_2$), la radiación solar
+entrante en superficie (Rs) y la presión en superficie (para $\gamma$), y obteniendo el resto ($e_s$, $\Delta$ y $R_n$)
+con las ecuaciones que provee FAO-56. Esta \ETo{} tiene un valor promedio de \cifraETo~mm/año, y su comportamiento es
+muy similar a lo largo del año, disminuyendo un poco en las épocas lluviosas debido a aumentos en la nubosidad que
+reducen Rn (Fig.~\ref{fig:eto_ciclo}). El término radiativo es el 92~\% de la \ETo{} (91 a 94~\% según el mes;
+Fig.~\ref{fig:terminos_alfa}).
 
 \subsubsection{¿Qué tan buena es la referencia?}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{rs_estaciones_vs_era5land_ciclo_anual.png}\hfill
-  \includegraphics[width=0.48\textwidth]{eto_estaciones_vs_era5land_ciclo_anual.png}
-  \caption{Izquierda: Rs de ERA5-Land frente a la de Angstrom en tres estaciones. Derecha: nuestra \ETo{} frente a la
-  \ETo{} de estación.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{rs_estaciones_vs_era5land_ciclo_anual.png}
+  \caption{Rs de ERA5-Land frente a la de Angstrom en tres estaciones.}
+  \label{fig:rs_estaciones}
+\end{figure}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{eto_estaciones_vs_era5land_ciclo_anual.png}
+  \caption{Nuestra \ETo{} frente a la \ETo{} de estación.}
   \label{fig:pruebas_estaciones}
 \end{figure}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.8\textwidth]{eto_vs_terraclimate_pet.png}
-  \caption{Nuestra \ETo{} frente a la pet de TerraClimate, promedio de la cuenca.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{eto_vs_terraclimate_pet.png}
+  \caption{Ciclo anual de nuestra \ETo{} y de la pet de TerraClimate, promedio de la cuenca, 1998--2022.}
   \label{fig:terraclimate}
 \end{figure}
-\pendiente{Juan: resultado de las dos pruebas (Figs.~\ref{fig:pruebas_estaciones} y \ref{fig:terraclimate}), la
-dispersión y sus limitaciones.}
+% Texto redactado por la IA y aprobado por Juan (26 nov).
+La \ETo{} se probó de dos formas. Primero, contra la \ETo{} calculada con datos de tres estaciones del IDEAM. ERA5-Land
+da más Rs que la que sale del brillo solar con Angstrom ($+1.8$ en Mogotes, $+4.7$ en La Sierra y $+2.3$~MJ/m$^2$·d
+en Charalá; Fig.~\ref{fig:rs_estaciones}), pero la \ETo{} casi coincide: $-0.08$, $+0.66$ y $-0.16$~mm/d
+(Fig.~\ref{fig:pruebas_estaciones}).
+
+Segundo, contra la pet de TerraClimate: nuestra \ETo{} queda 11.8~\% por encima
+(\cifraETo{} frente a 1\,043~mm/año), con $r = 0.97$ (Fig.~\ref{fig:terraclimate}). La diferencia entre las dos
+pruebas, 5.0 puntos porcentuales (de 1.2 a 8.5 según el mes), se toma como la incertidumbre de la referencia y es la
+banda con la que se juzgan los otros métodos. Limitaciones: solo hay tres estaciones, todas por debajo de 2\,900~m; la
+Rs de estación no se mide, sale de Angstrom; y TerraClimate no es del todo independiente, porque sus anomalías vienen
+de ERA5.
 
 \subsubsection{Métodos de otras familias y sus diferencias}
-\pendiente{Tabla y figura de los métodos frente a su referencia (hoy solo en el documento de trabajo; falta la
-figura fija en \texttt{productos/punto1/}). Punto de control de Juan (fase 4): Makkink es el que mejor se ajusta.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{metodos_frente_eto.png}
+  \caption{Media anual 1998--2022 de cada método, tal como lo calcula su ecuación, agrupado por la cantidad que
+  estima; el color indica las variables que usa. La línea punteada es la \ETo{} \PM; su barra se parte en el término
+  radiativo (lleno) y el aerodinámico (rayado). El porcentaje es frente a la \ETo; la comparación de cada método con la
+  referencia de su misma superficie está en la Tabla~\ref{tab:metodos}. La AA se descarta en adelante: queda por
+  encima del rango de la ET real del balance ($\bar{P} - Q \pm \sigma_\mathrm{ET}$, franja gris).}
+  \label{fig:metodos}
+\end{figure}
+\begin{table}[htbp]\centering\small
+  \caption{Cada método frente a la referencia de su misma superficie, sin calibrar. Sesgo: media de los 12 meses
+  calendario y rango entre meses. Meses dentro de la dispersión: meses en que el sesgo no supera la dispersión entre
+  las dos pruebas de la referencia.}
+  \label{tab:metodos}
+  \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_metodos.tex}}
+\end{table}
 
-% Texto de Juan (temp/textos_informe/fase5_diferencias_eto.md), con sus cifras.
-\textbf{Penman.} Se calculó con $c = 0.8$, como sugiere FAO-24 (p.~15). Es muy similar al \PM{} con el que se compara
-(R$^2$ anual de 0.991), con Penman sistemáticamente por debajo, posiblemente porque el $c$ de FAO-24 puede ser bajo
-para esta cuenca. Ambos son adaptaciones del método original de Penman; la diferencia se debe sobre todo al viento y
-a la elección de $c$.
+% Texto de Juan: temp/textos_informe/fase4_punto_control.md, respuestas 1 y 3 (la 2 es una respuesta general del
+% punto de control, no un resultado).
+\paragraph{Qué método se acerca más a la referencia.}
+El que mejor se ajusta parece ser Makkink. Esto tiene sentido porque nuestra cuenca es húmeda y tiene poco viento, y
+estas son condiciones favorables para ese método \citep{hoyos_et}.
 
-\textbf{Makkink.} Usa solo T y Rs: no tiene en cuenta el viento ni la humedad. Funciona bien cuando la humedad no
-limita, el viento es bajo y el limitante es la radiación. En la cuenca el término aerodinámico de \PM{} es pequeño y
-explica la pequeña diferencia; los coeficientes de Makkink compensan en parte ese término para la zona donde se
-calibró.
+Ninguno de los métodos se mantiene completamente dentro del rango de la dispersión; sin embargo, el mejor es de nuevo
+Makkink, que está dentro del rango 7 meses al año (Fig.~\ref{fig:meses_dispersion}). Esto significa que en estos meses la diferencia de Makkink
+no se distingue de la incertidumbre de la referencia.
 
-\textbf{Hargreaves.} Usa Tmáx, Tmín y Ra; sirve cuando hay poca información, como en la Tarea 1. Queda por encima de
-\PM{} (+10~\%), posiblemente porque tiende a sobrestimar con HR alta \citep[p.~64]{allen1998}, y la HR media de la
-cuenca es 79.3~\%.
+% Ubicada junto al texto que la cita (pedido de Juan, 26 nov).
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{metodos_meses_en_dispersion.png}
+  \caption{Sesgo de cada método frente a la referencia de su misma superficie, por mes calendario (media
+  1998--2022), con la dispersión entre las pruebas de la referencia (franja gris). En la leyenda, cuántos de los 12
+  meses caen dentro de la franja.}
+  \label{fig:meses_dispersion}
+\end{figure}
 
-\textbf{Cenicafé.} Usa solo la altitud: da una \ETo{} diaria fija. Fue calibrado en los Andes colombianos, incluidas
-dos estaciones en Santander, y da una aproximación decente con muy pocos datos ($-12$~\%), pero no sigue las
-fluctuaciones.
 
-\textbf{Priestley--Taylor.} No es la ET del pasto de referencia sino la de una superficie húmeda sin $r_s$; por eso se
-compara con \PM{} con $r_s = 0$. Las formas son muy similares, con una diferencia estable.
+\paragraph{Por qué difieren los métodos.}
+% Texto de Juan: temp/textos_informe/fase5_diferencias_eto.md (tal cual, pasado a LaTeX).
+En esta sección se compararán los métodos de \ETo{} (evapotranspiración de referencia) anual de los métodos elegidos (Fig.~\ref{fig:metodos} y Tabla~\ref{tab:metodos}).
 
-\textbf{Thornthwaite.} Estima la ETP de una superficie con vegetación y sin falta de agua, distinta de la de la \ETo:
-la comparación es aproximada. Queda muy por debajo ($-38$~\% en el año). Usa la temperatura como indicador de la
-energía; en la cuenca la temperatura es baja por la altitud, no por falta de radiación, así que el método supone poca
-energía.
+\textbf{Penman:} Para la actividad se calculó la \ETo{} con este método usando $c = 0.8$, como sugiere FAO-24
+(p.~15). Este método es muy similar al Penman--Monteith (FAO-56) con el que estamos comparando, tanto que tienen una
+correlación anual R$^2$ de 0.991, con Penman sistemáticamente por debajo, posiblemente porque el coeficiente $c$ que
+propone FAO-24 puede ser muy bajo para esta cuenca. Ambos métodos son tan similares porque son ambos modificaciones o
+adaptaciones del método original de Penman.
 
-\textbf{$\alpha^*$.} Va de 1.004 (mayo) a 1.028 (enero): casi toda la \ETo{} depende de la energía. El déficit de
-vapor y el viento suman entre 7 y 10~\%, y la resistencia del pasto le quita casi todo eso.
+La diferencia más importante en los valores de estos dos métodos se debe a diferencias en el viento y en la elección
+de $c$, pues calibrando con este factor ambas series se vuelven similares, y sus comportamientos diferentes se podrían
+entonces atribuir al viento.
 
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{terminos_fao56.png}\hfill
-  \includegraphics[width=0.48\textwidth]{alfa_implicito.png}
-  \caption{Izquierda: términos de la \ETo{} \PM{} por mes. Derecha: $\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$.}
+\textbf{Makkink:} Este método utiliza solo T y Rs, por lo que no tiene en cuenta el componente de viento o la humedad.
+Esto hace que el método de Makkink sea muy bueno cuando la humedad no es un factor limitante y el viento es más bien
+bajo, pero lo más importante es que el limitante sea la radiación (Fig.~\ref{fig:sensibilidad}).
+
+En nuestro caso el componente aerodinámico de Penman--Monteith (FAO-56) es una parte pequeña del total (Fig.~\ref{fig:terminos_alfa}), pero podría explicar la
+pequeña diferencia que hay entre estos dos métodos, pues Makkink ignora el componente aerodinámico. El método intenta
+compensar eso con sus coeficientes, que lo ajustan a las condiciones aerodinámicas de la zona donde fue calibrado, y
+por eso la diferencia entre FAO-56 y Makkink no es tan grande como todo el término aerodinámico de FAO-56, pero igual
+hay diferencias porque la cuenca está en una zona que no es donde se calibró el método.
+
+\textbf{Hargreaves:} Este método utiliza Tmáx, Tmín y Ra para calcular la \ETo. Es muy útil para los casos en los que
+no se tiene mucha información climática de la zona, como por ejemplo en la Tarea 1, en la que solo contábamos con
+datos de temperatura y la ubicación de la cuenca. El valor de este método da por encima del valor obtenido con
+Penman--Monteith (FAO-56) ($+10$~\%); esto se puede deber a que Hargreaves tiende a sobreestimar la \ETo{} en condiciones de HR
+alta \citep[p.~64]{allen1998}, y en nuestra cuenca la humedad relativa promedio es de 79.3~\% (promedio simple de 5
+estaciones del IDEAM, 1998--2022).
+
+\textbf{Cenicafé:} Este método usa solo la altitud, entonces da un valor diario fijo de \ETo{} que no tiene en cuenta
+fluctuaciones. En la gráfica mensual se ven fluctuaciones porque cambia la cantidad de días en el mes. Este método es
+especialmente útil en los Andes colombianos, pues fue calibrado con estaciones en esta zona, incluyendo dos en
+Santander (donde está ubicada nuestra cuenca), y tiene la ventaja de que no necesita ningún dato más allá de la altitud y da una aproximación decente con
+muy pocos datos ($-12$~\% respecto a Penman--Monteith (FAO-56)). La desventaja es que ignora las fluctuaciones porque es un valor
+constante diario.
+
+\textbf{Priestley--Taylor:} Priestley--Taylor no es la ET de un pasto de referencia (\ETo), sino la de una superficie
+húmeda sin $r_s$. Para compararla con Penman--Monteith (FAO-56), hacemos el ajuste calculándolo con $r_s = 0$, en vez del que se
+calcula según FAO-56. Al hacer esta comparación vemos que tienen formas muy similares, con una diferencia estable entre
+ambos métodos. Esto sugiere que se podría calibrar fácilmente para dar resultados muy similares a los de
+Penman--Monteith (FAO-56) sin $r_s$.
+
+\textbf{Thornthwaite:} Este método estima la ETP de una superficie con cubierta vegetal y sin falta de agua, que no es
+la misma superficie de la \ETo, así que la comparación directa es solo aproximada. Aun así, Thornthwaite queda de forma
+consistente muy por debajo de Penman--Monteith (FAO-56) (entre $-33$~\% y $-43$~\% según el mes; $-38$~\% en el año). Además de
+la diferencia de superficie, esto se debe a que el método usa la temperatura como indicador de la energía disponible.
+En las zonas donde se desarrolló, la temperatura sigue sobre todo a la radiación; en nuestra cuenca la temperatura es
+baja principalmente por la altitud, no por falta de radiación. El método ve temperaturas bajas, supone poca energía y
+da una ETP baja.
+
+\textbf{$\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$:} $\alpha^*$ mide cuánto se aparta la \ETo{} de la evaporación de
+equilibrio, que depende solo de la energía. En la cuenca $\alpha^*$ va de 1.004 (mayo) a 1.028 (enero; Fig.~\ref{fig:alfa}), así que casi
+toda la \ETo{} depende de la energía y no del aire. Ese valor resulta de dos efectos: el déficit de vapor y el viento
+suman entre 7 y 10~\% (\ETo{} con $r_s = 0$ / $E_\mathrm{eq}$), y la resistencia del pasto ($r_s = 70$~s/m) le quita
+casi todo eso. La forma de $\alpha^*$ a lo largo del año sigue al déficit de vapor y al viento: los meses con más
+déficit y más viento (diciembre a febrero) tienen mayor $\alpha^*$. De los dos, el déficit varía más en el año (0.35
+a 0.50~kPa, frente a 0.59 a 0.65~m/s de viento) y se correlaciona más con $\alpha^*$ (0.95 frente a 0.78 en los 300
+meses).
+
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{terminos_fao56.png}
+  \caption{Términos radiativo y aerodinámico de la \ETo{} \PM{} por mes.}
   \label{fig:terminos_alfa}
 \end{figure}
-\pendiente{Citar Fig.~\ref{fig:terminos_alfa} en el texto; figura del experimento de sensibilidad (solo está en el
-documento de trabajo). Los valores de R$^2$ 0.991 y de las correlaciones de $\alpha^*$ deben salir de un script
-(auditoría de las fases 0--5).}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{alfa_implicito.png}
+  \caption{Arriba: $\alpha^* = \mathrm{ET_o}/E_\mathrm{eq}$ y la misma razón con $r_s = 0$, por mes; 1 es la
+  evaporación de equilibrio, que depende solo de la energía. Abajo: déficit de vapor y viento $u_2$ de cada mes, que
+  explican por qué $\alpha^*$ pasa de 1.}
+  \label{fig:alfa}
+\end{figure}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{sensibilidad_metodos.png}
+  \caption{Cambio de la media anual de cada método al perturbar una entrada (1998--2022). «ea cte» y «HR cte»:
+  al subir la temperatura se deja fija la presión de vapor o la humedad relativa. Cenicafé solo depende de la
+  altitud.}
+  \label{fig:sensibilidad}
+\end{figure}
+% Cifras del texto de la fase 5 (R² 0.991, correlaciones 0.95 y 0.78): comprobadas en el script 35.
+
 
 \subsubsection{ET real y su incertidumbre}
-\pendiente{Juan: ET = $\bar{P} - Q$ con su $\sigma_\mathrm{ET}$, el techo de energía y los productos (falta la figura
-fija de la fase 6 en \texttt{productos/punto1/}).}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{et_real_productos.png}
+  \caption{Productos de ET real frente al balance $\bar{P} - Q$ con su $\sigma_\mathrm{ET}$ al 95~\% (franja gris), en
+  los meses de cada producto que tienen Q. En gris, los dos que caen fuera de la franja. Líneas de referencia: balances
+  con PI y con PL, \ETo{} \PM{} y techo de energía $R_n/\lambda$, el máximo posible de evaporación si toda la energía disponible se usara para evaporar.}
+  \label{fig:et_real}
+\end{figure}
+\begin{table}[htbp]\centering\small
+  \caption{Productos de ET real frente al balance $\bar{P} - Q$ en sus mismos meses ($\sigma_\mathrm{ET}$ al 95~\%). Los que quedan fuera (SSEBop v5 y la AA)
+    no entran en la mediana de productos.}
+  \label{tab:et_productos}
+  \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_et_productos.tex}}
+\end{table}
+% Redactado por la IA a pedido de Juan (26 nov); Juan le dio el visto bueno el 27 nov.
+La ET real de la cuenca sale del balance de largo plazo, $\mathrm{ET} = \bar{P} - Q$: \cifraETbalance{}
+$\pm$ \cifraSigmaET~mm/año (95~\%). La incertidumbre es grande, cerca del 45~\% del valor, y viene casi por partes
+iguales de la lluvia y del caudal:
+\begin{gather*}
+  \sigma_P = 1.96\,\frac{|\mathrm{PL} - \mathrm{PI}|}{2} = 315~\text{mm/año}, \qquad
+  \sigma_Q = 0.256\,Q = 344~\text{mm/año},\\
+  \sigma_\mathrm{ET} = \sqrt{\sigma_P^2 + \sigma_Q^2} = \cifraSigmaET~\text{mm/año}.
+\end{gather*}
+$\sigma_P$ toma la diferencia entre IMERG (PI) y los pluviómetros (PL) como medida de cuánto no sabemos de la lluvia, y
+$\sigma_Q$ es el error del caudal al 95~\% que dan \citet{dibaldassarre2009}. Esa ET equivale al 90~\% de la \ETo{} y usa el 60~\% de la energía disponible: queda muy por debajo
+del techo de energía $R_n/\lambda$ (\cifraRnLambda~mm/año), el máximo que podría evaporarse si toda la $R_n$ se
+usara para evaporar.
 
-\subsubsection{¿Manda la energía o el agua?}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.7\textwidth]{budyko.png}
+Los productos de ET real se comparan con ese balance en sus mismos meses (Fig.~\ref{fig:et_real} y
+Tabla~\ref{tab:et_productos}). Cinco caen dentro de la incertidumbre: ERA5-Land (1\,274~mm/año), GLEAM (1\,157),
+MOD16 (1\,121), TerraClimate (1\,029) y SSEBop v6.1 (847). Dos quedan fuera: SSEBop v5 (475), muy por debajo, y la
+AA (1\,551), por encima; por eso no se usan en adelante. Con una incertidumbre tan amplia, el balance sirve para
+descartar productos, pero no para decir cuál de los otros cinco es el mejor.
+
+\subsubsection{¿Manda la energía o el agua?}\label{sec:energia_agua}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=0.8\textwidth]{budyko.png}
   \caption{Espacio de Budyko con $\bar{P}$: años y media, con la curva de Fu ajustada.}
   \label{fig:budyko}
 \end{figure}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=0.48\textwidth]{regimen_mensual.png}\hfill
-  \includegraphics[width=0.48\textwidth]{fraccion_evaporativa.png}
-  \caption{Izquierda: índice de aridez mensual $\varphi = \mathrm{ET_o}/\bar{P}$. Derecha: fracción evaporativa
-  $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de la zona de raíces de GLEAM.}
+\begin{table}[htbp]\centering\small
+  \caption{Punto multianual en el espacio de Budyko, con $\bar{P}$. La primera fila es la principal; las otras,
+  sensibilidad a la ETP y a la ET.}
+  \label{tab:budyko}
+  \resizebox{\textwidth}{!}{\input{../../productos/punto1/tablas_informe/tabla_budyko.tex}}
+\end{table}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{regimen_mensual.png}
+  \caption{Índice de aridez mensual $\varphi = \mathrm{ET_o}/\bar{P}$.}
   \label{fig:regimen_ef}
 \end{figure}
-% Textos de Juan (temp/textos_informe/fase7_*.md).
-Frente al índice de aridez (Fig.~\ref{fig:regimen_ef}), todos los meses en promedio son húmedos, con $\varphi < 1$,
-menos enero, con $\varphi = 1.15$ en promedio y por encima de 1 más de la mitad de los años. Febrero es un poco más
-árido que los demás. $\varphi > 1$ en un mes dice que la lluvia del mes no cubre la demanda, no que la ET esté
-frenada: en enero el suelo amortigua.
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{fraccion_evaporativa.png}
+  \caption{Fracción evaporativa $\lambda\mathrm{ET}/R_n$ frente a la humedad del suelo de la zona de raíces de GLEAM:
+  arriba con la mediana de productos sin GLEAM, abajo con GLEAM (circular).}
+  \label{fig:ef}
+\end{figure}
 
-La cuenca no está limitada por agua; está sobre todo limitada por energía. Si en algún mes estuviera limitada por
-agua, se vería un quiebre en la fracción evaporativa, y no se ve: la ET es poco sensible a la humedad del suelo porque
-el suelo casi siempre está húmedo. Esta prueba sola no es concluyente; se apoya también en Budyko
-(Fig.~\ref{fig:budyko}) y en el índice de aridez mensual.
-\pendiente{Juan: cifras de Budyko ($\varphi$, $\varepsilon$, $\omega$, elasticidad) y explicación alternativa.}
+% Texto de Juan: temp/textos_informe/fase7_indice_aridez.md (tal cual, pasado a LaTeX), con la cita de la figura.
+Frente a la gráfica del índice de aridez (Fig.~\ref{fig:regimen_ef}), podemos interpretar que todos los meses en
+promedio son húmedos, con $\varphi$ menor que 1, menos enero, que tiene un $\varphi$ promedio de 1.15 y de hecho cae
+por encima de 1 más de la mitad de los años. También febrero es un poco más árido que los demás meses. En conclusión,
+todos los meses clasifican como húmedos menos enero y febrero, que parecen estar sobre el límite.
+
+% Texto de Juan (fase7_fraccion_evaporativa.md), con la redacción que aprobó el 26 nov.
+Esta cuenca no está limitada por agua; por el contrario, está más que todo limitada por energía. Si en algún mes
+estuviera limitada por agua, veríamos un quiebre en la línea de ajuste de la Fig.~\ref{fig:ef}. La fracción
+evaporativa cambia poco con la humedad del suelo (de 0.57 a 0.64, con R$^2$ de 0.16 frente a una recta plana) y no
+aparece un quiebre: el $\theta^* = 0.452$ del ajuste es el borde de la búsqueda. Pero el suelo casi nunca se seca (la
+humedad de GLEAM va de 0.36 a 0.45), así que esta prueba sola no es concluyente. Junto con Budyko y ET/\ETo{} = 0.90,
+apunta a que manda la energía.
+
+% Aprobado por Juan (26 nov, «Super»).
+En el espacio de Budyko (Fig.~\ref{fig:budyko} y Tabla~\ref{tab:budyko}) la cuenca queda en $\varphi = \cifraPhi$ y
+$\varepsilon = \cifraEpsilon$, lejos del límite de agua y cerca de la curva del límite de energía. En enero
+$\varphi > 1$: la lluvia de ese mes no alcanza a cubrir la demanda, y la diferencia la pone el agua que el suelo
+guardó en los meses anteriores. Una explicación alternativa de que no aparezca el quiebre es que los productos de ET ya traen su
+propio modelo de estrés hídrico, y la humedad de GLEAM no explora suelos secos.
 
 \subsubsection{Cambios en la demanda}
-\begin{figure}[htbp]\centering
-  \includegraphics[width=\textwidth]{tendencias_demanda.png}
-  \caption{Izquierda: \ETo{} \PM{} y Thornthwaite anuales con la recta de Sen, 1998--2022. Derecha: atribución de la
-  tendencia de la \ETo{} a cada forzante.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{tendencias_demanda_1981_2022.png}
+  \caption{\ETo{} \PM{} (con la Rs corregida) y Thornthwaite anuales con la recta de Sen, 1981--2022, y atribución
+  de la tendencia de la \ETo{} a cada forzante.}
   \label{fig:tendencias}
 \end{figure}
-% Conclusión de Juan (temp/textos_informe/fase8_conclusion.md).
-La \ETo{} \PM{} no tiene tendencia en 1998--2022 (Sen $+3$~mm/año por década, $p = 0.68$; Fig.~\ref{fig:tendencias}).
-En Thornthwaite la tendencia es estadísticamente detectable con Mann-Kendall ($p = 0.015$), pero pequeña en magnitud:
-$+16$~mm/año por década, cerca de 2~\% por década; OLS con Newey-West no la confirma ($p = 0.086$).
+% Texto de Juan: temp/textos_informe/fase8_conclusion.md, versión final («Con 1981–2022 y la Rs corregida», 26 nov),
+% tal cual, pasada a LaTeX. Las versiones anteriores (1998–2022 y 1981–2022 sin corregir) quedan en ese archivo.
+% Basado en el texto de Juan (fase8_conclusion.md, versión final), pasado a la voz del grupo por pedido de Juan (26 nov).
+Antes de buscar tendencias, la serie 1981--2022 pasó el mismo control de calidad de la Tarea 1. Encontramos un
+escalón en la Rs de ERA5-Land de $+0.317$~MJ/m$^2$·d después de 2000, frente a la lluvia de CHIRPS (Pettitt
+$p = 0.013$; Anexo~\ref{anx:escalon_rs}, Fig.~\ref{fig:escalon_rs}). Es probablemente un defecto del reanálisis y no
+un cambio real: las observaciones que asimila ERA5, de donde ERA5-Land toma sus forzantes, cambian con el tiempo
+\citep{hersbach2020}. Por eso lo corregimos sumando el escalón a la Rs de antes de 2001 y recalculando la $R_n$ y la
+\ETo{}, solo para las tendencias.
+
+Con la serie corregida (Fig.~\ref{fig:tendencias}), la \ETo{} sube $+4.2$~mm/año por década ($+0.37$~\%), pero la
+tendencia no es significativa (OLS con Newey-West $p = 0.15$; Mann-Kendall $p = 0.15$). En cambio, la temperatura sube
+$+0.14$~°C por década y Thornthwaite $+10.6$~mm/año por década, ambas significativas. La diferencia está en cuánto
+responde cada método a la temperatura: Thornthwaite cambia 10.3~\% por cada °C y la \ETo{} solo 3.2~\%
+(Fig.~\ref{fig:sensibilidad}), porque la \ETo{} depende sobre todo de la radiación. En la atribución, la temperatura
+aporta $+5.5$~mm/año por década, y $e_a$ ($-0.6$), $u_2$ ($-0.1$) y Rs ($-0.6$) la compensan un poco. Sin la
+corrección de la Rs, la \ETo{} subiría $+9.5$~mm/año por década y saldría significativa: más de la mitad de esa
+tendencia venía del escalón.
 
 \subsubsection{El paisaje de la cuenca}
-\pendiente{Fase 9: tema elegido y por qué se descartan los otros cinco.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{gradiente_altitudinal.png}
+  \caption{\ETo{} y ET real de los productos frente a la altura, e hipsometría de la cuenca con ET/\ETo{} por banda
+  de 500~m.}
+  \label{fig:gradiente}
+\end{figure}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{gradiente_altitudinal_energia.png}
+  \caption{Arriba: fracción evaporativa $\lambda\mathrm{ET}/R_n$ de cada producto en los 6 puntos, frente a la
+  altura del modelo, con $\Delta/(\Delta+\gamma)$ (superficie húmeda, teórica). Abajo: reparto de la $R_n$ real de
+  ERA5-Land entre calor latente y calor sensible (más $G$), con la mediana de los tres productos.}
+  \label{fig:gradiente_energia}
+\end{figure}
+
+% Aprobado por Juan (26 nov, «Melo»).
+La \ETo{} baja 9~\% por cada kilómetro de altura, y la ET real de los productos baja más: 30~\%/km en GLEAM,
+26~\%/km en SSEBop v6.1 y 11~\%/km en TerraClimate (Fig.~\ref{fig:gradiente}).
+% Texto de Juan: temp/textos_informe/fase9a_conclusion.md (tal cual, pasado a LaTeX).
+La ET baja con la altura porque, debido a la disminución de T, baja el déficit de vapor, y porque, aunque haya mayor Rn, la fracción de Rn que se va a
+calor latente (evaporar) disminuye con la altura (Fig.~\ref{fig:gradiente_energia}).
+
+La Fig.~\ref{fig:gradiente_energia} ayuda a separar las causas. Si la superficie estuviera siempre mojada, la fracción
+de la energía que se va a evaporar dependería solo de la temperatura, a través de $\Delta/(\Delta+\gamma)$, y esa
+fracción apenas baja con la altura, de 0.70 a 0.65. La fracción real de GLEAM, $\lambda\mathrm{ET}/R_n$, cae mucho
+más, de 0.84 a 0.43. El frío explica entonces una parte pequeña de la caída; el resto viene de la superficie: arriba
+hay páramo, menos hojas y más nubes. La $R_n$ que sube con la altura es la real de ERA5-Land; la del pasto de
+referencia baja 3~\%/km.
+
+Este resultado se lee con cuidado. La ET por altura sale de productos, que son modelos y no medidas, y GLEAM tiene de
+1 a 5 celdas por banda. Una explicación alternativa es que los productos subestimen la ET en la parte alta, porque
+no representan bien la niebla ni las nubes.
+
+\paragraph{Resistencia de superficie.}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{resistencia_superficie.png}
+  \caption{Arriba: $r_s$ efectiva despejada de GLEAM v4.3a y de SSEBop v6.1 frente a la altura (mediana y
+  cuartiles de los meses), con la $r_a$ por cobertura y, como sensibilidad, con la del pasto. Abajo: ciclo anual de
+  la $r_s$ con SSEBop v6.1 en cada punto.}
+  \label{fig:rs}
+\end{figure}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{jarvis_lai.png}
+  \caption{Arriba: $r_s$ y $r_s\cdot\mathrm{LAI}$ frente a la altura. Abajo: LAI de MCD15A3H en la celda de cada
+  punto.}
+  \label{fig:jarvis}
+\end{figure}
+
+% Aprobado por Juan (26 nov, «Bn»).
+La resistencia de superficie $r_s$ mide cuánto le cuesta a la superficie soltar agua. Se despejó de \PM{} con la ET
+de GLEAM y de SSEBop v6.1, y sube con la altura: $+113$~s/m por km con SSEBop y $+140$ con GLEAM
+(Fig.~\ref{fig:rs}). Puede subir por dos razones: porque las hojas cierran sus estomas o porque hay menos hojas. Para
+separarlas se multiplicó $r_s$ por el LAI, lo que da una resistencia por hoja (Fig.~\ref{fig:jarvis}). Con SSEBop esa
+resistencia por hoja no sube con la altura ($-86$~s/m por km), mientras que el LAI baja de cerca de 3 en los puntos
+bajos a 1.2--1.7 en los altos.
+
+También se intentó medir cómo responde la $r_s$ al déficit de vapor, con una función de tipo Jarvis. El coeficiente
+ajustado salió de 5 a 34 veces el de la tabla de \citet{gehrke2021} (0.03~hPa$^{-1}$ para árboles), un valor que no es
+físico. La razón es que el déficit ya está dentro de la ecuación con la que se despejó $r_s$, así que el ajuste ve su
+propia fórmula y no una respuesta de los estomas.
+
+% Texto de Juan: temp/textos_informe/fase9f_conclusion.md (tal cual, pasado a LaTeX).
+La superficie frena más la evaporación arriba, y eso se explica por menor área foliar (páramo), no por cierre
+estomático; con estos datos no se puede estimar la respuesta al déficit.
+
+Hay tres limitaciones. En los puntos bajos, la ET de GLEAM supera en 134 a 196 de 296 meses lo que \PM{} permite aun
+con $r_s = 0$, y en esos meses no hay solución. El LAI de los puntos altos es dudoso por las nubes: cerca de la mitad
+de los píxeles salen del algoritmo de respaldo de MODIS. Y como la cuenca está limitada por energía, la $r_s$ cambia
+cómo se reparte la energía, no cuánta agua hay disponible.
 
 \subsection{Punto 2}
-\pendiente{Resultados y recomendación de diseño con su incertidumbre (compañera).}
+\input{punto2_resultados}
 
-% =====================================================================================================
+% =====================================================================================================================
 \section{Conclusiones}
-\pendiente{Respuesta a las preguntas iniciales, sin repetir cifras ni traer resultados nuevos.}
+\subsection*{Punto 1}
+% Respuestas de Juan (27 nov, en el hilo), redactadas sin cifras por la IA como pide el enunciado; Juan pidió escribirlas.
+\begin{enumerate}
+  \item La demanda atmosférica de la cuenca la controla casi toda la energía disponible; el término aerodinámico pesa
+  poco.
+  \item La cuenca devuelve a la atmósfera menos de la mitad de la lluvia, con una incertidumbre del orden de la propia
+  ET, dominada por la diferencia entre IMERG y los pluviómetros y por el error del caudal.
+  \item La ET está limitada por energía casi todo el año; solo enero está principalmente limitado por el agua, porque
+  es el único mes con $\varphi > 1$ (Sec.~\ref{sec:energia_agua}).
+\item La demanda no muestra una tendencia significativa entre 1981 y 2022; el pequeño aumento se asocia sobre todo
+  al calentamiento, una vez corregido el salto de la radiación del reanálisis.
+  \item Lo que distingue a la cuenca es su gradiente de altura: la demanda baja al subir y, en las partes altas, la
+  vegetación más rala (menor LAI) aumenta la resistencia de superficie, de modo que la ET la frenan la energía y la
+  cobertura, no la falta de agua.
+\end{enumerate}
 
-% =====================================================================================================
+\subsection*{Punto 2}
+
+% Texto de Andrea (27 nov) tal cual, salvo el dato de NOAA de (1), que la IA corrigió con el CSV (aprobado por Juan, 27 nov).
+En relación con las preguntas planteadas para el punto 2, se concluye que: (1) la serie horaria de 45~años válidos en
+Denver Stapleton permite ajustar curvas IDF mediante LP3/LMOM y Talbot--Wenzel que caen dentro del
+intervalo de confianza del 90~\% de NOAA Atlas 14 para $T \geq 25$~años, y por debajo de él para $T \leq 10$~años,
+aunque la caída de completitud instrumental después de 1973 introduce una inhomogeneidad significativa
+($p = 0.00082$) que obliga a interpretar con cautela las tendencias aparentes y los periodos de retorno extremos; (2)
+para $T = 50$~años, la incertidumbre en el dimensionamiento de la alcantarilla está dominada por el tiempo de
+concentración y por la extrapolación subhoraria de la IDF desde registros horarios, por lo que frente al diámetro
+comercial mínimo de 1\,500~mm (FS $= 1.08$), que resulta superado en los escenarios de sensibilidad, se recomienda
+adoptar el diámetro comercial de 1\,650~mm ($Q_c = 8.91$~m$^3$/s, FS $= 1.39$) para reducir el riesgo efectivo
+durante los 25~años de vida útil; (3) en el tanque de detención tras urbanizar la microcuenca, el tránsito demuestra
+que el patrón temporal de la tormenta controla el almacenamiento requerido, pues a igual lámina total una lluvia con
+pico al final demanda un 43~\% más de volumen que una con pico inicial (36\,597 frente a 25\,642~m$^3$) al saturar el
+vaso antes de que el orificio evacúe el caudal; y (4) los análisis complementarios confirman que el modelo LP3/LMOM es
+ligeramente más conservador que POT-GPD en periodos de retorno altos, que un calentamiento de $+2$~°C eleva el caudal
+de diseño a 7.33~m$^3$/s superando la capacidad del tubo de 1\,500~mm (6.91~m$^3$/s), y que un diámetro igual o
+superior a 1\,500~mm evita fallas en toda la serie histórica ($\alpha = 1.000$). Estas recomendaciones tienen alcance
+de predimensionamiento, ya que la cuenca proviene de un modelo digital de superficie (Copernicus DSM) sin validación
+frente a la red pluvial construida y no se contó con una IDF de malla homogénea para contrastar la reducción areal.
+
+
+% =====================================================================================================================
 \section{Uso de inteligencia artificial}
-\pendiente{Declaración desde \texttt{anexos/bitacora\_ia.md}: herramientas y versión, tareas, qué se verificó y cómo,
-qué se rechazó o corrigió y la contribución de cada integrante.}
+
+% Declaración de IA aprobada por Juan (27 nov).
+
+Se usó Claude (Anthropic) a través de Claude Code, dentro de un proyecto de claude.ai conectado al repositorio del
+grupo. Cada tarea se pidió en una conversación aparte y queda registrada en \path{anexos/bitacora_ia.md}; las
+decisiones de método, con su justificación, están en \path{anexos/decisiones.md}.
+
+\paragraph{Qué hizo la IA.} Escribió el código de descarga y procesamiento del punto 1 (\texttt{codigo/punto1/}),
+las figuras y las tablas; propuso opciones de método con su evidencia (puntos de ERA5-Land, comparación de métodos por
+superficie, incertidumbre del balance); explicó conceptos cuando se le pidió; armó los borradores de la metodología,
+de la introducción y de esta declaración, e hizo auditorías del código y de las citas. En las fases 7 a 9 hizo además
+el código y las figuras del espacio de Budyko, las tendencias, el gradiente con la altura y la resistencia de
+superficie, y armó este informe en LaTeX con los textos del grupo.
+
+\paragraph{Qué decidió y verificó el grupo.} Las decisiones de método las tomó el grupo: los 6 puntos de ERA5-Land,
+los métodos de la fase 4, la lluvia $\bar{P}$, la incertidumbre al 95~\%, el criterio de meses limitados por agua y el
+periodo de las tendencias, entre otras. Cuando el agente tomó una decisión con el grupo ausente (fase 6), la dejó
+marcada y el grupo la revisó: aprobó $\sigma_P$, cambió $\sigma_Q$ a su valor al 95~\% y cambió el año hidrológico por
+el calendario. La \ETo{} se verificó a mano en un día (\texttt{anexos/punto1/dia\_verificado\_a\_mano.xlsx}), las
+pruebas de estación en un mes (\texttt{mes\_estacion\_a\_mano.xlsx}) y los métodos en un mes
+(\texttt{metodos\_mes\_a\_mano.xlsx}). La mayoría de los textos de resultados y discusión los escribió
+el grupo y la IA los criticó. En algunos párrafos de resultados del punto 1 (ET real, fracción evaporativa, tendencias,
+gradiente con la altura y resistencia de superficie) y en las conclusiones del punto 1, las conclusiones son del grupo
+y la IA solo ayudó con la redacción; el grupo revisó y aprobó el texto final.
+
+\paragraph{Qué se rechazó o corrigió.} Una HR de 79.4~\% calculada fuera del repositorio se reemplazó por la del
+script (79.3~\%). La primera ETo de estación usaba un viento supuesto de 2~m/s; se cambió por el medido en
+Mogotes-AUT. El Penman de la fase 4 se había programado como evaporación de agua libre (E$_0$); se reconoció como \ETo{} de FAO-24 ($c = 0.8$) y se compara como tal.
+
+\paragraph{Punto 2.} % Texto de Andrea (27 nov) tal cual.
+Se usó Codex (OpenAI) como apoyo en la programación y depuración de los scripts del punto 2, la estructura de las
+pruebas de calidad de GHCNh, el ajuste de distribuciones por momentos, la regresión isotónica, la simulación de Monte
+Carlo y el tránsito por piscina nivelada.
+
+Las decisiones hidrológicas e hidráulicas las tomó la integrante 2: la regla doble de completitud anual ($>80$~\%
+anual y $>90$~\% en abril--septiembre), la selección de LP3/LMOM y Talbot--Wenzel, la adopción de $t_c = 60$~min para
+representar el flujo laminar inicial, la recomendación del diámetro comercial de 1\,650~mm para cubrir la
+sensibilidad y la definición de los escenarios del tanque de detención. Todos los cálculos de Manning, capacidades a
+tubo lleno, laminación en el tanque y análisis de riesgo fueron verificados manualmente contra los archivos CSV
+generados y las referencias del curso.
+
+Al integrarlo a esta entrega, la IA auditó y reprodujo sus scripts, pasó su texto al informe sin
+reescribirlo y escribió el script de cifras \path{codigo/punto2/06_cifras_informe.py}. Las decisiones de diseño las
+tomó el grupo.
+
+\paragraph{Contribución de cada integrante.} % Texto de Andrea (27 nov); el final del documento venía cortado y la
+% IA agregó la unificación del informe y las diapositivas y cerró el paréntesis; sin el Anexo B, que se borró (Juan, 27 nov).
+Juan Pablo Gómez desarrolló el punto 1 (descarga, procesamiento, validación y análisis de la evapotranspiración en la
+cuenca del río Fonce), la unificación del informe y las diapositivas. Andrea Gómez Mahecha desarrolló
+íntegramente el punto 2 (depuración de lluvia horaria en Denver, curvas IDF, validación con NOAA Atlas 14,
+delimitación de la microcuenca, diseño de alcantarilla y tanque de detención, y análisis complementarios de
+riesgo).
 
 \bibliographystyle{plainnat}
 \bibliography{referencias}
+
+\appendix
+\section{Escalón de la radiación solar de ERA5-Land}\label{anx:escalon_rs}
+\begin{figure}[!htbp]\centering
+  \includegraphics[width=\textwidth,height=0.6\textheight,keepaspectratio]{escalon_rs_chirps_1981_2022.png}
+  \caption{Residuo anual de la Rs de ERA5-Land frente a la lluvia de CHIRPS, 1981--2022, con el corte de Pettitt
+  (después de 2000, $p = 0.013$) y las medias antes y después. El salto de $+0.317$~MJ/m$^2$·d se suma a la Rs de
+  antes de 2001 en las tendencias.}
+  \label{fig:escalon_rs}
+\end{figure}
+
+
 
 \end{document}

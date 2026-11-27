@@ -528,8 +528,6 @@ sirven para tendencias.
 Thornthwaite: tendencia estadísticamente detectable con Mann-Kendall (p 0.015), pero pequeña en magnitud: +16 mm/año
 por década, cerca de 2 % por década; OLS con Newey-West no la confirma (p 0.086).
 
-**Atribución (Juan, 24 nov).** En veremos: con una ETo sin tendencia no vale la pena dedicarle mucho tiempo.
-
 ## 2026-11-24 · Punto 1 · Fase 9a: gradiente altitudinal (script 34)
 
 **Tema (Juan pidió avanzar el a).** Gradiente altitudinal. Propuestas del agente, pendientes de Juan:
@@ -640,3 +638,101 @@ que asimila el reanálisis; sin corregirlo, la tendencia de la ETo sería en par
 **Resultado 1981–2022 corregido.** ETo +4.2 mm/año por década (+0.37 %), no significativa (OLS Newey-West p 0.15, MK
 p 0.15, Pettitt p 0.21). Thornthwaite +10.6 (p < 0.001) y T +0.14 °C/década, sin cambio. Rs ya sin tendencia (p 0.75).
 Atribución: T +5.5, ea −0.6, u2 −0.1, Rs −0.6 mm/año por década; residuo +0.15. Sin corregir: ETo +9.5 (p 0.002).
+
+## Cita de Makkink (auditoría de citas, 26 nov)
+
+**Decisión (Juan, 26 nov, 5:00 p. m.).** Se quita Makkink (1957) de la lista de referencias; el informe dice que la
+ecuación se toma de las notas del curso (Hoyos). Recomendación del agente: la misma.
+**Razón.** Makkink (1957) no tiene DOI ni enlace (regla de citas). La ecuación y sus constantes (0.61 y −0.12) salen de
+las notas, y las notas tienen enlace. No se pudo confirmar en qué artículo de 1957 está la fórmula.
+
+## Penman con c = 0.8 (auditoría de citas, 26 nov)
+
+**Hallazgo.** En FAO-24, p. 15, el 0.8 es el coeficiente del Penman original (Eo) con tiempo en calma; el c de la
+forma de FAO-24 sale de su tabla 16 (p. 28). Recomendación del agente: mantener c = 0.8 y aclarar de dónde sale.
+**Decisión (Juan, 26 nov, 5:24 p. m.).** Se deja como está: c = 0.8 y el texto sin cambios («Yo interpreté que
+sugería 0.8»).
+
+## 2026-11-26 · Punto 2 · Una sola cuenca en todo el diseño; tc = 60 min
+
+**Decisión (Juan).** El tc del Problema A se queda en 60 min. No se llama «conservador» (un tc mayor da menos
+intensidad); se justifica porque Kerby-Hathaway (69.8), Témez (82.4) y NRCS (175.0) quedan por encima y Kirpich (45.5)
+es el valor bajo: solo cuenta el tránsito por el cauce y omite el flujo laminar inicial.
+**Decisión (Juan).** Todo el diseño usa la misma cuenca: área, longitud y pendiente del DEM (1.0269 km², 2 312 m,
+0.0095) y C = 0.495, CN = 78, tc = 60 min del Problema A. Antes, 04 usaba una cuenca supuesta (1.85 km², tc 35, C 0.52)
+y 05d fijaba a mano tc = 25.09 min, C = 0.55 e i = 40.96 mm/h. 04 pasa a 05e y lee la cuenca de 05a/05b; 05d la lee
+de `problemaA_alcantarilla.csv`. Problemas A y B no cambian. Efecto: con C = 0.495, ningún evento horario del registro
+supera la tubería de 1 500 mm (antes, el del 26-jul-1965); i* de la GEV pasa de 44.04 a 48.93 mm/h; los hidrogramas
+NRCS bajan (Qp T=50, D=2 h, AMC-II: 9.61 → 3.70 m³/s). Queda el factor C_f del escenario NRCS (1.10 en T=50), que
+hace que su Q racional (7.07) supere al del Problema A (6.43): decisión pendiente de Juan.
+
+## 2026-11-26 · Punto 2 · Sin factor de frecuencia C_f en la sección NRCS
+
+**Decisión (Juan).** C_f = 1 en todos los T del script 05e (antes 1.00/1.05/1.10/1.15, sin fuente).
+**Razón.** Evitar contradicciones aparentes: con C_f el racional de T = 50 daba 7.07 m³/s frente a 6.43 del Problema A
+para la misma cuenca. Ahora da 6.43 en los dos. Los hidrogramas NRCS no cambian (no usan C).
+
+## 2026-11-26 · Punto 2 · Diámetro recomendado: 1 650 mm
+
+**Decisión (Juan).** Se recomienda 1 650 mm, no el 1 500 mm nominal, y se dice la incertidumbre.
+**Razón.** Ser conservador: 1 500 mm cubre solo el caso central (requerido 1 460 mm); con la IDF alta, C +20 % o el t_c
+de Kirpich se piden 1 558, 1 563 y 1 576 mm. 1 650 mm es el diámetro de ASTM C76M más pequeño que cubre los tres. La
+serie comercial de 05b se amplió con 1 650 y 1 800 mm; Monte Carlo y bonificaciones siguen evaluando el de 1 500 mm.
+
+## 2026-11-25 · Punto 1 · Fase 10: de la ET al diseño (script 40, bono 1.6)
+
+**Serie (Juan, 25 nov).** Déficit climático máximo acumulado del año: D(t) = max(0, D(t−1) + ETo − P̄), mensual, ETo
+Penman–Monteith (FAO-56) y P̄ = (PI+PL)/2, 1998–2022. Descartadas: E0 − P̄ (negativa los 25 años), riego y humedad del
+suelo (supuestos nuevos). Advertencia del agente: el plan pide que el punto 2 esté en la misma cuenca y está en Denver;
+Juan revisa el enunciado.
+**Frecuencia.** Funciones del script 02 del punto 2, sin modificar: Gumbel, GEV y LP3 por momentos L; bootstrap de años,
+1 000 réplicas, semilla 42; T = 2, 5, 10 y 25.
+**Decisiones del agente, pendientes de Juan.** La suma no se reinicia el 1 de enero (la temporada seca cruza el año; el
+reinicio va como sensibilidad). Los 3 años con déficit 0 se tratan con distribución mixta, F = p0 + (1 − p0)·F+.
+**Resultado.** Media 42 mm, máximo 117 (2016), p0 = 0.12, sin tendencia (MK p 0.19). T = 10: 86 (Gumbel, IC 66–104),
+96 (GEV, 67–122), 88 mm (LP3, 68–107). T = 25: 110, 134 y 95 mm. Limitación: con meses el déficit queda subestimado.
+**Sin reinicio (Juan, 26 nov).** La suma no se reinicia en ninguna fecha; solo vuelve a 0 cuando llueve más de lo que falta.
+**Ceros y distribución (Juan, 26 nov).** Distribución mixta con p0 = 3/25 y **Gumbel** como principal; GEV y LP3 como
+sensibilidad. Razón: 2 parámetros con 25 años, mejor PPCC (0.992); GEV falla en 143 de 1 000 réplicas; LP3 tiene techo
+(≈ 99 mm) por debajo de los 117 mm de 2016. **Resultado: T = 10 años, 86 mm (IC 95 % 66–104); T = 25, 110 mm (83–132).**
+**Enunciado (Juan, 26 nov).** El bono 1.6 exige que el punto 2 use la misma cuenca o una con información equivalente; el
+punto 2 es Denver, así que la fase 10 va como anexo, sin reclamar el bono. Se probó rehacer la serie como la define el
+enunciado (Σ(ETo − P̄) de enero, el único mes con φ > 1), pero Juan decidió no seguir (es un extra opcional). Queda la
+serie del script 40.
+
+## 2026-11-26 · Punto 1 · Fase 9a: métodos aprobados
+
+**Decisión (Juan, 26 nov, 5:05 p. m.).** Se aprueban las cuatro propuestas del script 34: bandas de 500 m, recta contra la
+altura del modelo (la de la presión de ERA5-Land), pesos por píxel del DEM dentro de la cuenca y SSEBop v6.1 solo
+2012–2022. Tema principal: a; el f queda como complemento. Fase 9 cerrada.
+
+## 2026-11-24 · Punto 1 · HR media de la cuenca (texto de Hargreaves)
+
+**Decisión (Juan).** La HR que cita el texto de Hargreaves es el promedio simple de 5 estaciones del IDEAM (DHIME,
+1998–2022): La Sierra-AUT, Escuela Agrícola Mogotes, Charalá, Mogotes-AUT y Andalucía. Se dejan todos los días de
+Mogotes-AUT, también los 149 de 2016–2017 con HR menor de 30 %, que parecen falla del sensor. Resultado: 79.3 %
+(script 41, `productos/punto1/hr_estaciones.csv`).
+
+**Cómo se calcula.** Mogotes-AUT trae la HR media diaria; las otras cuatro, solo máxima y mínima, y su HR del día es
+el promedio de las dos. HR de cada estación = media de sus días válidos. El 79.4 % del borrador salió de un cálculo
+rápido fuera del repositorio que no se pudo reproducir; se reemplaza por el del script.
+
+## 2026-11-24 · Punto 1 · Qué es la pet de TerraClimate
+
+**Decisión (Juan).** La pet de TerraClimate v1.1 se describe como «ASCE Penman–Monteith de pasto corto (mismas
+constantes que FAO-56) con rs corregida por CO2». La ASCE corta diaria usa Cn = 900, Cd = 0.34, h = 0.12 m y
+rs = 70 s/m (ASCE-EWRI 2005, tablas 1 y 2), las de la ec. 6 de FAO-56; lo que la aparta es la corrección de rs por CO2
+(Yang et al., 2019). Cambia el texto del script 05 y del `.meta.json`; los datos no cambian.
+
+## 2026-11-27 · Punto 1 · Fase 10 fuera del informe
+
+**Decisión (Juan).** Se quita del informe el anexo B (déficit climático con la frecuencia del punto 2). El script 40 y
+sus productos siguen en el repositorio.
+
+## 2026-11-27 · Entrega · Datos sin grasa
+
+**Decisión (Juan).** De `datos/punto1/` se quita todo lo que ningún script de cálculo abre (comprobado con `strace` al
+correr los scripts): el resto de CAMELS-COL nacional, las 300 series mensuales de IMERG, el mapa geológico del SGC,
+ONI y TNA de NOAA, ERA5-Land de GEE de 1981–1997 y los pluviómetros de 1981. Las divisorias de CAMELS-COL y el IMERG de
+Colombia, que sí se leen, se recortan a la cuenca con el script 00b. Pasa de 907 a 477 MB; todos los productos salen
+iguales. `temp/` no se borra: se queda en el repositorio y solo se deja fuera del ZIP.

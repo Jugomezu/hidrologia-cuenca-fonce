@@ -77,20 +77,16 @@ def main():
     por_mes.round(3).to_csv(SALIDA_POR_MES)
     resumen.round(3).to_csv(SALIDA_RESUMEN)
 
-    figura, (izq, der) = plt.subplots(1, 2, figsize=(13, 4.3), gridspec_kw={"width_ratios": [2, 1]})
-    fechas = pd.to_datetime(datos["mes"])
-    izq.plot(fechas, datos["eto_fao56"], color="#1B6A80", lw=1.3, label="ETo FAO-56 (este trabajo)")
-    izq.plot(fechas, datos["pet_terraclimate"], color="#CC79A7", lw=1.3, ls="--", label="pet TerraClimate v1.1")
-    izq.set_ylabel("mm/mes")
-    izq.set_title("Serie mensual de la cuenca, 1998–2022", fontsize=10)
+    # Solo el ciclo anual: la serie mensual se quitó del informe (Juan, 26 nov).
+    figura, der = plt.subplots(figsize=(6.5, 3.6))
     x = range(1, 13)
     der.plot(x, por_mes["eto_fao56_media"], "o-", color="#1B6A80", label="ETo FAO-56 (este trabajo)")
     der.plot(x, por_mes["pet_terraclimate_media"], "s--", color="#CC79A7", label="pet TerraClimate")
     der.set_xticks(list(x), MESES)
-    der.set_title("Ciclo anual (media por mes)", fontsize=10)
-    for eje in (izq, der):
-        eje.grid(alpha=0.3)
-        eje.legend(fontsize=8, loc="lower left")
+    der.set_ylabel("mm/mes")
+    der.set_title("Ciclo anual de la cuenca (media por mes, 1998–2022)", fontsize=10)
+    der.grid(alpha=0.3)
+    der.legend(fontsize=8, loc="lower left")
     figura.tight_layout()
     figura.savefig(SALIDA_FIGURA, dpi=150)
 

@@ -124,7 +124,8 @@ def main():
 
 def figura(tabla, resumen):
     colores = {"GLEAM v4.3a": "#CC79A7", "SSEBop v6.1": "#E69F00"}
-    fig, ejes = plt.subplots(1, 3, figsize=(16, 4.8))
+    # Sin el panel del déficit: Juan lo quitó del informe (26 nov); el ajuste sigue en el CSV.
+    fig, ejes = plt.subplots(2, 1, figsize=(6.5, 6.6))
     for prod, r in resumen.groupby("producto"):
         r = r.sort_values("z_modelo_m")
         ejes[0].plot(r["rs_mediana_sm"], r["z_modelo_m"], "o--", color=colores[prod], alpha=0.5, label=f"{prod}: rs")
@@ -141,20 +142,6 @@ def figura(tabla, resumen):
     ejes[1].set_xlabel("LAI de MODIS, mediana mensual (m²/m²)")
     ejes[1].set_ylabel("altura del modelo (m)")
     ejes[1].set_title("Índice de área foliar (MCD15A3H)")
-    s = tabla[tabla["producto"] == "SSEBop v6.1"]
-    z = s.groupby("punto")["z_modelo_m"].first()
-    for n, g in s.groupby("punto"):
-        color = plt.cm.viridis((z[n] - 1600) / 1500)
-        ejes[2].scatter(g["deficit_hPa"], g["f_total"], s=8, color=color, alpha=0.6, label=f"punto {n} ({z[n]:.0f} m)")
-        fila = resumen[(resumen["producto"] == "SSEBop v6.1") & (resumen["punto"] == n)].iloc[0]
-        x = np.linspace(g["deficit_hPa"].min(), g["deficit_hPa"].max(), 20)
-        corte = np.log(g["f_total"]).mean() - fila["g_deficit_por_hPa"] * g["deficit_hPa"].mean()
-        ejes[2].plot(x, np.exp(corte + fila["g_deficit_por_hPa"] * x), color=color)
-    ejes[2].set_yscale("log")
-    ejes[2].set_xlabel("déficit de presión de vapor D (hPa)")
-    ejes[2].set_ylabel("f_total = rs · LAI / rc,min")
-    ejes[2].set_title("SSEBop v6.1: castigo total frente al déficit")
-    ejes[2].legend(fontsize=7, ncol=2)
     fig.tight_layout()
     fig.savefig(SALIDA_FIGURA, dpi=150)
 

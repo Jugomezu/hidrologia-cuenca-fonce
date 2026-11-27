@@ -11,7 +11,9 @@ pyproj==3.8.0
 rasterio==1.5.2
 openpyxl==3.1.5
 matplotlib==3.11.2
+scipy==1.18.1
 requests==2.34.2
+pysheds==0.5   # delimitación de la microcuenca del punto 2 (05a)
 # Solo para las descargas (scripts de descarga del punto 1; necesitan cuenta y clave propias, fuera de la carpeta):
 cdsapi==0.7.7
 earthengine-api==1.7.53

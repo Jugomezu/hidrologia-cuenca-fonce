@@ -65,7 +65,7 @@ UTM 13N.
 \paragraph{Problema A: alcantarilla circular.} Predimensionamiento con geometría leída de los metadatos DEM, cobertura
 periurbana ponderada, IDF LP3/LMOM y Talbot--Wenzel, Manning a tubo lleno y diámetro comercial superior. El diseño usa
 $T=50$ años y contrasta el criterio de riesgo con \citet{chow1988}. El $t_c$ de diseño es 60~min: Kerby--Hathaway
-(69.8; \citealp{txdot_hdm}), Témez (82.4) y NRCS-SCS Lag (175.0~min; \citealp{nrcs2010cap15}) quedan por encima; Kirpich (45.5~min; \citealp{txdot_hdm}) es el valor bajo porque solo
+(69.8; \citealp{txdot_hdm}), Témez (82.4; en la forma de la norma 5.2-IC, \citealp{fom2016}) y NRCS-SCS Lag (175.0~min; \citealp{nrcs2010cap15}) quedan por encima; Kirpich (45.5~min; \citealp{txdot_hdm}) es el valor bajo porque solo
 representa el tránsito por el cauce y omite el flujo laminar inicial.
 
 \paragraph{Problema B: tanque de detención por urbanización.} El escenario cambia de $C=0.495$ y $t_c=60$~min a
@@ -91,7 +91,7 @@ $\mathrm{FRC}\cdot C_\mathrm{obra}$ y daño anual esperado integrado entre $p=0$
 secas. El umbral seleccionado genera alrededor de dos eventos por año válido; se ajustó GPD \citep{coles2001} a los excesos con
 convención scipy $c=+\xi$ y se transformó el retorno de evento a retorno AMS mediante \citet{langbein1949}.
 
-\paragraph{Cambio climático y GEV no estacionaria.} La curva IDF se escala con 7~\% por °C. La GEV evalúa
+\paragraph{Cambio climático y GEV no estacionaria.} La curva IDF se escala con 7~\% por °C, la tasa de Clausius--Clapeyron \citep{fowler2021}. La GEV evalúa
 $\mu(t)=\mu_0+\mu_1 t$ en $t_\mathrm{final}+25$ años contra el umbral fijo $i^*=48.93$~mm/h.
 
 \paragraph{Confiabilidad, resiliencia y vulnerabilidad.} Hashimoto \citep{hashimoto1982} se calculó con caudal horario, Weiss $=1.14$ y

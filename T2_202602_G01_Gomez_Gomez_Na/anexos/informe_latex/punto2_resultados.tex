@@ -75,13 +75,13 @@ debe derivarse con series y periodos comparables. Los CSV no contienen IDF de ce
 una razón numérica malla/punto.
 
 % Aporte de Andrea (27 nov). La IA corrigió dos datos que no coinciden con idf_comparacion_oficial_y_evento.csv
-% (en azul, \cambioIA): las duraciones comparadas van de 1 a 24 h, y solo 18 de 36 casos caen en la banda de NOAA.
+% (aprobado por Juan, 27 nov): las duraciones comparadas van de 1 a 24 h, y solo 18 de 36 casos caen en la banda de NOAA.
 \paragraph{Validación con NOAA Atlas 14.} Al comparar las 36 combinaciones
-(\cambioIA{$d = 1$ a 24~h}, $T = 2$ a 100~años) de nuestra curva IDF (LP3/LMOM--Talbot/Wenzel, donde
+($d = 1$ a 24~h, $T = 2$ a 100~años) de nuestra curva IDF (LP3/LMOM--Talbot/Wenzel, donde
 $i(1\text{ h}, T = 50\text{ años}) = 45.51$~mm/h) contra las profundidades PDS puntuales obtenidas del servidor
-oficial NOAA HDSC para Denver Stapleton \citep{perica2013}, \cambioIA{los valores ajustados quedan dentro de la
+oficial NOAA HDSC para Denver Stapleton \citep{perica2013}, los valores ajustados quedan dentro de la
 banda del 90~\% de NOAA en los 18 casos con $T \geq 25$~años, y por debajo de ella en los 18 con $T \leq 10$~años, con
-sesgos de $-17$ a $-28$~\%; para $T = 50$~años y 1~h, 45.51 frente a 53~mm/h ($-14$~\%).} Las diferencias respecto
+sesgos de $-17$ a $-28$~\%; para $T = 50$~años y 1~h, 45.51 frente a 53~mm/h ($-14$~\%). Las diferencias respecto
 al valor central de NOAA responden a que nuestra serie evalúa máximos anuales puntuales (AMS) de una sola estación
 horaria corregida por \citet{weiss1964}, mientras que NOAA Atlas 14 regionaliza múltiples estaciones empleando series
 de duración parcial (PDS) y registros pluviográficos subhorarios.

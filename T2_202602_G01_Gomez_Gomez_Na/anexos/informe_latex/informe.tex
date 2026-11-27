@@ -33,6 +33,12 @@
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf}
 \usepackage{float}
+% Regla de Juan (26 nov): ninguna figura sale de su sección. Barrera de flotantes en cada sección, subsección y
+% subsubsección (y una figura de la sección nueva no puede subir por encima de su título).
+\usepackage[section,below]{placeins}
+\usepackage{etoolbox}
+\pretocmd{\subsection}{\FloatBarrier}{}{\PackageError{informe}{no se pudo parchar subsection}{}}
+\pretocmd{\subsubsection}{\FloatBarrier}{}{\PackageError{informe}{no se pudo parchar subsubsection}{}}
 % Flotantes cerca de donde se citan (pedido de Juan, 26 nov)
 \renewcommand{\topfraction}{0.9}
 \renewcommand{\bottomfraction}{0.8}

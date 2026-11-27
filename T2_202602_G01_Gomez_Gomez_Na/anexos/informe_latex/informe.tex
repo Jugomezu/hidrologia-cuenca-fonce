@@ -228,8 +228,15 @@ el 0.12~\% de su área (e).
   \caption{Ciclo anual de la \ETo{} \PM{} de la cuenca (media 1998--2022).}
   \label{fig:eto_ciclo}
 \end{figure}
-\pendiente{Juan: valor anual de la \ETo{} (\cifraETo~mm/año), su ciclo (Fig.~\ref{fig:eto_ciclo}) y qué la
-controla.}
+% Texto de Juan (26 nov, en el hilo), con las variables y las cifras llenadas.
+La \ETo{} de referencia se construyó con el método de \PM, como se ilustra en el FAO-56 \citep{allen1998},
+utilizando datos horarios de ERA5-Land \citep{munoz2021}: la temperatura del aire a 2~m (para Tmáx, Tmín y la
+temperatura media), la temperatura de rocío a 2~m (para $e_a$), el viento a 10~m (para $u_2$), la radiación solar
+entrante en superficie (Rs) y la presión en superficie (para $\gamma$), y obteniendo el resto ($e_s$, $\Delta$ y $R_n$)
+con las ecuaciones que provee FAO-56. Esta \ETo{} tiene un valor promedio de \cifraETo~mm/año, y su comportamiento es
+muy similar a lo largo del año, disminuyendo un poco en las épocas lluviosas debido a aumentos en la nubosidad que
+reducen Rn (Fig.~\ref{fig:eto_ciclo}). El término radiativo es el 92~\% de la \ETo{} (91 a 94~\% según el mes;
+Fig.~\ref{fig:terminos_alfa}).
 
 \subsubsection{¿Qué tan buena es la referencia?}
 \begin{figure}[htbp]\centering
@@ -247,8 +254,16 @@ controla.}
   \caption{Nuestra \ETo{} frente a la pet de TerraClimate, promedio de la cuenca.}
   \label{fig:terraclimate}
 \end{figure}
-\pendiente{Juan: resultado de las dos pruebas (Figs.~\ref{fig:rs_estaciones}, \ref{fig:pruebas_estaciones} y \ref{fig:terraclimate}), la
-dispersión y sus limitaciones.}
+\borradorIA{Redactado por la IA (pedido de Juan, 26 nov); falta el visto bueno de Juan.}
+La \ETo{} se probó de dos formas. Primero, contra la \ETo{} calculada con datos de tres estaciones del IDEAM. ERA5-Land
+da más Rs que la que sale del brillo solar con Angstrom ($+1.8$ en Mogotes, $+4.7$ en La Sierra y $+2.3$~MJ/m$^2$·d
+en Charalá; Fig.~\ref{fig:rs_estaciones}), pero la \ETo{} casi coincide: $-0.08$, $+0.66$ y $-0.16$~mm/d
+(Fig.~\ref{fig:pruebas_estaciones}). Segundo, contra la pet de TerraClimate: nuestra \ETo{} queda 11.8~\% por encima
+(\cifraETo{} frente a 1\,043~mm/año), con $r = 0.97$ (Fig.~\ref{fig:terraclimate}). La diferencia entre las dos
+pruebas, 5.0 puntos porcentuales (de 1.2 a 8.5 según el mes), se toma como la incertidumbre de la referencia y es la
+banda con la que se juzgan los otros métodos. Limitaciones: solo hay tres estaciones, todas por debajo de 2\,900~m; la
+Rs de estación no se mide, sale de Angstrom; y TerraClimate no es del todo independiente, porque sus anomalías vienen
+de ERA5.
 
 \subsubsection{Métodos de otras familias y sus diferencias}
 \begin{figure}[htbp]\centering

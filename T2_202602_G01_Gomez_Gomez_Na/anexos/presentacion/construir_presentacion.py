@@ -57,7 +57,7 @@ diapositiva(0.3, "inicio", f"""
     <h1>Evapotranspiración en la cuenca del río Fonce y diseño hidrológico</h1>
     <p class="sub">Cuánta agua devuelve una cuenca andina a la atmósfera, y cómo dimensionar una obra
     de drenaje con lluvia horaria</p>
-    <div class="autores"><span>Juan Pablo Gómez</span><span>Andrea Gómez</span></div>
+    <div class="autores"><span>Juan Pablo Gómez</span><span>Andrea Gómez Mahecha</span></div>
   </div>
   <div class="portada-fig">{figura("punto1/mapa_cuenca_estaciones.png", alto_px=930, alt="Mapa de la cuenca del río Fonce")}</div>
 </div>
